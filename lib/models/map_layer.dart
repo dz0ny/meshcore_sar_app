@@ -9,7 +9,7 @@ class MapLayer {
   final String name;
   final String urlTemplate;
   final String attribution;
-  final int maxZoom;
+  final double maxZoom;
 
   const MapLayer({
     required this.type,
@@ -24,7 +24,7 @@ class MapLayer {
     name: 'OpenStreetMap',
     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '© OpenStreetMap contributors',
-    maxZoom: 19,
+    maxZoom: 19, // OSM standard maximum
   );
 
   static const openTopoMap = MapLayer(
@@ -32,7 +32,7 @@ class MapLayer {
     name: 'OpenTopoMap',
     urlTemplate: 'https://a.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution: '© OpenTopoMap (CC-BY-SA)',
-    maxZoom: 17,
+    maxZoom: 17.49, // OpenTopoMap maximum (just below level 18)
   );
 
   static const esriWorldImagery = MapLayer(
@@ -41,7 +41,7 @@ class MapLayer {
     urlTemplate:
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: '© Esri',
-    maxZoom: 19,
+    maxZoom: 19, // ESRI World Imagery maximum
   );
 
   static const List<MapLayer> allLayers = [

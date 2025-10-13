@@ -363,6 +363,41 @@ GestureDetector(
 )
 ```
 
+### Detailed Compass Dialog
+
+**Location Display** (lib/screens/map_tab.dart):
+- Ultra-compact location format display with tap-to-toggle formats
+- Tap location text to switch between DD and DMS formats
+- No labels - just the coordinates for maximum space efficiency
+- Two formats available:
+  - DD (Decimal Degrees): 5 decimal places (e.g., "46.05690, 14.50580")
+  - DMS (Degrees, Minutes, Seconds): Traditional format (e.g., "46°03'24.84"N, 14°30'20.88"E")
+- Monospace font for coordinate values
+
+**Dialog Controls**:
+- Tap anywhere outside interactive elements to close dialog
+- Tap location coordinates to toggle format
+- No close button - cleaner, more compact interface
+
+```dart
+class _LocationFormatToggle extends StatefulWidget {
+  bool _showDMS = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayText = _showDMS
+        ? 'DMS format with newline'
+        : 'DD format single line';
+
+    return GestureDetector(
+      onTap: () => setState(() => _showDMS = !_showDMS),
+      behavior: HitTestBehavior.opaque,
+      child: Container(/* compact display */),
+    );
+  }
+}
+```
+
 ## Building and Development
 
 ### Development Commands

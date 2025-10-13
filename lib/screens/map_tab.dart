@@ -17,6 +17,7 @@ import '../models/sar_marker.dart';
 import '../models/map_layer.dart';
 import '../services/tile_cache_service.dart';
 import '../widgets/map_markers.dart';
+import '../widgets/map_debug_info.dart';
 import 'map_management_screen.dart';
 
 class MapTab extends StatefulWidget {
@@ -35,6 +36,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   double? _compassHeading; // Compass sensor heading
   bool _rotateMarkerWithHeading = false; // Toggle for rotation
   bool _showLegend = false;
+  bool _showMapDebugInfo = false; // Toggle for debug info
   double _gpsUpdateDistance = 3.0; // meters
   StreamSubscription<Position>? _positionStreamSubscription;
   StreamSubscription<CompassEvent>? _compassStreamSubscription;
@@ -80,14 +82,19 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           });
 
           // Rotate map if rotation mode is enabled and we have compass heading
-          if (_rotateMarkerWithHeading && event.heading != null) {
-            // Use moveAndRotate to set absolute rotation
-            final camera = _mapController.camera;
-            _mapController.moveAndRotate(
-              camera.center,
-              camera.zoom,
-              -event.heading!,
-            );
+          // Only rotate if map is initialized
+          if (_rotateMarkerWithHeading && event.heading != null && _isInitialized) {
+            try {
+              // Use moveAndRotate to set absolute rotation
+              final camera = _mapController.camera;
+              _mapController.moveAndRotate(
+                camera.center,
+                camera.zoom,
+                -event.heading!,
+              );
+            } catch (e) {
+              // Map not ready yet, ignore
+            }
           }
         }
       },
@@ -102,15 +109,24 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
       final lastLon = prefs.getDouble('map_last_longitude');
       final lastZoom = prefs.getDouble('map_last_zoom');
 
+      // Load last map layer if available
+      final lastLayerIndex = prefs.getInt('map_last_layer');
+
       setState(() {
         _showLegend = prefs.getBool('map_show_legend') ?? false;
         _rotateMarkerWithHeading = prefs.getBool('map_rotate_with_heading') ?? false;
+        _showMapDebugInfo = prefs.getBool('map_show_debug_info') ?? false;
         _gpsUpdateDistance = prefs.getDouble('map_gps_update_distance') ?? 3.0;
 
         // Store saved position for use in build
         if (lastLat != null && lastLon != null && lastZoom != null) {
           _savedMapCenter = LatLng(lastLat, lastLon);
           _savedMapZoom = lastZoom;
+        }
+
+        // Restore last used map layer
+        if (lastLayerIndex != null && lastLayerIndex >= 0 && lastLayerIndex < MapLayer.allLayers.length) {
+          _currentLayer = MapLayer.allLayers[lastLayerIndex];
         }
       });
     }
@@ -120,7 +136,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('map_show_legend', _showLegend);
     await prefs.setBool('map_rotate_with_heading', _rotateMarkerWithHeading);
+    await prefs.setBool('map_show_debug_info', _showMapDebugInfo);
     await prefs.setDouble('map_gps_update_distance', _gpsUpdateDistance);
+    await prefs.setInt('map_last_layer', MapLayer.allLayers.indexOf(_currentLayer));
   }
 
   Future<void> _saveMapPosition() async {
@@ -317,6 +335,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     setState(() {
                       _currentLayer = layer;
                     });
+                    _saveSettings();
                     Navigator.pop(context);
                   },
                 )),
@@ -349,12 +368,14 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   void _showOptionsMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
@@ -462,7 +483,23 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   ],
                 ),
               ),
+              const Divider(),
+              // Map Debug Info toggle
+              SwitchListTile(
+                secondary: const Icon(Icons.developer_mode),
+                title: const Text('Show Map Debug Info'),
+                subtitle: const Text('Display zoom level and bounds'),
+                value: _showMapDebugInfo,
+                onChanged: (value) {
+                  setState(() {
+                    _showMapDebugInfo = value;
+                  });
+                  setModalState(() {});
+                  _saveSettings();
+                },
+              ),
             ],
+            ),
           ),
         ),
       ),
@@ -529,8 +566,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                       // Use saved position if available, otherwise use calculated center
                       initialCenter: _savedMapCenter ?? center,
                       initialZoom: _savedMapZoom ?? _defaultZoom,
-                      minZoom: 5,
-                      maxZoom: 18,
+                      minZoom: 0, // Allow full zoom out to see world view
+                      maxZoom: _currentLayer.maxZoom, // Respect current layer's maximum
                       interactionOptions: const InteractionOptions(
                         flags: InteractiveFlag.all,
                       ),
@@ -546,7 +583,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         urlTemplate: _currentLayer.urlTemplate,
                         tileProvider: _tileCache.getTileProvider(_currentLayer),
                         userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: _currentLayer.maxZoom.toDouble(),
+                        maxZoom: _currentLayer.maxZoom,
                       ),
                       MarkerLayer(
                         markers: [
@@ -697,6 +734,13 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                 ],
               ),
             ),
+            // Map debug info - bottom left
+            if (_showMapDebugInfo && _isInitialized)
+              Positioned(
+                bottom: 16,
+                left: 16,
+                child: MapDebugInfo(mapController: _mapController),
+              ),
           ],
         );
       },
@@ -935,6 +979,9 @@ class _DetailedCompassDialogState extends State<_DetailedCompassDialog> {
   Position? _currentPosition;
   StreamSubscription<CompassEvent>? _compassSubscription;
   StreamSubscription<Position>? _positionSubscription;
+  double _zoomLevel = 1.0; // 1.0 = default, 0.5 = zoomed out 2x, 2.0 = zoomed in 2x
+  static const double _minZoom = 0.25;
+  static const double _maxZoom = 4.0;
 
   @override
   void initState() {
@@ -991,46 +1038,56 @@ class _DetailedCompassDialogState extends State<_DetailedCompassDialog> {
     final position = _currentPosition;
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header - just close button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            // Heading and Elevation info
-            _buildInfoRow(context, heading, position),
-            const SizedBox(height: 16),
-            // Current location in multiple formats
-            if (position != null) _buildLocationFormats(context, position),
-            const SizedBox(height: 16),
-            // Large compass
-            SizedBox(
-              width: 300,
-              height: 300,
-              child: _DetailedCompassPainter(
-                heading: heading ?? 0,
-                hasHeading: heading != null,
-                currentPosition: position,
-                contacts: widget.contacts,
+      child: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Heading and Elevation info
+              _buildInfoRow(context, heading, position),
+              const SizedBox(height: 12),
+              // Current location in multiple formats
+              if (position != null) _buildLocationFormats(context, position),
+              const SizedBox(height: 12),
+              // Large compass with zoom controls
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Compass with gesture detection
+                  GestureDetector(
+                    onScaleStart: (details) {
+                      // Prevent dialog from closing during zoom gesture
+                    },
+                    onScaleUpdate: (details) {
+                      setState(() {
+                        _zoomLevel = (_zoomLevel * details.scale).clamp(_minZoom, _maxZoom);
+                      });
+                    },
+                    child: SizedBox(
+                      width: 300,
+                      height: 300,
+                      child: _DetailedCompassPainter(
+                        heading: heading ?? 0,
+                        hasHeading: heading != null,
+                        currentPosition: position,
+                        contacts: widget.contacts,
+                        zoomLevel: _zoomLevel,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
-            // Contacts list
-            if (widget.contacts.isNotEmpty) _buildContactsList(context, heading, position),
-          ],
+              const SizedBox(height: 12),
+              // Contacts list
+              if (widget.contacts.isNotEmpty) _buildContactsList(context, heading, position),
+            ],
+          ),
         ),
       ),
     );
@@ -1087,64 +1144,7 @@ class _DetailedCompassDialogState extends State<_DetailedCompassDialog> {
   }
 
   Widget _buildLocationFormats(BuildContext context, Position position) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Current Location',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 8),
-          _buildCoordinateRow(
-            context,
-            'WGS84 (DD)',
-            '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}',
-          ),
-          _buildCoordinateRow(
-            context,
-            'WGS84 (DMS)',
-            '${_formatDMS(position.latitude, true)}, ${_formatDMS(position.longitude, false)}',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCoordinateRow(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'monospace',
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return _LocationFormatToggle(position: position);
   }
 
   // Convert decimal degrees to DMS (Degrees, Minutes, Seconds)
@@ -1284,12 +1284,14 @@ class _DetailedCompassPainter extends StatelessWidget {
   final bool hasHeading;
   final Position? currentPosition;
   final List<Contact> contacts;
+  final double zoomLevel;
 
   const _DetailedCompassPainter({
     required this.heading,
     required this.hasHeading,
     required this.currentPosition,
     required this.contacts,
+    this.zoomLevel = 1.0,
   });
 
   @override
@@ -1300,6 +1302,7 @@ class _DetailedCompassPainter extends StatelessWidget {
         hasHeading: hasHeading,
         currentPosition: currentPosition,
         contacts: contacts,
+        zoomLevel: zoomLevel,
       ),
       child: Container(),
     );
@@ -1311,12 +1314,14 @@ class _LargeCompassPainter extends CustomPainter {
   final bool hasHeading;
   final Position? currentPosition;
   final List<Contact> contacts;
+  final double zoomLevel;
 
   _LargeCompassPainter({
     required this.heading,
     required this.hasHeading,
     required this.currentPosition,
     required this.contacts,
+    this.zoomLevel = 1.0,
   });
 
   @override
@@ -1377,39 +1382,119 @@ class _LargeCompassPainter extends CustomPainter {
       );
     }
 
-    // Draw contacts as dots
-    if (currentPosition != null) {
-      for (final contact in contacts) {
-        if (contact.displayLocation == null) continue;
-
+    // Draw contacts as dots relative to distance, scaled by zoom level
+    if (currentPosition != null && contacts.isNotEmpty) {
+      // Calculate distances for all contacts
+      final contactsWithDistance = contacts
+          .where((c) => c.displayLocation != null)
+          .map((contact) {
         final bearing = _calculateBearing(
           currentPosition!.latitude,
           currentPosition!.longitude,
           contact.displayLocation!.latitude,
           contact.displayLocation!.longitude,
         );
+        final distance = _calculateDistance(
+          currentPosition!.latitude,
+          currentPosition!.longitude,
+          contact.displayLocation!.latitude,
+          contact.displayLocation!.longitude,
+        );
+        return {'contact': contact, 'bearing': bearing, 'distance': distance};
+      }).toList();
+
+      if (contactsWithDistance.isEmpty) return;
+
+      // Find max distance for normalization
+      final maxDistance = contactsWithDistance
+          .map((c) => c['distance'] as double)
+          .reduce((a, b) => a > b ? a : b);
+
+      // Base distance for zoom level 1.0 (in meters)
+      // At 1x zoom, contacts within 1km appear inside the compass
+      final baseDistance = 1000.0 / zoomLevel;
+
+      for (final item in contactsWithDistance) {
+        final contact = item['contact'] as Contact;
+        final bearing = item['bearing'] as double;
+        final distance = item['distance'] as double;
 
         // Adjust bearing relative to current heading
         final relativeBearing = (bearing - heading + 360) % 360;
         final angle = relativeBearing * pi / 180 - pi / 2;
 
-        // Place contact dot
-        final dotRadius = radius * 0.7;
-        final dotX = center.dx + dotRadius * cos(angle);
-        final dotY = center.dy + dotRadius * sin(angle);
+        // Calculate normalized distance (0 to 1, where 1 is at the rim)
+        // Apply zoom level: higher zoom = contacts appear closer
+        double normalizedDistance = (distance / baseDistance).clamp(0.0, 1.0);
 
-        // Draw dot
+        // Calculate contact position radius (from center to rim based on distance)
+        final contactRadius = radius * normalizedDistance * 0.85; // 0.85 to keep inside rim
+
+        // Position of contact dot
+        final dotX = center.dx + contactRadius * cos(angle);
+        final dotY = center.dy + contactRadius * sin(angle);
+
+        // Draw line from center to contact
+        final linePaint = Paint()
+          ..color = Colors.blue.withValues(alpha: 0.3)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5;
+        canvas.drawLine(
+          center,
+          Offset(dotX, dotY),
+          linePaint,
+        );
+
+        // Draw contact dot (size varies with zoom)
+        final dotSize = (6.0 * (1.0 + zoomLevel * 0.3)).clamp(4.0, 12.0);
         final dotPaint = Paint()
           ..color = Colors.blue
           ..style = PaintingStyle.fill;
-        canvas.drawCircle(Offset(dotX, dotY), 6, dotPaint);
+        canvas.drawCircle(Offset(dotX, dotY), dotSize, dotPaint);
 
         // Draw white border
         final borderPaint = Paint()
           ..color = Colors.white
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2;
-        canvas.drawCircle(Offset(dotX, dotY), 6, borderPaint);
+        canvas.drawCircle(Offset(dotX, dotY), dotSize, borderPaint);
+
+        // Draw distance label near the contact (only if not too crowded)
+        if (zoomLevel >= 0.75) {
+          final distanceText = _formatDistance(distance);
+          final labelOffset = dotSize + 12;
+          final labelX = center.dx + (contactRadius + labelOffset) * cos(angle);
+          final labelY = center.dy + (contactRadius + labelOffset) * sin(angle);
+
+          textPainter.text = TextSpan(
+            text: distanceText,
+            style: const TextStyle(
+              color: Colors.blue,
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+            ),
+          );
+          textPainter.layout();
+
+          // Draw background for readability
+          final bgRect = RRect.fromRectAndRadius(
+            Rect.fromCenter(
+              center: Offset(labelX, labelY),
+              width: textPainter.width + 4,
+              height: textPainter.height + 2,
+            ),
+            const Radius.circular(3),
+          );
+          final bgPaint = Paint()
+            ..color = Colors.white.withValues(alpha: 0.9)
+            ..style = PaintingStyle.fill;
+          canvas.drawRRect(bgRect, bgPaint);
+
+          textPainter.paint(
+            canvas,
+            Offset(labelX - textPainter.width / 2, labelY - textPainter.height / 2),
+          );
+        }
       }
     }
 
@@ -1441,7 +1526,99 @@ class _LargeCompassPainter extends CustomPainter {
     return (bearing + 360) % 360;
   }
 
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371000; // Earth's radius in meters
+    final dLat = (lat2 - lat1) * pi / 180;
+    final dLon = (lon2 - lon1) * pi / 180;
+
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) *
+            cos(lat2 * pi / 180) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  String _formatDistance(double meters) {
+    if (meters < 1000) {
+      return '${meters.round()}m';
+    } else {
+      return '${(meters / 1000).toStringAsFixed(1)}km';
+    }
+  }
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// Location format toggle widget
+class _LocationFormatToggle extends StatefulWidget {
+  final Position position;
+
+  const _LocationFormatToggle({required this.position});
+
+  @override
+  State<_LocationFormatToggle> createState() => _LocationFormatToggleState();
+}
+
+class _LocationFormatToggleState extends State<_LocationFormatToggle> {
+  bool _showDMS = false;
+
+  String _formatDMS(double degrees, bool isLatitude) {
+    final direction = isLatitude
+        ? (degrees >= 0 ? 'N' : 'S')
+        : (degrees >= 0 ? 'E' : 'W');
+
+    final absolute = degrees.abs();
+    final deg = absolute.floor();
+    final minDecimal = (absolute - deg) * 60;
+    final min = minDecimal.floor();
+    final sec = (minDecimal - min) * 60;
+
+    return '$deg°${min.toString().padLeft(2, '0')}\'${sec.toStringAsFixed(2).padLeft(5, '0')}"$direction';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final position = widget.position;
+
+    final String displayText;
+
+    if (_showDMS) {
+      displayText = '${_formatDMS(position.latitude, true)} ${_formatDMS(position.longitude, false)}';
+    } else {
+      displayText = 'Lat: ${position.latitude.toStringAsFixed(5)} Lon: ${position.longitude.toStringAsFixed(5)}';
+    }
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _showDMS = !_showDMS;
+        });
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            displayText,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
