@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+import '../providers/contacts_provider.dart';
+import '../providers/messages_provider.dart';
+import '../utils/sample_data_generator.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Function(ThemeMode) onThemeChanged;
@@ -19,6 +25,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late ThemeMode _selectedTheme;
   PackageInfo? _packageInfo;
+  bool _isLoadingSampleData = false;
 
   @override
   void initState() {
@@ -49,6 +56,116 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _saveThemePreference(theme);
       widget.onThemeChanged(theme);
     }
+  }
+
+  Future<void> _loadSampleData() async {
+    setState(() => _isLoadingSampleData = true);
+
+    try {
+      // Get current location or use default
+      LatLng centerLocation;
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.best,
+            timeLimit: Duration(seconds: 5),
+          ),
+        );
+        centerLocation = LatLng(position.latitude, position.longitude);
+      } catch (e) {
+        // Default to Ljubljana, Slovenia if location unavailable
+        centerLocation = const LatLng(46.0569, 14.5058);
+      }
+
+      if (!mounted) return;
+
+      // Generate sample data
+      final contacts = SampleDataGenerator.generateContacts(
+        centerLocation: centerLocation,
+        teamMemberCount: 5,
+        channelCount: 2,
+      );
+
+      final sarMessages = SampleDataGenerator.generateSarMarkerMessages(
+        centerLocation: centerLocation,
+        foundPersonCount: 2,
+        fireCount: 1,
+        stagingCount: 1,
+      );
+
+      // Add to providers
+      final contactsProvider = Provider.of<ContactsProvider>(context, listen: false);
+      final messagesProvider = Provider.of<MessagesProvider>(context, listen: false);
+
+      contactsProvider.addContacts(contacts);
+      messagesProvider.addMessages(sarMessages);
+
+      if (!mounted) return;
+
+      final teamCount = contacts.where((c) => c.isChat).length;
+      final channelCount = contacts.where((c) => c.isRoom).length;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Loaded $teamCount team members, $channelCount channels, ${sarMessages.length} SAR markers',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load sample data: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingSampleData = false);
+      }
+    }
+  }
+
+  Future<void> _clearSampleData() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear All Data'),
+        content: const Text(
+          'This will clear all contacts and SAR markers. Are you sure?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Clear'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final contactsProvider = Provider.of<ContactsProvider>(context, listen: false);
+    final messagesProvider = Provider.of<MessagesProvider>(context, listen: false);
+
+    contactsProvider.clearContacts();
+    messagesProvider.clearAll();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('All data cleared'),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
 
   @override
@@ -102,6 +219,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.bug_report),
             title: const Text('Package Name'),
             subtitle: Text(_packageInfo?.packageName ?? 'com.meshcore.sar'),
+          ),
+          const Divider(),
+
+          // Sample Data Section
+          _buildSectionHeader('Sample Data'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              'Load or clear sample contacts and SAR markers for testing',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoadingSampleData ? null : _loadSampleData,
+                    icon: _isLoadingSampleData
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.add_circle_outline),
+                    label: const Text('Load Sample Data'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoadingSampleData ? null : _clearSampleData,
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Clear All Data'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

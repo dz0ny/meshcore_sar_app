@@ -507,12 +507,21 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   }
 
   void _showDetailedCompass(BuildContext context, List<Contact> contacts) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => _DetailedCompassDialog(
-        initialPosition: _currentPosition,
-        initialHeading: _currentHeading,
-        contacts: contacts,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: _DetailedCompassDialog(
+          initialPosition: _currentPosition,
+          initialHeading: _currentHeading,
+          contacts: contacts,
+        ),
       ),
     );
   }
@@ -1036,34 +1045,56 @@ class _DetailedCompassDialogState extends State<_DetailedCompassDialog> {
   Widget build(BuildContext context) {
     final heading = currentHeading;
     final position = _currentPosition;
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: Container(
+    return Column(
+      children: [
+        // Header with back button
+        Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
             children: [
-              // Heading and Elevation info
-              _buildInfoRow(context, heading, position),
-              const SizedBox(height: 12),
-              // Current location in multiple formats
-              if (position != null) _buildLocationFormats(context, position),
-              const SizedBox(height: 12),
-              // Large compass with zoom controls
-              Stack(
-                alignment: Alignment.center,
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+              const Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      'Compass',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Navigation & Contacts',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 48), // Balance for back button
+            ],
+          ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Compass with gesture detection
+                  // Heading and Elevation info
+                  _buildInfoRow(context, heading, position),
+                  const SizedBox(height: 12),
+                  // Current location in multiple formats
+                  if (position != null) _buildLocationFormats(context, position),
+                  const SizedBox(height: 12),
+                  // Large compass with zoom controls
                   GestureDetector(
-                    onScaleStart: (details) {
-                      // Prevent dialog from closing during zoom gesture
-                    },
                     onScaleUpdate: (details) {
                       setState(() {
                         _zoomLevel = (_zoomLevel * details.scale).clamp(_minZoom, _maxZoom);
@@ -1081,15 +1112,15 @@ class _DetailedCompassDialogState extends State<_DetailedCompassDialog> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  // Contacts list
+                  if (widget.contacts.isNotEmpty) _buildContactsList(context, heading, position),
                 ],
               ),
-              const SizedBox(height: 12),
-              // Contacts list
-              if (widget.contacts.isNotEmpty) _buildContactsList(context, heading, position),
-            ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -1196,38 +1227,51 @@ class _DetailedCompassDialogState extends State<_DetailedCompassDialog> {
     contactsWithBearing.sort((a, b) =>
         (a['distance'] as double).compareTo(b['distance'] as double));
 
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 150),
-      child: ListView.builder(
-        shrinkWrap: true,
-        itemCount: contactsWithBearing.length,
-        itemBuilder: (context, index) {
-          final item = contactsWithBearing[index];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 16, bottom: 8),
+          child: Text(
+            'Nearby Contacts',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        ...contactsWithBearing.map((item) {
           final contact = item['contact'] as Contact;
           final bearing = item['bearing'] as double;
           final distance = item['distance'] as double;
 
-          return ListTile(
-            dense: true,
-            leading: Icon(
-              Icons.person,
-              color: Colors.blue,
-              size: 20,
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
             ),
-            title: Text(contact.advName),
-            subtitle: Text(
-              '${_bearingToCardinal(bearing)} • ${_formatDistance(distance)}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            trailing: Text(
-              '${bearing.round()}°',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+            child: ListTile(
+              dense: true,
+              leading: const Icon(
+                Icons.person,
+                color: Colors.blue,
+                size: 24,
+              ),
+              title: Text(contact.advName),
+              subtitle: Text(
+                '${_bearingToCardinal(bearing)} • ${_formatDistance(distance)}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              trailing: Text(
+                '${bearing.round()}°',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
             ),
           );
-        },
-      ),
+        }),
+      ],
     );
   }
 

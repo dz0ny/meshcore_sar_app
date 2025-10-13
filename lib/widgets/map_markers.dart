@@ -15,8 +15,8 @@ class MapMarkers {
 
       return Marker(
         point: location,
-        width: 60,
-        height: 80,
+        width: 80,
+        height: 100,
         child: GestureDetector(
           onTap: () => _showContactInfo(context, contact),
           child: Column(
@@ -25,27 +25,27 @@ class MapMarkers {
               // Battery indicator
               if (contact.displayBattery != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
                     color: _getBatteryColor(contact.displayBattery!),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
                     '${contact.displayBattery!.round()}%',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-              const SizedBox(height: 2),
+              if (contact.displayBattery != null) const SizedBox(height: 2),
               // Marker icon
               Container(
                 decoration: BoxDecoration(
                   color: Colors.blue,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
+                  border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
@@ -54,29 +54,32 @@ class MapMarkers {
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 child: const Icon(
                   Icons.person,
                   color: Colors.white,
-                  size: 20,
+                  size: 18,
                 ),
               ),
+              const SizedBox(height: 2),
               // Name label
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                constraints: const BoxConstraints(maxWidth: 80),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(3),
                 ),
                 child: Text(
                   contact.advName,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
@@ -93,8 +96,8 @@ class MapMarkers {
     return sarMarkers.map((marker) {
       return Marker(
         point: marker.location,
-        width: 60,
-        height: 80,
+        width: 90,
+        height: 100,
         child: GestureDetector(
           onTap: () => _showSarMarkerInfo(context, marker),
           child: Column(
@@ -102,16 +105,16 @@ class MapMarkers {
             children: [
               // Time ago label
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
                   color: _getSarMarkerColor(marker.type),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(3),
                 ),
                 child: Text(
                   marker.timeAgo,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 9,
+                    fontSize: 8,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -122,7 +125,7 @@ class MapMarkers {
                 decoration: BoxDecoration(
                   color: _getSarMarkerColor(marker.type),
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
+                  border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
@@ -131,28 +134,31 @@ class MapMarkers {
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 child: Text(
                   marker.type.emoji,
-                  style: const TextStyle(fontSize: 20),
+                  style: const TextStyle(fontSize: 18),
                 ),
               ),
+              const SizedBox(height: 2),
               // Type label
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                constraints: const BoxConstraints(maxWidth: 90),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(3),
                 ),
                 child: Text(
                   marker.type.displayName,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
