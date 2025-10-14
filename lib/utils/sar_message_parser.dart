@@ -9,14 +9,19 @@ import '../models/message.dart';
 ///   S:🔥:40.7128,-74.0060
 ///   S:🏕️:34.0522,-118.2437
 class SarMessageParser {
+  // Updated regex to allow optional notes after coordinates
+  // Captures: emoji (one or more non-colon chars), latitude, longitude
+  // Note: Emojis are multi-byte characters, so we use [^:]+ instead of .
   static final RegExp _sarPattern = RegExp(
-    r'^S:(.):(-?\d+\.?\d*),(-?\d+\.?\d*)$',
+    r'^S:([^:]+):(-?\d+\.?\d*),(-?\d+\.?\d*)',
     multiLine: false,
   );
 
   /// Check if a message is a SAR marker message
   static bool isSarMessage(String text) {
-    return text.trim().startsWith('S:') && _sarPattern.hasMatch(text.trim());
+    // Extract just the first line for matching
+    final firstLine = text.trim().split('\n').first;
+    return firstLine.startsWith('S:') && _sarPattern.hasMatch(firstLine);
   }
 
   /// Parse a SAR message and extract marker information
@@ -25,7 +30,9 @@ class SarMessageParser {
     final trimmed = text.trim();
     if (!trimmed.startsWith('S:')) return null;
 
-    final match = _sarPattern.firstMatch(trimmed);
+    // Extract first line (actual SAR marker)
+    final firstLine = trimmed.split('\n').first;
+    final match = _sarPattern.firstMatch(firstLine);
     if (match == null) return null;
 
     try {
@@ -40,10 +47,24 @@ class SarMessageParser {
       final markerType = SarMarkerType.fromEmoji(emoji);
       final location = LatLng(latitude, longitude);
 
+      // Extract notes if present (everything after coordinates on first line, or subsequent lines)
+      String? notes;
+      final coordsEnd = match.end;
+      if (coordsEnd < firstLine.length) {
+        // Notes on same line after coordinates
+        notes = firstLine.substring(coordsEnd).trim();
+      }
+      // Check for multi-line notes
+      final additionalNotes = extractNotes(text);
+      if (additionalNotes != null) {
+        notes = notes != null ? '$notes\n$additionalNotes' : additionalNotes;
+      }
+
       return SarMarkerInfo(
         type: markerType,
         location: location,
         emoji: emoji,
+        notes: notes,
       );
     } catch (e) {
       return null;
@@ -139,15 +160,17 @@ class SarMarkerInfo {
   final SarMarkerType type;
   final LatLng location;
   final String emoji;
+  final String? notes;
 
   SarMarkerInfo({
     required this.type,
     required this.location,
     required this.emoji,
+    this.notes,
   });
 
   @override
   String toString() {
-    return 'SarMarkerInfo(type: ${type.displayName}, location: $location)';
+    return 'SarMarkerInfo(type: ${type.displayName}, location: $location, notes: $notes)';
   }
 }

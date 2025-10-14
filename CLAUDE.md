@@ -2,6 +2,16 @@
 
 This document provides technical details for AI assistants (like Claude) working with this codebase.
 
+## ⚠️ IMPORTANT: Flutter Development Rules
+
+**NEVER run or kill Flutter processes:**
+- **DO NOT** execute `flutter run` command
+- **DO NOT** kill Flutter processes (e.g., `pkill flutter`, `killall flutter`)
+- The user manages the Flutter development server themselves
+- Only make code changes and let the user trigger hot reload manually
+
+**Hot reload happens automatically when you save files** - the user has their own Flutter process running and will see changes instantly.
+
 ## Project Overview
 
 **Type**: Flutter Mobile Application

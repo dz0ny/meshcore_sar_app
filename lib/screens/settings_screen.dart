@@ -134,9 +134,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         foundPersonCount: 2,
         fireCount: 1,
         stagingCount: 1,
+        objectCount: 1,
       );
 
       final channelMessages = SampleDataGenerator.generateChannelMessages(
+        centerLocation: centerLocation,
         generalChannelMessages: 8,
         emergencyChannelMessages: 5,
       );

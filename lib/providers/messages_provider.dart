@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../models/message.dart';
 import '../models/sar_marker.dart';
 import '../services/message_storage_service.dart';
+import '../utils/sar_message_parser.dart';
 
 /// Messages Provider - manages message history and SAR markers
 class MessagesProvider with ChangeNotifier {
@@ -45,13 +46,16 @@ class MessagesProvider with ChangeNotifier {
       print('📦 [MessagesProvider] Loading persisted messages...');
       final storedMessages = await _storageService.loadMessages();
 
-      // Add stored messages
-      _messages.addAll(storedMessages);
-
-      // Extract SAR markers from stored messages
+      // Add stored messages with enhancement to ensure SAR detection
       for (final message in storedMessages) {
-        if (message.isSarMarker) {
-          final marker = message.toSarMarker();
+        // Re-enhance each message to ensure SAR markers are properly detected
+        // This handles cases where messages were stored before enhancement logic
+        final enhancedMessage = SarMessageParser.enhanceMessage(message);
+        _messages.add(enhancedMessage);
+
+        // Extract SAR markers
+        if (enhancedMessage.isSarMarker) {
+          final marker = enhancedMessage.toSarMarker();
           if (marker != null) {
             _sarMarkers[marker.id] = marker;
           }
@@ -69,11 +73,21 @@ class MessagesProvider with ChangeNotifier {
 
   /// Add a message
   void addMessage(Message message) {
-    _messages.add(message);
+    // Always enhance message with SAR parser to detect SAR markers
+    final enhancedMessage = SarMessageParser.enhanceMessage(message);
+
+    // Debug: Check if message is SAR
+    if (message.text.startsWith('S:')) {
+      print('🔍 [MessagesProvider] Processing SAR message: ${message.text}');
+      print('   isSarMarker: ${enhancedMessage.isSarMarker}');
+      print('   sarMarkerType: ${enhancedMessage.sarMarkerType}');
+    }
+
+    _messages.add(enhancedMessage);
 
     // If it's a SAR marker message, extract and store the marker
-    if (message.isSarMarker) {
-      final marker = message.toSarMarker();
+    if (enhancedMessage.isSarMarker) {
+      final marker = enhancedMessage.toSarMarker();
       if (marker != null) {
         _sarMarkers[marker.id] = marker;
       }
@@ -88,10 +102,12 @@ class MessagesProvider with ChangeNotifier {
   /// Add multiple messages
   void addMessages(List<Message> messages) {
     for (final message in messages) {
-      _messages.add(message);
+      // Always enhance message with SAR parser to detect SAR markers
+      final enhancedMessage = SarMessageParser.enhanceMessage(message);
+      _messages.add(enhancedMessage);
 
-      if (message.isSarMarker) {
-        final marker = message.toSarMarker();
+      if (enhancedMessage.isSarMarker) {
+        final marker = enhancedMessage.toSarMarker();
         if (marker != null) {
           _sarMarkers[marker.id] = marker;
         }

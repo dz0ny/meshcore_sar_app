@@ -117,6 +117,7 @@ class SampleDataGenerator {
     int foundPersonCount = 2,
     int fireCount = 1,
     int stagingCount = 1,
+    int objectCount = 1,
   }) {
     final messages = <Message>[];
     final now = DateTime.now();
@@ -209,14 +210,53 @@ class SampleDataGenerator {
       messageId++;
     }
 
+    // Generate object markers
+    for (int i = 0; i < objectCount; i++) {
+      final latOffset = (_random.nextDouble() - 0.5) * 0.015;
+      final lonOffset = (_random.nextDouble() - 0.5) * 0.015;
+      final lat = centerLocation.latitude + latOffset;
+      final lon = centerLocation.longitude + lonOffset;
+
+      final senderKey = Uint8List.fromList(
+        List.generate(32, (_) => _random.nextInt(256)),
+      );
+
+      final timestamp = now.subtract(Duration(minutes: 40 + i * 5));
+      final notes = [
+        ' Backpack found - blue color',
+        ' Vehicle abandoned - check for owner',
+        ' Camping equipment discovered',
+        ' Trail marker found off-path',
+      ];
+
+      messages.add(Message(
+        id: 'sample_object_$messageId',
+        messageType: MessageType.contact,
+        senderPublicKeyPrefix: senderKey.sublist(0, 6),
+        pathLen: 1,
+        textType: MessageTextType.plain,
+        senderTimestamp: timestamp.millisecondsSinceEpoch ~/ 1000,
+        text: 'S:📦:${lat.toStringAsFixed(4)},${lon.toStringAsFixed(4)}${notes[i % notes.length]}',
+        receivedAt: timestamp,
+        isSarMarker: true,
+        sarMarkerType: SarMarkerType.object,
+        sarGpsCoordinates: LatLng(lat, lon),
+        senderName: 'Sample Searcher',
+      ));
+      messageId++;
+    }
+
     return messages;
   }
 
   /// Generate sample channel messages for public channels
   static List<Message> generateChannelMessages({
+    LatLng? centerLocation,
     int generalChannelMessages = 8,
     int emergencyChannelMessages = 5,
   }) {
+    // Use provided location or default to Ljubljana, Slovenia
+    final center = centerLocation ?? const LatLng(46.0569, 14.5058);
     final messages = <Message>[];
     final now = DateTime.now();
     int messageId = 1000; // Start with high ID to avoid conflicts
@@ -238,16 +278,17 @@ class SampleDataGenerator {
     ];
 
     // Sample messages for Emergency channel (index 1)
+    // Mix regular messages and SAR markers
     final emergencyMessages = [
       'URGENT: Medical assistance needed at sector 4',
-      'Found person - requesting immediate evac',
+      'S:🧑:${center.latitude.toStringAsFixed(4)},${(center.longitude + 0.005).toStringAsFixed(4)} Adult male, conscious',
       'Fire spotted - coordinates incoming',
-      'Team member injured - sending location',
+      'S:🔥:${(center.latitude + 0.008).toStringAsFixed(4)},${(center.longitude + 0.003).toStringAsFixed(4)} Spreading rapidly!',
       'PRIORITY: Need helicopter support',
       'Medical team en route to your location',
       'Evac helicopter ETA 10 minutes',
       'Emergency resolved - all clear',
-      'Casualties: 1 minor injury, being treated',
+      'S:🏕️:${(center.latitude - 0.002).toStringAsFixed(4)},${(center.longitude - 0.004).toStringAsFixed(4)} Emergency staging area',
       'Emergency services notified and responding',
     ];
 

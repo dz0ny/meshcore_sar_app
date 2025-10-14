@@ -15,7 +15,9 @@
       "Bash(nc:*)",
       "Bash(pkill:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(dart run:*)",
+      "Bash(dart test_sar_debug.dart:*)"
     ],
     "deny": [],
     "ask": []

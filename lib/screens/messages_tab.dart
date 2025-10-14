@@ -572,22 +572,40 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSarMarker = message.isSarMarker;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    // Debug: Log message details
+    if (message.text.startsWith('S:')) {
+      debugPrint('🎨 [MessageBubble] Rendering SAR message:');
+      debugPrint('   Text: ${message.text}');
+      debugPrint('   isSarMarker: $isSarMarker');
+      debugPrint('   sarMarkerType: ${message.sarMarkerType}');
+    }
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSarMarker
-              ? _getSarMarkerColor(context)
+              ? _getSarMarkerColor(context, isDarkMode)
               : Theme.of(context).colorScheme.surfaceVariant,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           border: isSarMarker
               ? Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
+                  color: _getSarMarkerBorderColor(context, isDarkMode),
+                  width: 3,
                 )
+              : null,
+          boxShadow: isSarMarker
+              ? [
+                  BoxShadow(
+                    color: _getSarMarkerBorderColor(context, isDarkMode).withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : null,
         ),
         child: Column(
@@ -596,46 +614,61 @@ class _MessageBubble extends StatelessWidget {
             // Header: Sender and time
             Row(
               children: [
-                if (message.isChannelMessage)
-                  const Icon(Icons.tag, size: 16)
-                else
-                  const Icon(Icons.person, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  message.displaySender,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const Spacer(),
                 if (isSarMarker)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
+                      horizontal: 10,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(4),
+                      color: _getSarMarkerBorderColor(context, isDarkMode),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
-                      'SAR',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'SAR ALERT',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                        ),
+                      ],
                     ),
+                  )
+                else ...[
+                  if (message.isChannelMessage)
+                    const Icon(Icons.tag, size: 16)
+                  else
+                    const Icon(Icons.person, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    message.displaySender,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                const SizedBox(width: 8),
+                ],
+                const Spacer(),
                 Text(
                   message.timeAgo,
-                  style: Theme.of(context).textTheme.labelSmall,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontWeight: isSarMarker ? FontWeight.w600 : FontWeight.normal,
+                      ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
 
-            // SAR marker content
+            // SAR marker content (simplified design matching message history)
             if (isSarMarker && message.sarMarkerType != null) ...[
               Row(
                 children: [
@@ -650,15 +683,16 @@ class _MessageBubble extends StatelessWidget {
                       children: [
                         Text(
                           message.sarMarkerType!.displayName,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         if (message.sarGpsCoordinates != null)
                           Text(
                             '${message.sarGpsCoordinates!.latitude.toStringAsFixed(5)}, ${message.sarGpsCoordinates!.longitude.toStringAsFixed(5)}',
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  fontFamily: 'monospace',
+                                ),
                           ),
                       ],
                     ),
@@ -690,8 +724,88 @@ class _MessageBubble extends StatelessWidget {
     );
   }
 
-  Color _getSarMarkerColor(BuildContext context) {
-    return Theme.of(context).colorScheme.primaryContainer;
+  Color _getSarMarkerColor(BuildContext context, bool isDarkMode) {
+    if (message.sarMarkerType == null) {
+      return Theme.of(context).colorScheme.primaryContainer;
+    }
+
+    // Use type-specific colors with alpha for background
+    switch (message.sarMarkerType!) {
+      case SarMarkerType.foundPerson:
+        return isDarkMode
+            ? const Color(0xFF1B5E20).withValues(alpha: 0.4)  // Dark green
+            : const Color(0xFFC8E6C9).withValues(alpha: 0.9);  // Light green
+      case SarMarkerType.fire:
+        return isDarkMode
+            ? const Color(0xFFB71C1C).withValues(alpha: 0.4)  // Dark red
+            : const Color(0xFFFFCDD2).withValues(alpha: 0.9);  // Light red
+      case SarMarkerType.stagingArea:
+        return isDarkMode
+            ? const Color(0xFF0D47A1).withValues(alpha: 0.4)  // Dark blue
+            : const Color(0xFFBBDEFB).withValues(alpha: 0.9);  // Light blue
+      case SarMarkerType.object:
+        return isDarkMode
+            ? const Color(0xFF4A148C).withValues(alpha: 0.4)  // Dark purple
+            : const Color(0xFFE1BEE7).withValues(alpha: 0.9);  // Light purple
+      case SarMarkerType.unknown:
+        return isDarkMode
+            ? const Color(0xFF424242).withValues(alpha: 0.4)  // Dark gray
+            : const Color(0xFFEEEEEE).withValues(alpha: 0.9);  // Light gray
+    }
+  }
+
+  Color _getSarMarkerBorderColor(BuildContext context, bool isDarkMode) {
+    if (message.sarMarkerType == null) {
+      return Theme.of(context).colorScheme.primary;
+    }
+
+    // Use vibrant type-specific colors for borders
+    switch (message.sarMarkerType!) {
+      case SarMarkerType.foundPerson:
+        return const Color(0xFF4CAF50);  // Green
+      case SarMarkerType.fire:
+        return const Color(0xFFF44336);  // Red
+      case SarMarkerType.stagingArea:
+        return const Color(0xFF2196F3);  // Blue
+      case SarMarkerType.object:
+        return const Color(0xFF9C27B0);  // Purple
+      case SarMarkerType.unknown:
+        return const Color(0xFF9E9E9E);  // Gray
+    }
+  }
+
+  /// Extract notes from SAR message text
+  /// Returns text after the SAR marker format, or null if none
+  String? _extractNotesFromMessage(String text) {
+    final trimmed = text.trim();
+    if (!trimmed.startsWith('S:')) return null;
+
+    // Extract first line
+    final firstLine = trimmed.split('\n').first;
+
+    // Find the end of coordinates (after second colon and comma-separated numbers)
+    final pattern = RegExp(r'^S:.:(-?\d+\.?\d*),(-?\d+\.?\d*)');
+    final match = pattern.firstMatch(firstLine);
+    if (match == null) return null;
+
+    // Extract notes from same line
+    String? notes;
+    if (match.end < firstLine.length) {
+      notes = firstLine.substring(match.end).trim();
+    }
+
+    // Check for multi-line notes
+    final lines = trimmed.split('\n');
+    if (lines.length > 1) {
+      final additionalNotes = lines.sublist(1).join('\n').trim();
+      if (additionalNotes.isNotEmpty) {
+        notes = notes != null && notes.isNotEmpty
+            ? '$notes\n$additionalNotes'
+            : additionalNotes;
+      }
+    }
+
+    return notes != null && notes.isNotEmpty ? notes : null;
   }
 }
 
