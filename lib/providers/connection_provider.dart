@@ -13,6 +13,9 @@ import '../utils/sar_message_parser.dart';
 class ConnectionProvider with ChangeNotifier {
   final MeshCoreBleService _bleService = MeshCoreBleService();
 
+  /// Expose BLE service for background location tracking
+  MeshCoreBleService get bleService => _bleService;
+
   DeviceInfo _deviceInfo = DeviceInfo();
   DeviceInfo get deviceInfo => _deviceInfo;
 

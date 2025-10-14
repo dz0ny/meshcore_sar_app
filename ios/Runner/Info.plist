@@ -59,5 +59,14 @@
 	<false/>
 	<key>NSMotionUsageDescription</key>
 	<string>MeshCore SAR needs access to the compass to show your heading direction on the map</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>dev.flutter.background.refresh</string>
+	</array>
 </dict>
 </plist>

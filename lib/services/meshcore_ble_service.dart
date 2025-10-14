@@ -386,6 +386,19 @@ class MeshCoreBleService {
     await _writeData(writer.toBytes());
   }
 
+  /// Send flood advertisement with current location
+  Future<void> sendFloodAdvertisement({
+    required double latitude,
+    required double longitude,
+  }) async {
+    final writer = BufferWriter();
+    writer.writeByte(MeshCoreConstants.cmdSendSelfAdvert);
+    writer.writeByte(MeshCoreConstants.selfAdvertFlood);
+    writer.writeInt32LE((latitude * 10000).round());
+    writer.writeInt32LE((longitude * 10000).round());
+    await _writeData(writer.toBytes());
+  }
+
   /// Dispose resources
   void dispose() {
     _txSubscription?.cancel();

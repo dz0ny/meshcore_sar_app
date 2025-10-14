@@ -8,6 +8,10 @@ import '../models/map_layer.dart';
 class TileCacheService {
   static const String _storeName = 'meshcore_sar_tiles';
 
+  // Global flag to ensure ObjectBox is only initialized once
+  static bool _objectBoxInitialized = false;
+  static final _initLock = <String, Future<void>>{};
+
   late final FMTCStore _store;
   bool _isInitialized = false;
   bool _isDownloading = false;
@@ -15,8 +19,22 @@ class TileCacheService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
+    // Ensure we only initialize ObjectBox once globally
+    if (!_objectBoxInitialized) {
+      // Use a lock to prevent concurrent initialization attempts
+      final initFuture = _initLock.putIfAbsent('objectbox', () async {
+        try {
+          await FMTCObjectBoxBackend().initialise();
+          _objectBoxInitialized = true;
+        } catch (e) {
+          // Already initialized or error - that's okay
+          _objectBoxInitialized = true;
+        }
+      });
+      await initFuture;
+    }
+
     try {
-      await FMTCObjectBoxBackend().initialise();
       _store = FMTCStore(_storeName);
       await _store.manage.create();
       _isInitialized = true;

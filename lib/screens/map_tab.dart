@@ -16,6 +16,7 @@ import '../models/contact.dart';
 import '../models/sar_marker.dart';
 import '../models/map_layer.dart';
 import '../services/tile_cache_service.dart';
+import '../services/background_location_service.dart';
 import '../widgets/map_markers.dart';
 import '../widgets/map_debug_info.dart';
 import 'map_management_screen.dart';
@@ -31,6 +32,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
   final TileCacheService _tileCache = TileCacheService();
   bool _isInitialized = false;
+  bool _isMapReady = false; // Track when map widget is actually rendered
   MapLayer _currentLayer = MapLayer.openStreetMap;
   Position? _currentPosition;
   double? _compassHeading; // Compass sensor heading
@@ -38,8 +40,10 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   bool _showLegend = false;
   bool _showMapDebugInfo = false; // Toggle for debug info
   double _gpsUpdateDistance = 3.0; // meters
+  bool _backgroundTrackingEnabled = false; // Toggle for background tracking
   StreamSubscription<Position>? _positionStreamSubscription;
   StreamSubscription<CompassEvent>? _compassStreamSubscription;
+  final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
 
   // Saved map position (loaded from SharedPreferences)
   LatLng? _savedMapCenter;
@@ -64,6 +68,13 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mapProvider = context.read<MapProvider>();
       mapProvider.addListener(_handleMapNavigation);
+
+      // Initialize background location service with BLE service
+      final appProvider = context.read<AppProvider>();
+      _backgroundLocationService.initialize(appProvider.connectionProvider.bleService);
+
+      // Restore background tracking state
+      _restoreBackgroundTracking();
     });
   }
 
@@ -82,8 +93,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           });
 
           // Rotate map if rotation mode is enabled and we have compass heading
-          // Only rotate if map is initialized
-          if (_rotateMarkerWithHeading && event.heading != null && _isInitialized) {
+          // Only rotate if map is ready
+          if (_rotateMarkerWithHeading && event.heading != null && _isMapReady) {
             try {
               // Use moveAndRotate to set absolute rotation
               final camera = _mapController.camera;
@@ -117,6 +128,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
         _rotateMarkerWithHeading = prefs.getBool('map_rotate_with_heading') ?? false;
         _showMapDebugInfo = prefs.getBool('map_show_debug_info') ?? false;
         _gpsUpdateDistance = prefs.getDouble('map_gps_update_distance') ?? 3.0;
+        _backgroundTrackingEnabled = prefs.getBool('background_tracking_enabled') ?? false;
 
         // Store saved position for use in build
         if (lastLat != null && lastLon != null && lastZoom != null) {
@@ -138,15 +150,21 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     await prefs.setBool('map_rotate_with_heading', _rotateMarkerWithHeading);
     await prefs.setBool('map_show_debug_info', _showMapDebugInfo);
     await prefs.setDouble('map_gps_update_distance', _gpsUpdateDistance);
+    await prefs.setBool('background_tracking_enabled', _backgroundTrackingEnabled);
     await prefs.setInt('map_last_layer', MapLayer.allLayers.indexOf(_currentLayer));
   }
 
   Future<void> _saveMapPosition() async {
-    final prefs = await SharedPreferences.getInstance();
-    final camera = _mapController.camera;
-    await prefs.setDouble('map_last_latitude', camera.center.latitude);
-    await prefs.setDouble('map_last_longitude', camera.center.longitude);
-    await prefs.setDouble('map_last_zoom', camera.zoom);
+    if (!_isMapReady) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final camera = _mapController.camera;
+      await prefs.setDouble('map_last_latitude', camera.center.latitude);
+      await prefs.setDouble('map_last_longitude', camera.center.longitude);
+      await prefs.setDouble('map_last_zoom', camera.zoom);
+    } catch (e) {
+      debugPrint('Error saving map position: $e');
+    }
   }
 
   Future<void> _requestLocationPermission() async {
@@ -198,13 +216,17 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
         // Rotate map if rotation mode is enabled and heading is available
         // Heading of -1.0 means heading is unavailable
-        if (_rotateMarkerWithHeading && position.heading != null && position.heading >= 0) {
-          final camera = _mapController.camera;
-          _mapController.moveAndRotate(
-            camera.center,
-            camera.zoom,
-            -position.heading,
-          );
+        if (_isMapReady && _rotateMarkerWithHeading && position.heading != null && position.heading >= 0) {
+          try {
+            final camera = _mapController.camera;
+            _mapController.moveAndRotate(
+              camera.center,
+              camera.zoom,
+              -position.heading,
+            );
+          } catch (e) {
+            // Map not ready yet, ignore
+          }
         }
       }
     });
@@ -212,13 +234,18 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
   void _handleMapNavigation() {
     final mapProvider = context.read<MapProvider>();
-    if (mapProvider.targetLocation != null && _isInitialized) {
-      _mapController.move(
-        mapProvider.targetLocation!,
-        mapProvider.targetZoom ?? _defaultZoom,
-      );
-      // Clear the navigation request after handling
-      mapProvider.clearNavigation();
+    if (mapProvider.targetLocation != null && _isMapReady) {
+      try {
+        _mapController.move(
+          mapProvider.targetLocation!,
+          mapProvider.targetZoom ?? _defaultZoom,
+        );
+        // Clear the navigation request after handling
+        mapProvider.clearNavigation();
+      } catch (e) {
+        // Map not ready yet, ignore
+        debugPrint('Map controller not ready for navigation: $e');
+      }
     }
   }
 
@@ -229,12 +256,39 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
         setState(() {
           _isInitialized = true;
         });
+        // Wait for the map to render, then mark it as ready
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            // Give the map widget one more frame to fully initialize
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted) {
+                setState(() {
+                  _isMapReady = true;
+                });
+                debugPrint('Map is now ready for controller operations');
+              }
+            });
+          }
+        });
       }
     } catch (e) {
       debugPrint('Error initializing tile cache: $e');
       if (mounted) {
         setState(() {
           _isInitialized = true; // Continue without caching
+        });
+        // Still mark map as ready after a delay
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted) {
+                setState(() {
+                  _isMapReady = true;
+                });
+                debugPrint('Map is now ready for controller operations');
+              }
+            });
+          }
         });
       }
     }
@@ -265,6 +319,17 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
       return _currentPosition!.heading;
     }
     return null;
+  }
+
+  // Safely get map rotation, returns 0.0 if map is not ready
+  double _getMapRotation() {
+    if (!_isMapReady) return 0.0;
+    try {
+      return _mapController.camera.rotation;
+    } catch (e) {
+      // Map controller not ready yet
+      return 0.0;
+    }
   }
 
   LatLng _calculateCenter(List<Contact> contacts, List<SarMarker> sarMarkers) {
@@ -346,23 +411,29 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   }
 
   void _navigateToDownload(BuildContext context) {
-    // Get current map bounds
-    final bounds = _mapController.camera.visibleBounds;
-    final currentZoom = _mapController.camera.zoom.round();
+    if (!_isMapReady) return;
 
-    // Navigate to Map Management screen with pre-populated data
-    final appProvider = context.read<AppProvider>();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MapManagementScreen(
-          tileCacheService: appProvider.tileCacheService,
-          initialLayer: _currentLayer,
-          initialBounds: bounds,
-          initialZoom: currentZoom,
+    try {
+      // Get current map bounds
+      final bounds = _mapController.camera.visibleBounds;
+      final currentZoom = _mapController.camera.zoom.round();
+
+      // Navigate to Map Management screen with pre-populated data
+      final appProvider = context.read<AppProvider>();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MapManagementScreen(
+            tileCacheService: appProvider.tileCacheService,
+            initialLayer: _currentLayer,
+            initialBounds: bounds,
+            initialZoom: currentZoom,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      debugPrint('Error accessing map camera: $e');
+    }
   }
 
   void _showOptionsMenu(BuildContext context) {
@@ -416,72 +487,28 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                 onChanged: (value) {
                   setState(() {
                     _rotateMarkerWithHeading = value;
-                    // Reset map rotation when disabling
-                    final camera = _mapController.camera;
-                    if (!_rotateMarkerWithHeading) {
-                      _mapController.moveAndRotate(camera.center, camera.zoom, 0);
-                    } else if (_currentHeading != null) {
-                      // Apply current heading rotation when enabling (if heading is valid)
-                      _mapController.moveAndRotate(
-                        camera.center,
-                        camera.zoom,
-                        -_currentHeading!,
-                      );
+                    // Reset map rotation when disabling (only if map is ready)
+                    if (_isMapReady) {
+                      try {
+                        final camera = _mapController.camera;
+                        if (!_rotateMarkerWithHeading) {
+                          _mapController.moveAndRotate(camera.center, camera.zoom, 0);
+                        } else if (_currentHeading != null) {
+                          // Apply current heading rotation when enabling (if heading is valid)
+                          _mapController.moveAndRotate(
+                            camera.center,
+                            camera.zoom,
+                            -_currentHeading!,
+                          );
+                        }
+                      } catch (e) {
+                        // Map not ready yet, ignore
+                      }
                     }
                   });
                   setModalState(() {});
                   _saveSettings();
                 },
-              ),
-              const Divider(),
-              // GPS Update Distance
-              ListTile(
-                leading: const Icon(Icons.gps_fixed),
-                title: const Text('GPS Update Distance'),
-                subtitle: Text('${_gpsUpdateDistance.toStringAsFixed(0)} meters'),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    Slider(
-                      value: _gpsUpdateDistance,
-                      min: 1,
-                      max: 20,
-                      divisions: 19,
-                      label: '${_gpsUpdateDistance.toStringAsFixed(0)}m',
-                      onChanged: (value) {
-                        setModalState(() {
-                          _gpsUpdateDistance = value;
-                        });
-                      },
-                      onChangeEnd: (value) {
-                        setState(() {
-                          _gpsUpdateDistance = value;
-                        });
-                        // Restart location stream with new distance
-                        _restartLocationStream();
-                        _saveSettings();
-                      },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '1m',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          Text(
-                            '20m',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
               ),
               const Divider(),
               // Map Debug Info toggle
@@ -599,16 +626,60 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
         // Rotate map if rotation mode is enabled and heading is available
         // Heading of -1.0 means heading is unavailable
-        if (_rotateMarkerWithHeading && position.heading != null && position.heading >= 0) {
-          final camera = _mapController.camera;
-          _mapController.moveAndRotate(
-            camera.center,
-            camera.zoom,
-            -position.heading,
-          );
+        if (_isMapReady && _rotateMarkerWithHeading && position.heading != null && position.heading >= 0) {
+          try {
+            final camera = _mapController.camera;
+            _mapController.moveAndRotate(
+              camera.center,
+              camera.zoom,
+              -position.heading,
+            );
+          } catch (e) {
+            // Map not ready yet, ignore
+          }
         }
       }
     });
+
+    // Update background tracking distance if active
+    if (_backgroundTrackingEnabled) {
+      _backgroundLocationService.updateDistanceThreshold(_gpsUpdateDistance);
+    }
+  }
+
+  /// Restore background tracking state on app start
+  Future<void> _restoreBackgroundTracking() async {
+    if (_backgroundTrackingEnabled) {
+      await _startBackgroundTracking();
+    }
+  }
+
+  /// Start background location tracking
+  Future<void> _startBackgroundTracking() async {
+    final success = await _backgroundLocationService.startTracking(
+      distanceThreshold: _gpsUpdateDistance,
+    );
+
+    if (!success) {
+      if (mounted) {
+        setState(() {
+          _backgroundTrackingEnabled = false;
+        });
+        _saveSettings();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to start background tracking. Check permissions and BLE connection.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Stop background location tracking
+  Future<void> _stopBackgroundTracking() async {
+    await _backgroundLocationService.stopTracking();
   }
 
   @override
@@ -654,7 +725,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           ...MapMarkers.createTeamMemberMarkers(
                             contactsWithLocation,
                             context,
-                            mapRotation: _mapController.camera.rotation,
+                            mapRotation: _getMapRotation(),
                             onContactTap: (contact) {
                               _showDetailedCompassWithContact(
                                 context,
@@ -667,7 +738,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           ...MapMarkers.createSarMarkers(
                             sarMarkers,
                             context,
-                            mapRotation: _mapController.camera.rotation,
+                            mapRotation: _getMapRotation(),
                             onSarMarkerTap: (marker) {
                               _showDetailedCompassWithSarMarker(
                                 context,
@@ -766,7 +837,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                 children: [
                   FloatingActionButton.small(
                     heroTag: 'center_map',
-                    onPressed: () async {
+                    onPressed: !_isMapReady ? null : () async {
                       // Force update GPS location and jump to it
                       try {
                         final position = await Geolocator.getCurrentPosition(
@@ -818,7 +889,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
               ),
             ),
             // Map debug info - bottom left
-            if (_showMapDebugInfo && _isInitialized)
+            if (_showMapDebugInfo && _isMapReady)
               Positioned(
                 bottom: 16,
                 left: 16,

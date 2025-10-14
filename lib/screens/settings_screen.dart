@@ -6,6 +6,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/messages_provider.dart';
+import '../providers/app_provider.dart';
+import '../services/background_location_service.dart';
 import '../utils/sample_data_generator.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -26,12 +28,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late ThemeMode _selectedTheme;
   PackageInfo? _packageInfo;
   bool _isLoadingSampleData = false;
+  double _gpsUpdateDistance = 10.0;
+  bool _backgroundTrackingEnabled = false;
+  final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
 
   @override
   void initState() {
     super.initState();
     _selectedTheme = widget.currentTheme;
     _loadPackageInfo();
+    _loadLocationSettings();
   }
 
   Future<void> _loadPackageInfo() async {
@@ -41,6 +47,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _packageInfo = info;
       });
     }
+  }
+
+  Future<void> _loadLocationSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _gpsUpdateDistance = prefs.getDouble('map_gps_update_distance') ?? 10.0;
+        _backgroundTrackingEnabled = prefs.getBool('background_tracking_enabled') ?? false;
+      });
+
+      // Initialize background location service
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final appProvider = context.read<AppProvider>();
+          _backgroundLocationService.initialize(appProvider.connectionProvider.bleService);
+
+          // Restore background tracking state
+          if (_backgroundTrackingEnabled) {
+            _startBackgroundTracking();
+          }
+        }
+      });
+    }
+  }
+
+  Future<void> _saveLocationSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('map_gps_update_distance', _gpsUpdateDistance);
+    await prefs.setBool('background_tracking_enabled', _backgroundTrackingEnabled);
   }
 
   Future<void> _saveThemePreference(ThemeMode theme) async {
@@ -136,6 +171,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _startBackgroundTracking() async {
+    final success = await _backgroundLocationService.startTracking(
+      distanceThreshold: _gpsUpdateDistance,
+    );
+
+    if (!success) {
+      if (mounted) {
+        setState(() {
+          _backgroundTrackingEnabled = false;
+        });
+        _saveLocationSettings();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to start background tracking. Check permissions and BLE connection.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _stopBackgroundTracking() async {
+    await _backgroundLocationService.stopTracking();
+  }
+
   Future<void> _clearSampleData() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -192,6 +253,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: Text(_getThemeLabel(_selectedTheme)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showThemeDialog(),
+          ),
+          const Divider(),
+
+          // Location Settings Section
+          _buildSectionHeader('Location'),
+          ListTile(
+            leading: const Icon(Icons.gps_fixed),
+            title: const Text('GPS Update Distance'),
+            subtitle: Text('${_gpsUpdateDistance.toStringAsFixed(0)} meters'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showGpsDistanceDialog(),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.location_on),
+            title: const Text('Background Location Tracking'),
+            subtitle: const Text('Send position updates to mesh network'),
+            value: _backgroundTrackingEnabled,
+            onChanged: (value) {
+              setState(() {
+                _backgroundTrackingEnabled = value;
+                if (value) {
+                  _startBackgroundTracking();
+                } else {
+                  _stopBackgroundTracking();
+                }
+              });
+              _saveLocationSettings();
+            },
           ),
           const Divider(),
 
@@ -303,6 +392,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case ThemeMode.system:
         return 'Auto (System)';
     }
+  }
+
+  void _showGpsDistanceDialog() {
+    double tempDistance = _gpsUpdateDistance;
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('GPS Update Distance'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Position updates sent every ${tempDistance.toStringAsFixed(0)} meters',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              Slider(
+                value: tempDistance,
+                min: 1,
+                max: 100,
+                divisions: 99,
+                label: '${tempDistance.toStringAsFixed(0)}m',
+                onChanged: (value) {
+                  setDialogState(() {
+                    tempDistance = value;
+                  });
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '1m',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    Text(
+                      '100m',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _gpsUpdateDistance = tempDistance;
+                });
+                _saveLocationSettings();
+
+                // Update background tracking if active
+                if (_backgroundTrackingEnabled) {
+                  _backgroundLocationService.updateDistanceThreshold(tempDistance);
+                }
+
+                Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showThemeDialog() {
