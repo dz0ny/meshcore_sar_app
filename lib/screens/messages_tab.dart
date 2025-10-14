@@ -144,7 +144,7 @@ class _MessagesTabState extends State<MessagesTab> {
     );
   }
 
-  /// Sync messages when recipient changes
+  /// Sync all messages when recipient changes (for sending context)
   Future<void> _syncMessagesForRecipient() async {
     final appProvider = context.read<AppProvider>();
 
@@ -153,14 +153,14 @@ class _MessagesTabState extends State<MessagesTab> {
     }
 
     try {
-      debugPrint('🔄 [MessagesTab] Syncing messages after channel/room change...');
+      debugPrint('🔄 [MessagesTab] Syncing messages after recipient change...');
       final messageCount = await appProvider.syncMessages();
 
       if (!mounted) return;
       if (messageCount > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Synced $messageCount message${messageCount == 1 ? '' : 's'} from ${_getRecipientDisplayName()}'),
+            content: Text('Synced $messageCount message${messageCount == 1 ? '' : 's'}'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
           ),
@@ -314,55 +314,8 @@ class _MessagesTabState extends State<MessagesTab> {
   }
 
   List<Message> _getFilteredMessages(MessagesProvider messagesProvider) {
-    // If viewing a specific contact, show all their messages indefinitely
-    if (_recipientType == MessageRecipientType.contact && _selectedRecipientId != null) {
-      final contactMessages = messagesProvider.contactMessages
-          .where((m) => m.senderPublicKeyPrefix != null)
-          .toList();
-
-      // Filter by selected contact
-      return contactMessages
-          .where((m) {
-            final senderHex = m.senderPublicKeyPrefix!
-                .map((b) => b.toRadixString(16).padLeft(2, '0'))
-                .join();
-            return _selectedRecipientId!.startsWith(senderHex);
-          })
-          .toList()
-        ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
-    }
-
-    // For channels/rooms, limit to recent 100 messages
-    if (_recipientType == MessageRecipientType.room) {
-      if (_selectedRecipientId != null) {
-        // Filter by specific channel
-        final contactsProvider = context.read<ContactsProvider>();
-        try {
-          final room = contactsProvider.rooms.firstWhere(
-            (r) => r.publicKeyHex == _selectedRecipientId,
-          );
-          final channelIdx = room.outPath.isNotEmpty ? room.outPath[0] : 0;
-          return messagesProvider
-              .getMessagesForChannel(channelIdx)
-              .take(100)
-              .toList();
-        } catch (e) {
-          // Room not found, show all channel messages
-          return messagesProvider.channelMessages
-              .take(100)
-              .toList()
-            ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
-        }
-      }
-
-      // Default: show recent channel messages (public channel)
-      return messagesProvider.channelMessages
-          .take(100)
-          .toList()
-        ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
-    }
-
-    // Fallback: show all recent messages
+    // Show ALL messages regardless of recipient selection
+    // The recipient selector only controls where NEW messages are sent
     return messagesProvider.getRecentMessages(count: 100);
   }
 
