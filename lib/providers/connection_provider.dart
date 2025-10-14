@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/device_info.dart';
 import '../models/contact.dart';
 import '../models/message.dart';
+import '../models/room_login_state.dart';
 import '../services/meshcore_ble_service.dart';
 import '../services/cayenne_lpp_parser.dart';
 import '../utils/sar_message_parser.dart';
@@ -43,6 +45,10 @@ class ConnectionProvider with ChangeNotifier {
 
   // Message sync state
   bool _noMoreMessages = false;
+
+  // Room login state tracking
+  final Map<String, RoomLoginState> _roomLoginStates = {};
+  Map<String, RoomLoginState> get roomLoginStates => Map.unmodifiable(_roomLoginStates);
 
   // Callbacks for other providers
   Function(Contact)? onContactReceived;
@@ -120,17 +126,47 @@ class ConnectionProvider with ChangeNotifier {
       syncAllMessages();
     };
 
-    _bleService.onLoginSuccess = (publicKeyPrefix, permissions, isAdmin, tag) {
+    _bleService.onLoginSuccess = (publicKeyPrefix, permissions, isAdmin, tag) async {
       print('📥 [Provider] Login successful to room');
       print('  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
       print('  Permissions: $permissions, Admin: $isAdmin, Tag: $tag');
+
+      // Update room login state
+      final prefixHex = publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
+      final hasPassword = await _hasPasswordForRoom(publicKeyPrefix);
+      _roomLoginStates[prefixHex] = RoomLoginState.loggedIn(
+        publicKeyPrefix: publicKeyPrefix,
+        permissions: permissions,
+        isAdmin: isAdmin,
+        tag: tag,
+        hasPassword: hasPassword,
+      );
+      notifyListeners();
+
       onLoginSuccess?.call(publicKeyPrefix, permissions, isAdmin, tag);
     };
 
     _bleService.onLoginFail = (publicKeyPrefix) {
       print('📥 [Provider] Login failed to room');
       print('  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+
+      // Update room login state to logged out
+      final prefixHex = publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
+      _roomLoginStates[prefixHex] = RoomLoginState.loggedOut(
+        publicKeyPrefix: publicKeyPrefix,
+        hasPassword: false, // Password was incorrect
+      );
+      notifyListeners();
+
       onLoginFail?.call(publicKeyPrefix);
+    };
+
+    _bleService.onAdvertReceived = (publicKey) {
+      print('📥 [Provider] Advert received from node');
+      print('  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...');
+      print('  Note: Waiting for PUSH_CODE_NEW_ADVERT (0x8A) with full contact details');
+      // The companion radio will automatically send PUSH_CODE_NEW_ADVERT if manual_add_contacts=0
+      // which will trigger onContactReceived callback and add/update the contact
     };
 
     _bleService.onDeviceInfoReceived = (deviceInfo) {
@@ -285,6 +321,7 @@ class ConnectionProvider with ChangeNotifier {
     _deviceInfo = DeviceInfo(
       connectionState: ConnectionState.disconnected,
     );
+    clearRoomLoginStates(); // Clear login states on disconnect
     notifyListeners();
   }
 
@@ -300,6 +337,25 @@ class ConnectionProvider with ChangeNotifier {
       await _bleService.getContacts();
     } catch (e) {
       _error = 'Failed to get contacts: $e';
+      notifyListeners();
+    }
+  }
+
+  /// Add or update a contact on the companion radio
+  ///
+  /// This manually adds a contact to the radio's internal contact table.
+  /// Useful when a room contact was deleted or never advertised yet.
+  Future<void> addOrUpdateContact(Contact contact) async {
+    if (!_bleService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await _bleService.addOrUpdateContact(contact);
+    } catch (e) {
+      _error = 'Failed to add/update contact: $e';
       notifyListeners();
     }
   }
@@ -361,6 +417,22 @@ class ConnectionProvider with ChangeNotifier {
       await _bleService.requestTelemetry(contactPublicKey, zeroHop: zeroHop);
     } catch (e) {
       _error = 'Failed to request telemetry: $e';
+      notifyListeners();
+    }
+  }
+
+  /// Get device time from companion radio to detect clock drift
+  Future<void> getDeviceTime() async {
+    if (!_bleService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await _bleService.getDeviceTime();
+    } catch (e) {
+      _error = 'Failed to get device time: $e';
       notifyListeners();
     }
   }
@@ -554,29 +626,37 @@ class ConnectionProvider with ChangeNotifier {
     _noMoreMessages = false; // Reset flag
 
     try {
-      print('🔄 [Provider] Starting message sync...');
+      print('🔄 [Provider] Starting message sync loop...');
+      print('  Initial _noMoreMessages state: $_noMoreMessages');
+
       // Keep syncing until we get NoMoreMessages response
       // The device will send ContactMsgRecv or ChannelMsgRecv responses
       // until it sends NoMoreMessages
       for (int i = 0; i < 100; i++) {  // Safety limit
         if (_noMoreMessages) {
-          print('✅ [Provider] Message sync complete - NoMoreMessages received after $count requests');
+          print('✅ [Provider] Message sync complete - NoMoreMessages flag set after $count requests');
           break;
         }
+
+        print('📤 [Provider] Sync iteration ${i + 1}: Sending CMD_SYNC_NEXT_MESSAGE');
 
         await _bleService.syncNextMessage();
         count++;
 
         // Small delay to allow response to be processed
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 150));
+
+        print('  After iteration ${i + 1}: _noMoreMessages=$_noMoreMessages');
       }
 
       if (!_noMoreMessages && count >= 100) {
-        print('⚠️ [Provider] Message sync stopped - reached safety limit of 100 requests');
+        print('⚠️ [Provider] Message sync stopped - reached safety limit of 100 requests without NoMoreMessages');
       }
 
+      print('🏁 [Provider] Message sync finished: sent $count sync requests, _noMoreMessages=$_noMoreMessages');
       return count;
     } catch (e) {
+      print('❌ [Provider] Failed to sync messages: $e');
       _error = 'Failed to sync messages: $e';
       notifyListeners();
       return count;
@@ -625,6 +705,38 @@ class ConnectionProvider with ChangeNotifier {
   /// Clear error message
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+
+  /// Check if a password exists for a room (by public key prefix)
+  Future<bool> _hasPasswordForRoom(Uint8List publicKeyPrefix) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Convert prefix to hex string for storage key
+      final prefixHex = publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
+      final roomKey = 'room_password_$prefixHex';
+      return prefs.getString(roomKey) != null;
+    } catch (e) {
+      debugPrint('Error checking password for room: $e');
+      return false;
+    }
+  }
+
+  /// Get login state for a room by public key prefix
+  RoomLoginState? getRoomLoginState(Uint8List publicKeyPrefix) {
+    final prefixHex = publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
+    return _roomLoginStates[prefixHex];
+  }
+
+  /// Check if logged into a specific room
+  bool isLoggedIntoRoom(Uint8List publicKeyPrefix) {
+    final state = getRoomLoginState(publicKeyPrefix);
+    return state?.isLoggedIn ?? false;
+  }
+
+  /// Clear all room login states (call on disconnect)
+  void clearRoomLoginStates() {
+    _roomLoginStates.clear();
     notifyListeners();
   }
 

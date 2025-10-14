@@ -560,7 +560,68 @@ The companion radio acts as a 'server', responding to requests from the connecte
 - `0` - ADV_TYPE_NONE (unknown/invalid)
 - `1` - ADV_TYPE_CHAT (team member, shown on map)
 - `2` - ADV_TYPE_REPEATER (network repeater node)
-- `3` - ADV_TYPE_ROOM (communication channel/room)
+- `3` - ADV_TYPE_ROOM (communication room/server - NOT the same as channel index!)
+
+**IMPORTANT: Channels vs. Rooms**:
+- **Channels** (channel index): Numeric identifiers used with `CMD_SEND_CHANNEL_TXT_MSG` for flood-mode broadcasts
+  - Channel 0 = "Public Channel" (default flood-mode broadcast to all nodes)
+  - Channel 1+ = Reserved for future use (not currently mapped to room contacts)
+  - **Channels are ephemeral** - messages broadcast over the air are NOT persisted
+- **Rooms** (ADV_TYPE_ROOM): Actual named contacts with public keys that provide persistent message storage
+  - Rooms appear in the Contacts tab as ContactType.room
+  - **Rooms provide persistent and immutable storage** - messages are stored even when offline
+  - To communicate with a room, send direct messages using `CMD_SEND_TXT_MSG` with the room's public key
+  - Optional: Login to rooms using `CMD_SEND_LOGIN` with password to read stored messages
+
+**Room Login Protocol Flow (CRITICAL - Follow Exactly)**:
+
+1. **Client sends login request** (`CMD_SEND_LOGIN`, code 26):
+   ```
+   [0x1A] - Command code (26)
+   [4 bytes] - Sender timestamp (uint32, current epoch seconds)
+   [4 bytes] - sync_since timestamp (uint32, epoch seconds - 0 for all messages)
+   [32 bytes] - Room public key
+   [N bytes] - Password (max 15 bytes, null-terminated)
+   ```
+
+2. **Room server processes login** (C++ code: `MyMesh::onAnonDataRecv()`):
+   - Validates password against `_prefs.password` (admin) or `_prefs.guest_password` (read/write)
+   - Stores `client->extra.room.sync_since = sender_sync_since` (line 324 of MyMesh.cpp)
+   - Responds with `PAYLOAD_TYPE_RESPONSE` containing login result
+   - Sets `next_push = futureMillis(PUSH_NOTIFY_DELAY_MILLIS)` to delay first push by 2000ms (line 346)
+
+3. **Client receives login response**:
+   - Success: `PUSH_CODE_LOGIN_SUCCESS` (0x85) with permissions, admin flag, tag
+   - Failure: `PUSH_CODE_LOGIN_FAIL` (0x86) if password incorrect
+
+4. **Room server automatically pushes messages** (C++ code: `MyMesh::loop()` lines 498-542):
+   - Server runs round-robin polling every `SYNC_PUSH_INTERVAL` (1200ms)
+   - For each logged-in client, checks if `post_timestamp > client->extra.room.sync_since`
+   - Calls `pushPostToClient()` which sends `PAYLOAD_TYPE_TXT_MSG` directly to client
+   - Waits for ACK, then advances `client->extra.room.sync_since` to next post
+   - Continues until all messages where `post_timestamp > sync_since` are pushed
+
+5. **Client receives pushed messages as they arrive**:
+   - Each push triggers `PUSH_CODE_MSG_WAITING` (0x83)
+   - App's `onMessageWaiting` callback fires automatically
+   - App then calls `CMD_SYNC_NEXT_MESSAGE` (10) to fetch each message from device queue
+   - Repeats until `RESP_CODE_NO_MORE_MESSAGES` (10) received
+
+**CRITICAL IMPLEMENTATION RULES**:
+- ❌ **DO NOT** call `syncAllMessages()` immediately after `PUSH_CODE_LOGIN_SUCCESS`
+- ✅ **DO** wait for `PUSH_CODE_MSG_WAITING` push notifications
+- ✅ **DO** call `syncNextMessage()` when `onMessageWaiting` callback fires
+- The room server pushes messages **automatically** - the app only needs to listen and fetch when notified
+- Server delays first push by 2000ms to allow login response to arrive first
+- Server uses round-robin with 1200ms intervals between push attempts
+- Each pushed message requires ACK before server advances to next message
+
+**SAR Message Routing**:
+- **SAR markers MUST be sent to rooms, NOT to public channel**
+- Use `CMD_SEND_TXT_MSG` with the room's public key (direct message to room)
+- This ensures SAR markers are **persisted and immutable** in the room's storage
+- Public channel (`CMD_SEND_CHANNEL_TXT_MSG`) is ephemeral over-the-air only
+- Rooms provide reliable message delivery and storage for critical SAR data
 
 **TXT_TYPE (Text Message Type)**:
 - `0` - TXT_TYPE_PLAIN (plain text message)

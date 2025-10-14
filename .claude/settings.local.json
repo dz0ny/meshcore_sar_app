@@ -17,7 +17,8 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(dart run:*)",
-      "Bash(dart test_sar_debug.dart:*)"
+      "Bash(dart test_sar_debug.dart:*)",
+      "Read(//Users/dz0ny/meshcore-sar/MeshCore/**)"
     ],
     "deny": [],
     "ask": []

@@ -18,10 +18,10 @@ class ContactsProvider with ChangeNotifier {
   void _ensurePublicChannelExists() {
     const publicChannelKey = 'public_channel_0';
     if (!_contacts.containsKey(publicChannelKey)) {
-      // Create a pseudo-contact for the public channel
+      // Create a pseudo-contact for the public channel (ephemeral broadcast)
       _contacts[publicChannelKey] = Contact(
         publicKey: Uint8List.fromList(List.filled(32, 0)), // Zero key for public
-        type: ContactType.room,
+        type: ContactType.channel, // Channel type (not room!)
         flags: 0,
         outPathLen: 0,
         outPath: Uint8List(64),
@@ -42,10 +42,19 @@ class ContactsProvider with ChangeNotifier {
   List<Contact> get repeaters =>
       contacts.where((c) => c.isRepeater).toList()..sort(_sortByLastSeen);
 
-  List<Contact> get rooms {
-    // Always ensure public channel exists when getting rooms
+  List<Contact> get rooms =>
+      contacts.where((c) => c.isRoom).toList()..sort(_sortByLastSeen);
+
+  List<Contact> get channels {
+    // Always ensure public channel exists when getting channels
     _ensurePublicChannelExists();
-    return contacts.where((c) => c.isRoom).toList()..sort(_sortByLastSeen);
+    return contacts.where((c) => c.isChannel).toList()..sort(_sortByLastSeen);
+  }
+
+  /// Get both rooms and channels (destinations for SAR markers)
+  List<Contact> get roomsAndChannels {
+    _ensurePublicChannelExists();
+    return contacts.where((c) => c.isRoom || c.isChannel).toList()..sort(_sortByLastSeen);
   }
 
   /// Get contacts with location (for map display)

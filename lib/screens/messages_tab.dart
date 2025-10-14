@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,7 @@ import '../providers/connection_provider.dart';
 import '../providers/app_provider.dart';
 import '../models/message.dart';
 import '../models/sar_marker.dart';
+import '../models/contact.dart';
 
 class MessagesTab extends StatefulWidget {
   final VoidCallback onNavigateToMap;
@@ -97,8 +99,8 @@ class _MessagesTabState extends State<MessagesTab> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _SarUpdateSheet(
-        onSend: (sarType, position, notes, channelIdx) async {
-          await _sendSarMessage(sarType, position, notes, channelIdx);
+        onSend: (sarType, position, notes, roomPublicKey, sendToChannel) async {
+          await _sendSarMessage(sarType, position, notes, roomPublicKey, sendToChannel);
         },
       ),
     );
@@ -108,7 +110,8 @@ class _MessagesTabState extends State<MessagesTab> {
     SarMarkerType sarType,
     Position position,
     String? notes,
-    int channelIdx,
+    Uint8List? roomPublicKey,
+    bool sendToChannel,
   ) async {
     final connectionProvider = context.read<ConnectionProvider>();
 
@@ -117,6 +120,17 @@ class _MessagesTabState extends State<MessagesTab> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Not connected to device'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (!sendToChannel && roomPublicKey == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a room to send SAR marker'),
           backgroundColor: Colors.red,
         ),
       );
@@ -132,21 +146,37 @@ class _MessagesTabState extends State<MessagesTab> {
           ? '$sarMessage $notes'
           : sarMessage;
 
-      // Send SAR message to selected room/channel
-      await connectionProvider.sendChannelMessage(
-        channelIdx: channelIdx,
-        text: fullMessage,
-      );
+      if (sendToChannel) {
+        // Send to public channel (ephemeral, over-the-air only)
+        await connectionProvider.sendChannelMessage(
+          channelIdx: 0,
+          text: fullMessage,
+        );
 
-      if (!mounted) return;
-      final channelName = channelIdx == 0 ? 'Public Channel' : 'Channel $channelIdx';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${sarType.displayName} marker sent to $channelName'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${sarType.displayName} marker broadcast to public channel'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        // Send SAR message to selected room (persisted and immutable)
+        await connectionProvider.sendTextMessage(
+          contactPublicKey: roomPublicKey!,
+          text: fullMessage,
+        );
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${sarType.displayName} marker sent to room'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -577,7 +607,7 @@ class _MessageBubble extends StatelessWidget {
 
 // SAR Update Sheet
 class _SarUpdateSheet extends StatefulWidget {
-  final Future<void> Function(SarMarkerType, Position, String?, int) onSend;
+  final Future<void> Function(SarMarkerType, Position, String?, Uint8List?, bool) onSend;
 
   const _SarUpdateSheet({required this.onSend});
 
@@ -590,7 +620,7 @@ class _SarUpdateSheetState extends State<_SarUpdateSheet> {
   Position? _currentPosition;
   bool _loadingLocation = false;
   String? _locationError;
-  int _selectedChannelIdx = 0; // Default to Public Channel (channel 0)
+  Contact? _selectedContact; // Can be room or channel (public channel is in contacts)
   final TextEditingController _notesController = TextEditingController();
 
   @override
@@ -756,7 +786,7 @@ class _SarUpdateSheetState extends State<_SarUpdateSheet> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Room/Channel selection
+                  // Destination selection (compact dropdown with rooms and channel)
                   const Text(
                     'Send To',
                     style: TextStyle(
@@ -768,8 +798,37 @@ class _SarUpdateSheetState extends State<_SarUpdateSheet> {
                   const SizedBox(height: 12),
                   Consumer<ContactsProvider>(
                     builder: (context, contactsProvider, child) {
-                      // Build list of available rooms/channels
-                      final rooms = contactsProvider.rooms;
+                      // Get all valid destinations (rooms + channels)
+                      final destinations = contactsProvider.roomsAndChannels;
+
+                      if (destinations.isEmpty) {
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.red.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.red, size: 20),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'No destinations available.',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
 
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -778,8 +837,18 @@ class _SarUpdateSheetState extends State<_SarUpdateSheet> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: DropdownButtonHideUnderline(
-                          child: DropdownButton<int>(
-                            value: _selectedChannelIdx,
+                          child: DropdownButton<Contact>(
+                            value: _selectedContact,
+                            hint: const Row(
+                              children: [
+                                Icon(Icons.arrow_drop_down_circle, size: 18, color: Colors.grey),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Select destination...',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
                             dropdownColor: const Color(0xFF2D2D2D),
                             isExpanded: true,
                             style: const TextStyle(
@@ -787,49 +856,80 @@ class _SarUpdateSheetState extends State<_SarUpdateSheet> {
                               fontSize: 14,
                             ),
                             icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                            items: [
-                              // Public Channel (always available)
-                              const DropdownMenuItem<int>(
-                                value: 0,
+                            items: destinations.map((contact) {
+                              return DropdownMenuItem<Contact>(
+                                value: contact,
                                 child: Row(
                                   children: [
-                                    Icon(Icons.public, size: 18, color: Colors.white),
-                                    SizedBox(width: 12),
-                                    Text('Public Channel'),
+                                    Icon(
+                                      contact.isChannel ? Icons.public : Icons.storage,
+                                      size: 18,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        contact.displayName,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   ],
                                 ),
-                              ),
-                              // Room channels
-                              ...rooms.asMap().entries.map((entry) {
-                                final idx = entry.key + 1; // Rooms start at channel 1
-                                final room = entry.value;
-                                return DropdownMenuItem<int>(
-                                  value: idx,
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.tag, size: 18, color: Colors.white),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          room.displayName,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            ],
+                              );
+                            }).toList(),
                             onChanged: (value) {
-                              if (value != null) {
-                                setState(() => _selectedChannelIdx = value);
-                              }
+                              setState(() => _selectedContact = value);
                             },
                           ),
                         ),
                       );
                     },
                   ),
+                  const SizedBox(height: 12),
+
+                  // Compact info banner
+                  if (_selectedContact != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _selectedContact!.isChannel
+                            ? Colors.orange.withValues(alpha: 0.1)
+                            : Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _selectedContact!.isChannel
+                              ? Colors.orange.withValues(alpha: 0.3)
+                              : Colors.blue.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            _selectedContact!.isChannel
+                                ? Icons.warning_amber
+                                : Icons.check_circle_outline,
+                            color: _selectedContact!.isChannel
+                                ? Colors.orange
+                                : Colors.blue,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _selectedContact!.isChannel
+                                  ? 'Ephemeral: Broadcast over-the-air only. Not stored - nodes must be online.'
+                                  : 'Persistent: Stored immutably in room. Synced automatically and preserved offline.',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   const SizedBox(height: 24),
 
                   // Location display
@@ -1016,7 +1116,7 @@ class _SarUpdateSheetState extends State<_SarUpdateSheet> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _currentPosition == null
+                  onPressed: _currentPosition == null || _selectedContact == null
                       ? null
                       : () async {
                           await widget.onSend(
@@ -1025,7 +1125,10 @@ class _SarUpdateSheetState extends State<_SarUpdateSheet> {
                             _notesController.text.trim().isEmpty
                                 ? null
                                 : _notesController.text.trim(),
-                            _selectedChannelIdx,
+                            _selectedContact!.isChannel
+                                ? null
+                                : _selectedContact!.publicKey,
+                            _selectedContact!.isChannel,
                           );
                           if (context.mounted) {
                             Navigator.pop(context);
@@ -1127,4 +1230,5 @@ class _MarkerTypeChip extends StatelessWidget {
     );
   }
 }
+
 

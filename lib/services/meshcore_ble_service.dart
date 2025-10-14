@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -22,6 +23,7 @@ typedef OnNoMoreMessagesCallback = void Function();
 typedef OnMessageWaitingCallback = void Function();
 typedef OnLoginSuccessCallback = void Function(Uint8List publicKeyPrefix, int permissions, bool isAdmin, int tag);
 typedef OnLoginFailCallback = void Function(Uint8List publicKeyPrefix);
+typedef OnAdvertReceivedCallback = void Function(Uint8List publicKey);
 typedef OnErrorCallback = void Function(String error);
 typedef OnConnectionStateCallback = void Function(bool isConnected);
 
@@ -44,6 +46,7 @@ class MeshCoreBleService {
   OnMessageWaitingCallback? onMessageWaiting;
   OnLoginSuccessCallback? onLoginSuccess;
   OnLoginFailCallback? onLoginFail;
+  OnAdvertReceivedCallback? onAdvertReceived;
   OnErrorCallback? onError;
 
   // Internal state
@@ -369,6 +372,10 @@ class MeshCoreBleService {
         case MeshCoreConstants.pushLoginFail:
           print('  → Handling LoginFail push');
           _handleLoginFail(reader);
+          break;
+        case MeshCoreConstants.respCurrTime:
+          print('  → Handling CurrentTime');
+          _handleCurrentTime(reader);
           break;
         case MeshCoreConstants.respNoMoreMessages:
           print('  → Response: No More Messages');
@@ -871,21 +878,53 @@ class MeshCoreBleService {
     }
   }
 
-  /// Handle Advert push
+  /// Handle Advert push (PUSH_CODE_ADVERT)
+  ///
+  /// This push notification indicates that a node in the mesh network
+  /// has broadcast an advertisement packet. The companion radio received
+  /// this over-the-air and is notifying the app.
+  ///
+  /// Protocol format:
+  /// - 32 bytes: public key of the advertising node
+  ///
+  /// Note: This is a passive notification - the companion radio handles
+  /// updating the contact automatically. The app can use this to show
+  /// real-time network activity or trigger UI updates.
+  ///
+  /// Behavior:
+  /// - If manual_add_contacts=0: Companion radio auto-updates contact, then sends PUSH_CODE_NEW_ADVERT with full details
+  /// - If manual_add_contacts=1: App must call CMD_GET_CONTACTS to sync updated contact
   void _handleAdvert(BufferReader reader) {
     try {
-      print('  [Advert] Parsing advert...');
+      print('  [Advert] Parsing advert push notification...');
       print('    Remaining bytes: ${reader.remainingBytesCount}');
 
       // Advert format: 32 bytes public key
       if (reader.remainingBytesCount >= 32) {
         final publicKey = reader.readBytes(32);
-        print('    Public key prefix: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+        final publicKeyPrefix = publicKey.sublist(0, 6);
+        final publicKeyFull = publicKey.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
+
+        print('    📡 ADVERT RECEIVED FROM NODE:');
+        print('       Public key prefix (6 bytes): ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+        print('       Public key (full 32 bytes): $publicKeyFull');
+        print('    ℹ️  This indicates the node is broadcasting its presence on the mesh network');
+        print('    ℹ️  The companion radio will automatically update contact info for this node');
+        print('    ℹ️  Expected follow-up:');
+        print('       - If manual_add_contacts=0: You will receive PUSH_CODE_NEW_ADVERT (0x8A) with full contact details');
+        print('       - If manual_add_contacts=1: Call CMD_GET_CONTACTS to sync updated contact');
+
+        // Notify callback so app can trigger contact sync if desired
+        onAdvertReceived?.call(publicKey);
+      } else {
+        print('  ⚠️ [Advert] Insufficient data: expected 32 bytes, got ${reader.remainingBytesCount}');
       }
 
       // Consume any remaining bytes
       if (reader.hasRemaining) {
-        reader.readRemainingBytes();
+        final extraBytes = reader.readRemainingBytes();
+        print('  ⚠️ [Advert] Extra bytes found: ${extraBytes.length} bytes');
+        print('       Extra data (hex): ${extraBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
       }
 
       print('  ✅ [Advert] Parsed successfully');
@@ -895,15 +934,113 @@ class MeshCoreBleService {
     }
   }
 
-  /// Handle LogRxData push
+  /// Handle LogRxData push (PUSH_CODE_LOG_RX_DATA)
+  ///
+  /// This push notification contains diagnostic/debug data from the companion radio
+  /// about packets it received over the air. The format is device-specific and may
+  /// contain encrypted or encoded data from the radio firmware.
   void _handleLogRxData(BufferReader reader) {
     try {
       print('  [LogRxData] Parsing log rx data...');
       print('    Remaining bytes: ${reader.remainingBytesCount}');
 
-      // This is encrypted/encoded data - just consume it
       final data = reader.readRemainingBytes();
       print('    Data length: ${data.length} bytes');
+
+      // Enhanced hex dump with 16 bytes per line for readability
+      print('    📊 HEX DUMP:');
+      for (int i = 0; i < data.length; i += 16) {
+        final end = (i + 16 < data.length) ? i + 16 : data.length;
+        final chunk = data.sublist(i, end);
+
+        // Offset column (4 hex digits)
+        final offset = i.toRadixString(16).padLeft(4, '0');
+
+        // Hex bytes (2 hex digits per byte, space separated)
+        final hexBytes = chunk.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
+
+        // ASCII representation (printable chars or '.')
+        final ascii = chunk.map((b) {
+          if (b >= 32 && b <= 126) {
+            return String.fromCharCode(b);
+          } else {
+            return '.';
+          }
+        }).join('');
+
+        // Print formatted line: OFFSET: HEX_BYTES | ASCII
+        print('       $offset: ${hexBytes.padRight(47)} | $ascii');
+      }
+
+      // Attempt to decode structure
+      print('    🔍 STRUCTURE ANALYSIS:');
+
+      if (data.length >= 4) {
+        // Try to parse potential timestamp at beginning (uint32 LE)
+        final timestamp = ByteData.sublistView(Uint8List.fromList(data.sublist(0, 4)))
+            .getUint32(0, Endian.little);
+        print('       [Bytes 0-3] Potential timestamp (uint32 LE): $timestamp');
+
+        // Check if timestamp is reasonable (between 2020 and 2030)
+        const minTimestamp = 1577836800; // 2020-01-01
+        const maxTimestamp = 1893456000; // 2030-01-01
+        if (timestamp >= minTimestamp && timestamp <= maxTimestamp) {
+          print('                   As epoch: ${DateTime.fromMillisecondsSinceEpoch(timestamp * 1000)}');
+          print('                   ✅ Valid timestamp!');
+        } else {
+          print('                   ⚠️  Timestamp out of reasonable range (not epoch seconds)');
+        }
+      }
+
+      // Check if this contains a public key (32-byte sequence starting around byte 4)
+      if (data.length >= 36) {
+        final potentialPubKey = data.sublist(4, 36);
+        final pubKeyPrefix = potentialPubKey.sublist(0, 6);
+        print('       [Bytes 4-35] Potential public key (32 bytes):');
+        print('                    Prefix: ${pubKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+        print('                    Full: ${potentialPubKey.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+        print('                    ℹ️  This might be the sender\'s public key from over-the-air packet');
+      }
+
+      // Look for printable strings (runs of 4+ printable characters)
+      final strings = <String>[];
+      StringBuffer currentString = StringBuffer();
+
+      for (int i = 0; i < data.length; i++) {
+        final byte = data[i];
+        if (byte >= 32 && byte <= 126) {
+          // Printable ASCII
+          currentString.write(String.fromCharCode(byte));
+        } else {
+          // Non-printable - end current string if long enough
+          if (currentString.length >= 4) {
+            strings.add(currentString.toString());
+          }
+          currentString.clear();
+        }
+      }
+      // Catch final string
+      if (currentString.length >= 4) {
+        strings.add(currentString.toString());
+      }
+
+      if (strings.isNotEmpty) {
+        print('       Embedded strings found:');
+        for (final str in strings) {
+          print('         → "$str"');
+        }
+      } else {
+        print('       No printable strings found (likely encrypted/binary data)');
+      }
+
+      // Check if this might be an encrypted packet (high entropy)
+      final uniqueBytes = data.toSet().length;
+      final entropy = uniqueBytes / data.length;
+      print('       Entropy: ${(entropy * 100).toStringAsFixed(1)}% (${uniqueBytes}/${data.length} unique bytes)');
+      if (entropy > 0.7) {
+        print('       ℹ️  High entropy suggests encrypted or compressed data');
+      }
+
       print('  ✅ [LogRxData] Parsed successfully');
     } catch (e) {
       print('  ❌ [LogRxData] Parsing error: $e');
@@ -1097,6 +1234,45 @@ class MeshCoreBleService {
     }
   }
 
+  /// Handle CurrentTime response (RESP_CODE_CURR_TIME)
+  ///
+  /// Protocol format:
+  /// - 4 bytes: current device time (uint32, epoch seconds, UTC)
+  void _handleCurrentTime(BufferReader reader) {
+    try {
+      print('  [CurrentTime] Parsing device time...');
+      print('    Remaining bytes: ${reader.remainingBytesCount}');
+
+      if (reader.remainingBytesCount >= 4) {
+        final deviceTime = reader.readUInt32LE();
+        final appTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final drift = appTime - deviceTime;
+
+        print('    📍 CLOCK COMPARISON:');
+        print('       Radio time: $deviceTime (${DateTime.fromMillisecondsSinceEpoch(deviceTime * 1000)})');
+        print('       App time:   $appTime (${DateTime.fromMillisecondsSinceEpoch(appTime * 1000)})');
+        print('       Clock drift: $drift seconds');
+
+        if (drift.abs() > 60) {
+          print('    ⚠️  WARNING: Clock drift exceeds 60 seconds!');
+          print('       This may cause login or message sync issues');
+          print('       Consider calling setDeviceTime() to sync the radio\'s clock');
+        } else if (drift.abs() > 5) {
+          print('    ℹ️  Minor clock drift detected (${drift}s)');
+        } else {
+          print('    ✅ Clocks are well synchronized (drift: ${drift}s)');
+        }
+
+        print('  ✅ [CurrentTime] Parsed successfully');
+      } else {
+        print('  ⚠️ [CurrentTime] Insufficient data for full parsing');
+      }
+    } catch (e) {
+      print('  ❌ [CurrentTime] Parsing error: $e');
+      onError?.call('CurrentTime parsing error: $e');
+    }
+  }
+
   /// Handle Error response (RESP_CODE_ERR)
   ///
   /// Protocol format:
@@ -1168,6 +1344,57 @@ class MeshCoreBleService {
     final writer = BufferWriter();
     writer.writeByte(MeshCoreConstants.cmdGetContacts);
     await _writeData(writer.toBytes());
+  }
+
+  /// Manually add or update a contact on the companion radio
+  ///
+  /// This is useful when you need to add a room that hasn't advertised yet,
+  /// or restore a contact that was deleted from the radio's table.
+  ///
+  /// **Use case:** If you get ERR_CODE_NOT_FOUND when logging into a room,
+  /// use this to add the room contact to the radio's internal table first.
+  ///
+  /// Protocol format (CMD_ADD_UPDATE_CONTACT):
+  /// - 1 byte: command code (9)
+  /// - 32 bytes: public key
+  /// - 1 byte: type (ADV_TYPE_*)
+  /// - 1 byte: flags
+  /// - 1 byte: out path length (signed)
+  /// - 64 bytes: out path
+  /// - 32 bytes: advertised name (null-terminated)
+  /// - 4 bytes: last advert timestamp (uint32)
+  /// - 4 bytes: (optional) advert latitude * 1E6 (int32)
+  /// - 4 bytes: (optional) advert longitude * 1E6 (int32)
+  Future<void> addOrUpdateContact(Contact contact) async {
+    print('📝 [BLE] Adding/updating contact on companion radio:');
+    print('    Name: ${contact.advName}');
+    print('    Public key prefix: ${contact.publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    print('    Type: ${contact.type} (${contact.type.value})');
+
+    final writer = BufferWriter();
+    writer.writeByte(MeshCoreConstants.cmdAddUpdateContact); // 0x09
+    writer.writeBytes(contact.publicKey); // 32 bytes
+    writer.writeByte(contact.type.value); // ADV_TYPE_*
+    writer.writeByte(contact.flags); // flags
+    writer.writeInt8(contact.outPathLen); // path length (signed byte)
+    writer.writeBytes(contact.outPath); // 64 bytes
+
+    // Write name as null-terminated string in 32-byte field
+    final nameBytes = Uint8List(32);
+    final encoded = utf8.encode(contact.advName);
+    final copyLen = encoded.length > 31 ? 31 : encoded.length;
+    nameBytes.setRange(0, copyLen, encoded);
+    writer.writeBytes(nameBytes);
+
+    writer.writeUInt32LE(contact.lastAdvert); // timestamp
+    writer.writeInt32LE(contact.advLat); // latitude * 1E6
+    writer.writeInt32LE(contact.advLon); // longitude * 1E6
+
+    await _writeData(writer.toBytes());
+
+    print('✅ [BLE] CMD_ADD_UPDATE_CONTACT sent');
+    print('    This adds/updates the contact in the radio\'s internal flash storage');
+    print('    The contact will persist across reboots and can be used for login');
   }
 
   /// Send text message to contact (DM)
@@ -1252,6 +1479,19 @@ class MeshCoreBleService {
   Future<void> syncNextMessage() async {
     final writer = BufferWriter();
     writer.writeByte(MeshCoreConstants.cmdSyncNextMessage);
+    await _writeData(writer.toBytes());
+  }
+
+  /// Get device time from companion radio
+  ///
+  /// Queries the companion radio's current time to detect clock drift.
+  /// Response will be RESP_CODE_CURR_TIME (9).
+  ///
+  /// Protocol format (CMD_GET_DEVICE_TIME):
+  /// - 1 byte: command code (5)
+  Future<void> getDeviceTime() async {
+    final writer = BufferWriter();
+    writer.writeByte(MeshCoreConstants.cmdGetDeviceTime);
     await _writeData(writer.toBytes());
   }
 
@@ -1352,24 +1592,52 @@ class MeshCoreBleService {
 
   /// Send login request to room or repeater
   ///
+  /// This sends a PAYLOAD_TYPE_ANON_REQ packet via the companion radio.
+  /// The companion radio encodes it and sends it to the room server.
+  ///
   /// Protocol format (CMD_SEND_LOGIN):
   /// - 1 byte: command code (26)
-  /// - 32 bytes: public key (room or repeater)
-  /// - N bytes: password (remainder of frame, varchar, max 15 bytes)
+  /// - 4 bytes: sender timestamp (uint32, epoch seconds - current time)
+  /// - 4 bytes: sync_since timestamp (uint32, epoch seconds - 0 for all messages)
+  /// - 32 bytes: room public key
+  /// - N bytes: password (varchar, max 15 bytes, null-terminated)
   ///
   /// Response: PUSH_CODE_LOGIN_SUCCESS (0x85) or PUSH_CODE_LOGIN_FAIL (0x86)
+  ///
+  /// After successful login, the room server will PUSH messages where
+  /// post_timestamp > sync_since directly to the companion radio.
+  ///
+  /// IMPORTANT: The companion radio must have the room contact in its own
+  /// internal contact table. If you get ERR_CODE_NOT_FOUND (2), the radio
+  /// doesn't know about this room. You need to:
+  /// 1. Wait for the room to advertise (it will be added automatically)
+  /// 2. Import the room contact using CMD_IMPORT_CONTACT
+  /// 3. Manually add the room contact using CMD_ADD_UPDATE_CONTACT
   Future<void> loginToRoom({
     required Uint8List roomPublicKey,
     required String password,
+    int syncSince = 0, // 0 = get all messages
   }) async {
     if (password.length > 15) {
       throw ArgumentError('Password exceeds 15 character limit');
     }
 
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000; // epoch seconds
+
+    print('🔐 [BLE] Preparing login request:');
+    print('    Room public key prefix: ${roomPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    print('    Password: ${"*" * password.length} (${password.length} chars)');
+    print('    Sender timestamp: $now (${DateTime.fromMillisecondsSinceEpoch(now * 1000)})');
+    print('    Sync since: $syncSince (${syncSince == 0 ? "all messages" : "messages after timestamp $syncSince"})');
+    print('    ⚠️  NOTE: The companion radio must have this room in its contact table');
+    print('           If you get ERR_CODE_NOT_FOUND, the room needs to advertise first or use CMD_ADD_UPDATE_CONTACT');
+
     final writer = BufferWriter();
     writer.writeByte(MeshCoreConstants.cmdSendLogin);
+    writer.writeUInt32LE(now); // sender timestamp
+    writer.writeUInt32LE(syncSince); // sync messages since this timestamp (0 = all)
     writer.writeBytes(roomPublicKey); // 32 bytes
-    writer.writeString(password); // Max 15 bytes
+    writer.writeString(password); // Max 15 bytes, null-terminated
     await _writeData(writer.toBytes());
   }
 

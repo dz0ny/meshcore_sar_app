@@ -312,7 +312,9 @@ class MapMarkers {
       case ContactType.repeater:
         return Colors.deepPurple; // Purple for repeaters
       case ContactType.room:
-        return Colors.teal; // Teal for rooms/channels
+        return Colors.teal; // Teal for rooms
+      case ContactType.channel:
+        return Colors.orange; // Orange for channels
       case ContactType.none:
         return Colors.grey;
     }
@@ -326,6 +328,8 @@ class MapMarkers {
         return Icons.router; // Router icon for repeaters
       case ContactType.room:
         return Icons.forum; // Forum/chat icon for rooms
+      case ContactType.channel:
+        return Icons.public; // Public icon for channels
       case ContactType.none:
         return Icons.help_outline;
     }

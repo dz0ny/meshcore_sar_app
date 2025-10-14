@@ -8,7 +8,8 @@ enum ContactType {
   none(0),
   chat(1),
   repeater(2),
-  room(3);
+  room(3),
+  channel(99); // Virtual type for public channel (not from protocol)
 
   const ContactType(this.value);
   final int value;
@@ -28,6 +29,8 @@ enum ContactType {
         return 'Repeater';
       case ContactType.room:
         return 'Room';
+      case ContactType.channel:
+        return 'Channel';
       default:
         return 'Unknown';
     }
@@ -75,6 +78,12 @@ class Contact {
     return publicKey.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
   }
 
+  /// Get public key prefix (first 6 bytes) for room login matching
+  Uint8List get publicKeyPrefix {
+    if (publicKey.length < 6) return publicKey;
+    return publicKey.sublist(0, 6);
+  }
+
   /// Convert advLat/advLon to LatLng
   LatLng? get advertLocation {
     if (advLat == 0 && advLon == 0) return null;
@@ -103,8 +112,11 @@ class Contact {
   /// Check if contact is a repeater
   bool get isRepeater => type == ContactType.repeater;
 
-  /// Check if contact is a room/channel
+  /// Check if contact is a room (persistent storage)
   bool get isRoom => type == ContactType.room;
+
+  /// Check if contact is a channel (ephemeral broadcast)
+  bool get isChannel => type == ContactType.channel;
 
   /// Get last seen time
   DateTime get lastSeenTime {

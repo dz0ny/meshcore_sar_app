@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'connection_provider.dart';
 import 'contacts_provider.dart';
 import 'messages_provider.dart';
 import '../services/tile_cache_service.dart';
+import '../models/contact.dart';
 
 /// Main App Provider - coordinates all other providers
 class AppProvider with ChangeNotifier {
@@ -80,12 +83,115 @@ class AppProvider with ChangeNotifier {
       // Load contacts
       await connectionProvider.getContacts();
 
+      // Small delay to ensure contacts are fully loaded
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Automatically login to all saved rooms
+      await _autoLoginToRooms();
+
       // Sync any waiting messages from device queue
       await _syncMessages();
 
       notifyListeners();
     } catch (e) {
       debugPrint('Initialization error: $e');
+    }
+  }
+
+  /// Automatically login to all rooms with saved passwords on cold connect
+  Future<void> _autoLoginToRooms() async {
+    if (!connectionProvider.deviceInfo.isConnected) return;
+
+    try {
+      // Get all room contacts (excluding Public Channel)
+      final rooms = contactsProvider.rooms
+          .where((room) => room.advName != 'Public Channel')
+          .toList();
+
+      if (rooms.isEmpty) {
+        debugPrint('📂 [AppProvider] No rooms found to auto-login');
+        return;
+      }
+
+      debugPrint('📂 [AppProvider] Found ${rooms.length} room(s), attempting auto-login...');
+
+      final prefs = await SharedPreferences.getInstance();
+
+      for (final room in rooms) {
+        try {
+          // Load saved password for this room
+          final roomKey = 'room_password_${room.publicKeyHex}';
+          final savedPassword = prefs.getString(roomKey) ?? 'hello';
+
+          debugPrint('🔑 [AppProvider] Auto-logging into room: ${room.advName}');
+
+          // Set up one-time callbacks for this room login
+          await _loginToRoomWithCallback(room, savedPassword);
+
+          // Small delay between logins to avoid overwhelming the device
+          await Future.delayed(const Duration(milliseconds: 300));
+        } catch (e) {
+          debugPrint('❌ [AppProvider] Failed to auto-login to ${room.advName}: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [AppProvider] Auto-login error: $e');
+    }
+  }
+
+  /// Login to a specific room with callback handling
+  Future<void> _loginToRoomWithCallback(Contact room, String password) async {
+    // Create a completer to wait for login result
+    final completer = Completer<bool>();
+
+    // Store original callbacks
+    final originalOnSuccess = connectionProvider.onLoginSuccess;
+    final originalOnFail = connectionProvider.onLoginFail;
+
+    // Set up temporary callbacks
+    connectionProvider.onLoginSuccess = (publicKeyPrefix, permissions, isAdmin, tag) async {
+      // Restore original callbacks
+      connectionProvider.onLoginSuccess = originalOnSuccess;
+      connectionProvider.onLoginFail = originalOnFail;
+
+      debugPrint('✅ [AppProvider] Auto-login successful for ${room.advName}');
+      debugPrint('📡 [AppProvider] Room server will push messages automatically via PUSH_CODE_MSG_WAITING');
+
+      completer.complete(true);
+    };
+
+    connectionProvider.onLoginFail = (publicKeyPrefix) {
+      // Restore original callbacks
+      connectionProvider.onLoginSuccess = originalOnSuccess;
+      connectionProvider.onLoginFail = originalOnFail;
+
+      debugPrint('❌ [AppProvider] Auto-login failed for ${room.advName} (incorrect password)');
+      completer.complete(false);
+    };
+
+    try {
+      // Send login request
+      await connectionProvider.loginToRoom(
+        roomPublicKey: room.publicKey,
+        password: password,
+      );
+
+      // Wait for login result with timeout
+      await completer.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          // Restore callbacks on timeout
+          connectionProvider.onLoginSuccess = originalOnSuccess;
+          connectionProvider.onLoginFail = originalOnFail;
+          debugPrint('⏱️ [AppProvider] Auto-login timeout for ${room.advName}');
+          return false;
+        },
+      );
+    } catch (e) {
+      // Restore callbacks on error
+      connectionProvider.onLoginSuccess = originalOnSuccess;
+      connectionProvider.onLoginFail = originalOnFail;
+      debugPrint('❌ [AppProvider] Error during auto-login to ${room.advName}: $e');
     }
   }
 
