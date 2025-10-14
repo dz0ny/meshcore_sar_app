@@ -520,7 +520,35 @@ class MeshCoreBleService {
       final senderTimestamp = reader.readUInt32LE();
       print('    Sender timestamp: $senderTimestamp (${DateTime.fromMillisecondsSinceEpoch(senderTimestamp * 1000)})');
 
-      final text = reader.readString();
+      // Handle different message types
+      String text;
+      Uint8List? signature;
+
+      if (txtType == MessageTextType.signedPlain) {
+        // Signed message format: [64-byte signature][UTF-8 text]
+        print('    Signed message detected - extracting signature');
+
+        if (reader.remainingBytesCount < 64) {
+          print('    ⚠️ Insufficient bytes for signature (${reader.remainingBytesCount} < 64)');
+          // Try to read as plain text anyway
+          text = reader.readString();
+        } else {
+          signature = reader.readBytes(64);
+          print('    Signature (first 16 bytes): ${signature.sublist(0, 16).map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}...');
+
+          // Remaining bytes are the actual text
+          if (reader.hasRemaining) {
+            text = reader.readString();
+          } else {
+            text = '';
+            print('    ⚠️ No text content after signature');
+          }
+        }
+      } else {
+        // Plain text message
+        text = reader.readString();
+      }
+
       print('    Text: "$text"');
 
       final message = Message(
@@ -561,7 +589,35 @@ class MeshCoreBleService {
       final senderTimestamp = reader.readUInt32LE();
       print('    Sender timestamp: $senderTimestamp (${DateTime.fromMillisecondsSinceEpoch(senderTimestamp * 1000)})');
 
-      final text = reader.readString();
+      // Handle different message types
+      String text;
+      Uint8List? signature;
+
+      if (txtType == MessageTextType.signedPlain) {
+        // Signed message format: [64-byte signature][UTF-8 text]
+        print('    Signed message detected - extracting signature');
+
+        if (reader.remainingBytesCount < 64) {
+          print('    ⚠️ Insufficient bytes for signature (${reader.remainingBytesCount} < 64)');
+          // Try to read as plain text anyway
+          text = reader.readString();
+        } else {
+          signature = reader.readBytes(64);
+          print('    Signature (first 16 bytes): ${signature.sublist(0, 16).map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}...');
+
+          // Remaining bytes are the actual text
+          if (reader.hasRemaining) {
+            text = reader.readString();
+          } else {
+            text = '';
+            print('    ⚠️ No text content after signature');
+          }
+        }
+      } else {
+        // Plain text message
+        text = reader.readString();
+      }
+
       print('    Text: "$text"');
 
       final message = Message(
@@ -1207,16 +1263,22 @@ class MeshCoreBleService {
     await _writeData(writer.toBytes());
   }
 
-  /// Send flood advertisement with current location
-  Future<void> sendFloodAdvertisement({
-    required double latitude,
-    required double longitude,
-  }) async {
+  /// Send self advertisement packet to mesh network
+  ///
+  /// This broadcasts the device's current advertisement data (name, location, etc.)
+  /// to the mesh network. The device uses its internally stored values from
+  /// setAdvertName() and setAdvertLatLon().
+  ///
+  /// Protocol format (CMD_SEND_SELF_ADVERT):
+  /// - 1 byte: command code (7)
+  /// - 1 byte: type (0=zero-hop/local, 1=flood/mesh-wide)
+  ///
+  /// [floodMode] - if true, broadcast to entire mesh network (default)
+  ///               if false, only send to direct neighbors (zero-hop)
+  Future<void> sendSelfAdvert({bool floodMode = true}) async {
     final writer = BufferWriter();
     writer.writeByte(MeshCoreConstants.cmdSendSelfAdvert);
-    writer.writeByte(MeshCoreConstants.selfAdvertFlood);
-    writer.writeInt32LE((latitude * 1000000).round());
-    writer.writeInt32LE((longitude * 1000000).round());
+    writer.writeByte(floodMode ? MeshCoreConstants.selfAdvertFlood : MeshCoreConstants.selfAdvertZeroHop);
     await _writeData(writer.toBytes());
   }
 

@@ -30,7 +30,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   PackageInfo? _packageInfo;
   bool _isLoadingSampleData = false;
   double _gpsUpdateDistance = 10.0;
+  double _gpsMinDistance = 5.0;
+  double _gpsMaxDistance = 100.0;
+  int _minTimeIntervalSeconds = 30;
   bool _backgroundTrackingEnabled = false;
+  bool _isSendingLocationUpdate = false;
   final BackgroundLocationService _backgroundLocationService =
       BackgroundLocationService();
 
@@ -56,6 +60,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) {
       setState(() {
         _gpsUpdateDistance = prefs.getDouble('map_gps_update_distance') ?? 10.0;
+        _gpsMinDistance = prefs.getDouble('map_gps_min_distance') ?? 5.0;
+        _gpsMaxDistance = prefs.getDouble('map_gps_max_distance') ?? 100.0;
+        _minTimeIntervalSeconds = prefs.getInt('map_gps_min_time_interval') ?? 30;
         _backgroundTrackingEnabled =
             prefs.getBool('background_tracking_enabled') ?? false;
       });
@@ -80,6 +87,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _saveLocationSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('map_gps_update_distance', _gpsUpdateDistance);
+    await prefs.setDouble('map_gps_min_distance', _gpsMinDistance);
+    await prefs.setDouble('map_gps_max_distance', _gpsMaxDistance);
+    await prefs.setInt('map_gps_min_time_interval', _minTimeIntervalSeconds);
     await prefs.setBool(
       'background_tracking_enabled',
       _backgroundTrackingEnabled,
@@ -215,6 +225,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _backgroundLocationService.stopTracking();
   }
 
+  Future<void> _sendLocationUpdateNow() async {
+    setState(() => _isSendingLocationUpdate = true);
+
+    try {
+      // Get current location
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best,
+        ),
+      );
+
+      if (!mounted) return;
+
+      // Get connection provider
+      final appProvider = context.read<AppProvider>();
+      final connectionProvider = appProvider.connectionProvider;
+
+      if (!connectionProvider.deviceInfo.isConnected) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Not connected to device'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Update device location
+      await connectionProvider.setAdvertLatLon(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      // Send advertisement
+      await connectionProvider.sendSelfAdvert(floodMode: true);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Location broadcast: ${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to send location: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSendingLocationUpdate = false);
+      }
+    }
+  }
+
   Future<void> _clearSampleData() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -279,18 +352,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const Divider(),
 
           // Location Settings Section
-          _buildSectionHeader('Location'),
-          ListTile(
-            leading: const Icon(Icons.gps_fixed),
-            title: const Text('GPS Update Distance'),
-            subtitle: Text('${_gpsUpdateDistance.toStringAsFixed(0)} meters'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showGpsDistanceDialog(),
+          _buildSectionHeader('Location Broadcasting'),
+
+          // Manual location update button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isSendingLocationUpdate ? null : _sendLocationUpdateNow,
+                icon: _isSendingLocationUpdate
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.my_location),
+                label: const Text('Broadcast Location Now'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
           ),
+
+          const Divider(),
+
+          // Automatic tracking settings
           SwitchListTile(
             secondary: const Icon(Icons.location_on),
-            title: const Text('Background Location Tracking'),
-            subtitle: const Text('Send position updates to mesh network'),
+            title: const Text('Auto Location Tracking'),
+            subtitle: const Text('Automatically broadcast position updates'),
             value: _backgroundTrackingEnabled,
             onChanged: (value) {
               setState(() {
@@ -304,6 +396,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _saveLocationSettings();
             },
           ),
+
+          if (_backgroundTrackingEnabled) ...[
+            ListTile(
+              leading: const Icon(Icons.tune),
+              title: const Text('Configure Tracking'),
+              subtitle: const Text('Distance and time thresholds'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showTrackingConfigDialog(),
+            ),
+          ],
+
           const Divider(),
 
           // About Section
@@ -405,44 +508,161 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showGpsDistanceDialog() {
-    double tempDistance = _gpsUpdateDistance;
+  void _showTrackingConfigDialog() {
+    double tempMinDistance = _gpsMinDistance;
+    double tempMaxDistance = _gpsMaxDistance;
+    int tempTimeInterval = _minTimeIntervalSeconds;
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('GPS Update Distance'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Position updates sent every ${tempDistance.toStringAsFixed(0)} meters',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 16),
-              Slider(
-                value: tempDistance,
-                min: 1,
-                max: 100,
-                divisions: 99,
-                label: '${tempDistance.toStringAsFixed(0)}m',
-                onChanged: (value) {
-                  setDialogState(() {
-                    tempDistance = value;
-                  });
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('1m', style: Theme.of(context).textTheme.bodySmall),
-                    Text('100m', style: Theme.of(context).textTheme.bodySmall),
-                  ],
+          title: const Text('Location Tracking Configuration'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Description
+                Text(
+                  'Configure when location broadcasts are sent to the mesh network',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+
+                // Minimum Distance
+                Text(
+                  'Minimum Distance',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Broadcast only after moving ${tempMinDistance.toStringAsFixed(0)} meters',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 8),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    showValueIndicator: ShowValueIndicator.always,
+                  ),
+                  child: Slider(
+                    value: tempMinDistance,
+                    min: 1,
+                    max: 50,
+                    divisions: 49,
+                    label: '${tempMinDistance.toStringAsFixed(0)}m',
+                    onChanged: (value) {
+                      setDialogState(() {
+                        tempMinDistance = value;
+                        // Ensure max is always >= min
+                        if (tempMaxDistance < value) {
+                          tempMaxDistance = value;
+                        }
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('1m', style: Theme.of(context).textTheme.bodySmall),
+                      Text('50m', style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Maximum Distance
+                Text(
+                  'Maximum Distance',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Always broadcast after moving ${tempMaxDistance.toStringAsFixed(0)} meters',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 8),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    showValueIndicator: ShowValueIndicator.always,
+                  ),
+                  child: Slider(
+                    value: tempMaxDistance,
+                    min: tempMinDistance,
+                    max: 500,
+                    divisions: (500 - tempMinDistance).toInt(),
+                    label: '${tempMaxDistance.toStringAsFixed(0)}m',
+                    onChanged: (value) {
+                      setDialogState(() {
+                        tempMaxDistance = value;
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('${tempMinDistance.toStringAsFixed(0)}m',
+                        style: Theme.of(context).textTheme.bodySmall),
+                      Text('500m', style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Minimum Time Interval
+                Text(
+                  'Minimum Time Interval',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Always broadcast every ${_formatDuration(tempTimeInterval)}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 8),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    showValueIndicator: ShowValueIndicator.always,
+                  ),
+                  child: Slider(
+                    value: tempTimeInterval.toDouble(),
+                    min: 10,
+                    max: 600, // 10 minutes
+                    divisions: 59,
+                    label: _formatDuration(tempTimeInterval),
+                    onChanged: (value) {
+                      setDialogState(() {
+                        tempTimeInterval = value.toInt();
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('10s', style: Theme.of(context).textTheme.bodySmall),
+                      Text('10min', style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -452,14 +672,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  _gpsUpdateDistance = tempDistance;
+                  _gpsMinDistance = tempMinDistance;
+                  _gpsMaxDistance = tempMaxDistance;
+                  _minTimeIntervalSeconds = tempTimeInterval;
+                  _gpsUpdateDistance = tempMinDistance; // Use min as the primary threshold
                 });
                 _saveLocationSettings();
 
                 // Update background tracking if active
                 if (_backgroundTrackingEnabled) {
                   _backgroundLocationService.updateDistanceThreshold(
-                    tempDistance,
+                    tempMinDistance,
                   );
                 }
 
@@ -471,6 +694,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  String _formatDuration(int seconds) {
+    if (seconds < 60) {
+      return '${seconds}s';
+    } else {
+      final minutes = seconds ~/ 60;
+      final remainingSeconds = seconds % 60;
+      if (remainingSeconds == 0) {
+        return '${minutes}min';
+      } else {
+        return '${minutes}min ${remainingSeconds}s';
+      }
+    }
   }
 
   void _showThemeDialog() {

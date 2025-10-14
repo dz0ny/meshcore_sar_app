@@ -19,6 +19,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   late TextEditingController _txPowerController;
 
   bool _telemetryEnabled = false;
+  bool _isBroadcasting = false;
   String _selectedBandwidth = '62.5 kHz';
   int _selectedSpreadingFactor = 8;
   int _selectedCodingRate = 8;
@@ -265,6 +266,51 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     }
   }
 
+  Future<void> _broadcastNow() async {
+    final connectionProvider = context.read<ConnectionProvider>();
+
+    if (!connectionProvider.deviceInfo.isConnected) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Not connected to device'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() => _isBroadcasting = true);
+
+    try {
+      // Send self advertisement to mesh network
+      await connectionProvider.sendSelfAdvert(floodMode: true);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Advertisement broadcast to mesh network'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to broadcast: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isBroadcasting = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final deviceInfo = context.watch<ConnectionProvider>().deviceInfo;
@@ -324,10 +370,26 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      ElevatedButton.icon(
-                        onPressed: _savePublicInfo,
-                        icon: const Icon(Icons.save, size: 18),
-                        label: const Text('Save'),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: _isBroadcasting ? null : _broadcastNow,
+                            icon: _isBroadcasting
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.sensors, size: 18),
+                            label: const Text('Broadcast'),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: _savePublicInfo,
+                            icon: const Icon(Icons.save, size: 18),
+                            label: const Text('Save'),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -259,6 +259,13 @@ class _ContactTile extends StatelessWidget {
                 onPressed: () => _showDirectMessageDialog(context, contact),
                 tooltip: 'Send direct message',
               ),
+            // Login button for rooms (except public channel)
+            if (contact.type == ContactType.room && contact.advName != 'Public Channel')
+              IconButton(
+                icon: const Icon(Icons.login, size: 20),
+                onPressed: () => _showRoomLoginDialog(context, contact),
+                tooltip: 'Login to room',
+              ),
             // Telemetry refresh button
             IconButton(
               icon: const Icon(Icons.refresh, size: 20),
@@ -297,6 +304,15 @@ class _ContactTile extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _DirectMessageSheet(contact: contact),
+    );
+  }
+
+  void _showRoomLoginDialog(BuildContext context, Contact contact) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _RoomLoginSheet(contact: contact),
     );
   }
 
@@ -735,6 +751,252 @@ class _DirectMessageSheetState extends State<_DirectMessageSheet> {
                         : _sendDirectMessage,
                     icon: const Icon(Icons.send),
                     label: const Text('Send Direct Message'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Room Login Sheet Widget
+class _RoomLoginSheet extends StatefulWidget {
+  final Contact contact;
+
+  const _RoomLoginSheet({required this.contact});
+
+  @override
+  State<_RoomLoginSheet> createState() => _RoomLoginSheetState();
+}
+
+class _RoomLoginSheetState extends State<_RoomLoginSheet> {
+  final TextEditingController _passwordController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  bool _isLoggingIn = false;
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loginToRoom() async {
+    final password = _passwordController.text.trim();
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a password'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final connectionProvider = context.read<ConnectionProvider>();
+
+    if (!connectionProvider.deviceInfo.isConnected) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Not connected to device'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoggingIn = true;
+    });
+
+    try {
+      // Send login request to room
+      await connectionProvider.loginToRoom(
+        roomPublicKey: widget.contact.publicKey,
+        password: password,
+      );
+
+      _passwordController.clear();
+      _focusNode.unfocus();
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close the dialog
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login request sent to ${widget.contact.displayName}'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to login: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoggingIn = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.6,
+      decoration: const BoxDecoration(
+        color: Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Login to Room',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        widget.contact.displayName,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 48), // Balance the back button
+              ],
+            ),
+          ),
+
+          // Info banner
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Enter the password to access this room. You will receive a confirmation once logged in.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          const Spacer(),
+
+          // Password input
+          Container(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: 16 + MediaQuery.of(context).viewInsets.bottom,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFF2D2D2D),
+            ),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _passwordController,
+                  focusNode: _focusNode,
+                  maxLength: 15, // Max password length from protocol
+                  obscureText: _obscurePassword,
+                  autofocus: true,
+                  maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    labelStyle: const TextStyle(color: Colors.grey),
+                    hintText: 'Enter room password',
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.grey),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.white),
+                    ),
+                    contentPadding: const EdgeInsets.all(16),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _loginToRoom(),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoggingIn || _passwordController.text.trim().isEmpty
+                        ? null
+                        : _loginToRoom,
+                    icon: _isLoggingIn
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.login),
+                    label: Text(_isLoggingIn ? 'Logging in...' : 'Login'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),

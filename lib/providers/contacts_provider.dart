@@ -9,6 +9,31 @@ import '../services/cayenne_lpp_parser.dart';
 class ContactsProvider with ChangeNotifier {
   final Map<String, Contact> _contacts = {};
 
+  // Add default public channel on initialization
+  ContactsProvider() {
+    _ensurePublicChannelExists();
+  }
+
+  /// Ensure public channel always exists in the list
+  void _ensurePublicChannelExists() {
+    const publicChannelKey = 'public_channel_0';
+    if (!_contacts.containsKey(publicChannelKey)) {
+      // Create a pseudo-contact for the public channel
+      _contacts[publicChannelKey] = Contact(
+        publicKey: Uint8List.fromList(List.filled(32, 0)), // Zero key for public
+        type: ContactType.room,
+        flags: 0,
+        outPathLen: 0,
+        outPath: Uint8List(64),
+        advName: 'Public Channel',
+        lastAdvert: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        advLat: 0,
+        advLon: 0,
+        lastMod: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      );
+    }
+  }
+
   List<Contact> get contacts => _contacts.values.toList();
 
   List<Contact> get chatContacts =>
@@ -17,8 +42,11 @@ class ContactsProvider with ChangeNotifier {
   List<Contact> get repeaters =>
       contacts.where((c) => c.isRepeater).toList()..sort(_sortByLastSeen);
 
-  List<Contact> get rooms =>
-      contacts.where((c) => c.isRoom).toList()..sort(_sortByLastSeen);
+  List<Contact> get rooms {
+    // Always ensure public channel exists when getting rooms
+    _ensurePublicChannelExists();
+    return contacts.where((c) => c.isRoom).toList()..sort(_sortByLastSeen);
+  }
 
   /// Get contacts with location (for map display)
   List<Contact> get contactsWithLocation =>

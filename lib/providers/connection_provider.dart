@@ -415,6 +415,29 @@ class ConnectionProvider with ChangeNotifier {
     }
   }
 
+  /// Send self advertisement to mesh network
+  ///
+  /// Broadcasts the device's current advertisement data (name, location, etc.)
+  /// to the mesh network. Use this after updating position or name to notify
+  /// other nodes of the change.
+  ///
+  /// [floodMode] - if true, broadcast to entire mesh (default for SAR ops)
+  ///               if false, only send to direct neighbors (zero-hop)
+  Future<void> sendSelfAdvert({bool floodMode = true}) async {
+    if (!_bleService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await _bleService.sendSelfAdvert(floodMode: floodMode);
+    } catch (e) {
+      _error = 'Failed to send advertisement: $e';
+      notifyListeners();
+    }
+  }
+
   /// Set radio parameters
   Future<void> setRadioParams({
     required int frequency,
