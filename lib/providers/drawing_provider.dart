@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/map_drawing.dart';
+import '../utils/drawing_message_parser.dart';
 
 /// Drawing mode state
 enum DrawingMode {
@@ -254,5 +256,24 @@ class DrawingProvider with ChangeNotifier {
       return _currentDrawing;
     }
     return null;
+  }
+
+  /// Add received drawing from another node
+  void addReceivedDrawing(MapDrawing drawing) {
+    // Check if drawing with this ID already exists
+    if (_drawings.any((d) => d.id == drawing.id)) {
+      debugPrint('Drawing ${drawing.id} already exists, skipping');
+      return;
+    }
+
+    _drawings.add(drawing);
+    _saveDrawings();
+    notifyListeners();
+  }
+
+  /// Broadcast a drawing to contacts
+  /// Returns the formatted message string ready to send
+  String createDrawingBroadcastMessage(MapDrawing drawing, String senderName) {
+    return DrawingMessageParser.createDrawingMessage(drawing, senderName);
   }
 }

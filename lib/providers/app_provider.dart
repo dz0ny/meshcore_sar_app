@@ -4,14 +4,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'connection_provider.dart';
 import 'contacts_provider.dart';
 import 'messages_provider.dart';
+import 'drawing_provider.dart';
 import '../services/tile_cache_service.dart';
 import '../models/contact.dart';
+import '../utils/drawing_message_parser.dart';
 
 /// Main App Provider - coordinates all other providers
 class AppProvider with ChangeNotifier {
   final ConnectionProvider connectionProvider;
   final ContactsProvider contactsProvider;
   final MessagesProvider messagesProvider;
+  final DrawingProvider drawingProvider;
   final TileCacheService tileCacheService;
 
   bool _isInitialized = false;
@@ -21,6 +24,7 @@ class AppProvider with ChangeNotifier {
     required this.connectionProvider,
     required this.contactsProvider,
     required this.messagesProvider,
+    required this.drawingProvider,
     required this.tileCacheService,
   }) {
     _setupCallbacks();
@@ -61,6 +65,20 @@ class AppProvider with ChangeNotifier {
 
     // When a message is received
     connectionProvider.onMessageReceived = (message) {
+      // Check if message is a drawing broadcast
+      if (DrawingMessageParser.isDrawingMessage(message.text)) {
+        debugPrint('🎨 [AppProvider] Drawing message received, parsing...');
+        final drawing = DrawingMessageParser.parseDrawingMessage(message.text);
+        if (drawing != null) {
+          debugPrint('🎨 [AppProvider] Drawing parsed successfully: ${drawing.type.name} from ${drawing.senderName ?? "unknown"}');
+          drawingProvider.addReceivedDrawing(drawing);
+        } else {
+          debugPrint('⚠️ [AppProvider] Failed to parse drawing message');
+        }
+        // Don't add drawing messages to the message list
+        return;
+      }
+
       // Pass contact lookup function to link channel messages with contacts
       messagesProvider.addMessage(
         message,

@@ -98,20 +98,22 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
         Provider(create: (_) => TileCacheService()),
 
         // App provider that coordinates everything
-        ChangeNotifierProxyProvider4<ConnectionProvider, ContactsProvider,
-            MessagesProvider, TileCacheService, AppProvider>(
+        ChangeNotifierProxyProvider5<ConnectionProvider, ContactsProvider,
+            MessagesProvider, DrawingProvider, TileCacheService, AppProvider>(
           create: (context) => AppProvider(
             connectionProvider: context.read<ConnectionProvider>(),
             contactsProvider: context.read<ContactsProvider>(),
             messagesProvider: context.read<MessagesProvider>(),
+            drawingProvider: context.read<DrawingProvider>(),
             tileCacheService: context.read<TileCacheService>(),
           ),
-          update: (context, conn, contacts, messages, tileCache, previous) =>
+          update: (context, conn, contacts, messages, drawings, tileCache, previous) =>
               previous ??
               AppProvider(
                 connectionProvider: conn,
                 contactsProvider: contacts,
                 messagesProvider: messages,
+                drawingProvider: drawings,
                 tileCacheService: tileCache,
               ),
         ),

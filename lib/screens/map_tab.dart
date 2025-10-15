@@ -1172,50 +1172,53 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   children: [
                     // Drawing toolbar
                     const DrawingToolbar(),
-                    const SizedBox(height: 8),
-                    FloatingActionButton.small(
-                    heroTag: 'center_map',
-                    onPressed: !_isMapReady ? null : () async {
-                      // Force update GPS location and jump to it
-                      final position = await _locationService.getCurrentPosition();
-                      if (position != null && mounted) {
-                        setState(() {
-                          // Position updated in service
-                        });
-                        _mapController.move(
-                          LatLng(position.latitude, position.longitude),
-                          16,
-                        );
-                      } else {
-                        // Fallback to cached position or default center
-                        final currentPosition = _locationService.currentPosition;
-                        if (currentPosition != null) {
+                    // Hide other buttons when in drawing mode
+                    if (!drawingProvider.isDrawing) ...[
+                      const SizedBox(height: 8),
+                      FloatingActionButton.small(
+                      heroTag: 'center_map',
+                      onPressed: !_isMapReady ? null : () async {
+                        // Force update GPS location and jump to it
+                        final position = await _locationService.getCurrentPosition();
+                        if (position != null && mounted) {
+                          setState(() {
+                            // Position updated in service
+                          });
                           _mapController.move(
-                            LatLng(
-                              currentPosition.latitude,
-                              currentPosition.longitude,
-                            ),
+                            LatLng(position.latitude, position.longitude),
                             16,
                           );
                         } else {
-                          _mapController.move(center, _defaultZoom);
+                          // Fallback to cached position or default center
+                          final currentPosition = _locationService.currentPosition;
+                          if (currentPosition != null) {
+                            _mapController.move(
+                              LatLng(
+                                currentPosition.latitude,
+                                currentPosition.longitude,
+                              ),
+                              16,
+                            );
+                          } else {
+                            _mapController.move(center, _defaultZoom);
+                          }
                         }
-                      }
-                    },
-                    child: const Icon(Icons.my_location),
-                  ),
-                  const SizedBox(height: 8),
-                  FloatingActionButton.small(
-                    heroTag: 'layer_selector',
-                    onPressed: () => _showLayerSelector(context),
-                    child: const Icon(Icons.layers),
-                  ),
-                  const SizedBox(height: 8),
-                    FloatingActionButton.small(
-                      heroTag: 'options_menu',
-                      onPressed: () => _showOptionsMenu(context),
-                      child: const Icon(Icons.more_vert),
+                      },
+                      child: const Icon(Icons.my_location),
                     ),
+                    const SizedBox(height: 8),
+                    FloatingActionButton.small(
+                      heroTag: 'layer_selector',
+                      onPressed: () => _showLayerSelector(context),
+                      child: const Icon(Icons.layers),
+                    ),
+                    const SizedBox(height: 8),
+                      FloatingActionButton.small(
+                        heroTag: 'options_menu',
+                        onPressed: () => _showOptionsMenu(context),
+                        child: const Icon(Icons.more_vert),
+                      ),
+                    ],
                   ],
                 ),
               ),

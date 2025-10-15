@@ -39,16 +39,27 @@ abstract class MapDrawing {
   final DrawingShapeType type;
   final Color color;
   final DateTime createdAt;
+  final String? senderName; // Name of sender (null if local drawing)
+  final bool isReceived; // True if drawing was received from another node
 
   MapDrawing({
     required this.id,
     required this.type,
     required this.color,
     required this.createdAt,
+    this.senderName,
+    this.isReceived = false,
   });
 
   /// Convert to JSON for persistence
   Map<String, dynamic> toJson();
+
+  /// Convert to JSON for network transmission (includes sender name)
+  Map<String, dynamic> toNetworkJson(String senderName) {
+    final json = toJson();
+    json['sender'] = senderName;
+    return json;
+  }
 
   /// Create from JSON
   static MapDrawing? fromJson(Map<String, dynamic> json) {
@@ -81,6 +92,8 @@ class LineDrawing extends MapDrawing {
     required super.color,
     required super.createdAt,
     required this.points,
+    super.senderName,
+    super.isReceived,
   }) : super(type: DrawingShapeType.line);
 
   @override
@@ -97,12 +110,15 @@ class LineDrawing extends MapDrawing {
   static LineDrawing fromJson(Map<String, dynamic> json) {
     final pointsJson = json['points'] as List<dynamic>;
     final points = pointsJson.map((p) => LatLng(p['lat'] as double, p['lon'] as double)).toList();
+    final senderName = json['sender'] as String?;
 
     return LineDrawing(
       id: json['id'] as String,
       color: Color(json['color'] as int),
       createdAt: DateTime.parse(json['createdAt'] as String),
       points: points,
+      senderName: senderName,
+      isReceived: senderName != null, // Mark as received if sender is present
     );
   }
 
@@ -128,6 +144,8 @@ class RectangleDrawing extends MapDrawing {
     required super.createdAt,
     required this.topLeft,
     required this.bottomRight,
+    super.senderName,
+    super.isReceived,
   }) : super(type: DrawingShapeType.rectangle);
 
   /// Get all corner points for rendering
@@ -154,6 +172,7 @@ class RectangleDrawing extends MapDrawing {
   static RectangleDrawing fromJson(Map<String, dynamic> json) {
     final topLeftJson = json['topLeft'] as Map<String, dynamic>;
     final bottomRightJson = json['bottomRight'] as Map<String, dynamic>;
+    final senderName = json['sender'] as String?;
 
     return RectangleDrawing(
       id: json['id'] as String,
@@ -161,6 +180,8 @@ class RectangleDrawing extends MapDrawing {
       createdAt: DateTime.parse(json['createdAt'] as String),
       topLeft: LatLng(topLeftJson['lat'] as double, topLeftJson['lon'] as double),
       bottomRight: LatLng(bottomRightJson['lat'] as double, bottomRightJson['lon'] as double),
+      senderName: senderName,
+      isReceived: senderName != null, // Mark as received if sender is present
     );
   }
 

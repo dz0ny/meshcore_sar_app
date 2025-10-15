@@ -10,6 +10,7 @@ import '../providers/connection_provider.dart';
 import '../models/message.dart';
 import '../models/sar_marker.dart';
 import '../widgets/messages/sar_update_sheet.dart';
+import '../widgets/contacts/direct_message_sheet.dart';
 import '../utils/toast_logger.dart';
 
 class MessagesTab extends StatefulWidget {
@@ -507,6 +508,16 @@ class _MessageBubble extends StatelessWidget {
   }
 
   void _showMessageOptions(BuildContext context) {
+    // Determine if this is own message
+    final connectionProvider = context.read<ConnectionProvider>();
+    final selfPublicKey = connectionProvider.deviceInfo.publicKey;
+    final isOwnMessage = message.isSentMessage || message.isFromSelf(selfPublicKey);
+
+    // Check if we can reply to this message (must be contact message from someone else)
+    final canReply = message.isContactMessage &&
+                    !isOwnMessage &&
+                    message.senderPublicKeyPrefix != null;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -518,6 +529,16 @@ class _MessageBubble extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Reply option (only for contact messages from others)
+            if (canReply)
+              ListTile(
+                leading: const Icon(Icons.reply),
+                title: const Text('Reply'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showReplySheet(context);
+                },
+              ),
             // Copy text option
             ListTile(
               leading: const Icon(Icons.copy),
@@ -540,6 +561,39 @@ class _MessageBubble extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showReplySheet(BuildContext context) {
+    // Find the sender contact by public key prefix
+    final contactsProvider = context.read<ContactsProvider>();
+
+    if (message.senderPublicKeyPrefix == null) {
+      ToastLogger.error(context, 'Cannot reply: sender information missing');
+      return;
+    }
+
+    // Find contact by public key prefix (first 6 bytes)
+    final senderKeyHex = message.senderPublicKeyPrefix!
+        .sublist(0, message.senderPublicKeyPrefix!.length < 6 ? message.senderPublicKeyPrefix!.length : 6)
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join('');
+
+    final senderContact = contactsProvider.contacts.where((c) {
+      return c.publicKeyHex.startsWith(senderKeyHex);
+    }).firstOrNull;
+
+    if (senderContact == null) {
+      ToastLogger.error(context, 'Cannot reply: contact not found');
+      return;
+    }
+
+    // Show direct message sheet
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DirectMessageSheet(contact: senderContact),
     );
   }
 

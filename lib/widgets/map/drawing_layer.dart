@@ -34,14 +34,35 @@ class DrawingLayer extends StatelessWidget {
   /// Create a polyline from a drawing
   Polyline _createPolyline(MapDrawing drawing, {required bool isPreview}) {
     final points = _getPoints(drawing);
-    final opacity = isPreview ? 0.6 : 1.0;
+
+    // Different styles for different drawing sources
+    final double opacity;
+    final double strokeWidth;
+
+    if (isPreview) {
+      // Preview drawing (currently being drawn)
+      opacity = 0.6;
+      strokeWidth = 4.0;
+    } else if (drawing.isReceived) {
+      // Received drawing from another node (thinner, more transparent)
+      opacity = 0.7;
+      strokeWidth = 3.0;
+    } else {
+      // Local drawing (solid line, normal thickness)
+      opacity = 1.0;
+      strokeWidth = 4.0;
+    }
 
     return Polyline(
       points: points,
       color: drawing.color.withValues(alpha: opacity),
-      strokeWidth: 4.0,
+      strokeWidth: strokeWidth,
       borderColor: Colors.white.withValues(alpha: opacity * 0.8),
       borderStrokeWidth: 1.0,
+      // Use dotted pattern for received drawings
+      pattern: drawing.isReceived && !isPreview
+          ? StrokePattern.dotted(spacingFactor: 2)
+          : const StrokePattern.solid(),
     );
   }
 
@@ -71,33 +92,60 @@ class DrawingMarkersLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Only show delete buttons when showDeleteButtons is true
-    if (!showDeleteButtons) {
-      return const SizedBox.shrink();
-    }
-
     final List<Marker> markers = [];
 
-    // Add delete markers for each drawing (at the center point)
+    // Add markers for each drawing
     for (final drawing in drawings) {
       final centerPoint = _getCenterPoint(drawing);
       if (centerPoint != null) {
-        markers.add(
-          Marker(
-            point: centerPoint,
-            width: 40,
-            height: 40,
-            child: GestureDetector(
-              onTap: () {
-                if (onDeleteDrawing != null) {
-                  _showDeleteDialog(context, drawing);
-                }
-              },
+        if (showDeleteButtons) {
+          // Show delete button when in drawing mode
+          markers.add(
+            Marker(
+              point: centerPoint,
+              width: 40,
+              height: 40,
+              child: GestureDetector(
+                onTap: () {
+                  if (onDeleteDrawing != null) {
+                    _showDeleteDialog(context, drawing);
+                  }
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: drawing.color.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          );
+        } else if (drawing.isReceived && drawing.senderName != null) {
+          // Show sender badge for received drawings (when not in drawing mode)
+          markers.add(
+            Marker(
+              point: centerPoint,
+              width: 120,
+              height: 30,
               child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: drawing.color.withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white, width: 1.5),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.3),
@@ -106,16 +154,38 @@ class DrawingMarkersLayer extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 20,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        drawing.senderName!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
-        );
+          );
+        }
       }
+    }
+
+    if (markers.isEmpty) {
+      return const SizedBox.shrink();
     }
 
     return MarkerLayer(markers: markers);
