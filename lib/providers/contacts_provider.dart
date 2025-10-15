@@ -125,7 +125,18 @@ class ContactsProvider with ChangeNotifier {
       return;
     }
 
-    _contacts[contact.publicKeyHex] = contact;
+    // Check if this is a new contact
+    final isNewContact = !_contacts.containsKey(contact.publicKeyHex);
+
+    // If it's a new contact, mark it as new
+    if (isNewContact) {
+      _contacts[contact.publicKeyHex] = contact.copyWith(isNew: true);
+    } else {
+      // Keep existing isNew status when updating
+      final existingContact = _contacts[contact.publicKeyHex]!;
+      _contacts[contact.publicKeyHex] = contact.copyWith(isNew: existingContact.isNew);
+    }
+
     _persistContacts();
     notifyListeners();
   }
@@ -242,6 +253,35 @@ class ContactsProvider with ChangeNotifier {
     return contacts.where((c) => c.isRecentlySeen).toList();
   }
 
+  /// Get count of new contacts (not yet viewed)
+  int get newContactsCount =>
+      contacts.where((c) => c.isNew && !c.isChannel).length;
+
+  /// Mark all contacts as viewed (not new)
+  void markAllAsViewed() {
+    bool hasChanges = false;
+    _contacts.forEach((key, contact) {
+      if (contact.isNew && !contact.isChannel) {
+        _contacts[key] = contact.copyWith(isNew: false);
+        hasChanges = true;
+      }
+    });
+    if (hasChanges) {
+      _persistContacts();
+      notifyListeners();
+    }
+  }
+
+  /// Mark a specific contact as viewed (not new)
+  void markAsViewed(String publicKeyHex) {
+    final contact = _contacts[publicKeyHex];
+    if (contact != null && contact.isNew) {
+      _contacts[publicKeyHex] = contact.copyWith(isNew: false);
+      _persistContacts();
+      notifyListeners();
+    }
+  }
+
   /// Clear all contacts
   void clearContacts() {
     _contacts.clear();
@@ -250,7 +290,21 @@ class ContactsProvider with ChangeNotifier {
   }
 
   /// Remove a contact
-  void removeContact(String publicKeyHex) {
+  /// [onRemoveFromDevice] - Optional callback to remove contact from BLE device
+  Future<void> removeContact(
+    String publicKeyHex, {
+    Future<void> Function(Uint8List)? onRemoveFromDevice,
+  }) async {
+    // Get the contact before removing
+    final contact = _contacts[publicKeyHex];
+    if (contact == null) return;
+
+    // Remove from device first if callback provided
+    if (onRemoveFromDevice != null) {
+      await onRemoveFromDevice(contact.publicKey);
+    }
+
+    // Then remove from local storage
     _contacts.remove(publicKeyHex);
     _persistContacts();
     notifyListeners();

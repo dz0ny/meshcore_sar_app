@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import '../providers/connection_provider.dart';
 import '../providers/app_provider.dart';
+import '../providers/messages_provider.dart';
+import '../providers/contacts_provider.dart';
 import '../theme/app_theme.dart';
 import 'messages_tab.dart';
 import 'contacts_tab.dart';
@@ -369,24 +371,43 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           const MapTab(),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, -2),
+      bottomNavigationBar: Consumer2<MessagesProvider, ContactsProvider>(
+        builder: (context, messagesProvider, contactsProvider, child) {
+          final unreadCount = messagesProvider.unreadCount;
+          final newContactsCount = contactsProvider.newContactsCount;
+
+          return Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.message), text: 'Messages'),
-            Tab(icon: Icon(Icons.contacts), text: 'Contacts'),
-            Tab(icon: Icon(Icons.map), text: 'Map'),
-          ],
-        ),
+            child: TabBar(
+              controller: _tabController,
+              tabs: [
+                Tab(
+                  icon: _buildTabIconWithBadge(
+                    Icons.message,
+                    unreadCount,
+                  ),
+                  text: 'Messages',
+                ),
+                Tab(
+                  icon: _buildTabIconWithBadge(
+                    Icons.contacts,
+                    newContactsCount,
+                  ),
+                  text: 'Contacts',
+                ),
+                const Tab(icon: Icon(Icons.map), text: 'Map'),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -755,5 +776,43 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     if (rssi > -60) return Colors.green;
     if (rssi > -70) return Colors.orange;
     return Colors.red;
+  }
+
+  /// Build tab icon with badge showing count
+  Widget _buildTabIconWithBadge(IconData icon, int count) {
+    if (count == 0) {
+      return Icon(icon);
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(icon),
+        Positioned(
+          right: -8,
+          top: -4,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+            ),
+            constraints: const BoxConstraints(
+              minWidth: 18,
+              minHeight: 18,
+            ),
+            child: Text(
+              count > 99 ? '99+' : count.toString(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -20,6 +20,10 @@ class _ContactsTabState extends State<ContactsTab> {
   void initState() {
     super.initState();
     _getCurrentLocation();
+    // Mark all contacts as viewed when tab is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ContactsProvider>().markAllAsViewed();
+    });
   }
 
   Future<void> _getCurrentLocation() async {

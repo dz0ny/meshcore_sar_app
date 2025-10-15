@@ -63,6 +63,9 @@ class Message {
   final DateTime? deliveredAt; // When delivery was confirmed
   final Uint8List? recipientPublicKey; // Full 32-byte public key of recipient (for retry)
 
+  // Read status tracking
+  final bool isRead; // Whether message has been read by user
+
   Message({
     required this.id,
     required this.messageType,
@@ -83,6 +86,7 @@ class Message {
     this.roundTripTimeMs,
     this.deliveredAt,
     this.recipientPublicKey,
+    this.isRead = false,
   });
 
   /// Get sender public key as hex string
@@ -222,6 +226,7 @@ class Message {
     int? roundTripTimeMs,
     DateTime? deliveredAt,
     Uint8List? recipientPublicKey,
+    bool? isRead,
   }) {
     return Message(
       id: id ?? this.id,
@@ -243,6 +248,7 @@ class Message {
       roundTripTimeMs: roundTripTimeMs ?? this.roundTripTimeMs,
       deliveredAt: deliveredAt ?? this.deliveredAt,
       recipientPublicKey: recipientPublicKey ?? this.recipientPublicKey,
+      isRead: isRead ?? this.isRead,
     );
   }
 

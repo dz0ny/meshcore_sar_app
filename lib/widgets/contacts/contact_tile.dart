@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../../models/contact.dart';
 import '../../models/room_login_state.dart';
 import '../../providers/connection_provider.dart';
+import '../../providers/contacts_provider.dart';
 import '../../providers/map_provider.dart';
 import 'direct_message_sheet.dart';
 import 'room_login_sheet.dart';
@@ -66,7 +67,22 @@ class ContactTile extends StatelessWidget {
                       color: Colors.white,
                     ),
             ),
-            // Room login status indicator badge
+            // New contact indicator badge (top-right)
+            if (contact.isNew)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                ),
+              ),
+            // Room login status indicator badge (bottom-right)
             if (contact.type == ContactType.room && roomLoginState != null)
               Positioned(
                 bottom: 0,
@@ -359,6 +375,62 @@ class ContactTile extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => RoomLoginSheet(contact: contact),
     );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Contact contact) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Contact'),
+        content: Text(
+          'Are you sure you want to delete "${contact.displayName}"?\n\n'
+          'This will remove the contact from both the app and the companion radio device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close confirmation dialog
+              Navigator.pop(context); // Close contact details sheet
+              await _deleteContact(context, contact);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteContact(BuildContext context, Contact contact) async {
+    final connectionProvider = context.read<ConnectionProvider>();
+    final contactsProvider = context.read<ContactsProvider>();
+
+    try {
+      // Show loading toast
+      ToastLogger.info(context, 'Removing ${contact.displayName}...');
+
+      // Remove contact from provider (which will also remove from device)
+      await contactsProvider.removeContact(
+        contact.publicKeyHex,
+        onRemoveFromDevice: (publicKey) async {
+          if (connectionProvider.deviceInfo.isConnected) {
+            await connectionProvider.removeContact(publicKey);
+          }
+        },
+      );
+
+      if (context.mounted) {
+        ToastLogger.success(context, 'Contact "${contact.displayName}" removed');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ToastLogger.error(context, 'Failed to remove contact: $e');
+      }
+    }
   }
 
   void _showContactDetails(BuildContext context, Contact contact) {
@@ -680,6 +752,23 @@ class ContactTile extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           backgroundColor: _getTypeColor(contact.type, context),
                           foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                  // Delete Contact button (for all contact types except Public Channel)
+                  if (contact.advName != 'Public Channel') ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showDeleteConfirmation(context, contact),
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Delete Contact'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: const BorderSide(color: Colors.red),
+                          foregroundColor: Colors.red,
                         ),
                       ),
                     ),

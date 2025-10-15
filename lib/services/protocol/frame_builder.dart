@@ -235,4 +235,12 @@ class FrameBuilder {
     writer.writeBytes(contactPublicKey); // 32 bytes
     return writer.toBytes();
   }
+
+  /// Build RemoveContact command - removes a contact from the device
+  static Uint8List buildRemoveContact(Uint8List contactPublicKey) {
+    final writer = BufferWriter();
+    writer.writeByte(MeshCoreConstants.cmdRemoveContact); // 0x0F (15)
+    writer.writeBytes(contactPublicKey); // 32 bytes
+    return writer.toBytes();
+  }
 }

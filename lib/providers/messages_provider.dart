@@ -49,6 +49,14 @@ class MessagesProvider with ChangeNotifier {
 
   bool get isInitialized => _isInitialized;
 
+  /// Get count of unread messages (excluding sent messages and system messages)
+  int get unreadCount => _messages
+      .where((m) =>
+          !m.isRead &&
+          !m.isSentMessage &&
+          !m.isSystemMessage)
+      .length;
+
   /// Initialize and load persisted messages
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -287,6 +295,31 @@ class MessagesProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Mark all messages as read
+  void markAllAsRead() {
+    bool hasChanges = false;
+    for (int i = 0; i < _messages.length; i++) {
+      if (!_messages[i].isRead && !_messages[i].isSentMessage && !_messages[i].isSystemMessage) {
+        _messages[i] = _messages[i].copyWith(isRead: true);
+        hasChanges = true;
+      }
+    }
+    if (hasChanges) {
+      _persistMessages();
+      notifyListeners();
+    }
+  }
+
+  /// Mark a specific message as read
+  void markAsRead(String messageId) {
+    final index = _messages.indexWhere((m) => m.id == messageId);
+    if (index != -1 && !_messages[index].isRead) {
+      _messages[index] = _messages[index].copyWith(isRead: true);
+      _persistMessages();
+      notifyListeners();
+    }
+  }
+
   /// Delete a specific message by ID
   void deleteMessage(String messageId) {
     final index = _messages.indexWhere((m) => m.id == messageId);
@@ -412,9 +445,10 @@ class MessagesProvider with ChangeNotifier {
       return;
     }
 
-    // Add message with sending status
+    // Add message with sending status and mark as read (sent messages are always read)
     final sendingMessage = enhancedMessage.copyWith(
       deliveryStatus: MessageDeliveryStatus.sending,
+      isRead: true, // Sent messages are always marked as read
     );
     _messages.add(sendingMessage);
     print('  ✅ Message added to list at index ${_messages.length - 1}');

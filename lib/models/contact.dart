@@ -53,6 +53,9 @@ class Contact {
   // Telemetry data (updated separately)
   ContactTelemetry? telemetry;
 
+  // UI state tracking
+  final bool isNew; // Whether contact is newly added and not yet viewed
+
   Contact({
     required this.publicKey,
     required this.type,
@@ -65,6 +68,7 @@ class Contact {
     required this.advLon,
     required this.lastMod,
     this.telemetry,
+    this.isNew = false,
   });
 
   /// Get public key as hex string (first 8 bytes)
@@ -250,6 +254,7 @@ class Contact {
     int? advLon,
     int? lastMod,
     ContactTelemetry? telemetry,
+    bool? isNew,
   }) {
     return Contact(
       publicKey: publicKey ?? this.publicKey,
@@ -263,6 +268,7 @@ class Contact {
       advLon: advLon ?? this.advLon,
       lastMod: lastMod ?? this.lastMod,
       telemetry: telemetry ?? this.telemetry,
+      isNew: isNew ?? this.isNew,
     );
   }
 

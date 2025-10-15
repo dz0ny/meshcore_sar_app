@@ -1098,6 +1098,26 @@ class ConnectionProvider with ChangeNotifier {
     }
   }
 
+  /// Remove a contact from the companion radio
+  ///
+  /// Deletes the contact from the device's internal contact table.
+  /// The contact will no longer appear in the contact list and all
+  /// routing information will be cleared.
+  Future<void> removeContact(Uint8List contactPublicKey) async {
+    if (!_bleService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await _bleService.removeContact(contactPublicKey);
+    } catch (e) {
+      _error = 'Failed to remove contact: $e';
+      notifyListeners();
+    }
+  }
+
   /// Clear error message
   void clearError() {
     _error = null;

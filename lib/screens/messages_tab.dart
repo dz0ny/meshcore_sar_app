@@ -40,6 +40,10 @@ class _MessagesTabState extends State<MessagesTab> {
   void initState() {
     super.initState();
     _textController.addListener(_updateCharacterCount);
+    // Mark all messages as read when tab is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MessagesProvider>().markAllAsRead();
+    });
   }
 
   @override
@@ -532,10 +536,25 @@ class _MessageBubble extends StatelessWidget {
     final isSarMarker = message.isSarMarker;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    // Get device's own public key from ConnectionProvider
+    // Determine if this is own message
+    // Use isSentMessage (delivery status) as primary check since it's more reliable
+    // after loading from storage
     final connectionProvider = context.read<ConnectionProvider>();
     final selfPublicKey = connectionProvider.deviceInfo.publicKey;
-    final isOwnMessage = message.isFromSelf(selfPublicKey);
+    final isOwnMessage = message.isSentMessage || message.isFromSelf(selfPublicKey);
+
+    // Debug logging for sent messages
+    if (message.isSentMessage) {
+      debugPrint('🔍 [MessageBubble] Sent message check:');
+      debugPrint('   Message ID: ${message.id}');
+      debugPrint('   Delivery Status: ${message.deliveryStatus.name}');
+      debugPrint('   isSentMessage: ${message.isSentMessage}');
+      debugPrint('   isOwnMessage: $isOwnMessage');
+      debugPrint('   Has recipientPublicKey: ${message.recipientPublicKey != null}');
+      if (message.recipientPublicKey != null) {
+        debugPrint('   Recipient key (first 12 hex): ${message.recipientPublicKey!.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join()}');
+      }
+    }
 
     // Look up contact information for rich display name
     final contactsProvider = context.read<ContactsProvider>();
@@ -557,6 +576,50 @@ class _MessageBubble extends StatelessWidget {
         ? 'You'
         : message.getRichDisplayName(senderContact);
 
+    // For sent direct messages, look up recipient contact
+    dynamic recipientContact;
+    String? recipientDisplayName;
+    if (isOwnMessage && message.isContactMessage && message.recipientPublicKey != null) {
+      // Find recipient by public key
+      final recipientKeyHex = message.recipientPublicKey!
+          .sublist(0, message.recipientPublicKey!.length < 6 ? message.recipientPublicKey!.length : 6)
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join('');
+
+      debugPrint('🔍 [MessageBubble] Looking up recipient:');
+      debugPrint('   Recipient key hex: $recipientKeyHex');
+      debugPrint('   Available contacts: ${contactsProvider.contacts.length}');
+
+      // Debug: Print all contact keys for comparison
+      for (final c in contactsProvider.contacts) {
+        debugPrint('   Contact: ${c.displayName ?? c.advName}');
+        debugPrint('      Key: ${c.publicKeyHex}');
+        debugPrint('      First 12 chars: ${c.publicKeyHex.substring(0, c.publicKeyHex.length >= 12 ? 12 : c.publicKeyHex.length)}');
+        debugPrint('      Matches: ${c.publicKeyHex.startsWith(recipientKeyHex)}');
+      }
+
+      recipientContact = contactsProvider.contacts.where((c) {
+        final matches = c.publicKeyHex.startsWith(recipientKeyHex);
+        if (matches) {
+          debugPrint('   ✅ Found match: ${c.displayName ?? c.advName}');
+        }
+        return matches;
+      }).firstOrNull;
+
+      if (recipientContact != null) {
+        // Get rich display name with emoji
+        final roleEmoji = recipientContact.roleEmoji;
+        if (roleEmoji != null && roleEmoji.isNotEmpty) {
+          recipientDisplayName = '$roleEmoji ${recipientContact.displayName}';
+        } else {
+          recipientDisplayName = recipientContact.displayName ?? recipientContact.advName;
+        }
+        debugPrint('   Final recipient name: $recipientDisplayName');
+      } else {
+        debugPrint('   ❌ No recipient contact found');
+      }
+    }
+
     // Debug: Log message details
     if (message.text.startsWith('S:')) {
       debugPrint('🎨 [MessageBubble] Rendering SAR message:');
@@ -569,24 +632,29 @@ class _MessageBubble extends StatelessWidget {
       onTap: onTap,
       onLongPress: () => _showMessageOptions(context),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: isSarMarker
               ? _getSarMarkerColor(context, isDarkMode)
               : _getMessageBubbleColor(context, isOwnMessage, isDarkMode),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: isSarMarker
               ? Border.all(
                   color: _getSarMarkerBorderColor(context, isDarkMode),
-                  width: 3,
+                  width: 2,
                 )
               : isOwnMessage
                   ? Border.all(
                       color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                      width: 2,
+                      width: 1.5,
                     )
-                  : null,
+                  : !message.isRead && !message.isSentMessage && !message.isSystemMessage
+                      ? Border.all(
+                          color: Colors.blue,
+                          width: 1.5,
+                        )
+                      : null,
           boxShadow: isSarMarker
               ? [
                   BoxShadow(
@@ -603,6 +671,17 @@ class _MessageBubble extends StatelessWidget {
             // Header: Sender and time
             Row(
               children: [
+                // Unread indicator badge
+                if (!message.isRead && !message.isSentMessage && !message.isSystemMessage && !isSarMarker)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: const BoxDecoration(
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                 if (isSarMarker)
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -648,6 +727,23 @@ class _MessageBubble extends StatelessWidget {
                           color: isOwnMessage ? Theme.of(context).colorScheme.primary : null,
                         ),
                   ),
+                  // Show recipient for sent direct messages
+                  if (isOwnMessage && message.isContactMessage && recipientDisplayName != null) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward,
+                      size: 14,
+                      color: Theme.of(context).textTheme.labelSmall?.color?.withValues(alpha: 0.6),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      recipientDisplayName,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: Theme.of(context).textTheme.labelSmall?.color?.withValues(alpha: 0.7),
+                            fontStyle: FontStyle.italic,
+                          ),
+                    ),
+                  ],
                 ],
                 const Spacer(),
                 Text(
@@ -658,7 +754,7 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
             // SAR marker content (simplified design matching message history)
             if (isSarMarker && message.sarMarkerType != null) ...[
@@ -666,23 +762,23 @@ class _MessageBubble extends StatelessWidget {
                 children: [
                   Text(
                     message.sarMarkerType!.emoji,
-                    style: const TextStyle(fontSize: 32),
+                    style: const TextStyle(fontSize: 28),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           message.sarMarkerType!.displayName,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         if (message.sarGpsCoordinates != null)
                           Text(
                             '${message.sarGpsCoordinates!.latitude.toStringAsFixed(5)}, ${message.sarGpsCoordinates!.longitude.toStringAsFixed(5)}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                   fontFamily: 'monospace',
                                 ),
                           ),
@@ -691,17 +787,10 @@ class _MessageBubble extends StatelessWidget {
                   ),
                   Icon(
                     Icons.chevron_right,
+                    size: 18,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Tap to view on map',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontStyle: FontStyle.italic,
-                    ),
               ),
             ]
             // Regular message content
@@ -713,16 +802,16 @@ class _MessageBubble extends StatelessWidget {
 
             // Delivery status for sent messages
             if (message.isSentMessage) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     _getDeliveryStatusIcon(message.deliveryStatus),
-                    size: 14,
+                    size: 12,
                     color: _getDeliveryStatusColor(message.deliveryStatus),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 3),
                   Text(
                     message.deliveryStatusText,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -732,11 +821,11 @@ class _MessageBubble extends StatelessWidget {
                   ),
                   // Show retry button for failed messages
                   if (message.deliveryStatus == MessageDeliveryStatus.failed) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     GestureDetector(
                       onTap: () => _retryFailedMessage(context, message),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.orange.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(4),

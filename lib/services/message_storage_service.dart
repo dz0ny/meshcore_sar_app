@@ -128,6 +128,7 @@ class MessageStorageService {
       'recipientPublicKey': message.recipientPublicKey != null
           ? base64Encode(message.recipientPublicKey!)
           : null,
+      'isRead': message.isRead,
     };
   }
 
@@ -180,6 +181,7 @@ class MessageStorageService {
             ? Uint8List.fromList(
                 base64Decode(json['recipientPublicKey'] as String))
             : null,
+        isRead: json['isRead'] as bool? ?? false,
       );
     } catch (e) {
       print('❌ [MessageStorage] Error parsing message from JSON: $e');

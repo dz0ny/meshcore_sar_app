@@ -1,8 +1,11 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/contact.dart';
+import '../../models/message.dart';
 import '../../providers/connection_provider.dart';
+import '../../providers/messages_provider.dart';
 import '../../utils/toast_logger.dart';
 
 class DirectMessageSheet extends StatefulWidget {
@@ -44,6 +47,7 @@ class _DirectMessageSheetState extends State<DirectMessageSheet> {
     if (text.isEmpty) return;
 
     final connectionProvider = context.read<ConnectionProvider>();
+    final messagesProvider = context.read<MessagesProvider>();
 
     if (!connectionProvider.deviceInfo.isConnected) {
       if (!mounted) return;
@@ -52,12 +56,43 @@ class _DirectMessageSheetState extends State<DirectMessageSheet> {
     }
 
     try {
+      // Create message ID
+      final messageId = '${DateTime.now().millisecondsSinceEpoch}_dm_sent';
+      final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+      // Get current device's public key (first 6 bytes)
+      final devicePublicKey = connectionProvider.deviceInfo.publicKey;
+      final senderPublicKeyPrefix = devicePublicKey?.sublist(0, 6);
+
+      // Create sent message object with recipient public key for retry support
+      final sentMessage = Message(
+        id: messageId,
+        messageType: MessageType.contact,
+        senderPublicKeyPrefix: senderPublicKeyPrefix,
+        pathLen: 0,
+        textType: MessageTextType.plain,
+        senderTimestamp: timestamp,
+        text: text,
+        receivedAt: DateTime.now(),
+        deliveryStatus: MessageDeliveryStatus.sending,
+        recipientPublicKey: widget.contact.publicKey, // Store recipient for retry
+      );
+
+      // Add to messages list with "sending" status
+      messagesProvider.addSentMessage(sentMessage);
+
       // Send direct message to contact (include contact for path logging)
-      await connectionProvider.sendTextMessage(
+      final sentSuccessfully = await connectionProvider.sendTextMessage(
         contactPublicKey: widget.contact.publicKey,
         text: text,
+        messageId: messageId, // Pass message ID for tracking
         contact: widget.contact,
       );
+
+      if (!sentSuccessfully) {
+        // Mark message as failed if sending failed
+        messagesProvider.markMessageFailed(messageId);
+      }
 
       _textController.clear();
       _focusNode.unfocus();

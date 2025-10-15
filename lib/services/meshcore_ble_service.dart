@@ -395,6 +395,15 @@ class MeshCoreBleService {
     await _commandSender.writeData(FrameBuilder.buildResetPath(contactPublicKey));
   }
 
+  /// Remove a contact from the companion radio
+  Future<void> removeContact(Uint8List contactPublicKey) async {
+    print('🗑️ [BLE] Removing contact from companion radio:');
+    print('    Public key prefix: ${contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+
+    await _commandSender.writeData(FrameBuilder.buildRemoveContact(contactPublicKey));
+    print('✅ [BLE] CMD_REMOVE_CONTACT sent');
+  }
+
   /// Clear packet logs
   void clearPacketLogs() {
     _commandSender.clearPacketLogs();
