@@ -1,7 +1,9 @@
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/material.dart';
 import 'contact_telemetry.dart';
+import 'advert_location.dart';
 
 /// MeshCore contact types
 enum ContactType {
@@ -53,6 +55,9 @@ class Contact {
   // Telemetry data (updated separately)
   ContactTelemetry? telemetry;
 
+  // Advertisement location history (most recent first)
+  final List<AdvertLocation> advertHistory;
+
   // UI state tracking
   final bool isNew; // Whether contact is newly added and not yet viewed
 
@@ -68,8 +73,9 @@ class Contact {
     required this.advLon,
     required this.lastMod,
     this.telemetry,
+    List<AdvertLocation>? advertHistory,
     this.isNew = false,
-  });
+  }) : advertHistory = advertHistory ?? [];
 
   /// Get public key as hex string (first 8 bytes)
   String get publicKeyShort {
@@ -242,6 +248,49 @@ class Contact {
     return 0; // 5+ hops
   }
 
+  /// Add a new advertisement location to history (maintains max 100 points)
+  Contact addAdvertLocation(LatLng location, DateTime timestamp) {
+    final newPoint = AdvertLocation(location: location, timestamp: timestamp);
+
+    // Check if this location is significantly different from the last one
+    // (avoid duplicate points for stationary contacts)
+    if (advertHistory.isNotEmpty) {
+      final lastPoint = advertHistory.first;
+      final distance = _calculateDistance(lastPoint.location, location);
+
+      // If less than 5 meters apart and within 1 minute, skip
+      if (distance < 5 && timestamp.difference(lastPoint.timestamp).inSeconds < 60) {
+        return this;
+      }
+    }
+
+    // Add new point at the beginning (most recent first)
+    final updatedHistory = [newPoint, ...advertHistory];
+
+    // Keep only the most recent 100 points
+    final trimmedHistory = updatedHistory.length > 100
+        ? updatedHistory.sublist(0, 100)
+        : updatedHistory;
+
+    return copyWith(advertHistory: trimmedHistory);
+  }
+
+  /// Calculate distance between two points in meters (Haversine formula)
+  double _calculateDistance(LatLng point1, LatLng point2) {
+    const double earthRadius = 6371000; // meters
+    final lat1 = point1.latitude * (pi / 180);
+    final lat2 = point2.latitude * (pi / 180);
+    final dLat = (point2.latitude - point1.latitude) * (pi / 180);
+    final dLon = (point2.longitude - point1.longitude) * (pi / 180);
+
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+              cos(lat1) * cos(lat2) *
+              sin(dLon / 2) * sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c;
+  }
+
   Contact copyWith({
     Uint8List? publicKey,
     ContactType? type,
@@ -254,6 +303,7 @@ class Contact {
     int? advLon,
     int? lastMod,
     ContactTelemetry? telemetry,
+    List<AdvertLocation>? advertHistory,
     bool? isNew,
   }) {
     return Contact(
@@ -268,6 +318,7 @@ class Contact {
       advLon: advLon ?? this.advLon,
       lastMod: lastMod ?? this.lastMod,
       telemetry: telemetry ?? this.telemetry,
+      advertHistory: advertHistory ?? this.advertHistory,
       isNew: isNew ?? this.isNew,
     );
   }

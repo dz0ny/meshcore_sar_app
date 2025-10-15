@@ -128,15 +128,32 @@ class ContactsProvider with ChangeNotifier {
     // Check if this is a new contact
     final isNewContact = !_contacts.containsKey(contact.publicKeyHex);
 
-    // If it's a new contact, mark it as new
+    Contact updatedContact;
     if (isNewContact) {
-      _contacts[contact.publicKeyHex] = contact.copyWith(isNew: true);
+      // New contact - add initial location to history if available
+      updatedContact = contact.copyWith(isNew: true);
+      if (contact.advertLocation != null) {
+        final timestamp = DateTime.fromMillisecondsSinceEpoch(contact.lastAdvert * 1000);
+        updatedContact = updatedContact.addAdvertLocation(contact.advertLocation!, timestamp);
+      }
     } else {
-      // Keep existing isNew status when updating
+      // Existing contact - preserve history and isNew status
       final existingContact = _contacts[contact.publicKeyHex]!;
-      _contacts[contact.publicKeyHex] = contact.copyWith(isNew: existingContact.isNew);
+
+      // Start with existing contact
+      updatedContact = contact.copyWith(
+        isNew: existingContact.isNew,
+        advertHistory: existingContact.advertHistory,
+      );
+
+      // Add new location to history if location has changed
+      if (contact.advertLocation != null) {
+        final timestamp = DateTime.fromMillisecondsSinceEpoch(contact.lastAdvert * 1000);
+        updatedContact = updatedContact.addAdvertLocation(contact.advertLocation!, timestamp);
+      }
     }
 
+    _contacts[contact.publicKeyHex] = updatedContact;
     _persistContacts();
     notifyListeners();
   }

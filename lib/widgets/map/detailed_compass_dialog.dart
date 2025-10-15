@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 import '../../models/contact.dart';
 import '../../models/sar_marker.dart';
+import '../../providers/map_provider.dart';
 import '../common/location_display.dart';
 import 'compass/compass_header.dart';
 import 'compass/compass_filters.dart';
@@ -605,6 +607,26 @@ class _DetailedCompassDialogState extends State<DetailedCompassDialog> {
                     ],
                   ),
                 ),
+                // Show path toggle button for contacts with history
+                if (_selectedContact != null && _selectedContact!.advertHistory.length >= 2)
+                  Consumer<MapProvider>(
+                    builder: (context, mapProvider, _) {
+                      final isPathVisible = mapProvider.isContactPathVisible(_selectedContact!.publicKeyHex);
+                      return IconButton(
+                        icon: Icon(
+                          isPathVisible ? Icons.route : Icons.route_outlined,
+                          size: 20,
+                          color: isPathVisible ? Theme.of(context).colorScheme.primary : null,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        tooltip: isPathVisible ? 'Hide path' : 'Show path (${_selectedContact!.advertHistory.length} points)',
+                        onPressed: () {
+                          mapProvider.toggleContactPath(_selectedContact!.publicKeyHex);
+                        },
+                      );
+                    },
+                  ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
                   padding: EdgeInsets.zero,

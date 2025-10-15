@@ -887,6 +887,28 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         userAgentPackageName: 'com.meshcore.sar',
                         maxZoom: _currentLayer.maxZoom,
                       ),
+                      // Advertisement path polylines (rendered before markers)
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          return PolylineLayer(
+                            polylines: contactsWithLocation
+                                .where((contact) => mapProvider.isContactPathVisible(contact.publicKeyHex))
+                                .where((contact) => contact.advertHistory.length >= 2)
+                                .map((contact) {
+                                  return Polyline(
+                                    points: contact.advertHistory
+                                        .map((advert) => advert.location)
+                                        .toList(),
+                                    color: Colors.blue.withValues(alpha: 0.7),
+                                    strokeWidth: 3.0,
+                                    borderColor: Colors.white.withValues(alpha: 0.5),
+                                    borderStrokeWidth: 1.0,
+                                  );
+                                })
+                                .toList(),
+                          );
+                        },
+                      ),
                       MarkerLayer(
                         markers: [
                           // Contact markers
