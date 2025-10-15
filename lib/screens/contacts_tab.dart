@@ -1,8 +1,10 @@
 import 'dart:typed_data';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/connection_provider.dart';
 import '../providers/app_provider.dart';
@@ -17,9 +19,61 @@ class ContactsTab extends StatefulWidget {
 }
 
 class _ContactsTabState extends State<ContactsTab> {
+  Position? _currentPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best,
+          distanceFilter: 0,
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+        });
+      }
+    } catch (e) {
+      // Silently fail if location not available
+      debugPrint('Failed to get location: $e');
+    }
+  }
+
   Future<void> _handleRefresh() async {
     final appProvider = context.read<AppProvider>();
     await appProvider.refresh();
+    // Also refresh location
+    await _getCurrentLocation();
+  }
+
+  /// Calculate distance between two points in meters
+  double _calculateDistanceInMeters(double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371000; // Earth's radius in meters
+    final dLat = (lat2 - lat1) * pi / 180;
+    final dLon = (lon2 - lon1) * pi / 180;
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) * cos(lat2 * pi / 180) *
+        sin(dLon / 2) * sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  /// Format distance for display
+  String _formatDistance(double meters) {
+    if (meters < 1000) {
+      return '${meters.round()}m';
+    } else if (meters < 10000) {
+      return '${(meters / 1000).toStringAsFixed(2)}km';
+    } else {
+      return '${(meters / 1000).toStringAsFixed(1)}km';
+    }
   }
 
   @override
@@ -68,7 +122,12 @@ class _ContactsTabState extends State<ContactsTab> {
                 count: chatContacts.length,
                 icon: Icons.people,
               ),
-              ...chatContacts.map((contact) => _ContactTile(contact: contact)),
+              ...chatContacts.map((contact) => _ContactTile(
+                contact: contact,
+                currentPosition: _currentPosition,
+                calculateDistance: _calculateDistanceInMeters,
+                formatDistance: _formatDistance,
+              )),
               const Divider(height: 32),
             ],
 
@@ -79,7 +138,12 @@ class _ContactsTabState extends State<ContactsTab> {
                 count: repeaters.length,
                 icon: Icons.router,
               ),
-              ...repeaters.map((contact) => _ContactTile(contact: contact)),
+              ...repeaters.map((contact) => _ContactTile(
+                contact: contact,
+                currentPosition: _currentPosition,
+                calculateDistance: _calculateDistanceInMeters,
+                formatDistance: _formatDistance,
+              )),
               const Divider(height: 32),
             ],
 
@@ -90,7 +154,12 @@ class _ContactsTabState extends State<ContactsTab> {
                 count: rooms.length,
                 icon: Icons.tag,
               ),
-              ...rooms.map((contact) => _ContactTile(contact: contact)),
+              ...rooms.map((contact) => _ContactTile(
+                contact: contact,
+                currentPosition: _currentPosition,
+                calculateDistance: _calculateDistanceInMeters,
+                formatDistance: _formatDistance,
+              )),
             ],
             ],
           ),
@@ -145,14 +214,34 @@ class _SectionHeader extends StatelessWidget {
 
 class _ContactTile extends StatelessWidget {
   final Contact contact;
+  final Position? currentPosition;
+  final double Function(double, double, double, double)? calculateDistance;
+  final String Function(double)? formatDistance;
 
-  const _ContactTile({required this.contact});
+  const _ContactTile({
+    required this.contact,
+    this.currentPosition,
+    this.calculateDistance,
+    this.formatDistance,
+  });
 
   @override
   Widget build(BuildContext context) {
     final hasTelemetry = contact.telemetry != null && contact.telemetry!.isRecent;
     final battery = contact.displayBattery;
     final location = contact.displayLocation;
+
+    // Calculate distance if both positions are available
+    String? distanceText;
+    if (location != null && currentPosition != null && calculateDistance != null && formatDistance != null) {
+      final distanceMeters = calculateDistance!(
+        currentPosition!.latitude,
+        currentPosition!.longitude,
+        location.latitude,
+        location.longitude,
+      );
+      distanceText = formatDistance!(distanceMeters);
+    }
 
     // Get room login state if this is a room
     final connectionProvider = context.watch<ConnectionProvider>();
@@ -198,37 +287,39 @@ class _ContactTile extends StatelessWidget {
               ),
           ],
         ),
-        title: Column(
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                contact.displayName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // Battery indicator on the right
+            if (battery != null) ...[
+              Icon(
+                _getBatteryIcon(battery),
+                size: 16,
+                color: _getBatteryColor(battery),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '${battery.round()}%',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: _getBatteryColor(battery),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
+        subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Room name with battery indicator
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    contact.displayName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                // Battery indicator
-                if (battery != null) ...[
-                  Icon(
-                    _getBatteryIcon(battery),
-                    size: 16,
-                    color: _getBatteryColor(battery),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${battery.round()}%',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                ],
-              ],
-            ),
-            // Room login status badges on second line
+            const SizedBox(height: 4),
+            // Room login status badges
             if (roomLoginState != null && roomLoginState.isLoggedIn) ...[
-              const SizedBox(height: 4),
               Row(
                 children: [
                   if (roomLoginState.isAdmin)
@@ -281,31 +372,33 @@ class _ContactTile extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 4),
             ],
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            // Type and last seen
+            // Type label (only for rooms - hide for chat and repeater)
+            if (contact.type == ContactType.room) ...[
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getTypeColor(contact.type, context).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      contact.type.displayName,
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+            ],
+            // Last seen + GPS info combined
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getTypeColor(contact.type, context).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    contact.type.displayName,
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                ),
-                const SizedBox(width: 8),
                 Icon(
                   Icons.access_time,
                   size: 12,
@@ -316,61 +409,55 @@ class _ContactTile extends StatelessWidget {
                   contact.timeSinceLastSeen,
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            // Telemetry info
-            Row(
-              children: [
-                if (hasTelemetry)
-                  const Icon(Icons.sensors, size: 12, color: Colors.green)
-                else
-                  const Icon(Icons.sensors_off, size: 12, color: Colors.grey),
-                const SizedBox(width: 4),
-                if (location != null)
+                if (location != null) ...[
+                  const SizedBox(width: 8),
+                  const Text('•', style: TextStyle(color: Colors.grey)),
+                  const SizedBox(width: 8),
+                  if (hasTelemetry)
+                    const Icon(Icons.sensors, size: 12, color: Colors.green)
+                  else
+                    const Icon(Icons.sensors_off, size: 12, color: Colors.grey),
+                  const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'GPS: ${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)}',
                       style: Theme.of(context).textTheme.labelSmall,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  )
-                else
+                  ),
+                ] else ...[
+                  const SizedBox(width: 8),
+                  const Text('•', style: TextStyle(color: Colors.grey)),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.sensors_off, size: 12, color: Colors.grey),
+                  const SizedBox(width: 4),
                   Text(
                     'No GPS data',
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
+                ],
               ],
             ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Message icon - only for chat contacts
-            if (contact.type == ContactType.chat)
-              IconButton(
-                icon: const Icon(Icons.message, size: 20),
-                onPressed: () => _showDirectMessageDialog(context, contact),
-                tooltip: 'Send direct message',
-              ),
-            // Telemetry refresh button
-            IconButton(
-              icon: const Icon(Icons.refresh, size: 20),
-              onPressed: () {
-                final connectionProvider = context.read<ConnectionProvider>();
-                connectionProvider.requestTelemetry(contact.publicKey);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Requesting telemetry from ${contact.displayName}'),
-                    duration: const Duration(seconds: 2),
+            // Distance info (new row)
+            if (distanceText != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.straighten, size: 12, color: Colors.blue),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Distance: $distanceText',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                );
-              },
-              tooltip: 'Request telemetry',
-            ),
+                ],
+              ),
+            ],
           ],
         ),
+        trailing: null,
         onTap: () => _showContactDetails(context, contact),
         onLongPress: () {
           final connectionProvider = context.read<ConnectionProvider>();
@@ -558,6 +645,26 @@ class _ContactTile extends StatelessWidget {
                     _DetailRow(
                       'Updated',
                       '${_formatTimestamp(contact.telemetry!.timestamp)} (${_formatTimeAgo(contact.telemetry!.timestamp)})',
+                    ),
+                  ],
+                  // Direct Message button for chat contacts
+                  if (contact.type == ContactType.chat) ...[
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context); // Close details first
+                          _showDirectMessageDialog(context, contact);
+                        },
+                        icon: const Icon(Icons.message),
+                        label: const Text('Send Direct Message'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: _getTypeColor(contact.type, context),
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                   // Room Login button for room contacts (except Public Channel)
