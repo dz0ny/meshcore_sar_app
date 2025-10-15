@@ -24,7 +24,8 @@
       "Bash(find:*)",
       "Read(//Users/dz0ny/meshcore-sar/**)",
       "Bash(git grep:*)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "Bash(flutter logs --clear)"
     ],
     "deny": [],
     "ask": []

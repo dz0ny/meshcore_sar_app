@@ -5,6 +5,7 @@ import 'providers/connection_provider.dart';
 import 'providers/contacts_provider.dart';
 import 'providers/messages_provider.dart';
 import 'providers/map_provider.dart';
+import 'providers/drawing_provider.dart';
 import 'providers/app_provider.dart';
 import 'services/tile_cache_service.dart';
 import 'screens/home_screen.dart';
@@ -84,6 +85,14 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
           },
         ),
         ChangeNotifierProvider(create: (_) => MapProvider()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider = DrawingProvider();
+            // Initialize drawing provider asynchronously
+            provider.initialize();
+            return provider;
+          },
+        ),
 
         // Tile cache service
         Provider(create: (_) => TileCacheService()),

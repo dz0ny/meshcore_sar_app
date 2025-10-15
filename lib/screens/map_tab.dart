@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/messages_provider.dart';
 import '../providers/map_provider.dart';
+import '../providers/drawing_provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/connection_provider.dart';
 import '../models/contact.dart';
@@ -24,6 +25,8 @@ import '../widgets/map_debug_info.dart';
 import '../widgets/map/map_legend.dart';
 import '../widgets/map/compass_widget.dart';
 import '../widgets/map/detailed_compass_dialog.dart';
+import '../widgets/map/drawing_layer.dart';
+import '../widgets/map/drawing_toolbar.dart';
 import '../widgets/messages/sar_update_sheet.dart';
 import 'map_management_screen.dart';
 
@@ -781,8 +784,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    return Consumer2<ContactsProvider, MessagesProvider>(
-      builder: (context, contactsProvider, messagesProvider, child) {
+    return Consumer3<ContactsProvider, MessagesProvider, DrawingProvider>(
+      builder: (context, contactsProvider, messagesProvider, drawingProvider, child) {
         final contactsWithLocation = contactsProvider.contactsWithLocation;
         final sarMarkers = messagesProvider.sarMarkers;
         final center = _calculateCenter(contactsWithLocation, sarMarkers);
@@ -821,6 +824,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         }
                       },
                       onLongPress: (tapPosition, point) {
+                        // Skip if in drawing mode
+                        if (drawingProvider.isDrawing) return;
+
                         // Drop a pin at long press location (if no pin exists)
                         if (_droppedPinLocation == null) {
                           setState(() {
@@ -846,6 +852,13 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         }
                       },
                       onPointerHover: (event, point) {
+                        // Update rectangle preview while dragging
+                        if (drawingProvider.drawingMode == DrawingMode.rectangle &&
+                            drawingProvider.rectangleStartPoint != null) {
+                          drawingProvider.updateRectangleEndPoint(point);
+                          return;
+                        }
+
                         // Update pin location while dragging
                         if (_isDraggingPin) {
                           setState(() {
@@ -862,6 +875,27 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         }
                       },
                       onTap: (tapPosition, point) {
+                        // Handle drawing mode taps
+                        if (drawingProvider.drawingMode == DrawingMode.line) {
+                          if (drawingProvider.currentLinePoints.isEmpty) {
+                            // Start new line
+                            drawingProvider.startLine(point);
+                          } else {
+                            // Add point to current line
+                            drawingProvider.addLinePoint(point);
+                          }
+                          return;
+                        } else if (drawingProvider.drawingMode == DrawingMode.rectangle) {
+                          if (drawingProvider.rectangleStartPoint == null) {
+                            // Start rectangle
+                            drawingProvider.startRectangle(point);
+                          } else {
+                            // Complete rectangle
+                            drawingProvider.completeRectangle(point);
+                          }
+                          return;
+                        }
+
                         // Clear dropped pin if tapping elsewhere (not on the pin itself)
                         if (_droppedPinLocation != null && !_isDraggingPin) {
                           // Check if tap is far from the pin
@@ -908,6 +942,11 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 .toList(),
                           );
                         },
+                      ),
+                      // Drawing layer (rendered after paths, before markers)
+                      DrawingLayer(
+                        drawings: drawingProvider.drawings,
+                        previewDrawing: drawingProvider.getPreviewDrawing(),
                       ),
                       MarkerLayer(
                         markers: [
@@ -1021,6 +1060,13 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                             ),
                         ],
                       ),
+                      // Drawing markers layer (delete buttons on drawings)
+                      DrawingMarkersLayer(
+                        drawings: drawingProvider.drawings,
+                        onDeleteDrawing: (drawingId) {
+                          drawingProvider.removeDrawing(drawingId);
+                        },
+                      ),
                     ],
                   ),
                 )
@@ -1066,6 +1112,12 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   objectCount: messagesProvider.objectMarkers.length,
                 ),
               ),
+            // Drawing toolbar - bottom left
+            Positioned(
+              bottom: 16,
+              left: 16,
+              child: const DrawingToolbar(),
+            ),
             // Map controls - right side
             Positioned(
               bottom: 16,
