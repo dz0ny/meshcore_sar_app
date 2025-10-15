@@ -537,6 +537,26 @@ class _MessageBubble extends StatelessWidget {
     final selfPublicKey = connectionProvider.deviceInfo.publicKey;
     final isOwnMessage = message.isFromSelf(selfPublicKey);
 
+    // Look up contact information for rich display name
+    final contactsProvider = context.read<ContactsProvider>();
+    dynamic senderContact;
+    if (message.senderPublicKeyPrefix != null && !isOwnMessage) {
+      // Find contact by public key prefix (first 6 bytes)
+      final senderKeyHex = message.senderPublicKeyPrefix!
+          .sublist(0, message.senderPublicKeyPrefix!.length < 6 ? message.senderPublicKeyPrefix!.length : 6)
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join('');
+
+      senderContact = contactsProvider.contacts.where((c) {
+        return c.publicKeyHex.startsWith(senderKeyHex);
+      }).firstOrNull;
+    }
+
+    // Get rich display name (with emoji if available)
+    final displayName = isOwnMessage
+        ? 'You'
+        : message.getRichDisplayName(senderContact);
+
     // Debug: Log message details
     if (message.text.startsWith('S:')) {
       debugPrint('🎨 [MessageBubble] Rendering SAR message:');
@@ -622,7 +642,7 @@ class _MessageBubble extends StatelessWidget {
                     const Icon(Icons.person, size: 16),
                   const SizedBox(width: 4),
                   Text(
-                    isOwnMessage ? 'You' : message.displaySender,
+                    displayName,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isOwnMessage ? Theme.of(context).colorScheme.primary : null,

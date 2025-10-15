@@ -9,6 +9,7 @@ import '../../providers/connection_provider.dart';
 import '../../providers/map_provider.dart';
 import 'direct_message_sheet.dart';
 import 'room_login_sheet.dart';
+import '../../utils/toast_logger.dart';
 
 class ContactTile extends StatelessWidget {
   final Contact contact;
@@ -301,15 +302,11 @@ class ContactTile extends StatelessWidget {
           final hasPath = contact.hasPath;
 
           // Show initial notification reflecting the method being used
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                hasPath
-                    ? 'Pinging ${contact.displayName} (direct via path)...'
-                    : 'Pinging ${contact.displayName} (flooding - no path)...',
-              ),
-              duration: const Duration(seconds: 6),
-            ),
+          ToastLogger.info(
+            context,
+            hasPath
+                ? 'Pinging ${contact.displayName} (direct via path)...'
+                : 'Pinging ${contact.displayName} (flooding - no path)...',
           );
 
           // Use smart ping with automatic fallback
@@ -319,14 +316,9 @@ class ContactTile extends StatelessWidget {
             onRetryWithFlooding: () {
               // Called when retrying with flooding after direct timeout
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Direct ping timeout - retrying ${contact.displayName} with flooding...',
-                    ),
-                    duration: const Duration(seconds: 3),
-                    backgroundColor: Colors.orange,
-                  ),
+                ToastLogger.warning(
+                  context,
+                  'Direct ping timeout - retrying ${contact.displayName} with flooding...',
                 );
               }
             },
@@ -334,17 +326,17 @@ class ContactTile extends StatelessWidget {
 
           // Show final result
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  result.success
-                      ? 'Ping successful to ${contact.displayName}${result.retriedWithFlooding ? ' (via flooding fallback)' : ''}'
-                      : 'Ping failed to ${contact.displayName} - no response received',
-                ),
-                duration: const Duration(seconds: 2),
-                backgroundColor: result.success ? Colors.green : Colors.red,
-              ),
-            );
+            if (result.success) {
+              ToastLogger.success(
+                context,
+                'Ping successful to ${contact.displayName}${result.retriedWithFlooding ? ' (via flooding fallback)' : ''}',
+              );
+            } else {
+              ToastLogger.error(
+                context,
+                'Ping failed to ${contact.displayName} - no response received',
+              );
+            }
           }
         },
       ),
@@ -600,12 +592,7 @@ class ContactTile extends StatelessWidget {
                           onPressed: () {
                             final connectionProvider = context.read<ConnectionProvider>();
                             connectionProvider.requestTelemetry(contact.publicKey, zeroHop: true);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Requesting telemetry from ${contact.displayName}...'),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
+                            ToastLogger.info(context, 'Requesting telemetry from ${contact.displayName}...');
                           },
                           icon: const Icon(Icons.refresh, size: 18),
                           label: const Text('Refresh'),
@@ -665,12 +652,7 @@ class ContactTile extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () {
                           connectionProvider.resetPath(contact.publicKey);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Path reset for ${contact.displayName}. Next message will find a new route.'),
-                              duration: const Duration(seconds: 3),
-                            ),
-                          );
+                          ToastLogger.info(context, 'Path reset for ${contact.displayName}. Next message will find a new route.');
                         },
                         icon: const Icon(Icons.route),
                         label: const Text('Reset Path (Re-route)'),

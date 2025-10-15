@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/contact.dart';
 import '../../providers/connection_provider.dart';
+import '../../utils/toast_logger.dart';
 
 class DirectMessageSheet extends StatefulWidget {
   final Contact contact;
@@ -46,12 +47,7 @@ class _DirectMessageSheetState extends State<DirectMessageSheet> {
 
     if (!connectionProvider.deviceInfo.isConnected) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Not connected to device'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastLogger.error(context, 'Not connected to device');
       return;
     }
 
@@ -69,21 +65,10 @@ class _DirectMessageSheetState extends State<DirectMessageSheet> {
       if (!mounted) return;
       Navigator.pop(context); // Close the dialog
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Direct message sent to ${widget.contact.displayName}'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      ToastLogger.success(context, 'Direct message sent to ${widget.contact.displayName}');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastLogger.error(context, 'Failed to send: $e');
     }
   }
 

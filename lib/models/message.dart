@@ -116,7 +116,7 @@ class Message {
     return '${diff.inDays}d ago';
   }
 
-  /// Get display name for sender
+  /// Get display name for sender (basic fallback without contact info)
   String get displaySender {
     if (senderName != null && senderName!.isNotEmpty) {
       return senderName!;
@@ -128,6 +128,21 @@ class Message {
       return 'Channel $channelIdx';
     }
     return 'Unknown';
+  }
+
+  /// Get rich display name for sender using contact information
+  /// Returns emoji + display name if available, otherwise falls back to displaySender
+  String getRichDisplayName(dynamic contact) {
+    if (contact == null) return displaySender;
+
+    // If contact has roleEmoji, use it with displayName
+    final roleEmoji = contact.roleEmoji;
+    if (roleEmoji != null && roleEmoji.isNotEmpty) {
+      return '$roleEmoji ${contact.displayName}';
+    }
+
+    // Otherwise just use advName or displayName
+    return contact.displayName ?? contact.advName ?? displaySender;
   }
 
   /// Convert to SAR marker if applicable
