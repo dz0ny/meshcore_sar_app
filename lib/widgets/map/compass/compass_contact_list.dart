@@ -1,0 +1,176 @@
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import '../../../models/contact.dart';
+
+/// Contact list section for the compass dialog.
+/// Shows all contacts with location sorted by distance with bearing information.
+class CompassContactList extends StatelessWidget {
+  final List<Contact> contacts;
+  final Position? position;
+  final Contact? selectedContact;
+  final ValueChanged<Contact?> onContactTap;
+
+  const CompassContactList({
+    super.key,
+    required this.contacts,
+    required this.position,
+    required this.selectedContact,
+    required this.onContactTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (contacts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    if (position == null) {
+      return const Text('Location unavailable');
+    }
+
+    // Calculate bearings and distances
+    final contactsWithBearing = contacts.map((contact) {
+      if (contact.displayLocation == null) return null;
+
+      final bearing = _calculateBearing(
+        position!.latitude,
+        position!.longitude,
+        contact.displayLocation!.latitude,
+        contact.displayLocation!.longitude,
+      );
+
+      final distance = _calculateDistance(
+        position!.latitude,
+        position!.longitude,
+        contact.displayLocation!.latitude,
+        contact.displayLocation!.longitude,
+      );
+
+      return {
+        'contact': contact,
+        'bearing': bearing,
+        'distance': distance,
+      };
+    }).whereType<Map<String, dynamic>>().toList();
+
+    // Sort by distance
+    contactsWithBearing.sort((a, b) =>
+        (a['distance'] as double).compareTo(b['distance'] as double));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 16, bottom: 8),
+          child: Text(
+            'Nearby Contacts',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        ...contactsWithBearing.map((item) {
+          final contact = item['contact'] as Contact;
+          final bearing = item['bearing'] as double;
+          final distance = item['distance'] as double;
+
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: selectedContact == contact
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+              border: selectedContact == contact
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2,
+                    )
+                  : null,
+            ),
+            child: ListTile(
+              dense: true,
+              leading: contact.roleEmoji != null
+                  ? Text(
+                      contact.roleEmoji!,
+                      style: const TextStyle(fontSize: 24),
+                    )
+                  : Icon(
+                      Icons.person,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 24,
+                    ),
+              title: Text(contact.displayName),
+              subtitle: Text(
+                '${_bearingToCardinal(bearing)} • ${_formatDistance(distance)}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              trailing: Text(
+                '${bearing.round()}°',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              onTap: () {
+                if (selectedContact == contact) {
+                  // Deselect if already selected
+                  onContactTap(null);
+                } else {
+                  // Select this contact
+                  onContactTap(contact);
+                }
+              },
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  // Calculate bearing between two points (in degrees)
+  double _calculateBearing(
+      double lat1, double lon1, double lat2, double lon2) {
+    final dLon = (lon2 - lon1) * pi / 180;
+    final lat1Rad = lat1 * pi / 180;
+    final lat2Rad = lat2 * pi / 180;
+
+    final y = sin(dLon) * cos(lat2Rad);
+    final x = cos(lat1Rad) * sin(lat2Rad) -
+        sin(lat1Rad) * cos(lat2Rad) * cos(dLon);
+
+    final bearing = atan2(y, x) * 180 / pi;
+    return (bearing + 360) % 360;
+  }
+
+  // Calculate distance between two points (in meters)
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371000; // Earth's radius in meters
+    final dLat = (lat2 - lat1) * pi / 180;
+    final dLon = (lon2 - lon1) * pi / 180;
+
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) *
+            cos(lat2 * pi / 180) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  String _bearingToCardinal(double bearing) {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    final index = ((bearing + 22.5) / 45).floor() % 8;
+    return directions[index];
+  }
+
+  String _formatDistance(double meters) {
+    if (meters < 1000) {
+      return '${meters.round()}m';
+    } else {
+      return '${(meters / 1000).toStringAsFixed(1)}km';
+    }
+  }
+}

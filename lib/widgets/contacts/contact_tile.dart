@@ -580,6 +580,28 @@ class ContactTile extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          connectionProvider.resetPath(contact.publicKey);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Path reset for ${contact.displayName}. Next message will find a new route.'),
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.route),
+                        label: const Text('Reset Path (Re-route)'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: _getTypeColor(contact.type, context)),
+                          foregroundColor: _getTypeColor(contact.type, context),
+                        ),
+                      ),
+                    ),
                   ],
                   // Room Login button for room contacts (except Public Channel)
                   if (contact.type == ContactType.room && contact.advName != 'Public Channel') ...[

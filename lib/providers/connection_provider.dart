@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/device_info.dart';
 import '../models/contact.dart';
 import '../models/message.dart';
@@ -10,6 +9,8 @@ import '../models/room_login_state.dart';
 import '../services/meshcore_ble_service.dart';
 import '../services/cayenne_lpp_parser.dart';
 import '../utils/sar_message_parser.dart';
+import 'helpers/room_login_manager.dart';
+import 'helpers/message_delivery_tracker.dart';
 
 /// Connection Provider - manages MeshCore BLE connection
 class ConnectionProvider with ChangeNotifier {
@@ -46,13 +47,12 @@ class ConnectionProvider with ChangeNotifier {
   // Message sync state
   bool _noMoreMessages = false;
 
-  // Room login state tracking
-  final Map<String, RoomLoginState> _roomLoginStates = {};
-  Map<String, RoomLoginState> get roomLoginStates => Map.unmodifiable(_roomLoginStates);
+  // Helper instances
+  final RoomLoginManager _roomLoginManager = RoomLoginManager();
+  final MessageDeliveryTracker _messageDeliveryTracker = MessageDeliveryTracker();
 
-  // Track sent message IDs by ACK tag for delivery confirmation
-  final Map<int, String> _ackTagToMessageId = {};
-  final List<String> _pendingSentMessageIds = []; // Queue of pending message IDs
+  // Expose room login states
+  Map<String, RoomLoginState> get roomLoginStates => _roomLoginManager.roomLoginStates;
 
   // Callbacks for other providers
   Function(Contact)? onContactReceived;
@@ -149,15 +149,12 @@ class ConnectionProvider with ChangeNotifier {
       print('  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
       print('  Permissions: $permissions, Admin: $isAdmin, Tag: $tag');
 
-      // Update room login state
-      final prefixHex = publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
-      final hasPassword = await _hasPasswordForRoom(publicKeyPrefix);
-      _roomLoginStates[prefixHex] = RoomLoginState.loggedIn(
+      // Update room login state via helper
+      await _roomLoginManager.handleLoginSuccess(
         publicKeyPrefix: publicKeyPrefix,
         permissions: permissions,
         isAdmin: isAdmin,
         tag: tag,
-        hasPassword: hasPassword,
       );
       notifyListeners();
 
@@ -168,11 +165,9 @@ class ConnectionProvider with ChangeNotifier {
       print('📥 [Provider] Login failed to room');
       print('  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
 
-      // Update room login state to logged out
-      final prefixHex = publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
-      _roomLoginStates[prefixHex] = RoomLoginState.loggedOut(
+      // Update room login state to logged out via helper
+      _roomLoginManager.handleLoginFail(
         publicKeyPrefix: publicKeyPrefix,
-        hasPassword: false, // Password was incorrect
       );
       notifyListeners();
 
@@ -909,6 +904,31 @@ class ConnectionProvider with ChangeNotifier {
       await _bleService.sendStatusRequest(contactPublicKey);
     } catch (e) {
       _error = 'Failed to send status request: $e';
+      notifyListeners();
+    }
+  }
+
+  /// Reset routing path for a contact
+  ///
+  /// Clears the learned path to a contact, forcing the next message to use
+  /// flood routing to discover a new route. Useful when:
+  /// - A mobile repeater has moved and the path is broken
+  /// - You want to find a better/shorter route
+  /// - Direct messages are timing out due to path issues
+  ///
+  /// After calling this, the device will automatically fall back to flood mode
+  /// for the next message to this contact, and learn a new path from the response.
+  Future<void> resetPath(Uint8List contactPublicKey) async {
+    if (!_bleService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await _bleService.resetPath(contactPublicKey);
+    } catch (e) {
+      _error = 'Failed to reset path: $e';
       notifyListeners();
     }
   }
