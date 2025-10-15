@@ -29,27 +29,58 @@ lib/
 │   ├── message.dart            # Messages and SAR markers
 │   ├── sar_marker.dart         # SAR tactical markers
 │   ├── device_info.dart        # BLE device connection state
+│   ├── room_login_state.dart   # Room login status tracking
 │   └── map_layer.dart          # Map tile layer definitions
 ├── services/            # Business logic services
-│   ├── meshcore_ble_service.dart      # BLE communication
+│   ├── meshcore_ble_service.dart      # BLE service coordinator (399 lines)
 │   ├── meshcore_constants.dart        # Protocol constants
 │   ├── buffer_reader.dart             # Binary protocol reader
 │   ├── buffer_writer.dart             # Binary protocol writer
 │   ├── cayenne_lpp_parser.dart        # Telemetry decoder
-│   └── tile_cache_service.dart        # Offline map tiles
+│   ├── tile_cache_service.dart        # Offline map tiles
+│   ├── protocol/                      # Protocol layer (628 lines)
+│   │   ├── frame_parser.dart          # Parse incoming BLE frames
+│   │   └── frame_builder.dart         # Build outgoing BLE frames
+│   └── ble/                           # BLE layer (963 lines)
+│       ├── ble_connection_manager.dart  # Connection lifecycle
+│       ├── ble_command_sender.dart      # Command transmission
+│       └── ble_response_handler.dart    # Response processing
 ├── providers/           # State management
-│   ├── connection_provider.dart       # BLE connection state
+│   ├── connection_provider.dart       # BLE connection state (957 lines)
 │   ├── contacts_provider.dart         # Contact list management
 │   ├── messages_provider.dart         # Message history + SAR markers
 │   ├── map_provider.dart              # Map navigation state
-│   └── app_provider.dart              # Coordinator provider
+│   ├── app_provider.dart              # Coordinator provider
+│   └── helpers/                       # Provider helpers (155 lines)
+│       ├── room_login_manager.dart      # Room login state management
+│       └── message_delivery_tracker.dart # Message delivery tracking
 ├── screens/             # UI screens
 │   ├── home_screen.dart        # Main screen with tabs
-│   ├── messages_tab.dart       # Message list view
-│   ├── contacts_tab.dart       # Contact list view
-│   └── map_tab.dart            # Interactive map view
+│   ├── messages_tab.dart       # Message list view (767 lines)
+│   ├── contacts_tab.dart       # Contact list view (208 lines)
+│   ├── map_tab.dart            # Interactive map view (1,217 lines)
+│   ├── settings_screen.dart    # App settings (875 lines)
+│   ├── device_config_screen.dart  # Device configuration (718 lines)
+│   ├── map_management_screen.dart # Map tile management (728 lines)
+│   └── packet_log_screen.dart     # BLE packet diagnostics (565 lines)
 ├── widgets/             # Reusable UI components
-│   └── map_markers.dart        # Custom map marker widgets
+│   ├── map_markers.dart        # Custom map marker widgets
+│   ├── messages/               # Message components (698 lines)
+│   │   └── sar_update_sheet.dart  # SAR marker creation modal
+│   ├── contacts/               # Contact components (1,578 lines)
+│   │   ├── contact_tile.dart           # Contact list tile + details dialog
+│   │   ├── direct_message_sheet.dart   # Direct messaging modal
+│   │   ├── room_login_sheet.dart       # Room login modal
+│   │   └── section_header.dart         # Section header component
+│   └── map/                    # Map components (2,867 lines)
+│       ├── detailed_compass_dialog.dart # Main compass dialog (570 lines)
+│       ├── map_legend.dart             # Map legend with counts
+│       ├── compass_widget.dart         # Small compass widget
+│       └── compass/                    # Compass subcomponents (1,150 lines)
+│           ├── compass_header.dart       # Compass rose + location display
+│           ├── compass_filters.dart      # Filter controls
+│           ├── compass_sar_list.dart     # SAR marker list
+│           └── compass_contact_list.dart # Contact list
 ├── utils/               # Utilities
 │   └── sar_message_parser.dart # Parse S:<emoji>:lat,lon format
 └── main.dart            # App entry point
@@ -1011,26 +1042,55 @@ flutter build apk --split-per-abi
 
 ### Adding a New BLE Command
 
+The BLE service is now split into modular components. Follow these steps:
+
 1. **Add command code** to `lib/services/meshcore_constants.dart`:
    ```dart
    static const int cmdYourCommand = 42;
    ```
 
-2. **Create command method** in `lib/services/meshcore_ble_service.dart`:
+2. **Add frame builder** in `lib/services/protocol/frame_builder.dart`:
    ```dart
-   Future<void> yourCommand() async {
+   /// Build YOUR_COMMAND frame
+   static Uint8List buildYourCommand({required String param}) {
      final writer = BufferWriter();
      writer.writeByte(MeshCoreConstants.cmdYourCommand);
-     await _sendCommand(writer.toBytes());
+     writer.writeString(param);
+     return writer.toBytes();
    }
    ```
 
-3. **Handle response** in `_onDataReceived()`:
+3. **Add public API method** in `lib/services/meshcore_ble_service.dart`:
+   ```dart
+   Future<void> yourCommand({required String param}) async {
+     final frame = FrameBuilder.buildYourCommand(param: param);
+     await _commandSender.sendCommand(frame);
+   }
+   ```
+
+4. **Add response parser** in `lib/services/protocol/frame_parser.dart`:
+   ```dart
+   static Map<String, dynamic> parseYourResponse(Uint8List data) {
+     final reader = BufferReader(data);
+     reader.readByte(); // Skip response code
+     return {
+       'yourField': reader.readString(),
+       // ... parse other fields
+     };
+   }
+   ```
+
+5. **Handle response** in `lib/services/ble/ble_response_handler.dart`:
    ```dart
    case MeshCoreConstants.respYourResponse:
-     // Parse response data
-     onYourCallback?.call(data);
+     final parsed = FrameParser.parseYourResponse(data);
+     _bleService.onYourCallback?.call(parsed);
      break;
+   ```
+
+6. **Add callback** in `lib/services/meshcore_ble_service.dart`:
+   ```dart
+   Function(Map<String, dynamic>)? onYourCallback;
    ```
 
 ### Adding a New SAR Marker Type

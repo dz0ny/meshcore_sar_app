@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../models/device_info.dart';
@@ -7,7 +6,6 @@ import '../models/contact.dart';
 import '../models/message.dart';
 import '../models/room_login_state.dart';
 import '../services/meshcore_ble_service.dart';
-import '../services/cayenne_lpp_parser.dart';
 import '../utils/sar_message_parser.dart';
 import 'helpers/room_login_manager.dart';
 import 'helpers/message_delivery_tracker.dart';
@@ -193,14 +191,14 @@ class ConnectionProvider with ChangeNotifier {
     _bleService.onMessageSent = (expectedAckTag, suggestedTimeoutMs, isFloodMode) {
       print('📥 [Provider] Message sent - ACK tag: $expectedAckTag, timeout: ${suggestedTimeoutMs}ms');
 
-      // Pop the first pending message ID from the queue (FIFO)
-      // This assumes messages are sent sequentially and SENT responses arrive in order
-      if (_pendingSentMessageIds.isNotEmpty) {
-        final messageId = _pendingSentMessageIds.removeAt(0);
+      // Pop the first pending message ID from the queue (FIFO) via helper
+      final messageId = _messageDeliveryTracker.popPendingMessageId();
+
+      if (messageId != null) {
         print('  Matched with message ID: $messageId');
 
         // Store the ACK tag to message ID mapping for delivery confirmation
-        _ackTagToMessageId[expectedAckTag] = messageId;
+        _messageDeliveryTracker.mapAckTagToMessageId(expectedAckTag, messageId);
 
         // Notify callback with message ID
         onMessageSent?.call(messageId, expectedAckTag, suggestedTimeoutMs);
@@ -398,7 +396,7 @@ class ConnectionProvider with ChangeNotifier {
     _deviceInfo = DeviceInfo(
       connectionState: ConnectionState.disconnected,
     );
-    clearRoomLoginStates(); // Clear login states on disconnect
+    _roomLoginManager.clearRoomLoginStates(); // Clear login states on disconnect
     notifyListeners();
   }
 
@@ -462,11 +460,11 @@ class ConnectionProvider with ChangeNotifier {
         text: text,
       );
 
-      // If message ID provided, add it to the pending queue
+      // If message ID provided, add it to the pending queue via helper
       // When the SENT response arrives, it will be matched with this message ID
       // Note: Messages must be sent sequentially for this to work correctly
       if (messageId != null) {
-        _pendingSentMessageIds.add(messageId);
+        _messageDeliveryTracker.trackPendingMessage(messageId);
         print('  Added message ID to pending queue: $messageId');
       }
 
@@ -498,9 +496,9 @@ class ConnectionProvider with ChangeNotifier {
         text: text,
       );
 
-      // If message ID provided, add it to the pending queue
+      // If message ID provided, add it to the pending queue via helper
       if (messageId != null) {
-        _pendingSentMessageIds.add(messageId);
+        _messageDeliveryTracker.trackPendingMessage(messageId);
         print('  Added message ID to pending queue: $messageId');
       }
     } catch (e) {
@@ -939,36 +937,14 @@ class ConnectionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Check if a password exists for a room (by public key prefix)
-  Future<bool> _hasPasswordForRoom(Uint8List publicKeyPrefix) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      // Convert prefix to hex string for storage key
-      final prefixHex = publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
-      final roomKey = 'room_password_$prefixHex';
-      return prefs.getString(roomKey) != null;
-    } catch (e) {
-      debugPrint('Error checking password for room: $e');
-      return false;
-    }
-  }
-
   /// Get login state for a room by public key prefix
   RoomLoginState? getRoomLoginState(Uint8List publicKeyPrefix) {
-    final prefixHex = publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
-    return _roomLoginStates[prefixHex];
+    return _roomLoginManager.getRoomLoginState(publicKeyPrefix);
   }
 
   /// Check if logged into a specific room
   bool isLoggedIntoRoom(Uint8List publicKeyPrefix) {
-    final state = getRoomLoginState(publicKeyPrefix);
-    return state?.isLoggedIn ?? false;
-  }
-
-  /// Clear all room login states (call on disconnect)
-  void clearRoomLoginStates() {
-    _roomLoginStates.clear();
-    notifyListeners();
+    return _roomLoginManager.isLoggedIntoRoom(publicKeyPrefix);
   }
 
   @override

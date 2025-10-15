@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/room_login_state.dart';
@@ -6,7 +5,7 @@ import '../../models/room_login_state.dart';
 /// Room login state management helper
 ///
 /// Manages login state tracking for room contacts, including:
-/// - Room login state per contact (Map<String, RoomLoginState>)
+/// - Room login state per contact (Map of String to RoomLoginState)
 /// - Password checking logic
 /// - Login success/fail state updates
 class RoomLoginManager {
