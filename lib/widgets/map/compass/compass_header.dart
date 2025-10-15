@@ -576,7 +576,7 @@ class _LocationFormatToggleState extends State<_LocationFormatToggle> {
       },
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
@@ -585,10 +585,9 @@ class _LocationFormatToggleState extends State<_LocationFormatToggle> {
           child: Text(
             displayText,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w500,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                   fontFamily: 'monospace',
-                  fontSize: 11,
                 ),
           ),
         ),

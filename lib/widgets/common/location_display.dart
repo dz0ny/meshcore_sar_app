@@ -20,24 +20,25 @@ class LocationDisplay extends StatelessWidget {
       return GestureDetector(
         onTap: () => _showLocationFormats(context),
         child: Container(
+          width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.location_on, size: 16),
+              const Icon(Icons.location_on, size: 18),
               const SizedBox(width: 6),
               Text(
                 '${location.latitude.toStringAsFixed(5)}, ${location.longitude.toStringAsFixed(5)}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontFamily: 'monospace',
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               Icon(
                 Icons.open_in_new,
                 size: 14,
@@ -64,64 +65,66 @@ class LocationDisplay extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Location Formats',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+      builder: (context) => SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Location Formats',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            // Decimal Degrees (DD)
-            _buildFormatRow(
-              context,
-              'DD (Decimal Degrees)',
-              '${location.latitude.toStringAsFixed(6)}, ${location.longitude.toStringAsFixed(6)}',
-            ),
-            // Degrees Minutes Seconds (DMS)
-            _buildFormatRow(
-              context,
-              'DMS (Degrees Minutes Seconds)',
-              _convertToDMS(location.latitude, location.longitude),
-            ),
-            // Degrees Decimal Minutes (DDM)
-            _buildFormatRow(
-              context,
-              'DDM (Degrees Decimal Minutes)',
-              _convertToDDM(location.latitude, location.longitude),
-            ),
-            // MGRS (Military Grid Reference System)
-            _buildFormatRow(
-              context,
-              'MGRS (Military Grid)',
-              _convertToMGRS(location.latitude, location.longitude),
-            ),
-            // Google Plus Code
-            _buildFormatRow(
-              context,
-              'Plus Code',
-              _convertToPlusCode(location.latitude, location.longitude),
-            ),
-            const SizedBox(height: 8),
-          ],
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              // Decimal Degrees (DD)
+              _buildFormatRow(
+                context,
+                'DD (Decimal Degrees)',
+                '${location.latitude.toStringAsFixed(6)}, ${location.longitude.toStringAsFixed(6)}',
+              ),
+              // Degrees Minutes Seconds (DMS)
+              _buildFormatRow(
+                context,
+                'DMS (Degrees Minutes Seconds)',
+                _convertToDMS(location.latitude, location.longitude),
+              ),
+              // Degrees Decimal Minutes (DDM)
+              _buildFormatRow(
+                context,
+                'DDM (Degrees Decimal Minutes)',
+                _convertToDDM(location.latitude, location.longitude),
+              ),
+              // MGRS (Military Grid Reference System)
+              _buildFormatRow(
+                context,
+                'MGRS (Military Grid)',
+                _convertToMGRS(location.latitude, location.longitude),
+              ),
+              // Google Plus Code
+              _buildFormatRow(
+                context,
+                'Plus Code',
+                _convertToPlusCode(location.latitude, location.longitude),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
