@@ -95,8 +95,25 @@ class ContactTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            // Connection type indicator (direct/flood)
-            if (contact.type == ContactType.chat) ...[
+            // Battery indicator
+            if (battery != null) ...[
+              Icon(
+                _getBatteryIcon(battery),
+                size: 16,
+                color: _getBatteryColor(battery),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '${battery.round()}%',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: _getBatteryColor(battery),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            // Connection type indicator (direct/flood) - shown for all contact types
+            if (contact.type != ContactType.channel) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(
@@ -127,23 +144,6 @@ class ContactTile extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-            // Battery indicator on the right
-            if (battery != null) ...[
-              Icon(
-                _getBatteryIcon(battery),
-                size: 16,
-                color: _getBatteryColor(battery),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${battery.round()}%',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: _getBatteryColor(battery),
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

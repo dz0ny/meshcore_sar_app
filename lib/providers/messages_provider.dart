@@ -30,6 +30,9 @@ class MessagesProvider with ChangeNotifier {
   List<Message> get sarMarkerMessages =>
       _messages.where((m) => m.isSarMarker).toList();
 
+  List<Message> get systemMessages =>
+      _messages.where((m) => m.isSystemMessage).toList();
+
   List<SarMarker> get sarMarkers => _sarMarkers.values.toList();
 
   List<SarMarker> get foundPersonMarkers =>
@@ -348,8 +351,37 @@ class MessagesProvider with ChangeNotifier {
       'contact': contactMessages.length,
       'channel': channelMessages.length,
       'sar': sarMarkerMessages.length,
+      'system': systemMessages.length,
       'sarMarkers': sarMarkers.length,
     };
+  }
+
+  /// Log a system message (replaces toast notifications)
+  void logSystemMessage({
+    required String text,
+    String level = 'info', // 'info', 'success', 'warning', 'error'
+  }) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final messageId = '${DateTime.now().millisecondsSinceEpoch}_system_$level';
+
+    final systemMessage = Message(
+      id: messageId,
+      messageType: MessageType.system,
+      pathLen: 0,
+      textType: MessageTextType.plain,
+      senderTimestamp: timestamp,
+      text: text,
+      receivedAt: DateTime.now(),
+      senderName: level, // Use senderName to store log level
+      deliveryStatus: MessageDeliveryStatus.received,
+    );
+
+    _messages.add(systemMessage);
+
+    // Don't persist system messages to reduce storage
+    // _persistMessages();
+
+    notifyListeners();
   }
 
   /// Get SAR marker statistics

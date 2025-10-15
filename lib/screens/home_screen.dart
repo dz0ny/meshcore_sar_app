@@ -11,6 +11,7 @@ import 'map_management_screen.dart';
 import 'settings_screen.dart';
 import 'device_config_screen.dart';
 import 'packet_log_screen.dart';
+import '../utils/toast_logger.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(AppThemeMode) onThemeChanged;
@@ -52,9 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     if (!connectionProvider.deviceInfo.isConnected) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Device not connected')),
-        );
+        ToastLogger.error(context, 'Device not connected');
       }
       return;
     }
@@ -64,12 +63,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Location services are disabled. Please enable them in Settings.'),
-              duration: Duration(seconds: 3),
-            ),
-          );
+          ToastLogger.error(context, 'Location services are disabled. Please enable them in Settings.');
         }
         return;
       }
@@ -80,12 +74,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Location permission denied'),
-                duration: Duration(seconds: 2),
-              ),
-            );
+            ToastLogger.error(context, 'Location permission denied');
           }
           return;
         }
@@ -93,12 +82,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
       if (permission == LocationPermission.deniedForever) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Location permission permanently denied. Please enable in Settings.'),
-              duration: Duration(seconds: 3),
-            ),
-          );
+          ToastLogger.error(context, 'Location permission permanently denied. Please enable in Settings.');
         }
         return;
       }
@@ -115,9 +99,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       } catch (e) {
         print('❌ Failed to get GPS position: $e');
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to get GPS location')),
-          );
+          ToastLogger.error(context, 'Failed to get GPS location');
         }
         return;
       }
@@ -135,21 +117,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       await connectionProvider.sendSelfAdvert(floodMode: true);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Advertised at ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}',
-            ),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        ToastLogger.success(context, 'Advertised at ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}');
       }
     } catch (e) {
       print('❌ Failed to advertise device: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to advertise: $e')),
-        );
+        ToastLogger.error(context, 'Failed to advertise: $e');
       }
     }
   }
@@ -720,9 +693,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         final appProvider = context.read<AppProvider>();
                         await appProvider.refresh();
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Refreshed contacts')),
-                          );
+                          ToastLogger.success(context, 'Refreshed contacts');
                         }
                       },
                       icon: const Icon(Icons.refresh),

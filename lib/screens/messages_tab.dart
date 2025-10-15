@@ -10,6 +10,7 @@ import '../providers/connection_provider.dart';
 import '../models/message.dart';
 import '../models/sar_marker.dart';
 import '../widgets/messages/sar_update_sheet.dart';
+import '../utils/toast_logger.dart';
 
 class MessagesTab extends StatefulWidget {
   final VoidCallback onNavigateToMap;
@@ -63,12 +64,7 @@ class _MessagesTabState extends State<MessagesTab> {
 
     if (!connectionProvider.deviceInfo.isConnected) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Not connected to device'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastLogger.error(context, 'Not connected to device');
       return;
     }
 
@@ -109,21 +105,10 @@ class _MessagesTabState extends State<MessagesTab> {
       _focusNode.unfocus();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Message sent to public channel'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 1),
-        ),
-      );
+      ToastLogger.success(context, 'Message sent to public channel');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastLogger.error(context, 'Failed to send: $e');
     }
   }
 
@@ -153,23 +138,13 @@ class _MessagesTabState extends State<MessagesTab> {
 
     if (!connectionProvider.deviceInfo.isConnected) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Not connected to device'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastLogger.error(context, 'Not connected to device');
       return;
     }
 
     if (!sendToChannel && roomPublicKey == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a room to send SAR marker'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastLogger.error(context, 'Please select a room to send SAR marker');
       return;
     }
 
@@ -190,13 +165,7 @@ class _MessagesTabState extends State<MessagesTab> {
         );
 
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${sarType.displayName} marker broadcast to public channel'),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        ToastLogger.warning(context, '${sarType.displayName} marker broadcast to public channel');
       } else {
         // Create message ID
         final messageId = '${DateTime.now().millisecondsSinceEpoch}_sent';
@@ -245,22 +214,11 @@ class _MessagesTabState extends State<MessagesTab> {
         }
 
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${sarType.displayName} marker sent to room'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        ToastLogger.success(context, '${sarType.displayName} marker sent to room');
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send SAR marker: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastLogger.error(context, 'Failed to send SAR marker: $e');
     }
   }
 
@@ -313,6 +271,12 @@ class _MessagesTabState extends State<MessagesTab> {
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
                         final message = messages[index];
+
+                        // Display system messages with minimal styling
+                        if (message.isSystemMessage) {
+                          return _SystemMessageBubble(message: message);
+                        }
+
                         return _MessageBubble(
                           message: message,
                           onTap: message.isSarMarker &&
@@ -438,12 +402,7 @@ class _MessageBubble extends StatelessWidget {
     final messagesProvider = context.read<MessagesProvider>();
 
     if (!connectionProvider.deviceInfo.isConnected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Not connected to device'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastLogger.error(context, 'Not connected to device');
       return;
     }
 
@@ -465,12 +424,7 @@ class _MessageBubble extends StatelessWidget {
         // Direct message retry (for SAR markers sent to rooms)
         if (failedMessage.recipientPublicKey == null) {
           messagesProvider.markMessageFailed(retryMessageId);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cannot retry: recipient information missing'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ToastLogger.error(context, 'Cannot retry: recipient information missing');
           return;
         }
 
@@ -491,20 +445,9 @@ class _MessageBubble extends StatelessWidget {
 
         if (!sentSuccessfully) {
           messagesProvider.markMessageFailed(retryMessageId);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to resend message'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ToastLogger.error(context, 'Failed to resend message');
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Retrying message...'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 2),
-            ),
-          );
+          ToastLogger.info(context, 'Retrying message...');
         }
       } else if (failedMessage.messageType == MessageType.channel) {
         // Channel message retry
@@ -514,21 +457,10 @@ class _MessageBubble extends StatelessWidget {
           messageId: retryMessageId,
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Retrying message...'),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        ToastLogger.info(context, 'Retrying message...');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Retry failed: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastLogger.error(context, 'Retry failed: $e');
     }
   }
 
@@ -551,12 +483,7 @@ class _MessageBubble extends StatelessWidget {
               onTap: () {
                 Clipboard.setData(ClipboardData(text: message.text));
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Text copied to clipboard'),
-                    duration: Duration(seconds: 1),
-                  ),
-                );
+                ToastLogger.success(context, 'Text copied to clipboard');
               },
             ),
             // Delete message option
@@ -590,12 +517,7 @@ class _MessageBubble extends StatelessWidget {
               final messagesProvider = context.read<MessagesProvider>();
               messagesProvider.deleteMessage(message.id);
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Message deleted'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
+              ToastLogger.info(context, 'Message deleted');
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
@@ -950,6 +872,88 @@ class _MessageBubble extends StatelessWidget {
     }
 
     return notes != null && notes.isNotEmpty ? notes : null;
+  }
+}
+
+/// System message bubble - compact log-style display
+class _SystemMessageBubble extends StatelessWidget {
+  final Message message;
+
+  const _SystemMessageBubble({required this.message});
+
+  Color _getLevelColor(String? level) {
+    switch (level?.toLowerCase()) {
+      case 'success':
+        return Colors.green;
+      case 'warning':
+        return Colors.orange;
+      case 'error':
+        return Colors.red;
+      case 'info':
+      default:
+        return Colors.blue.shade300;
+    }
+  }
+
+  IconData _getLevelIcon(String? level) {
+    switch (level?.toLowerCase()) {
+      case 'success':
+        return Icons.check_circle_outline;
+      case 'warning':
+        return Icons.warning_amber_outlined;
+      case 'error':
+        return Icons.error_outline;
+      case 'info':
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final level = message.senderName ?? 'info';
+    final levelColor = _getLevelColor(level);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? levelColor.withValues(alpha: 0.1)
+            : levelColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _getLevelIcon(level),
+            size: 14,
+            color: levelColor,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            message.timeAgo,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                  fontSize: 10,
+                ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message.text,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontSize: 11,
+                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.8),
+                  ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

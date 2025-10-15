@@ -49,13 +49,21 @@ class _ContactsTabState extends State<ContactsTab> {
   }
 
   /// Calculate distance between two points in meters
-  double _calculateDistanceInMeters(double lat1, double lon1, double lat2, double lon2) {
+  double _calculateDistanceInMeters(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
     const R = 6371000; // Earth's radius in meters
     final dLat = (lat2 - lat1) * pi / 180;
     final dLon = (lon2 - lon1) * pi / 180;
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(lat1 * pi / 180) * cos(lat2 * pi / 180) *
-        sin(dLon / 2) * sin(dLon / 2);
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) *
+            cos(lat2 * pi / 180) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return R * c;
   }
@@ -110,52 +118,58 @@ class _ContactsTabState extends State<ContactsTab> {
           child: ListView(
             padding: const EdgeInsets.all(8),
             children: [
-            // Team Members (Chat contacts)
-            if (chatContacts.isNotEmpty) ...[
-              _SectionHeader(
-                title: 'Team Members',
-                count: chatContacts.length,
-                icon: Icons.people,
-              ),
-              ...chatContacts.map((contact) => ContactTile(
-                contact: contact,
-                currentPosition: _currentPosition,
-                calculateDistance: _calculateDistanceInMeters,
-                formatDistance: _formatDistance,
-              )),
-              const Divider(height: 32),
-            ],
+              // Team Members (Chat contacts)
+              if (chatContacts.isNotEmpty) ...[
+                _SectionHeader(
+                  title: 'Team Members',
+                  count: chatContacts.length,
+                  icon: Icons.people,
+                ),
+                ...chatContacts.map(
+                  (contact) => ContactTile(
+                    contact: contact,
+                    currentPosition: _currentPosition,
+                    calculateDistance: _calculateDistanceInMeters,
+                    formatDistance: _formatDistance,
+                  ),
+                ),
+                const Divider(height: 32),
+              ],
 
-            // Repeaters
-            if (repeaters.isNotEmpty) ...[
-              _SectionHeader(
-                title: 'Repeaters',
-                count: repeaters.length,
-                icon: Icons.router,
-              ),
-              ...repeaters.map((contact) => ContactTile(
-                contact: contact,
-                currentPosition: _currentPosition,
-                calculateDistance: _calculateDistanceInMeters,
-                formatDistance: _formatDistance,
-              )),
-              const Divider(height: 32),
-            ],
+              // Repeaters
+              if (repeaters.isNotEmpty) ...[
+                _SectionHeader(
+                  title: 'Repeaters',
+                  count: repeaters.length,
+                  icon: Icons.router,
+                ),
+                ...repeaters.map(
+                  (contact) => ContactTile(
+                    contact: contact,
+                    currentPosition: _currentPosition,
+                    calculateDistance: _calculateDistanceInMeters,
+                    formatDistance: _formatDistance,
+                  ),
+                ),
+                const Divider(height: 32),
+              ],
 
-            // Rooms/Channels
-            if (rooms.isNotEmpty) ...[
-              _SectionHeader(
-                title: 'Rooms/Channels',
-                count: rooms.length,
-                icon: Icons.tag,
-              ),
-              ...rooms.map((contact) => ContactTile(
-                contact: contact,
-                currentPosition: _currentPosition,
-                calculateDistance: _calculateDistanceInMeters,
-                formatDistance: _formatDistance,
-              )),
-            ],
+              // Rooms/Channels
+              if (rooms.isNotEmpty) ...[
+                _SectionHeader(
+                  title: 'Rooms',
+                  count: rooms.length,
+                  icon: Icons.tag,
+                ),
+                ...rooms.map(
+                  (contact) => ContactTile(
+                    contact: contact,
+                    currentPosition: _currentPosition,
+                    calculateDistance: _calculateDistanceInMeters,
+                    formatDistance: _formatDistance,
+                  ),
+                ),
+              ],
             ],
           ),
         );
@@ -185,9 +199,9 @@ class _SectionHeader extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 8),
           Container(

@@ -19,10 +19,11 @@ enum MessageTextType {
   }
 }
 
-/// Message type (contact or channel)
+/// Message type (contact, channel, or system)
 enum MessageType {
   contact,
   channel,
+  system, // System messages (log entries, status updates)
 }
 
 /// Message delivery status
@@ -102,6 +103,9 @@ class Message {
 
   /// Check if message is from a contact
   bool get isContactMessage => messageType == MessageType.contact;
+
+  /// Check if message is a system message
+  bool get isSystemMessage => messageType == MessageType.system;
 
   /// Get friendly time since message was sent
   String get timeAgo {
