@@ -50,6 +50,7 @@ class _MessagesTabState extends State<MessagesTab> {
     if (text.isEmpty) return;
 
     final connectionProvider = context.read<ConnectionProvider>();
+    final messagesProvider = context.read<MessagesProvider>();
 
     if (!connectionProvider.deviceInfo.isConnected) {
       if (!mounted) return;
@@ -63,10 +64,36 @@ class _MessagesTabState extends State<MessagesTab> {
     }
 
     try {
-      // Always send to public channel (channel 0)
+      // Create message ID
+      final messageId = '${DateTime.now().millisecondsSinceEpoch}_channel_sent';
+      final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+      // Get current device's public key (first 6 bytes)
+      final devicePublicKey = connectionProvider.deviceInfo.publicKey;
+      final senderPublicKeyPrefix = devicePublicKey?.sublist(0, 6);
+
+      // Create sent message object
+      final sentMessage = Message(
+        id: messageId,
+        messageType: MessageType.channel,
+        senderPublicKeyPrefix: senderPublicKeyPrefix,
+        pathLen: 0,
+        textType: MessageTextType.plain,
+        senderTimestamp: timestamp,
+        text: text,
+        receivedAt: DateTime.now(),
+        deliveryStatus: MessageDeliveryStatus.sending,
+        channelIdx: 0,
+      );
+
+      // Add to messages list with "sending" status
+      messagesProvider.addSentMessage(sentMessage);
+
+      // Send to public channel (channel 0)
       await connectionProvider.sendChannelMessage(
         channelIdx: 0,
         text: text,
+        messageId: messageId,
       );
 
       _textController.clear();
