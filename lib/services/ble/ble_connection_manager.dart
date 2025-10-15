@@ -5,20 +5,34 @@ import '../meshcore_constants.dart';
 /// Callback types for connection events
 typedef OnConnectionStateCallback = void Function(bool isConnected);
 typedef OnErrorCallback = void Function(String error);
+typedef OnReconnectionAttemptCallback = void Function(int attemptNumber, int maxAttempts);
 
-/// Manages BLE connection lifecycle
+/// Manages BLE connection lifecycle with automatic reconnection
 class BleConnectionManager {
   BluetoothDevice? _device;
   BluetoothCharacteristic? _rxCharacteristic;
   BluetoothCharacteristic? _txCharacteristic;
   bool _isConnected = false;
 
+  // Reconnection state
+  bool _reconnectionEnabled = true;
+  bool _isReconnecting = false;
+  int _reconnectionAttempt = 0;
+  Timer? _reconnectionTimer;
+  StreamSubscription<BluetoothConnectionState>? _connectionStateSubscription;
+  static const int _maxReconnectionAttempts = 5;
+  static const List<int> _reconnectionDelaysMs = [1000, 2000, 3000, 5000, 10000]; // Exponential backoff
+
   // Callbacks
   OnConnectionStateCallback? onConnectionStateChanged;
   OnErrorCallback? onError;
+  OnReconnectionAttemptCallback? onReconnectionAttempt;
 
   // Getters
   bool get isConnected => _isConnected;
+  bool get isReconnecting => _isReconnecting;
+  int get reconnectionAttempt => _reconnectionAttempt;
+  int get maxReconnectionAttempts => _maxReconnectionAttempts;
   BluetoothDevice? get device => _device;
   BluetoothCharacteristic? get rxCharacteristic => _rxCharacteristic;
   BluetoothCharacteristic? get txCharacteristic => _txCharacteristic;
@@ -138,8 +152,12 @@ class BleConnectionManager {
       print('✅ [BLE] Notifications enabled');
 
       _isConnected = true;
+      _reconnectionAttempt = 0; // Reset reconnection counter on successful connection
       print('🔵 [BLE] Notifying connection state change: connected');
       onConnectionStateChanged?.call(true);
+
+      // Monitor connection state for automatic reconnection
+      _setupConnectionMonitoring();
 
       print('✅✅✅ [BLE] Connection completed successfully!');
       return true;
@@ -156,6 +174,11 @@ class BleConnectionManager {
   /// Disconnect from device
   Future<void> disconnect() async {
     try {
+      print('🔴 [BLE] Disconnect requested by user');
+      // Disable reconnection before disconnecting
+      _reconnectionEnabled = false;
+      _cancelReconnection();
+
       await _device?.disconnect();
       _isConnected = false;
       _device = null;
@@ -167,8 +190,126 @@ class BleConnectionManager {
     }
   }
 
+  /// Setup connection monitoring for automatic reconnection
+  void _setupConnectionMonitoring() {
+    print('🔵 [BLE] Setting up connection monitoring for device: ${_device?.platformName}');
+
+    // Cancel any existing subscription
+    _connectionStateSubscription?.cancel();
+
+    // Monitor connection state changes
+    _connectionStateSubscription = _device?.connectionState.listen((state) {
+      print('🔔 [BLE] Connection state changed: $state');
+
+      if (state == BluetoothConnectionState.disconnected) {
+        print('⚠️ [BLE] Device disconnected unexpectedly!');
+        _isConnected = false;
+        onConnectionStateChanged?.call(false);
+
+        // Attempt automatic reconnection if enabled
+        if (_reconnectionEnabled && !_isReconnecting) {
+          print('🔄 [BLE] Starting automatic reconnection...');
+          _attemptReconnection();
+        }
+      } else if (state == BluetoothConnectionState.connected) {
+        print('✅ [BLE] Device connected');
+        _isConnected = true;
+        _reconnectionAttempt = 0;
+        _isReconnecting = false;
+        onConnectionStateChanged?.call(true);
+      }
+    });
+  }
+
+  /// Attempt to reconnect to the device
+  Future<void> _attemptReconnection() async {
+    if (_device == null || _isReconnecting || !_reconnectionEnabled) {
+      return;
+    }
+
+    _isReconnecting = true;
+    _reconnectionAttempt++;
+
+    print('🔄 [BLE] Reconnection attempt $_reconnectionAttempt of $_maxReconnectionAttempts');
+    onReconnectionAttempt?.call(_reconnectionAttempt, _maxReconnectionAttempts);
+
+    if (_reconnectionAttempt > _maxReconnectionAttempts) {
+      print('❌ [BLE] Max reconnection attempts reached. Giving up.');
+      _isReconnecting = false;
+      onError?.call('Connection lost. Max reconnection attempts ($_maxReconnectionAttempts) reached.');
+      return;
+    }
+
+    // Calculate delay with exponential backoff
+    final delayIndex = (_reconnectionAttempt - 1).clamp(0, _reconnectionDelaysMs.length - 1);
+    final delayMs = _reconnectionDelaysMs[delayIndex];
+
+    print('🔄 [BLE] Waiting ${delayMs}ms before reconnection attempt $_reconnectionAttempt...');
+
+    // Wait before attempting reconnection
+    _reconnectionTimer = Timer(Duration(milliseconds: delayMs), () async {
+      if (!_reconnectionEnabled) {
+        print('🔄 [BLE] Reconnection cancelled by user');
+        _isReconnecting = false;
+        return;
+      }
+
+      try {
+        print('🔄 [BLE] Attempting to reconnect...');
+
+        // Try to reconnect
+        final success = await connect(_device!);
+
+        if (success) {
+          print('✅ [BLE] Reconnection successful!');
+          _isReconnecting = false;
+          _reconnectionAttempt = 0;
+        } else {
+          print('❌ [BLE] Reconnection attempt $_reconnectionAttempt failed');
+          _isReconnecting = false;
+
+          // Try again if we haven't reached max attempts
+          if (_reconnectionAttempt < _maxReconnectionAttempts) {
+            _attemptReconnection();
+          } else {
+            onError?.call('Connection lost. Unable to reconnect after $_maxReconnectionAttempts attempts.');
+          }
+        }
+      } catch (e) {
+        print('❌ [BLE] Reconnection attempt $_reconnectionAttempt error: $e');
+        _isReconnecting = false;
+
+        // Try again if we haven't reached max attempts
+        if (_reconnectionAttempt < _maxReconnectionAttempts) {
+          _attemptReconnection();
+        } else {
+          onError?.call('Connection lost. Unable to reconnect: $e');
+        }
+      }
+    });
+  }
+
+  /// Cancel ongoing reconnection attempts
+  void _cancelReconnection() {
+    print('🔴 [BLE] Cancelling reconnection attempts');
+    _reconnectionTimer?.cancel();
+    _reconnectionTimer = null;
+    _isReconnecting = false;
+    _reconnectionAttempt = 0;
+    _connectionStateSubscription?.cancel();
+    _connectionStateSubscription = null;
+  }
+
+  /// Enable automatic reconnection (useful after user manually disconnects)
+  void enableReconnection() {
+    print('🔵 [BLE] Re-enabling automatic reconnection');
+    _reconnectionEnabled = true;
+  }
+
   /// Dispose resources
   void dispose() {
+    print('🔴 [BLE] Disposing BLE connection manager');
+    _cancelReconnection();
     _device = null;
     _rxCharacteristic = null;
     _txCharacteristic = null;

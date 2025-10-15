@@ -165,6 +165,24 @@ class Message {
   /// Check if this is a sent message (not received)
   bool get isSentMessage => deliveryStatus != MessageDeliveryStatus.received;
 
+  /// Check if this message is from self (own message)
+  /// [selfPublicKey] - the device's own public key (first 6 bytes)
+  bool isFromSelf(Uint8List? selfPublicKey) {
+    if (selfPublicKey == null || selfPublicKey.length < 6) return false;
+
+    // Compare sender public key prefix with self public key prefix
+    if (senderPublicKeyPrefix != null && senderPublicKeyPrefix!.length >= 6) {
+      return senderPublicKeyPrefix![0] == selfPublicKey[0] &&
+             senderPublicKeyPrefix![1] == selfPublicKey[1] &&
+             senderPublicKeyPrefix![2] == selfPublicKey[2] &&
+             senderPublicKeyPrefix![3] == selfPublicKey[3] &&
+             senderPublicKeyPrefix![4] == selfPublicKey[4] &&
+             senderPublicKeyPrefix![5] == selfPublicKey[5];
+    }
+
+    return false;
+  }
+
   Message copyWith({
     String? id,
     MessageType? messageType,

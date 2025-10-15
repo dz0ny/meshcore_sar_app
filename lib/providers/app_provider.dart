@@ -53,7 +53,24 @@ class AppProvider with ChangeNotifier {
 
     // When a message is received
     connectionProvider.onMessageReceived = (message) {
-      messagesProvider.addMessage(message);
+      // Pass contact lookup function to link channel messages with contacts
+      messagesProvider.addMessage(
+        message,
+        contactLookup: (name) {
+          // Find contact by name and return their public key hex (first 12 chars for 6 bytes)
+          try {
+            final contact = contactsProvider.contacts.firstWhere(
+              (c) => c.advName == name,
+            );
+            return contact.publicKeyHex.isNotEmpty && contact.publicKeyHex.length >= 12
+                ? contact.publicKeyHex.substring(0, 12)
+                : '';
+          } catch (e) {
+            // No matching contact found
+            return '';
+          }
+        },
+      );
 
       // Optionally update sender name from contacts
       if (message.senderPublicKeyPrefix != null) {

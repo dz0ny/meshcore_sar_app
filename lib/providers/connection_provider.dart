@@ -42,6 +42,11 @@ class ConnectionProvider with ChangeNotifier {
   int get rxPacketCount => _bleService.rxPacketCount;
   int get txPacketCount => _bleService.txPacketCount;
 
+  // Reconnection state (exposed from BLE service)
+  bool get isReconnecting => _bleService.isReconnecting;
+  int get reconnectionAttempt => _bleService.reconnectionAttempt;
+  int get maxReconnectionAttempts => _bleService.maxReconnectionAttempts;
+
   // Message sync state
   bool _noMoreMessages = false;
 
@@ -75,13 +80,22 @@ class ConnectionProvider with ChangeNotifier {
       _deviceInfo = _deviceInfo.copyWith(
         connectionState: isConnected
             ? ConnectionState.connected
-            : ConnectionState.disconnected,
+            : (_bleService.isReconnecting
+                ? ConnectionState.connecting
+                : ConnectionState.disconnected),
         lastUpdate: DateTime.now(),
       );
       print('  Updated deviceInfo.connectionState: ${_deviceInfo.connectionState}');
       print('  Updated deviceInfo.isConnected: ${_deviceInfo.isConnected}');
+      print('  isReconnecting: ${_bleService.isReconnecting}');
       notifyListeners();
       print('  Notified listeners');
+    };
+
+    _bleService.onReconnectionAttempt = (attemptNumber, maxAttempts) {
+      print('🔄 [Provider] Reconnection attempt $attemptNumber/$maxAttempts');
+      // Notify UI to update reconnection status display
+      notifyListeners();
     };
 
     _bleService.onError = (error) {
@@ -400,6 +414,13 @@ class ConnectionProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Cancel ongoing reconnection attempts
+  /// This is useful when the user wants to manually disconnect during reconnection
+  void cancelReconnection() {
+    print('🔴 [Provider] User requested cancellation of reconnection');
+    disconnect();
+  }
+
   /// Get contacts from device
   Future<void> getContacts() async {
     if (!_bleService.isConnected) {
@@ -479,6 +500,8 @@ class ConnectionProvider with ChangeNotifier {
   /// Send channel message
   ///
   /// [messageId] - optional message ID to track delivery status
+  /// Note: Channel messages are ephemeral (not persisted), so they're marked
+  /// as "sent" immediately upon receiving OK response from the device.
   Future<void> sendChannelMessage({
     required int channelIdx,
     required String text,
@@ -491,16 +514,19 @@ class ConnectionProvider with ChangeNotifier {
     }
 
     try {
-      // IMPORTANT: Track pending message BEFORE sending to avoid race condition
-      if (messageId != null) {
-        _messageDeliveryTracker.trackPendingMessage(messageId);
-        print('  Added message ID to pending queue BEFORE sending: $messageId');
-      }
-
       await _bleService.sendChannelMessage(
         channelIdx: channelIdx,
         text: text,
       );
+
+      // Channel messages are ephemeral (not persisted) - mark as "sent" immediately
+      // They don't have ACK/TAG mechanism like direct messages
+      if (messageId != null) {
+        print('✅ [Provider] Channel message sent successfully - marking as sent: $messageId');
+        // Use a dummy ACK tag (0) and timeout (0) for channel messages
+        // This will trigger the callback to mark the message as "sent"
+        onMessageSent?.call(messageId, 0, 0);
+      }
     } catch (e) {
       _error = 'Failed to send channel message: $e';
       notifyListeners();

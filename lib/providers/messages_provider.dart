@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/message.dart';
 import '../models/sar_marker.dart';
@@ -79,15 +80,41 @@ class MessagesProvider with ChangeNotifier {
   }
 
   /// Add a message
-  void addMessage(Message message) {
+  /// If [contactLookup] function is provided, it will be used to match channel
+  /// message senders with known contacts by name
+  void addMessage(Message message, {String Function(String name)? contactLookup}) {
     // Always enhance message with SAR parser to detect SAR markers
     final enhancedMessage = SarMessageParser.enhanceMessage(message);
+
+    // For channel messages with sender name, try to link with contact
+    Message finalMessage = enhancedMessage;
+    if (enhancedMessage.isChannelMessage &&
+        enhancedMessage.senderName != null &&
+        contactLookup != null) {
+      // Look up contact public key by name
+      final publicKeyHex = contactLookup(enhancedMessage.senderName!);
+      if (publicKeyHex.isNotEmpty) {
+        // Convert hex string to bytes (first 6 bytes)
+        final publicKeyBytes = <int>[];
+        for (int i = 0; i < 12 && i < publicKeyHex.length; i += 2) {
+          final byteString = publicKeyHex.substring(i, i + 2);
+          publicKeyBytes.add(int.parse(byteString, radix: 16));
+        }
+
+        if (publicKeyBytes.length == 6) {
+          // Add public key prefix to message
+          finalMessage = enhancedMessage.copyWith(
+            senderPublicKeyPrefix: Uint8List.fromList(publicKeyBytes),
+          );
+        }
+      }
+    }
 
     // Debug: Check if message is SAR
     if (message.text.startsWith('S:')) {
       print('🔍 [MessagesProvider] Processing SAR message: ${message.text}');
-      print('   isSarMarker: ${enhancedMessage.isSarMarker}');
-      print('   sarMarkerType: ${enhancedMessage.sarMarkerType}');
+      print('   isSarMarker: ${finalMessage.isSarMarker}');
+      print('   sarMarkerType: ${finalMessage.sarMarkerType}');
     }
 
     // Check for duplicates before adding
@@ -95,17 +122,17 @@ class MessagesProvider with ChangeNotifier {
     // - Mesh network retransmissions
     // - Multiple paths in the network
     // - Syncing messages from device queue
-    if (_isDuplicate(enhancedMessage)) {
-      print('⚠️ [MessagesProvider] Duplicate message detected, skipping: ${enhancedMessage.id}');
-      print('   Text: ${enhancedMessage.text.substring(0, enhancedMessage.text.length > 50 ? 50 : enhancedMessage.text.length)}...');
+    if (_isDuplicate(finalMessage)) {
+      print('⚠️ [MessagesProvider] Duplicate message detected, skipping: ${finalMessage.id}');
+      print('   Text: ${finalMessage.text.substring(0, finalMessage.text.length > 50 ? 50 : finalMessage.text.length)}...');
       return; // Skip duplicate
     }
 
-    _messages.add(enhancedMessage);
+    _messages.add(finalMessage);
 
     // If it's a SAR marker message, extract and store the marker
-    if (enhancedMessage.isSarMarker) {
-      final marker = enhancedMessage.toSarMarker();
+    if (finalMessage.isSarMarker) {
+      final marker = finalMessage.toSarMarker();
       if (marker != null) {
         _sarMarkers[marker.id] = marker;
       }
@@ -348,33 +375,40 @@ class MessagesProvider with ChangeNotifier {
     if (index != -1) {
       final message = _messages[index];
       print('  Current status: ${message.deliveryStatus}');
+      print('  Message type: ${message.messageType}');
       print('  Message text preview: ${message.text.substring(0, message.text.length > 30 ? 30 : message.text.length)}...');
 
       final updatedMessage = message.copyWith(
         deliveryStatus: MessageDeliveryStatus.sent,
-        expectedAckTag: expectedAckTag,
-        suggestedTimeoutMs: suggestedTimeoutMs,
+        expectedAckTag: expectedAckTag > 0 ? expectedAckTag : null,
+        suggestedTimeoutMs: suggestedTimeoutMs > 0 ? suggestedTimeoutMs : null,
       );
       _messages[index] = updatedMessage;
 
-      // Track by ACK tag for matching with delivery confirmation
-      _pendingSentMessages[expectedAckTag] = updatedMessage;
-      print('  ✅ Added to pending messages map with ACK: $expectedAckTag');
-      print('  Total pending messages: ${_pendingSentMessages.length}');
-      print('  Pending ACKs after adding: ${_pendingSentMessages.keys.toList()}');
+      // Only track and set timeout for direct messages (channel messages have expectedAckTag=0)
+      if (expectedAckTag > 0 && suggestedTimeoutMs > 0) {
+        // Track by ACK tag for matching with delivery confirmation
+        _pendingSentMessages[expectedAckTag] = updatedMessage;
+        print('  ✅ Added to pending messages map with ACK: $expectedAckTag');
+        print('  Total pending messages: ${_pendingSentMessages.length}');
+        print('  Pending ACKs after adding: ${_pendingSentMessages.keys.toList()}');
 
-      // Start timeout timer
-      _timeoutTimers[expectedAckTag] = Timer(
-        Duration(milliseconds: suggestedTimeoutMs),
-        () {
-          print('⏱️ [MessagesProvider] Timeout for message $messageId (ACK $expectedAckTag)');
-          if (_pendingSentMessages.containsKey(expectedAckTag)) {
-            markMessageFailed(messageId);
-          }
-        },
-      );
+        // Start timeout timer
+        _timeoutTimers[expectedAckTag] = Timer(
+          Duration(milliseconds: suggestedTimeoutMs),
+          () {
+            print('⏱️ [MessagesProvider] Timeout for message $messageId (ACK $expectedAckTag)');
+            if (_pendingSentMessages.containsKey(expectedAckTag)) {
+              markMessageFailed(messageId);
+            }
+          },
+        );
 
-      print('⏱️ [MessagesProvider] Started ${suggestedTimeoutMs}ms timeout timer for message $messageId (ACK $expectedAckTag)');
+        print('⏱️ [MessagesProvider] Started ${suggestedTimeoutMs}ms timeout timer for message $messageId (ACK $expectedAckTag)');
+      } else {
+        print('  ℹ️ Channel message (no ACK tracking) - marked as sent immediately');
+      }
+
       print('  Calling notifyListeners() to update UI with "sent" status');
 
       _persistMessages();

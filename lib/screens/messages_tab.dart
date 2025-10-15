@@ -503,6 +503,11 @@ class _MessageBubble extends StatelessWidget {
     final isSarMarker = message.isSarMarker;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+    // Get device's own public key from ConnectionProvider
+    final connectionProvider = context.read<ConnectionProvider>();
+    final selfPublicKey = connectionProvider.deviceInfo.publicKey;
+    final isOwnMessage = message.isFromSelf(selfPublicKey);
+
     // Debug: Log message details
     if (message.text.startsWith('S:')) {
       debugPrint('🎨 [MessageBubble] Rendering SAR message:');
@@ -519,14 +524,19 @@ class _MessageBubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSarMarker
               ? _getSarMarkerColor(context, isDarkMode)
-              : Theme.of(context).colorScheme.surfaceVariant,
+              : _getMessageBubbleColor(context, isOwnMessage, isDarkMode),
           borderRadius: BorderRadius.circular(16),
           border: isSarMarker
               ? Border.all(
                   color: _getSarMarkerBorderColor(context, isDarkMode),
                   width: 3,
                 )
-              : null,
+              : isOwnMessage
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      width: 2,
+                    )
+                  : null,
           boxShadow: isSarMarker
               ? [
                   BoxShadow(
@@ -574,15 +584,18 @@ class _MessageBubble extends StatelessWidget {
                     ),
                   )
                 else ...[
-                  if (message.isChannelMessage)
+                  if (isOwnMessage)
+                    Icon(Icons.account_circle, size: 16, color: Theme.of(context).colorScheme.primary)
+                  else if (message.isChannelMessage)
                     const Icon(Icons.tag, size: 16)
                   else
                     const Icon(Icons.person, size: 16),
                   const SizedBox(width: 4),
                   Text(
-                    message.displaySender,
+                    isOwnMessage ? 'You' : message.displaySender,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: isOwnMessage ? Theme.of(context).colorScheme.primary : null,
                         ),
                   ),
                 ],
@@ -732,6 +745,18 @@ class _MessageBubble extends StatelessWidget {
         return Colors.red;
       case MessageDeliveryStatus.received:
         return Colors.grey;
+    }
+  }
+
+  Color _getMessageBubbleColor(BuildContext context, bool isOwnMessage, bool isDarkMode) {
+    if (isOwnMessage) {
+      // Own messages: slightly highlighted with primary color tint
+      return isDarkMode
+          ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
+          : Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.15);
+    } else {
+      // Others' messages: default surface color
+      return Theme.of(context).colorScheme.surfaceVariant;
     }
   }
 

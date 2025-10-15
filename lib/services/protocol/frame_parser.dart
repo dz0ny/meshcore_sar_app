@@ -111,6 +111,16 @@ class FrameParser {
       text = reader.readString();
     }
 
+    // Parse sender name from channel message format: "<sender_name>: <actual_message>"
+    String? senderName;
+    String actualMessage = text;
+
+    if (text.contains(': ')) {
+      final colonIndex = text.indexOf(': ');
+      senderName = text.substring(0, colonIndex);
+      actualMessage = text.substring(colonIndex + 2); // Skip ": "
+    }
+
     return Message(
       id: '${DateTime.now().millisecondsSinceEpoch}_ch$channelIdx',
       messageType: MessageType.channel,
@@ -118,7 +128,8 @@ class FrameParser {
       pathLen: pathLen,
       textType: txtType,
       senderTimestamp: senderTimestamp,
-      text: text,
+      text: actualMessage, // Store the actual message without sender prefix
+      senderName: senderName, // Store extracted sender name
       receivedAt: DateTime.now(),
     );
   }

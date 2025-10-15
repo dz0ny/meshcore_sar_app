@@ -30,6 +30,7 @@ typedef OnBinaryResponseCallback = void Function(Uint8List publicKeyPrefix, int 
 typedef OnBatteryAndStorageCallback = void Function(int millivolts, int? usedKb, int? totalKb);
 typedef OnErrorCallback = void Function(String error);
 typedef OnConnectionStateCallback = void Function(bool isConnected);
+typedef OnReconnectionAttemptCallback = void Function(int attemptNumber, int maxAttempts);
 
 /// MeshCore BLE Service - coordinates BLE communication components
 class MeshCoreBleService {
@@ -40,6 +41,7 @@ class MeshCoreBleService {
 
   // Event callbacks
   OnConnectionStateCallback? onConnectionStateChanged;
+  OnReconnectionAttemptCallback? onReconnectionAttempt;
   OnContactCallback? onContactReceived;
   OnContactsCompleteCallback? onContactsComplete;
   OnMessageCallback? onMessageReceived;
@@ -76,6 +78,10 @@ class MeshCoreBleService {
     };
     _connectionManager.onError = (error) {
       onError?.call(error);
+    };
+    _connectionManager.onReconnectionAttempt = (attemptNumber, maxAttempts) {
+      print('🔄 [Service] Reconnection attempt $attemptNumber/$maxAttempts');
+      onReconnectionAttempt?.call(attemptNumber, maxAttempts);
     };
 
     // Command sender callbacks
@@ -148,6 +154,9 @@ class MeshCoreBleService {
 
   // Getters
   bool get isConnected => _connectionManager.isConnected;
+  bool get isReconnecting => _connectionManager.isReconnecting;
+  int get reconnectionAttempt => _connectionManager.reconnectionAttempt;
+  int get maxReconnectionAttempts => _connectionManager.maxReconnectionAttempts;
   int get rxPacketCount => _responseHandler.rxPacketCount;
   int get txPacketCount => _commandSender.txPacketCount;
   List<BlePacketLog> get packetLogs {

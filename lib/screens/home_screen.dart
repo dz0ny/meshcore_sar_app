@@ -335,28 +335,64 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   Text(
                     isConnected
                         ? deviceInfo.displayName ?? 'Connected'
-                        : 'Disconnected',
+                        : (provider.isReconnecting
+                            ? 'Reconnecting... (${provider.reconnectionAttempt}/${provider.maxReconnectionAttempts})'
+                            : 'Disconnected'),
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: provider.isReconnecting
+                          ? Colors.orange[600]
+                          : Colors.grey[600],
                     ),
                   ),
                 ],
               ),
             ),
             if (!isConnected)
-              ElevatedButton.icon(
-                onPressed: () => _showConnectionDialog(context),
-                icon: const Icon(Icons.bluetooth, size: 18),
-                label: const Text('Connect'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black87,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: provider.isReconnecting
+                        ? null // Disable button during reconnection
+                        : () => _showConnectionDialog(context),
+                    icon: provider.isReconnecting
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.black54),
+                            ),
+                          )
+                        : const Icon(Icons.bluetooth, size: 18),
+                    label: Text(provider.isReconnecting
+                        ? 'Reconnecting (${provider.reconnectionAttempt}/${provider.maxReconnectionAttempts})'
+                        : 'Connect'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
                   ),
-                ),
+                  // Cancel button during reconnection
+                  if (provider.isReconnecting) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () => provider.cancelReconnection(),
+                      icon: const Icon(Icons.close, size: 20),
+                      tooltip: 'Cancel reconnection',
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.red.shade700,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.all(8),
+                      ),
+                    ),
+                  ],
+                ],
               )
             else
               Row(
