@@ -95,6 +95,42 @@ class ContactTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            // Connection type indicator (direct/flood)
+            if (contact.type == ContactType.chat) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: contact.hasPath
+                      ? Colors.green.withOpacity(0.15)
+                      : Colors.orange.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(3),
+                  border: Border.all(
+                    color: contact.hasPath ? Colors.green : Colors.orange,
+                    width: 0.5,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      contact.hasPath ? Icons.route : Icons.waves,
+                      size: 10,
+                      color: contact.hasPath ? Colors.green : Colors.orange,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      contact.hasPath ? 'Direct' : 'Flood',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: contact.hasPath ? Colors.green : Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
             // Battery indicator on the right
             if (battery != null) ...[
               Icon(
@@ -258,15 +294,58 @@ class ContactTile extends StatelessWidget {
         ),
         trailing: null,
         onTap: () => _showContactDetails(context, contact),
-        onLongPress: () {
+        onLongPress: () async {
           final connectionProvider = context.read<ConnectionProvider>();
-          connectionProvider.requestTelemetry(contact.publicKey, zeroHop: true);
+
+          // Determine if we should use flooding (no path) or direct (has path)
+          final hasPath = contact.hasPath;
+
+          // Show initial notification reflecting the method being used
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Pinging ${contact.displayName} (direct connection)...'),
-              duration: const Duration(seconds: 2),
+              content: Text(
+                hasPath
+                    ? 'Pinging ${contact.displayName} (direct via path)...'
+                    : 'Pinging ${contact.displayName} (flooding - no path)...',
+              ),
+              duration: const Duration(seconds: 6),
             ),
           );
+
+          // Use smart ping with automatic fallback
+          final result = await connectionProvider.smartPing(
+            contactPublicKey: contact.publicKey,
+            hasPath: hasPath,
+            onRetryWithFlooding: () {
+              // Called when retrying with flooding after direct timeout
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Direct ping timeout - retrying ${contact.displayName} with flooding...',
+                    ),
+                    duration: const Duration(seconds: 3),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+            },
+          );
+
+          // Show final result
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  result.success
+                      ? 'Ping successful to ${contact.displayName}${result.retriedWithFlooding ? ' (via flooding fallback)' : ''}'
+                      : 'Ping failed to ${contact.displayName} - no response received',
+                ),
+                duration: const Duration(seconds: 2),
+                backgroundColor: result.success ? Colors.green : Colors.red,
+              ),
+            );
+          }
         },
       ),
     );

@@ -9,6 +9,22 @@ import '../services/meshcore_ble_service.dart';
 import '../utils/sar_message_parser.dart';
 import 'helpers/room_login_manager.dart';
 import 'helpers/message_delivery_tracker.dart';
+import 'helpers/ping_tracker.dart';
+
+/// Result of a ping (telemetry request) operation
+class PingResult {
+  final bool success;
+  final bool usedFlooding;
+  final bool timedOut;
+  final bool retriedWithFlooding;
+
+  const PingResult({
+    required this.success,
+    required this.usedFlooding,
+    required this.timedOut,
+    this.retriedWithFlooding = false,
+  });
+}
 
 /// Connection Provider - manages MeshCore BLE connection
 class ConnectionProvider with ChangeNotifier {
@@ -53,6 +69,7 @@ class ConnectionProvider with ChangeNotifier {
   // Helper instances
   final RoomLoginManager _roomLoginManager = RoomLoginManager();
   final MessageDeliveryTracker _messageDeliveryTracker = MessageDeliveryTracker();
+  final PingTracker _pingTracker = PingTracker();
 
   // Expose room login states
   Map<String, RoomLoginState> get roomLoginStates => _roomLoginManager.roomLoginStates;
@@ -133,6 +150,8 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onTelemetryReceived = (publicKey, lppData) {
+      // Mark ping as successful if this was a ping request
+      _pingTracker.markPingSuccessful(publicKey);
       onTelemetryReceived?.call(publicKey, lppData);
     };
 
@@ -141,6 +160,9 @@ class ConnectionProvider with ChangeNotifier {
       print('  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
       print('  Tag: $tag');
       print('  Response data: ${responseData.length} bytes');
+      // Mark ping as successful if this was a ping request
+      // Binary responses can also be telemetry responses (newer firmware)
+      _pingTracker.markPingSuccessful(publicKeyPrefix);
       onBinaryResponse?.call(publicKeyPrefix, tag, responseData);
     };
 
@@ -411,6 +433,7 @@ class ConnectionProvider with ChangeNotifier {
       connectionState: ConnectionState.disconnected,
     );
     _roomLoginManager.clearRoomLoginStates(); // Clear login states on disconnect
+    _pingTracker.clearAll(); // Clear pending pings on disconnect
     notifyListeners();
   }
 
@@ -557,8 +580,20 @@ class ConnectionProvider with ChangeNotifier {
   }
 
   /// Request telemetry from contact
+  ///
+  /// COMPATIBILITY NOTE: This method sends CMD_SEND_TELEMETRY_REQ (39).
+  /// Depending on device firmware version, the response will be either:
+  /// - PUSH_CODE_TELEMETRY_RESPONSE (0x8B) - older firmware
+  /// - PUSH_CODE_BINARY_RESPONSE (0x8C) - newer firmware
+  ///
+  /// Both response types are handled via callbacks:
+  /// - onTelemetryReceived (for 0x8B)
+  /// - onBinaryResponse (for 0x8C)
+  ///
+  /// The app properly handles BOTH response types, so this method is NOT
+  /// deprecated and should continue to be used for telemetry requests.
+  ///
   /// [zeroHop] - if true, only direct connection (no mesh forwarding)
-  @Deprecated('Use requestBinary() instead for better functionality')
   Future<void> requestTelemetry(Uint8List contactPublicKey, {bool zeroHop = false}) async {
     if (!_bleService.isConnected) {
       _error = 'Not connected to device';
@@ -571,6 +606,89 @@ class ConnectionProvider with ChangeNotifier {
     } catch (e) {
       _error = 'Failed to request telemetry: $e';
       notifyListeners();
+    }
+  }
+
+  /// Smart ping with automatic fallback to flooding
+  ///
+  /// Sends a telemetry request (ping) to a contact, and if no response is
+  /// received within timeout, automatically retries with flooding mode.
+  ///
+  /// Returns a PingResult with information about the response.
+  ///
+  /// [contact] - the contact to ping (used to determine if path exists)
+  /// [onRetryWithFlooding] - optional callback when fallback to flooding occurs
+  Future<PingResult> smartPing({
+    required Uint8List contactPublicKey,
+    required bool hasPath,
+    Function()? onRetryWithFlooding,
+  }) async {
+    if (!_bleService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return PingResult(success: false, usedFlooding: false, timedOut: true);
+    }
+
+    // First attempt: Use zeroHop (direct) if we have a path, otherwise use flooding
+    final bool firstAttemptDirect = hasPath;
+
+    try {
+      // Track the ping request
+      final pingFuture = _pingTracker.trackPing(
+        publicKey: contactPublicKey,
+        wasDirectAttempt: firstAttemptDirect,
+      );
+
+      // Send the ping
+      await _bleService.requestTelemetry(contactPublicKey, zeroHop: true);
+
+      // Wait for response or timeout
+      final bool gotResponse = await pingFuture;
+
+      if (gotResponse) {
+        // Success on first attempt
+        return PingResult(
+          success: true,
+          usedFlooding: !firstAttemptDirect,
+          timedOut: false,
+        );
+      }
+
+      // First attempt timed out - retry with flooding if first was direct
+      if (firstAttemptDirect) {
+        print('⚠️ [Provider] Ping timeout on direct attempt, retrying with flooding...');
+        onRetryWithFlooding?.call();
+
+        // Track the retry
+        final retryFuture = _pingTracker.trackPing(
+          publicKey: contactPublicKey,
+          wasDirectAttempt: false,
+        );
+
+        // Retry with flooding (zeroHop=true acts as broadcast to neighbors)
+        await _bleService.requestTelemetry(contactPublicKey, zeroHop: true);
+
+        // Wait for response or timeout
+        final bool gotRetryResponse = await retryFuture;
+
+        return PingResult(
+          success: gotRetryResponse,
+          usedFlooding: true,
+          timedOut: !gotRetryResponse,
+          retriedWithFlooding: true,
+        );
+      }
+
+      // First attempt was already flooding and it timed out
+      return PingResult(
+        success: false,
+        usedFlooding: true,
+        timedOut: true,
+      );
+    } catch (e) {
+      _error = 'Failed to ping contact: $e';
+      notifyListeners();
+      return PingResult(success: false, usedFlooding: false, timedOut: true);
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
 import '../providers/connection_provider.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
@@ -44,6 +45,113 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _advertiseDevice(BuildContext context) async {
+    final connectionProvider = context.read<ConnectionProvider>();
+
+    if (!connectionProvider.deviceInfo.isConnected) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Device not connected')),
+        );
+      }
+      return;
+    }
+
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location services are disabled. Please enable them in Settings.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Location permission denied'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permission permanently denied. Please enable in Settings.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Get current GPS position
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.best,
+            distanceFilter: 0,
+          ),
+        ).timeout(const Duration(seconds: 5));
+      } catch (e) {
+        print('❌ Failed to get GPS position: $e');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to get GPS location')),
+          );
+        }
+        return;
+      }
+
+      // Update lat/lon on device
+      await connectionProvider.setAdvertLatLon(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      // Small delay to ensure the lat/lon is set
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Send flood advertisement
+      await connectionProvider.sendSelfAdvert(floodMode: true);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Advertised at ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Failed to advertise device: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to advertise: $e')),
+        );
+      }
+    }
   }
 
   void _showConnectionDialog(BuildContext context) {
@@ -482,6 +590,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       alignment: Alignment.center,
                       child: const Icon(Icons.settings, size: 20),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Advertise button (broadcast location)
+                  FilledButton(
+                    onPressed: () => _advertiseDevice(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.blue.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.all(10),
+                      minimumSize: const Size(40, 40),
+                      shape: const CircleBorder(),
+                    ),
+                    child: const Icon(Icons.campaign, size: 20),
                   ),
                   const SizedBox(width: 8),
                   // Disconnect button (prominent, icon only)

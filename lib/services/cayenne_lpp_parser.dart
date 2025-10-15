@@ -162,6 +162,18 @@ class CayenneLppParser {
     print('    Battery: ${batteryPercentage != null ? '${batteryPercentage.toStringAsFixed(1)}%' : 'none'}');
     print('    Temperature: ${temperature != null ? '${temperature.toStringAsFixed(1)}°C' : 'none'}');
 
+    // IMPORTANT: Cayenne LPP format does NOT include a timestamp field.
+    // We use DateTime.now() as the timestamp, which represents when the data
+    // was RECEIVED/PARSED by the app, NOT when it was collected by the device.
+    //
+    // This means:
+    // - If the device sends cached/old telemetry data, the timestamp will still
+    //   show as "recent" (a few seconds ago) because it was just received
+    // - The actual age of the telemetry data cannot be determined from the LPP format
+    // - Devices may cache telemetry for hours and send it later when requested
+    final parseTimestamp = DateTime.now();
+    print('    Timestamp: $parseTimestamp (parse time, NOT device collection time)');
+
     return ContactTelemetry(
       gpsLocation: gpsLocation,
       batteryPercentage: batteryPercentage,
@@ -169,7 +181,7 @@ class CayenneLppParser {
       temperature: temperature,
       humidity: humidity,
       pressure: pressure,
-      timestamp: DateTime.now(),
+      timestamp: parseTimestamp,
       extraSensorData: extraSensorData.isNotEmpty ? extraSensorData : null,
     );
   }

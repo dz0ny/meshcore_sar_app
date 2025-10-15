@@ -161,20 +161,38 @@ class ContactsProvider with ChangeNotifier {
 
   /// Update contact telemetry
   void updateTelemetry(Uint8List publicKeyPrefix, Uint8List lppData) {
+    print('📊 [ContactsProvider] updateTelemetry() called');
+    print('  Public key prefix (hex): ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    print('  LPP data size: ${lppData.length} bytes');
+
     // Find contact by public key prefix
     final contact = _findContactByPrefix(publicKeyPrefix);
-    if (contact == null) return;
+    if (contact == null) {
+      print('  ❌ Contact not found for this prefix');
+      return;
+    }
+
+    print('  ✅ Found contact: ${contact.advName}');
+    print('  Old telemetry timestamp: ${contact.telemetry?.timestamp}');
 
     try {
       // Parse Cayenne LPP data
       final telemetry = CayenneLppParser.parse(lppData);
+      print('  ✅ Parsed new telemetry');
+      print('  New telemetry timestamp: ${telemetry.timestamp}');
 
       // Update contact with new telemetry
       final updatedContact = contact.copyWith(telemetry: telemetry);
       _contacts[contact.publicKeyHex] = updatedContact;
+      print('  ✅ Updated contact in map');
+
       _persistContacts();
+      print('  ✅ Persisted contacts to storage');
+
       notifyListeners();
+      print('  ✅ Notified listeners - UI should update');
     } catch (e) {
+      print('  ❌ Failed to parse telemetry: $e');
       debugPrint('Failed to parse telemetry: $e');
     }
   }

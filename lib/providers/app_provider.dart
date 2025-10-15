@@ -91,9 +91,21 @@ class AppProvider with ChangeNotifier {
       }
     };
 
-    // When telemetry is received
+    // When telemetry is received via PUSH_CODE_TELEMETRY_RESPONSE (0x8B)
+    // Used by older firmware versions for telemetry responses
     connectionProvider.onTelemetryReceived = (publicKey, lppData) {
+      debugPrint('📊 [AppProvider] Telemetry response (0x8B) received - updating contact');
       contactsProvider.updateTelemetry(publicKey, lppData);
+    };
+
+    // When binary response is received via PUSH_CODE_BINARY_RESPONSE (0x8C)
+    // Used by newer firmware versions for telemetry and other binary data
+    // BOTH callbacks (0x8B and 0x8C) must be handled for device compatibility
+    connectionProvider.onBinaryResponse = (publicKeyPrefix, tag, responseData) {
+      debugPrint('📊 [AppProvider] Binary response (0x8C) received - updating contact telemetry');
+      // Binary response tag 0 = telemetry data (Cayenne LPP format)
+      // Other tags may be used for different data types in the future
+      contactsProvider.updateTelemetry(publicKeyPrefix, responseData);
     };
 
     // When a contact's routing path is updated in the mesh network
