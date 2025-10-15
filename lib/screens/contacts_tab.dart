@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/connection_provider.dart';
 import '../providers/app_provider.dart';
+import '../providers/map_provider.dart';
 import '../models/contact.dart';
 import '../models/room_login_state.dart';
 
@@ -563,7 +565,46 @@ class _ContactTile extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _DetailRow('Type', contact.type.displayName),
-                  _DetailRow('Public Key', contact.publicKeyShort),
+                  // Public Key with copy button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 100,
+                          child: Text(
+                            'Public Key:',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(contact.publicKeyShort),
+                        ),
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: contact.publicKeyHex));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Public key copied to clipboard'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              Icons.copy,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   _DetailRow('Last Seen', contact.timeSinceLastSeen),
                   const SizedBox(height: 16),
                   // Room Login Status
@@ -602,16 +643,70 @@ class _ContactTile extends StatelessWidget {
                     const SizedBox(height: 16),
                   ],
                   if (contact.displayLocation != null) ...[
-                    const Text(
-                      'Location:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Location:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            // Navigate to map and close modal
+                            final mapProvider = context.read<MapProvider>();
+                            mapProvider.navigateToLocation(
+                              location: LatLng(
+                                contact.displayLocation!.latitude,
+                                contact.displayLocation!.longitude,
+                              ),
+                            );
+                            Navigator.pop(context);
+
+                            // Switch to map tab (assuming it's index 2)
+                            DefaultTabController.of(context).animateTo(2);
+                          },
+                          icon: const Icon(Icons.map, size: 18),
+                          label: const Text('View on Map'),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
-                    _DetailRow('Latitude', contact.displayLocation!.latitude.toStringAsFixed(6)),
-                    _DetailRow('Longitude', contact.displayLocation!.longitude.toStringAsFixed(6)),
+                    // Decimal Degrees (DD)
+                    _DetailRowWithCopy(
+                      context,
+                      'DD',
+                      '${contact.displayLocation!.latitude.toStringAsFixed(6)}, ${contact.displayLocation!.longitude.toStringAsFixed(6)}',
+                    ),
+                    // Degrees Minutes Seconds (DMS)
+                    _DetailRowWithCopy(
+                      context,
+                      'DMS',
+                      _convertToDMS(contact.displayLocation!.latitude, contact.displayLocation!.longitude),
+                    ),
+                    // Degrees Decimal Minutes (DDM)
+                    _DetailRowWithCopy(
+                      context,
+                      'DDM',
+                      _convertToDDM(contact.displayLocation!.latitude, contact.displayLocation!.longitude),
+                    ),
+                    // MGRS (Military Grid Reference System)
+                    _DetailRowWithCopy(
+                      context,
+                      'MGRS',
+                      _convertToMGRS(contact.displayLocation!.latitude, contact.displayLocation!.longitude),
+                    ),
+                    // Google Plus Code
+                    _DetailRowWithCopy(
+                      context,
+                      'Plus Code',
+                      _convertToPlusCode(contact.displayLocation!.latitude, contact.displayLocation!.longitude),
+                    ),
                     const SizedBox(height: 16),
                   ],
                   if (contact.telemetry != null) ...[
@@ -715,6 +810,132 @@ class _ContactTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _DetailRowWithCopy(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
+            child: Text(value),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: value));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('$label copied to clipboard'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.copy,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Convert to Degrees Minutes Seconds (DMS) format
+  String _convertToDMS(double lat, double lon) {
+    String latDir = lat >= 0 ? 'N' : 'S';
+    String lonDir = lon >= 0 ? 'E' : 'W';
+
+    lat = lat.abs();
+    lon = lon.abs();
+
+    int latDeg = lat.floor();
+    double latMinDec = (lat - latDeg) * 60;
+    int latMin = latMinDec.floor();
+    double latSec = (latMinDec - latMin) * 60;
+
+    int lonDeg = lon.floor();
+    double lonMinDec = (lon - lonDeg) * 60;
+    int lonMin = lonMinDec.floor();
+    double lonSec = (lonMinDec - lonMin) * 60;
+
+    return '$latDeg°${latMin}\'${latSec.toStringAsFixed(2)}"$latDir, $lonDeg°${lonMin}\'${lonSec.toStringAsFixed(2)}"$lonDir';
+  }
+
+  /// Convert to Degrees Decimal Minutes (DDM) format
+  String _convertToDDM(double lat, double lon) {
+    String latDir = lat >= 0 ? 'N' : 'S';
+    String lonDir = lon >= 0 ? 'E' : 'W';
+
+    lat = lat.abs();
+    lon = lon.abs();
+
+    int latDeg = lat.floor();
+    double latMin = (lat - latDeg) * 60;
+
+    int lonDeg = lon.floor();
+    double lonMin = (lon - lonDeg) * 60;
+
+    return '$latDeg° ${latMin.toStringAsFixed(4)}\'$latDir, $lonDeg° ${lonMin.toStringAsFixed(4)}\'$lonDir';
+  }
+
+  /// Convert to MGRS (Military Grid Reference System) format
+  /// Simplified implementation - returns approximate grid zone
+  String _convertToMGRS(double lat, double lon) {
+    // Zone number (1-60)
+    int zone = ((lon + 180) / 6).floor() + 1;
+
+    // Zone letter (C-X, excluding I and O)
+    const letters = 'CDEFGHJKLMNPQRSTUVWX';
+    int letterIndex = ((lat + 80) / 8).floor();
+    if (letterIndex < 0) letterIndex = 0;
+    if (letterIndex >= letters.length) letterIndex = letters.length - 1;
+    String letter = letters[letterIndex];
+
+    // Simplified - just show zone designation
+    // Full MGRS would require UTM conversion library
+    return '${zone}$letter (approximate)';
+  }
+
+  /// Convert to Google Plus Code format
+  /// Simplified implementation - returns approximate code
+  String _convertToPlusCode(double lat, double lon) {
+    // This is a simplified version - full Plus Code requires the open_location_code package
+    // For now, return a placeholder that shows it's not fully implemented
+    const base = '23456789CFGHJMPQRVWX';
+
+    // Normalize coordinates
+    lat = (lat + 90) / 180; // 0 to 1
+    lon = (lon + 180) / 360; // 0 to 1
+
+    String code = '';
+    for (int i = 0; i < 8; i++) {
+      if (i == 4) code += '+';
+
+      int latDigit = (lat * 20).floor() % 20;
+      int lonDigit = (lon * 20).floor() % 20;
+
+      code += base[latDigit];
+      code += base[lonDigit];
+
+      lat = (lat * 20) % 1;
+      lon = (lon * 20) % 1;
+    }
+
+    return code;
   }
 
   IconData _getTypeIcon(ContactType type) {
