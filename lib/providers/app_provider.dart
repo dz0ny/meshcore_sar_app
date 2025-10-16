@@ -179,8 +179,8 @@ class AppProvider with ChangeNotifier {
         );
       }
 
-      // Sync device time
-      await connectionProvider.syncDeviceTime();
+      // Note: Device clock is automatically synced during connection in MeshCoreBleService
+      // No need to sync it again here
 
       // Get battery and storage information
       await connectionProvider.getBatteryAndStorage();

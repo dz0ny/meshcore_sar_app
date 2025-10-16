@@ -681,4 +681,211 @@ class AppLocalizationsEn extends AppLocalizations {
   String latLonFormat(String latitude, String longitude) {
     return 'Lat: $latitude Lon: $longitude';
   }
+
+  @override
+  String get noContactsYet => 'No contacts yet';
+
+  @override
+  String get connectToDeviceToLoadContacts =>
+      'Connect to a device to load contacts';
+
+  @override
+  String get teamMembers => 'Team Members';
+
+  @override
+  String get repeaters => 'Repeaters';
+
+  @override
+  String get rooms => 'Rooms';
+
+  @override
+  String get cacheStatistics => 'Cache Statistics';
+
+  @override
+  String get totalTiles => 'Total Tiles';
+
+  @override
+  String get cacheSize => 'Cache Size';
+
+  @override
+  String get storeName => 'Store Name';
+
+  @override
+  String get noCacheStatistics => 'No cache statistics available';
+
+  @override
+  String get downloadRegion => 'Download Region';
+
+  @override
+  String get mapLayer => 'Map Layer';
+
+  @override
+  String get regionBounds => 'Region Bounds';
+
+  @override
+  String get north => 'North';
+
+  @override
+  String get south => 'South';
+
+  @override
+  String get east => 'East';
+
+  @override
+  String get west => 'West';
+
+  @override
+  String get zoomLevels => 'Zoom Levels';
+
+  @override
+  String minZoom(int zoom) {
+    return 'Min: $zoom';
+  }
+
+  @override
+  String maxZoom(int zoom) {
+    return 'Max: $zoom';
+  }
+
+  @override
+  String get downloadingDots => 'Downloading...';
+
+  @override
+  String get cancelDownload => 'Cancel Download';
+
+  @override
+  String get downloadRegionButton => 'Download Region';
+
+  @override
+  String get downloadNote =>
+      'Note: Large regions or high zoom levels may take significant time and storage.';
+
+  @override
+  String get cacheManagement => 'Cache Management';
+
+  @override
+  String get clearAllMaps => 'Clear All Maps';
+
+  @override
+  String get clearMapsConfirmTitle => 'Clear All Maps';
+
+  @override
+  String get clearMapsConfirmMessage =>
+      'Are you sure you want to delete all downloaded maps? This action cannot be undone.';
+
+  @override
+  String get mapDownloadCompleted => 'Map download completed!';
+
+  @override
+  String get cacheClearedSuccessfully => 'Cache cleared successfully!';
+
+  @override
+  String get downloadCancelled => 'Download cancelled';
+
+  @override
+  String get startingDownload => 'Starting download...';
+
+  @override
+  String get downloadingMapTiles => 'Downloading map tiles...';
+
+  @override
+  String get downloadCompletedSuccessfully =>
+      'Download completed successfully!';
+
+  @override
+  String get cancellingDownload => 'Cancelling download...';
+
+  @override
+  String errorLoadingStats(String error) {
+    return 'Error loading stats: $error';
+  }
+
+  @override
+  String downloadFailed(String error) {
+    return 'Download failed: $error';
+  }
+
+  @override
+  String cancelFailed(String error) {
+    return 'Cancel failed: $error';
+  }
+
+  @override
+  String clearCacheFailed(String error) {
+    return 'Clear cache failed: $error';
+  }
+
+  @override
+  String minZoomError(String error) {
+    return 'Min zoom: $error';
+  }
+
+  @override
+  String maxZoomError(String error) {
+    return 'Max zoom: $error';
+  }
+
+  @override
+  String get minZoomGreaterThanMax =>
+      'Minimum zoom must be less than or equal to maximum zoom';
+
+  @override
+  String get selectMapLayer => 'Select Map Layer';
+
+  @override
+  String get mapOptions => 'Map Options';
+
+  @override
+  String get showLegend => 'Show Legend';
+
+  @override
+  String get displayMarkerTypeCounts => 'Display marker type counts';
+
+  @override
+  String get rotateMapWithHeading => 'Rotate Map with Heading';
+
+  @override
+  String get mapFollowsDirection => 'Map follows your direction when moving';
+
+  @override
+  String get showMapDebugInfo => 'Show Map Debug Info';
+
+  @override
+  String get displayZoomLevelBounds => 'Display zoom level and bounds';
+
+  @override
+  String get fullscreenMode => 'Fullscreen Mode';
+
+  @override
+  String get hideUiFullMapView => 'Hide all UI controls for full map view';
+
+  @override
+  String get openStreetMap => 'OpenStreetMap';
+
+  @override
+  String get openTopoMap => 'OpenTopoMap';
+
+  @override
+  String get esriSatellite => 'ESRI Satellite';
+
+  @override
+  String get downloadVisibleArea => 'Download visible area';
+
+  @override
+  String get initializingMap => 'Initializing map...';
+
+  @override
+  String get dragToPosition => 'Drag to Position';
+
+  @override
+  String get createSarMarker => 'Create SAR Marker';
+
+  @override
+  String get compass => 'Compass';
+
+  @override
+  String get navigationAndContacts => 'Navigation & Contacts';
+
+  @override
+  String get sarAlert => 'SAR ALERT';
 }

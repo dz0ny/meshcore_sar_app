@@ -13,6 +13,7 @@ import 'compass/compass_header.dart';
 import 'compass/compass_filters.dart';
 import 'compass/compass_sar_list.dart';
 import 'compass/compass_contact_list.dart';
+import '../../l10n/app_localizations.dart';
 
 enum HeadingAccuracySeverity { low, medium, high }
 
@@ -285,19 +286,19 @@ class _DetailedCompassDialogState extends State<DetailedCompassDialog> {
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               ),
-              const Expanded(
+              Expanded(
                 child: Column(
                   children: [
                     Text(
-                      'Compass',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.compass,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      'Navigation & Contacts',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.navigationAndContacts,
+                      style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 14,
                       ),

@@ -1280,6 +1280,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lat: {latitude} Lon: {longitude}'**
   String latLonFormat(String latitude, String longitude);
+
+  /// Empty state message when there are no contacts
+  ///
+  /// In en, this message translates to:
+  /// **'No contacts yet'**
+  String get noContactsYet;
+
+  /// Instruction to connect device to load contacts
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to a device to load contacts'**
+  String get connectToDeviceToLoadContacts;
+
+  /// Section header for team members (chat contacts)
+  ///
+  /// In en, this message translates to:
+  /// **'Team Members'**
+  String get teamMembers;
+
+  /// Section header for repeater nodes
+  ///
+  /// In en, this message translates to:
+  /// **'Repeaters'**
+  String get repeaters;
+
+  /// Section header for rooms/channels
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms'**
+  String get rooms;
+
+  /// Title for cache statistics section
+  ///
+  /// In en, this message translates to:
+  /// **'Cache Statistics'**
+  String get cacheStatistics;
+
+  /// Label for total number of cached tiles
+  ///
+  /// In en, this message translates to:
+  /// **'Total Tiles'**
+  String get totalTiles;
+
+  /// Label for cache size in MB
+  ///
+  /// In en, this message translates to:
+  /// **'Cache Size'**
+  String get cacheSize;
+
+  /// Label for cache store name
+  ///
+  /// In en, this message translates to:
+  /// **'Store Name'**
+  String get storeName;
+
+  /// Message when cache statistics are unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'No cache statistics available'**
+  String get noCacheStatistics;
+
+  /// Title for download region section
+  ///
+  /// In en, this message translates to:
+  /// **'Download Region'**
+  String get downloadRegion;
+
+  /// Label for map layer selection
+  ///
+  /// In en, this message translates to:
+  /// **'Map Layer'**
+  String get mapLayer;
+
+  /// Title for region bounds input section
+  ///
+  /// In en, this message translates to:
+  /// **'Region Bounds'**
+  String get regionBounds;
+
+  /// Label for north coordinate
+  ///
+  /// In en, this message translates to:
+  /// **'North'**
+  String get north;
+
+  /// Label for south coordinate
+  ///
+  /// In en, this message translates to:
+  /// **'South'**
+  String get south;
+
+  /// Label for east coordinate
+  ///
+  /// In en, this message translates to:
+  /// **'East'**
+  String get east;
+
+  /// Label for west coordinate
+  ///
+  /// In en, this message translates to:
+  /// **'West'**
+  String get west;
+
+  /// Title for zoom levels section
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom Levels'**
+  String get zoomLevels;
+
+  /// Label for minimum zoom level
+  ///
+  /// In en, this message translates to:
+  /// **'Min: {zoom}'**
+  String minZoom(int zoom);
+
+  /// Label for maximum zoom level
+  ///
+  /// In en, this message translates to:
+  /// **'Max: {zoom}'**
+  String maxZoom(int zoom);
+
+  /// Status message during download
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading...'**
+  String get downloadingDots;
+
+  /// Button to cancel download
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Download'**
+  String get cancelDownload;
+
+  /// Button to start region download
+  ///
+  /// In en, this message translates to:
+  /// **'Download Region'**
+  String get downloadRegionButton;
+
+  /// Warning about download size and time
+  ///
+  /// In en, this message translates to:
+  /// **'Note: Large regions or high zoom levels may take significant time and storage.'**
+  String get downloadNote;
+
+  /// Title for cache management section
+  ///
+  /// In en, this message translates to:
+  /// **'Cache Management'**
+  String get cacheManagement;
+
+  /// Button to clear all cached maps
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All Maps'**
+  String get clearAllMaps;
+
+  /// Title for clear maps confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All Maps'**
+  String get clearMapsConfirmTitle;
+
+  /// Confirmation message for clearing maps
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete all downloaded maps? This action cannot be undone.'**
+  String get clearMapsConfirmMessage;
+
+  /// Success message after map download
+  ///
+  /// In en, this message translates to:
+  /// **'Map download completed!'**
+  String get mapDownloadCompleted;
+
+  /// Success message after clearing cache
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared successfully!'**
+  String get cacheClearedSuccessfully;
+
+  /// Message when download is cancelled
+  ///
+  /// In en, this message translates to:
+  /// **'Download cancelled'**
+  String get downloadCancelled;
+
+  /// Initial status when download begins
+  ///
+  /// In en, this message translates to:
+  /// **'Starting download...'**
+  String get startingDownload;
+
+  /// Status during tile download
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading map tiles...'**
+  String get downloadingMapTiles;
+
+  /// Status after successful download
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed successfully!'**
+  String get downloadCompletedSuccessfully;
+
+  /// Status while cancelling download
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling download...'**
+  String get cancellingDownload;
+
+  /// Error message when loading cache stats fails
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading stats: {error}'**
+  String errorLoadingStats(String error);
+
+  /// Error message when download fails
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed: {error}'**
+  String downloadFailed(String error);
+
+  /// Error message when cancel fails
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel failed: {error}'**
+  String cancelFailed(String error);
+
+  /// Error message when clearing cache fails
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache failed: {error}'**
+  String clearCacheFailed(String error);
+
+  /// Validation error for minimum zoom
+  ///
+  /// In en, this message translates to:
+  /// **'Min zoom: {error}'**
+  String minZoomError(String error);
+
+  /// Validation error for maximum zoom
+  ///
+  /// In en, this message translates to:
+  /// **'Max zoom: {error}'**
+  String maxZoomError(String error);
+
+  /// Validation error when min zoom > max zoom
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum zoom must be less than or equal to maximum zoom'**
+  String get minZoomGreaterThanMax;
+
+  /// Title for map layer selection dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Select Map Layer'**
+  String get selectMapLayer;
+
+  /// Title for map options dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Map Options'**
+  String get mapOptions;
+
+  /// Toggle for showing map legend
+  ///
+  /// In en, this message translates to:
+  /// **'Show Legend'**
+  String get showLegend;
+
+  /// Description for show legend toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Display marker type counts'**
+  String get displayMarkerTypeCounts;
+
+  /// Toggle for rotating map with compass heading
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate Map with Heading'**
+  String get rotateMapWithHeading;
+
+  /// Description for rotate map toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Map follows your direction when moving'**
+  String get mapFollowsDirection;
+
+  /// Toggle for showing map debug information
+  ///
+  /// In en, this message translates to:
+  /// **'Show Map Debug Info'**
+  String get showMapDebugInfo;
+
+  /// Description for debug info toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Display zoom level and bounds'**
+  String get displayZoomLevelBounds;
+
+  /// Toggle for fullscreen map mode
+  ///
+  /// In en, this message translates to:
+  /// **'Fullscreen Mode'**
+  String get fullscreenMode;
+
+  /// Description for fullscreen mode toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Hide all UI controls for full map view'**
+  String get hideUiFullMapView;
+
+  /// OpenStreetMap layer name
+  ///
+  /// In en, this message translates to:
+  /// **'OpenStreetMap'**
+  String get openStreetMap;
+
+  /// OpenTopoMap layer name
+  ///
+  /// In en, this message translates to:
+  /// **'OpenTopoMap'**
+  String get openTopoMap;
+
+  /// ESRI Satellite imagery layer name
+  ///
+  /// In en, this message translates to:
+  /// **'ESRI Satellite'**
+  String get esriSatellite;
+
+  /// Tooltip for download visible area button
+  ///
+  /// In en, this message translates to:
+  /// **'Download visible area'**
+  String get downloadVisibleArea;
+
+  /// Loading message for map initialization
+  ///
+  /// In en, this message translates to:
+  /// **'Initializing map...'**
+  String get initializingMap;
+
+  /// Label when dragging a pin on map
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to Position'**
+  String get dragToPosition;
+
+  /// Label for creating SAR marker from pin
+  ///
+  /// In en, this message translates to:
+  /// **'Create SAR Marker'**
+  String get createSarMarker;
+
+  /// Compass title in detailed compass dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Compass'**
+  String get compass;
+
+  /// Subtitle for compass dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation & Contacts'**
+  String get navigationAndContacts;
+
+  /// Label for SAR alert badge on messages
+  ///
+  /// In en, this message translates to:
+  /// **'SAR ALERT'**
+  String get sarAlert;
 }
 
 class _AppLocalizationsDelegate

@@ -681,4 +681,211 @@ class AppLocalizationsSl extends AppLocalizations {
   String latLonFormat(String latitude, String longitude) {
     return 'Šir: $latitude Dolž: $longitude';
   }
+
+  @override
+  String get noContactsYet => 'Še ni stikov';
+
+  @override
+  String get connectToDeviceToLoadContacts =>
+      'Povežite se z napravo za nalaganje stikov';
+
+  @override
+  String get teamMembers => 'Člani ekipe';
+
+  @override
+  String get repeaters => 'Repetitorji';
+
+  @override
+  String get rooms => 'Sobe';
+
+  @override
+  String get cacheStatistics => 'Statistika predpomnilnika';
+
+  @override
+  String get totalTiles => 'Skupaj ploščic';
+
+  @override
+  String get cacheSize => 'Velikost predpomnilnika';
+
+  @override
+  String get storeName => 'Ime skladišča';
+
+  @override
+  String get noCacheStatistics => 'Statistika predpomnilnika ni na voljo';
+
+  @override
+  String get downloadRegion => 'Prenesi regijo';
+
+  @override
+  String get mapLayer => 'Sloj zemljevida';
+
+  @override
+  String get regionBounds => 'Meje regije';
+
+  @override
+  String get north => 'Sever';
+
+  @override
+  String get south => 'Jug';
+
+  @override
+  String get east => 'Vzhod';
+
+  @override
+  String get west => 'Zahod';
+
+  @override
+  String get zoomLevels => 'Nivoji povečave';
+
+  @override
+  String minZoom(int zoom) {
+    return 'Min: $zoom';
+  }
+
+  @override
+  String maxZoom(int zoom) {
+    return 'Maks: $zoom';
+  }
+
+  @override
+  String get downloadingDots => 'Prenašanje...';
+
+  @override
+  String get cancelDownload => 'Prekliči prenos';
+
+  @override
+  String get downloadRegionButton => 'Prenesi regijo';
+
+  @override
+  String get downloadNote =>
+      'Opomba: Velike regije ali visoki nivoji povečave lahko zahtevajo veliko časa in prostora za shranjevanje.';
+
+  @override
+  String get cacheManagement => 'Upravljanje predpomnilnika';
+
+  @override
+  String get clearAllMaps => 'Počisti vse zemljevide';
+
+  @override
+  String get clearMapsConfirmTitle => 'Počisti vse zemljevide';
+
+  @override
+  String get clearMapsConfirmMessage =>
+      'Ste prepričani, da želite izbrisati vse prenesene zemljevide? Tega dejanja ni mogoče razveljaviti.';
+
+  @override
+  String get mapDownloadCompleted => 'Prenos zemljevida končan!';
+
+  @override
+  String get cacheClearedSuccessfully => 'Predpomnilnik uspešno počiščen!';
+
+  @override
+  String get downloadCancelled => 'Prenos preklican';
+
+  @override
+  String get startingDownload => 'Začetek prenosa...';
+
+  @override
+  String get downloadingMapTiles => 'Prenašanje ploščic zemljevida...';
+
+  @override
+  String get downloadCompletedSuccessfully => 'Prenos uspešno končan!';
+
+  @override
+  String get cancellingDownload => 'Preklic prenosa...';
+
+  @override
+  String errorLoadingStats(String error) {
+    return 'Napaka pri nalaganju statistike: $error';
+  }
+
+  @override
+  String downloadFailed(String error) {
+    return 'Prenos ni uspel: $error';
+  }
+
+  @override
+  String cancelFailed(String error) {
+    return 'Preklic ni uspel: $error';
+  }
+
+  @override
+  String clearCacheFailed(String error) {
+    return 'Čiščenje predpomnilnika ni uspelo: $error';
+  }
+
+  @override
+  String minZoomError(String error) {
+    return 'Min povečava: $error';
+  }
+
+  @override
+  String maxZoomError(String error) {
+    return 'Maks povečava: $error';
+  }
+
+  @override
+  String get minZoomGreaterThanMax =>
+      'Minimalna povečava mora biti manjša ali enaka maksimalni povečavi';
+
+  @override
+  String get selectMapLayer => 'Izberite sloj zemljevida';
+
+  @override
+  String get mapOptions => 'Možnosti zemljevida';
+
+  @override
+  String get showLegend => 'Prikaži legendo';
+
+  @override
+  String get displayMarkerTypeCounts => 'Prikaži število vrst označevalcev';
+
+  @override
+  String get rotateMapWithHeading => 'Rotiraj zemljevid s smerjo';
+
+  @override
+  String get mapFollowsDirection => 'Zemljevid sledi vaši smeri pri gibanju';
+
+  @override
+  String get showMapDebugInfo => 'Prikaži debug informacije zemljevida';
+
+  @override
+  String get displayZoomLevelBounds => 'Prikaži nivo povečave in meje';
+
+  @override
+  String get fullscreenMode => 'Način celozaslonskega prikaza';
+
+  @override
+  String get hideUiFullMapView =>
+      'Skrij vse UI kontrole za poln prikaz zemljevida';
+
+  @override
+  String get openStreetMap => 'OpenStreetMap';
+
+  @override
+  String get openTopoMap => 'OpenTopoMap';
+
+  @override
+  String get esriSatellite => 'ESRI satelit';
+
+  @override
+  String get downloadVisibleArea => 'Prenesi vidno območje';
+
+  @override
+  String get initializingMap => 'Inicializacija zemljevida...';
+
+  @override
+  String get dragToPosition => 'Povleci na položaj';
+
+  @override
+  String get createSarMarker => 'Ustvari SAR označevalec';
+
+  @override
+  String get compass => 'Kompas';
+
+  @override
+  String get navigationAndContacts => 'Navigacija in stiki';
+
+  @override
+  String get sarAlert => 'SAR ALARM';
 }

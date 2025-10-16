@@ -13,6 +13,7 @@ import '../widgets/messages/sar_update_sheet.dart';
 import '../widgets/contacts/direct_message_sheet.dart';
 import '../utils/toast_logger.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/sar_marker_extensions.dart';
 
 class MessagesTab extends StatefulWidget {
   final VoidCallback onNavigateToMap;
@@ -179,7 +180,7 @@ class _MessagesTabState extends State<MessagesTab> {
         if (!mounted) return;
         ToastLogger.warning(
           context,
-          '${sarType.displayName} marker broadcast to public channel',
+          '${sarType.getLocalizedName(context)} marker broadcast to public channel',
         );
       } else {
         // Create message ID
@@ -231,7 +232,7 @@ class _MessagesTabState extends State<MessagesTab> {
         if (!mounted) return;
         ToastLogger.success(
           context,
-          '${sarType.displayName} marker sent to room',
+          '${sarType.getLocalizedName(context)} marker sent to room',
         );
       }
     } catch (e) {
@@ -397,7 +398,7 @@ class _MessagesTabState extends State<MessagesTab> {
                       maxLengthEnforcement: MaxLengthEnforcement.enforced,
                       style: const TextStyle(fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: 'Type a message...',
+                        hintText: AppLocalizations.of(context)!.typeYourMessage,
                         hintStyle: const TextStyle(fontSize: 14),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
@@ -860,7 +861,7 @@ class _MessageBubble extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'SAR ALERT',
+                          AppLocalizations.of(context)!.sarAlert,
                           style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: Colors.white,
@@ -943,7 +944,7 @@ class _MessageBubble extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          message.sarMarkerType!.displayName,
+                          message.sarMarkerType!.getLocalizedName(context),
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),

@@ -101,7 +101,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _statusMessage = 'Error loading stats: $e';
+        _statusMessage = AppLocalizations.of(context)!.errorLoadingStats(e.toString());
         _isLoading = false;
       });
     }
@@ -133,18 +133,18 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
       // Validate zoom levels
       final minZoomResult = validator.validateZoomLevel(_minZoom);
       if (!minZoomResult.isValid) {
-        _showError('Min zoom: ${minZoomResult.errorMessage}');
+        _showError(AppLocalizations.of(context)!.minZoomError(minZoomResult.errorMessage!));
         return;
       }
 
       final maxZoomResult = validator.validateZoomLevel(_maxZoom);
       if (!maxZoomResult.isValid) {
-        _showError('Max zoom: ${maxZoomResult.errorMessage}');
+        _showError(AppLocalizations.of(context)!.maxZoomError(maxZoomResult.errorMessage!));
         return;
       }
 
       if (_minZoom > _maxZoom) {
-        _showError('Minimum zoom must be less than or equal to maximum zoom');
+        _showError(AppLocalizations.of(context)!.minZoomGreaterThanMax);
         return;
       }
 
@@ -157,7 +157,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
       setState(() {
         _isDownloading = true;
         _downloadProgress = 0.0;
-        _statusMessage = 'Starting download...';
+        _statusMessage = AppLocalizations.of(context)!.startingDownload;
       });
 
       await widget.tileCacheService.downloadRegion(
@@ -170,7 +170,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
           if (!mounted) return;
           setState(() {
             _downloadProgress = progress;
-            _statusMessage = 'Downloading map tiles...';
+            _statusMessage = AppLocalizations.of(context)!.downloadingMapTiles;
           });
         },
       );
@@ -178,15 +178,15 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
       if (!mounted) return;
       setState(() {
         _isDownloading = false;
-        _statusMessage = 'Download completed successfully!';
+        _statusMessage = AppLocalizations.of(context)!.downloadCompletedSuccessfully;
       });
 
       await _loadCacheStats();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Map download completed!'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.mapDownloadCompleted),
             backgroundColor: Colors.green,
           ),
         );
@@ -195,23 +195,23 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
       if (!mounted) return;
       setState(() {
         _isDownloading = false;
-        _statusMessage = 'Download failed: $e';
+        _statusMessage = AppLocalizations.of(context)!.downloadFailed(e.toString());
       });
-      _showError('Download failed: $e');
+      _showError(AppLocalizations.of(context)!.downloadFailed(e.toString()));
     }
   }
 
   Future<void> _cancelDownload() async {
     try {
       if (!mounted) return;
-      setState(() => _statusMessage = 'Cancelling download...');
+      setState(() => _statusMessage = AppLocalizations.of(context)!.cancellingDownload);
 
       await widget.tileCacheService.cancelDownload();
 
       if (!mounted) return;
       setState(() {
         _isDownloading = false;
-        _statusMessage = 'Download cancelled';
+        _statusMessage = AppLocalizations.of(context)!.downloadCancelled;
       });
 
       await _loadCacheStats();
@@ -228,9 +228,9 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
       if (!mounted) return;
       setState(() {
         _isDownloading = false;
-        _statusMessage = 'Cancel failed: $e';
+        _statusMessage = AppLocalizations.of(context)!.cancelFailed(e.toString());
       });
-      _showError('Cancel failed: $e');
+      _showError(AppLocalizations.of(context)!.cancelFailed(e.toString()));
     }
   }
 
@@ -238,9 +238,9 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.clear),
-        content: const Text(
-          'Are you sure you want to delete all downloaded maps? This action cannot be undone.',
+        title: Text(AppLocalizations.of(context)!.clearMapsConfirmTitle),
+        content: Text(
+          AppLocalizations.of(context)!.clearMapsConfirmMessage,
         ),
         actions: [
           TextButton(
@@ -268,15 +268,15 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cache cleared successfully!'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.cacheClearedSuccessfully),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      _showError('Clear cache failed: $e');
+      _showError(AppLocalizations.of(context)!.clearCacheFailed(e.toString()));
     }
   }
 
@@ -332,7 +332,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Cache Statistics',
+                  AppLocalizations.of(context)!.cacheStatistics,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 IconButton(
@@ -344,22 +344,22 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
             const SizedBox(height: 16),
             if (_cacheStats != null) ...[
               _buildStatRow(
-                'Total Tiles',
+                AppLocalizations.of(context)!.totalTiles,
                 '${_cacheStats!['tileCount'] ?? 0}',
                 Icons.grid_on,
               ),
               _buildStatRow(
-                'Cache Size',
+                AppLocalizations.of(context)!.cacheSize,
                 '${(_cacheStats!['sizeMB'] ?? 0.0).toStringAsFixed(2)} MB',
                 Icons.storage,
               ),
               _buildStatRow(
-                'Store Name',
+                AppLocalizations.of(context)!.storeName,
                 _cacheStats!['storeName'] ?? 'Unknown',
                 Icons.folder,
               ),
             ] else
-              const Text('No cache statistics available'),
+              Text(AppLocalizations.of(context)!.noCacheStatistics),
           ],
         ),
       ),
@@ -390,7 +390,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Download Region',
+              AppLocalizations.of(context)!.downloadRegion,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
@@ -398,14 +398,14 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
             // Map Layer Selection
             DropdownButtonFormField<MapLayer>(
               value: _selectedLayer,
-              decoration: const InputDecoration(
-                labelText: 'Map Layer',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.mapLayer,
+                border: const OutlineInputBorder(),
               ),
               items: MapLayer.allLayers.map((layer) {
                 return DropdownMenuItem(
                   value: layer,
-                  child: Text(layer.name),
+                  child: Text(layer.getLocalizedName(context)),
                 );
               }).toList(),
               onChanged: _isDownloading ? null : (layer) {
@@ -418,7 +418,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
 
             // Coordinates
             Text(
-              'Region Bounds',
+              AppLocalizations.of(context)!.regionBounds,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -427,9 +427,9 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                 Expanded(
                   child: TextField(
                     controller: _northController,
-                    decoration: const InputDecoration(
-                      labelText: 'North',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.north,
+                      border: const OutlineInputBorder(),
                       hintText: '46.1',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -440,9 +440,9 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                 Expanded(
                   child: TextField(
                     controller: _southController,
-                    decoration: const InputDecoration(
-                      labelText: 'South',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.south,
+                      border: const OutlineInputBorder(),
                       hintText: '46.0',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -457,9 +457,9 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                 Expanded(
                   child: TextField(
                     controller: _eastController,
-                    decoration: const InputDecoration(
-                      labelText: 'East',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.east,
+                      border: const OutlineInputBorder(),
                       hintText: '14.6',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -470,9 +470,9 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                 Expanded(
                   child: TextField(
                     controller: _westController,
-                    decoration: const InputDecoration(
-                      labelText: 'West',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.west,
+                      border: const OutlineInputBorder(),
                       hintText: '14.4',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -485,7 +485,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
 
             // Zoom Levels
             Text(
-              'Zoom Levels',
+              AppLocalizations.of(context)!.zoomLevels,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -495,7 +495,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Min: $_minZoom'),
+                      Text(AppLocalizations.of(context)!.minZoom(_minZoom)),
                       Slider(
                         value: _minZoom.toDouble(),
                         min: 1,
@@ -519,7 +519,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Max: $_maxZoom'),
+                      Text(AppLocalizations.of(context)!.maxZoom(_maxZoom)),
                       Slider(
                         value: _maxZoom.toDouble(),
                         min: 1,
@@ -560,7 +560,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          _statusMessage ?? 'Downloading...',
+                          _statusMessage ?? AppLocalizations.of(context)!.downloadingDots,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -600,7 +600,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
               ElevatedButton.icon(
                 onPressed: _cancelDownload,
                 icon: const Icon(Icons.cancel),
-                label: const Text('Cancel Download'),
+                label: Text(AppLocalizations.of(context)!.cancelDownload),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
                   backgroundColor: Colors.red,
@@ -611,7 +611,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
               ElevatedButton.icon(
                 onPressed: _downloadRegion,
                 icon: const Icon(Icons.download),
-                label: const Text('Download Region'),
+                label: Text(AppLocalizations.of(context)!.downloadRegionButton),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
                 ),
@@ -619,7 +619,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
 
             const SizedBox(height: 8),
             Text(
-              'Note: Large regions or high zoom levels may take significant time and storage.',
+              AppLocalizations.of(context)!.downloadNote,
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
@@ -636,7 +636,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Cache Management',
+              AppLocalizations.of(context)!.cacheManagement,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
@@ -645,7 +645,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
             OutlinedButton.icon(
               onPressed: _isDownloading ? null : _clearCache,
               icon: const Icon(Icons.delete_forever),
-              label: const Text('Clear All Maps'),
+              label: Text(AppLocalizations.of(context)!.clearAllMaps),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,
                 minimumSize: const Size.fromHeight(48),

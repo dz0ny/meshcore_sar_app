@@ -391,5 +391,149 @@
 
   "degreesLeft": "{degrees}° lijevo",
 
-  "latLonFormat": "Ššir: {latitude} Dužina: {longitude}"
+  "latLonFormat": "Ššir: {latitude} Dužina: {longitude}",
+
+  "noContactsYet": "Još nema kontakata",
+
+  "connectToDeviceToLoadContacts": "Povežite se s uređajem da učitate kontakte",
+
+  "teamMembers": "Članovi tima",
+
+  "repeaters": "Repetitori",
+
+  "rooms": "Sobe",
+
+  "cacheStatistics": "Statistika predmemorije",
+
+  "totalTiles": "Ukupno pločica",
+
+  "cacheSize": "Veličina predmemorije",
+
+  "storeName": "Ime pohrane",
+
+  "noCacheStatistics": "Statistika predmemorije nije dostupna",
+
+  "downloadRegion": "Preuzmi regiju",
+
+  "mapLayer": "Sloj karte",
+
+  "regionBounds": "Granice regije",
+
+  "north": "Sjever",
+
+  "south": "Jug",
+
+  "east": "Istok",
+
+  "west": "Zapad",
+
+  "zoomLevels": "Razine zumiranja",
+
+  "minZoom": "Min: {zoom}",
+
+  "maxZoom": "Maks: {zoom}",
+
+  "downloadingDots": "Preuzimanje...",
+
+  "cancelDownload": "Otkaži preuzimanje",
+
+  "downloadRegionButton": "Preuzmi regiju",
+
+  "downloadNote": "Napomena: Velike regije ili visoke razine zumiranja mogu zahtijevati značajno vrijeme i prostor za pohranu.",
+
+  "cacheManagement": "Upravljanje predmemorijom",
+
+  "clearAllMaps": "Očisti sve karte",
+
+  "clearMapsConfirmTitle": "Očisti sve karte",
+
+  "clearMapsConfirmMessage": "Jeste li sigurni da želite izbrisati sve preuzete karte? Ova radnja se ne može poništiti.",
+
+  "mapDownloadCompleted": "Preuzimanje karte završeno!",
+
+  "cacheClearedSuccessfully": "Predmemorija uspješno očišćena!",
+
+  "downloadCancelled": "Preuzimanje otkazano",
+
+  "startingDownload": "Pokretanje preuzimanja...",
+
+  "downloadingMapTiles": "Preuzimanje pločica karte...",
+
+  "downloadCompletedSuccessfully": "Preuzimanje uspješno završeno!",
+
+  "cancellingDownload": "Otkazivanje preuzimanja...",
+
+  "errorLoadingStats": "Greška pri učitavanju statistike: {error}",
+
+  "downloadFailed": "Preuzimanje nije uspjelo: {error}",
+
+  "cancelFailed": "Otkazivanje nije uspjelo: {error}",
+
+  "clearCacheFailed": "Čišćenje predmemorije nije uspjelo: {error}",
+
+  "minZoomError": "Min zumiranje: {error}",
+
+  "maxZoomError": "Maks zumiranje: {error}",
+
+  "minZoomGreaterThanMax": "Minimalno zumiranje mora biti manje ili jednako maksimalnom zumiranju",
+
+  "selectMapLayer": "Odaberite sloj karte",
+
+  "mapOptions": "Opcije karte",
+
+  "showLegend": "Prikaži legendu",
+
+  "displayMarkerTypeCounts": "Prikaži broj vrsta markera",
+
+  "rotateMapWithHeading": "Rotiraj kartu sa smjerom",
+
+  "mapFollowsDirection": "Karta slijedi vaš smjer pri kretanju",
+
+  "showMapDebugInfo": "Prikaži debug informacije karte",
+
+  "displayZoomLevelBounds": "Prikaži razinu zumiranja i granice",
+
+  "fullscreenMode": "Način cijelog zaslona",
+
+  "hideUiFullMapView": "Sakrij sve UI kontrole za prikaz cijele karte",
+
+  "openStreetMap": "OpenStreetMap",
+
+  "openTopoMap": "OpenTopoMap",
+
+  "esriSatellite": "ESRI satelit",
+
+  "downloadVisibleArea": "Preuzmi vidljivo područje",
+
+  "initializingMap": "Inicijalizacija karte...",
+
+  "dragToPosition": "Povuci na poziciju",
+
+  "createSarMarker": "Kreiraj SAR marker",
+
+  "compass": "Kompas",
+
+  "navigationAndContacts": "Navigacija i kontakti",
+
+  "sarAlert": "SAR UZBUNA",
+
+  "justNow": "Upravo sada",
+
+  "minutesAgo": "prije {minutes}m",
+
+  "hoursAgo": "prije {hours}h",
+
+  "daysAgo": "prije {days}d",
+
+  "secondsAgo": "prije {seconds}s",
+
+  "sending": "Slanje...",
+
+  "sent": "Poslano",
+
+  "delivered": "Dostavljeno",
+
+  "deliveredWithTime": "Dostavljeno ({time}ms)",
+
+  "failed": "Neuspjelo"
 }

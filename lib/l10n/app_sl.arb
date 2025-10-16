@@ -391,5 +391,149 @@
 
   "degreesLeft": "{degrees}° levo",
 
-  "latLonFormat": "Šir: {latitude} Dolž: {longitude}"
+  "latLonFormat": "Šir: {latitude} Dolž: {longitude}",
+
+  "noContactsYet": "Še ni stikov",
+
+  "connectToDeviceToLoadContacts": "Povežite se z napravo za nalaganje stikov",
+
+  "teamMembers": "Člani ekipe",
+
+  "repeaters": "Repetitorji",
+
+  "rooms": "Sobe",
+
+  "cacheStatistics": "Statistika predpomnilnika",
+
+  "totalTiles": "Skupaj ploščic",
+
+  "cacheSize": "Velikost predpomnilnika",
+
+  "storeName": "Ime skladišča",
+
+  "noCacheStatistics": "Statistika predpomnilnika ni na voljo",
+
+  "downloadRegion": "Prenesi regijo",
+
+  "mapLayer": "Sloj zemljevida",
+
+  "regionBounds": "Meje regije",
+
+  "north": "Sever",
+
+  "south": "Jug",
+
+  "east": "Vzhod",
+
+  "west": "Zahod",
+
+  "zoomLevels": "Nivoji povečave",
+
+  "minZoom": "Min: {zoom}",
+
+  "maxZoom": "Maks: {zoom}",
+
+  "downloadingDots": "Prenašanje...",
+
+  "cancelDownload": "Prekliči prenos",
+
+  "downloadRegionButton": "Prenesi regijo",
+
+  "downloadNote": "Opomba: Velike regije ali visoki nivoji povečave lahko zahtevajo veliko časa in prostora za shranjevanje.",
+
+  "cacheManagement": "Upravljanje predpomnilnika",
+
+  "clearAllMaps": "Počisti vse zemljevide",
+
+  "clearMapsConfirmTitle": "Počisti vse zemljevide",
+
+  "clearMapsConfirmMessage": "Ste prepričani, da želite izbrisati vse prenesene zemljevide? Tega dejanja ni mogoče razveljaviti.",
+
+  "mapDownloadCompleted": "Prenos zemljevida končan!",
+
+  "cacheClearedSuccessfully": "Predpomnilnik uspešno počiščen!",
+
+  "downloadCancelled": "Prenos preklican",
+
+  "startingDownload": "Začetek prenosa...",
+
+  "downloadingMapTiles": "Prenašanje ploščic zemljevida...",
+
+  "downloadCompletedSuccessfully": "Prenos uspešno končan!",
+
+  "cancellingDownload": "Preklic prenosa...",
+
+  "errorLoadingStats": "Napaka pri nalaganju statistike: {error}",
+
+  "downloadFailed": "Prenos ni uspel: {error}",
+
+  "cancelFailed": "Preklic ni uspel: {error}",
+
+  "clearCacheFailed": "Čiščenje predpomnilnika ni uspelo: {error}",
+
+  "minZoomError": "Min povečava: {error}",
+
+  "maxZoomError": "Maks povečava: {error}",
+
+  "minZoomGreaterThanMax": "Minimalna povečava mora biti manjša ali enaka maksimalni povečavi",
+
+  "selectMapLayer": "Izberite sloj zemljevida",
+
+  "mapOptions": "Možnosti zemljevida",
+
+  "showLegend": "Prikaži legendo",
+
+  "displayMarkerTypeCounts": "Prikaži število vrst označevalcev",
+
+  "rotateMapWithHeading": "Rotiraj zemljevid s smerjo",
+
+  "mapFollowsDirection": "Zemljevid sledi vaši smeri pri gibanju",
+
+  "showMapDebugInfo": "Prikaži debug informacije zemljevida",
+
+  "displayZoomLevelBounds": "Prikaži nivo povečave in meje",
+
+  "fullscreenMode": "Način celozaslonskega prikaza",
+
+  "hideUiFullMapView": "Skrij vse UI kontrole za poln prikaz zemljevida",
+
+  "openStreetMap": "OpenStreetMap",
+
+  "openTopoMap": "OpenTopoMap",
+
+  "esriSatellite": "ESRI satelit",
+
+  "downloadVisibleArea": "Prenesi vidno območje",
+
+  "initializingMap": "Inicializacija zemljevida...",
+
+  "dragToPosition": "Povleci na položaj",
+
+  "createSarMarker": "Ustvari SAR označevalec",
+
+  "compass": "Kompas",
+
+  "navigationAndContacts": "Navigacija in stiki",
+
+  "sarAlert": "SAR ALARM",
+
+  "justNow": "Pravkar",
+
+  "minutesAgo": "pred {minutes}m",
+
+  "hoursAgo": "pred {hours}h",
+
+  "daysAgo": "pred {days}d",
+
+  "secondsAgo": "pred {seconds}s",
+
+  "sending": "Pošiljanje...",
+
+  "sent": "Poslano",
+
+  "delivered": "Dostavljeno",
+
+  "deliveredWithTime": "Dostavljeno ({time}ms)",
+
+  "failed": "Neuspešno"
 }

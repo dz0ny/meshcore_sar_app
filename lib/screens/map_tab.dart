@@ -360,7 +360,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Select Map Layer',
+                      AppLocalizations.of(context)!.selectMapLayer,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -368,7 +368,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   ),
                   IconButton(
                     icon: const Icon(Icons.download),
-                    tooltip: 'Download visible area',
+                    tooltip: AppLocalizations.of(context)!.downloadVisibleArea,
                     onPressed: () {
                       Navigator.pop(context);
                       _navigateToDownload(context);
@@ -382,7 +382,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   leading: _currentLayer.type == layer.type
                       ? const Icon(Icons.check_circle, color: Colors.green)
                       : const Icon(Icons.radio_button_unchecked),
-                  title: Text(layer.name),
+                  title: Text(layer.getLocalizedName(context)),
                   subtitle: Text(layer.attribution),
                   onTap: () {
                     setState(() {
@@ -442,7 +442,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     const Icon(Icons.settings),
                     const SizedBox(width: 12),
                     Text(
-                      'Map Options',
+                      AppLocalizations.of(context)!.mapOptions,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -454,8 +454,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
               // Legend toggle
               SwitchListTile(
                 secondary: const Icon(Icons.info_outline),
-                title: const Text('Show Legend'),
-                subtitle: const Text('Display marker type counts'),
+                title: Text(AppLocalizations.of(context)!.showLegend),
+                subtitle: Text(AppLocalizations.of(context)!.displayMarkerTypeCounts),
                 value: _showLegend,
                 onChanged: (value) {
                   setState(() {
@@ -469,8 +469,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
               // Compass rotation toggle
               SwitchListTile(
                 secondary: const Icon(Icons.explore),
-                title: const Text('Rotate Map with Heading'),
-                subtitle: const Text('Map follows your direction when moving'),
+                title: Text(AppLocalizations.of(context)!.rotateMapWithHeading),
+                subtitle: Text(AppLocalizations.of(context)!.mapFollowsDirection),
                 value: _rotateMarkerWithHeading,
                 onChanged: (value) {
                   setState(() {
@@ -502,8 +502,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
               // Map Debug Info toggle
               SwitchListTile(
                 secondary: const Icon(Icons.developer_mode),
-                title: const Text('Show Map Debug Info'),
-                subtitle: const Text('Display zoom level and bounds'),
+                title: Text(AppLocalizations.of(context)!.showMapDebugInfo),
+                subtitle: Text(AppLocalizations.of(context)!.displayZoomLevelBounds),
                 value: _showMapDebugInfo,
                 onChanged: (value) {
                   setState(() {
@@ -517,8 +517,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
               // Fullscreen mode toggle
               SwitchListTile(
                 secondary: const Icon(Icons.fullscreen),
-                title: const Text('Fullscreen Mode'),
-                subtitle: const Text('Hide all UI controls for full map view'),
+                title: Text(AppLocalizations.of(context)!.fullscreenMode),
+                subtitle: Text(AppLocalizations.of(context)!.hideUiFullMapView),
                 value: _isFullscreen,
                 onChanged: (value) {
                   setState(() {
@@ -1062,7 +1062,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                           ],
                                         ),
                                         child: Text(
-                                          _isDraggingPin ? 'Drag to Position' : 'Create SAR Marker',
+                                          _isDraggingPin ? AppLocalizations.of(context)!.dragToPosition : AppLocalizations.of(context)!.createSarMarker,
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 12,
@@ -1109,7 +1109,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         const CircularProgressIndicator(),
                         const SizedBox(height: 16),
                         Text(
-                          'Initializing map...',
+                          AppLocalizations.of(context)!.initializingMap,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],

@@ -32,6 +32,11 @@ AI assistant guide for the MeshCore SAR Flutter application.
 
 ```
 lib/
+├── l10n/                # Internationalization (i18n)
+│   ├── app_localizations.dart         # Generated localization class
+│   ├── app_en.arb                     # English (default)
+│   ├── app_hr.arb                     # Croatian (Hrvatski)
+│   └── app_sl.arb                     # Slovenian (Slovenščina)
 ├── models/              # Data models
 │   ├── contact.dart, message.dart, sar_marker.dart
 │   ├── map_drawing.dart           # MapDrawing, LineDrawing, RectangleDrawing
@@ -55,8 +60,9 @@ lib/
 │   ├── map_markers.dart               # Map marker rendering
 │   ├── map/                           # Map-specific widgets
 │   │   ├── drawing_layer.dart         # Drawing rendering on map
-│   │   └── drawing_toolbar.dart       # Drawing UI controls
-│   ├── messages/, contacts/           # Feature-specific widgets
+│   │   ├── drawing_toolbar.dart       # Drawing UI controls
+│   │   └── compass/                   # Compass dialog components (fully localized)
+│   ├── messages/, contacts/           # Feature-specific widgets (fully localized)
 └── utils/               # Utilities
     ├── sar_message_parser.dart        # SAR marker parsing
     └── drawing_message_parser.dart    # Drawing message parsing
@@ -418,11 +424,77 @@ Ultra-compact location display, tap to toggle DD/DMS formats, no close button (t
 - Provider: `lib/providers/drawing_provider.dart` (280 lines)
 - UI: `lib/widgets/map/drawing_toolbar.dart`, `lib/widgets/map/drawing_layer.dart`
 
+## Internationalization (i18n)
+
+### Supported Languages
+- **English (en)**: Default language
+- **Croatian (hr)**: Hrvatski - Full localization
+- **Slovenian (sl)**: Slovenščina - Full localization
+
+### Localization Files
+- **ARB files**: `lib/l10n/app_{locale}.arb` (Application Resource Bundle)
+- **Generated class**: `lib/l10n/app_localizations.dart` (auto-generated, do not edit)
+- **Configuration**: `l10n.yaml` in project root
+
+### Adding Localized Strings
+
+1. **Add to English ARB** (`lib/l10n/app_en.arb`):
+```json
+{
+  "myNewString": "My new text",
+  "@myNewString": {
+    "description": "Description of what this string is for"
+  },
+  "stringWithParam": "Hello {name}",
+  "@stringWithParam": {
+    "description": "Greeting with name parameter",
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  }
+}
+```
+
+2. **Add translations** to `app_hr.arb` and `app_sl.arb`
+
+3. **Generate localization files**:
+```bash
+flutter gen-l10n
+```
+
+4. **Use in code**:
+```dart
+import '../l10n/app_localizations.dart';
+
+// In build method:
+Text(AppLocalizations.of(context)!.myNewString)
+Text(AppLocalizations.of(context)!.stringWithParam('John'))
+```
+
+### Important Notes
+- **Import path**: Always use `import '../l10n/app_localizations.dart'` (relative path from widget location)
+- **Do NOT use**: `import 'package:flutter_gen/gen_l10n/app_localizations.dart'` (incorrect)
+- **Generate after changes**: Run `flutter gen-l10n` after modifying ARB files
+- **Null safety**: Use `AppLocalizations.of(context)!` (with null assertion operator)
+
+### Localized Components
+All major UI components are fully localized:
+- Home screen and status indicators
+- Settings screen and preferences
+- Messages tab and SAR markers
+- Contacts tab and contact details
+- Map screen and compass dialog
+- Drawing tools and filters
+- All dialogs and confirmation messages
+
 ## Build Commands
 
 ```bash
 # Dependencies
 flutter pub get
+
+# Localization
+flutter gen-l10n        # Generate localization files after ARB changes
 
 # Development
 flutter run               # Debug mode

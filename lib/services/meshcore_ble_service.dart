@@ -199,8 +199,17 @@ class MeshCoreBleService {
     await _connectionManager.disconnect();
   }
 
-  /// Send initial device query
+  /// Send initial device query and sync clock
   Future<void> _sendDeviceQuery() async {
+    // CRITICAL: Set device clock FIRST, before any other commands
+    // This ensures the device has correct timestamps for all operations
+    print('⏰ [Service] Setting device clock before device query');
+    await _commandSender.writeData(FrameBuilder.buildSetDeviceTime());
+
+    // Small delay to ensure clock is set before proceeding
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // Now send device query and app start
     await _commandSender.writeData(FrameBuilder.buildDeviceQuery());
     await _commandSender.writeData(FrameBuilder.buildAppStart());
   }

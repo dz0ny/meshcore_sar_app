@@ -1168,5 +1168,535 @@
         "type": "String"
       }
     }
+  },
+
+  "noContactsYet": "No contacts yet",
+  "@noContactsYet": {
+    "description": "Empty state message when there are no contacts"
+  },
+
+  "connectToDeviceToLoadContacts": "Connect to a device to load contacts",
+  "@connectToDeviceToLoadContacts": {
+    "description": "Instruction to connect device to load contacts"
+  },
+
+  "teamMembers": "Team Members",
+  "@teamMembers": {
+    "description": "Section header for team members (chat contacts)"
+  },
+
+  "repeaters": "Repeaters",
+  "@repeaters": {
+    "description": "Section header for repeater nodes"
+  },
+
+  "rooms": "Rooms",
+  "@rooms": {
+    "description": "Section header for rooms/channels"
+  },
+
+  "cacheStatistics": "Cache Statistics",
+  "@cacheStatistics": {
+    "description": "Title for cache statistics section"
+  },
+
+  "totalTiles": "Total Tiles",
+  "@totalTiles": {
+    "description": "Label for total number of cached tiles"
+  },
+
+  "cacheSize": "Cache Size",
+  "@cacheSize": {
+    "description": "Label for cache size in MB"
+  },
+
+  "storeName": "Store Name",
+  "@storeName": {
+    "description": "Label for cache store name"
+  },
+
+  "noCacheStatistics": "No cache statistics available",
+  "@noCacheStatistics": {
+    "description": "Message when cache statistics are unavailable"
+  },
+
+  "downloadRegion": "Download Region",
+  "@downloadRegion": {
+    "description": "Title for download region section"
+  },
+
+  "mapLayer": "Map Layer",
+  "@mapLayer": {
+    "description": "Label for map layer selection"
+  },
+
+  "regionBounds": "Region Bounds",
+  "@regionBounds": {
+    "description": "Title for region bounds input section"
+  },
+
+  "north": "North",
+  "@north": {
+    "description": "Label for north coordinate"
+  },
+
+  "south": "South",
+  "@south": {
+    "description": "Label for south coordinate"
+  },
+
+  "east": "East",
+  "@east": {
+    "description": "Label for east coordinate"
+  },
+
+  "west": "West",
+  "@west": {
+    "description": "Label for west coordinate"
+  },
+
+  "zoomLevels": "Zoom Levels",
+  "@zoomLevels": {
+    "description": "Title for zoom levels section"
+  },
+
+  "minZoom": "Min: {zoom}",
+  "@minZoom": {
+    "description": "Label for minimum zoom level",
+    "placeholders": {
+      "zoom": {
+        "type": "int"
+      }
+    }
+  },
+
+  "maxZoom": "Max: {zoom}",
+  "@maxZoom": {
+    "description": "Label for maximum zoom level",
+    "placeholders": {
+      "zoom": {
+        "type": "int"
+      }
+    }
+  },
+
+  "downloadingDots": "Downloading...",
+  "@downloadingDots": {
+    "description": "Status message during download"
+  },
+
+  "cancelDownload": "Cancel Download",
+  "@cancelDownload": {
+    "description": "Button to cancel download"
+  },
+
+  "downloadRegionButton": "Download Region",
+  "@downloadRegionButton": {
+    "description": "Button to start region download"
+  },
+
+  "downloadNote": "Note: Large regions or high zoom levels may take significant time and storage.",
+  "@downloadNote": {
+    "description": "Warning about download size and time"
+  },
+
+  "cacheManagement": "Cache Management",
+  "@cacheManagement": {
+    "description": "Title for cache management section"
+  },
+
+  "clearAllMaps": "Clear All Maps",
+  "@clearAllMaps": {
+    "description": "Button to clear all cached maps"
+  },
+
+  "clearMapsConfirmTitle": "Clear All Maps",
+  "@clearMapsConfirmTitle": {
+    "description": "Title for clear maps confirmation dialog"
+  },
+
+  "clearMapsConfirmMessage": "Are you sure you want to delete all downloaded maps? This action cannot be undone.",
+  "@clearMapsConfirmMessage": {
+    "description": "Confirmation message for clearing maps"
+  },
+
+  "mapDownloadCompleted": "Map download completed!",
+  "@mapDownloadCompleted": {
+    "description": "Success message after map download"
+  },
+
+  "cacheClearedSuccessfully": "Cache cleared successfully!",
+  "@cacheClearedSuccessfully": {
+    "description": "Success message after clearing cache"
+  },
+
+  "downloadCancelled": "Download cancelled",
+  "@downloadCancelled": {
+    "description": "Message when download is cancelled"
+  },
+
+  "startingDownload": "Starting download...",
+  "@startingDownload": {
+    "description": "Initial status when download begins"
+  },
+
+  "downloadingMapTiles": "Downloading map tiles...",
+  "@downloadingMapTiles": {
+    "description": "Status during tile download"
+  },
+
+  "downloadCompletedSuccessfully": "Download completed successfully!",
+  "@downloadCompletedSuccessfully": {
+    "description": "Status after successful download"
+  },
+
+  "cancellingDownload": "Cancelling download...",
+  "@cancellingDownload": {
+    "description": "Status while cancelling download"
+  },
+
+  "errorLoadingStats": "Error loading stats: {error}",
+  "@errorLoadingStats": {
+    "description": "Error message when loading cache stats fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadFailed": "Download failed: {error}",
+  "@downloadFailed": {
+    "description": "Error message when download fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "cancelFailed": "Cancel failed: {error}",
+  "@cancelFailed": {
+    "description": "Error message when cancel fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "clearCacheFailed": "Clear cache failed: {error}",
+  "@clearCacheFailed": {
+    "description": "Error message when clearing cache fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "minZoomError": "Min zoom: {error}",
+  "@minZoomError": {
+    "description": "Validation error for minimum zoom",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "maxZoomError": "Max zoom: {error}",
+  "@maxZoomError": {
+    "description": "Validation error for maximum zoom",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "minZoomGreaterThanMax": "Minimum zoom must be less than or equal to maximum zoom",
+  "@minZoomGreaterThanMax": {
+    "description": "Validation error when min zoom > max zoom"
+  },
+
+  "selectMapLayer": "Select Map Layer",
+  "@selectMapLayer": {
+    "description": "Title for map layer selection dialog"
+  },
+
+  "mapOptions": "Map Options",
+  "@mapOptions": {
+    "description": "Title for map options dialog"
+  },
+
+  "showLegend": "Show Legend",
+  "@showLegend": {
+    "description": "Toggle for showing map legend"
+  },
+
+  "displayMarkerTypeCounts": "Display marker type counts",
+  "@displayMarkerTypeCounts": {
+    "description": "Description for show legend toggle"
+  },
+
+  "rotateMapWithHeading": "Rotate Map with Heading",
+  "@rotateMapWithHeading": {
+    "description": "Toggle for rotating map with compass heading"
+  },
+
+  "mapFollowsDirection": "Map follows your direction when moving",
+  "@mapFollowsDirection": {
+    "description": "Description for rotate map toggle"
+  },
+
+  "showMapDebugInfo": "Show Map Debug Info",
+  "@showMapDebugInfo": {
+    "description": "Toggle for showing map debug information"
+  },
+
+  "displayZoomLevelBounds": "Display zoom level and bounds",
+  "@displayZoomLevelBounds": {
+    "description": "Description for debug info toggle"
+  },
+
+  "fullscreenMode": "Fullscreen Mode",
+  "@fullscreenMode": {
+    "description": "Toggle for fullscreen map mode"
+  },
+
+  "hideUiFullMapView": "Hide all UI controls for full map view",
+  "@hideUiFullMapView": {
+    "description": "Description for fullscreen mode toggle"
+  },
+
+  "openStreetMap": "OpenStreetMap",
+  "@openStreetMap": {
+    "description": "OpenStreetMap layer name"
+  },
+
+  "openTopoMap": "OpenTopoMap",
+  "@openTopoMap": {
+    "description": "OpenTopoMap layer name"
+  },
+
+  "esriSatellite": "ESRI Satellite",
+  "@esriSatellite": {
+    "description": "ESRI Satellite imagery layer name"
+  },
+
+  "downloadVisibleArea": "Download visible area",
+  "@downloadVisibleArea": {
+    "description": "Tooltip for download visible area button"
+  },
+
+  "initializingMap": "Initializing map...",
+  "@initializingMap": {
+    "description": "Loading message for map initialization"
+  },
+
+  "dragToPosition": "Drag to Position",
+  "@dragToPosition": {
+    "description": "Label when dragging a pin on map"
+  },
+
+  "createSarMarker": "Create SAR Marker",
+  "@createSarMarker": {
+    "description": "Label for creating SAR marker from pin"
+  },
+
+  "compass": "Compass",
+  "@compass": {
+    "description": "Compass title in detailed compass dialog"
+  },
+
+  "navigationAndContacts": "Navigation & Contacts",
+  "@navigationAndContacts": {
+    "description": "Subtitle for compass dialog"
+  },
+
+  "sarAlert": "SAR ALERT",
+  "@sarAlert": {
+    "description": "Label for SAR alert badge on messages"
+  },
+
+  "messageSentToPublicChannel": "Message sent to public channel",
+  "@messageSentToPublicChannel": {
+    "description": "Success message when message is sent to public channel"
+  },
+
+  "pleaseSelectRoomToSendSar": "Please select a room to send SAR marker",
+  "@pleaseSelectRoomToSendSar": {
+    "description": "Error when no room is selected for SAR marker"
+  },
+
+  "failedToSendSarMarker": "Failed to send SAR marker: {error}",
+  "@failedToSendSarMarker": {
+    "description": "Error message when SAR marker fails to send",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "sarMarkerSentTo": "SAR marker sent to {roomName}",
+  "@sarMarkerSentTo": {
+    "description": "Success message when SAR marker is sent to room",
+    "placeholders": {
+      "roomName": {
+        "type": "String"
+      }
+    }
+  },
+
+  "notConnectedCannotSync": "Not connected - cannot sync messages",
+  "@notConnectedCannotSync": {
+    "description": "Warning when trying to sync messages while not connected"
+  },
+
+  "syncedMessageCount": "Synced {count} message(s)",
+  "@syncedMessageCount": {
+    "description": "Success message showing number of synced messages",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noNewMessages": "No new messages",
+  "@noNewMessages": {
+    "description": "Info message when no new messages to sync"
+  },
+
+  "syncFailed": "Sync failed: {error}",
+  "@syncFailed": {
+    "description": "Error message when sync fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToResendMessage": "Failed to resend message",
+  "@failedToResendMessage": {
+    "description": "Error when message retry fails"
+  },
+
+  "retryingMessage": "Retrying message...",
+  "@retryingMessage": {
+    "description": "Info message when retrying a failed message"
+  },
+
+  "retryFailed": "Retry failed: {error}",
+  "@retryFailed": {
+    "description": "Error message when retry fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "textCopiedToClipboard": "Text copied to clipboard",
+  "@textCopiedToClipboard": {
+    "description": "Success message when text is copied"
+  },
+
+  "cannotReplySenderMissing": "Cannot reply: sender information missing",
+  "@cannotReplySenderMissing": {
+    "description": "Error when sender info is missing for reply"
+  },
+
+  "cannotReplyContactNotFound": "Cannot reply: contact not found",
+  "@cannotReplyContactNotFound": {
+    "description": "Error when contact not found for reply"
+  },
+
+  "messageDeleted": "Message deleted",
+  "@messageDeleted": {
+    "description": "Info message when message is deleted"
+  },
+
+  "refreshedContacts": "Refreshed contacts",
+  "@refreshedContacts": {
+    "description": "Success message when contacts are refreshed"
+  },
+
+  "justNow": "Just now",
+  "@justNow": {
+    "description": "Time indicator for very recent activity"
+  },
+
+  "minutesAgo": "{minutes}m ago",
+  "@minutesAgo": {
+    "description": "Time indicator for minutes ago",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "hoursAgo": "{hours}h ago",
+  "@hoursAgo": {
+    "description": "Time indicator for hours ago",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+
+  "daysAgo": "{days}d ago",
+  "@daysAgo": {
+    "description": "Time indicator for days ago",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+
+  "secondsAgo": "{seconds}s ago",
+  "@secondsAgo": {
+    "description": "Time indicator for seconds ago",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "sending": "Sending...",
+  "@sending": {
+    "description": "Delivery status: sending"
+  },
+
+  "sent": "Sent",
+  "@sent": {
+    "description": "Delivery status: sent"
+  },
+
+  "delivered": "Delivered",
+  "@delivered": {
+    "description": "Delivery status: delivered"
+  },
+
+  "deliveredWithTime": "Delivered ({time}ms)",
+  "@deliveredWithTime": {
+    "description": "Delivery status with round-trip time",
+    "placeholders": {
+      "time": {
+        "type": "int"
+      }
+    }
+  },
+
+  "failed": "Failed",
+  "@failed": {
+    "description": "Delivery status: failed"
   }
 }

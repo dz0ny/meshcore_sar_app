@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
+
 enum MapLayerType {
   openStreetMap,
   openTopoMap,
@@ -18,6 +21,19 @@ class MapLayer {
     required this.attribution,
     required this.maxZoom,
   });
+
+  /// Get localized name for the layer
+  String getLocalizedName(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    switch (type) {
+      case MapLayerType.openStreetMap:
+        return localizations.openStreetMap;
+      case MapLayerType.openTopoMap:
+        return localizations.openTopoMap;
+      case MapLayerType.esriWorldImagery:
+        return localizations.esriSatellite;
+    }
+  }
 
   static const openStreetMap = MapLayer(
     type: MapLayerType.openStreetMap,

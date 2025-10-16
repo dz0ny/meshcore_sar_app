@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/app_provider.dart';
 import '../widgets/contacts/contact_tile.dart';
@@ -85,6 +86,7 @@ class _ContactsTabState extends State<ContactsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<ContactsProvider>(
       builder: (context, contactsProvider, child) {
         final chatContacts = contactsProvider.chatContacts;
@@ -103,12 +105,12 @@ class _ContactsTabState extends State<ContactsTab> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No contacts yet',
+                  l10n.noContactsYet,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Connect to a device to load contacts',
+                  l10n.connectToDeviceToLoadContacts,
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -125,7 +127,7 @@ class _ContactsTabState extends State<ContactsTab> {
               // Team Members (Chat contacts)
               if (chatContacts.isNotEmpty) ...[
                 _SectionHeader(
-                  title: 'Team Members',
+                  title: l10n.teamMembers,
                   count: chatContacts.length,
                   icon: Icons.people,
                 ),
@@ -143,7 +145,7 @@ class _ContactsTabState extends State<ContactsTab> {
               // Repeaters
               if (repeaters.isNotEmpty) ...[
                 _SectionHeader(
-                  title: 'Repeaters',
+                  title: l10n.repeaters,
                   count: repeaters.length,
                   icon: Icons.router,
                 ),
@@ -161,7 +163,7 @@ class _ContactsTabState extends State<ContactsTab> {
               // Rooms/Channels
               if (rooms.isNotEmpty) ...[
                 _SectionHeader(
-                  title: 'Rooms',
+                  title: l10n.rooms,
                   count: rooms.length,
                   icon: Icons.tag,
                 ),
