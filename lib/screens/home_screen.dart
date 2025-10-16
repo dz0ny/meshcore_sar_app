@@ -641,13 +641,124 @@ class _HomeScreenState extends State<HomeScreen>
                 ],
               ),
             ),
-            if (!isConnected)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Advertise button (broadcast location) - always visible
+                FilledButton(
+                  onPressed: isConnected ? () => _advertiseDevice(context) : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.blue.shade700,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.all(10),
+                    minimumSize: const Size(40, 40),
+                    shape: const CircleBorder(),
+                  ),
+                  child: const Icon(Icons.campaign, size: 20),
+                ),
+                const SizedBox(width: 8),
+                // Device config button - always visible
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DeviceConfigScreen(),
+                      ),
+                    );
+                  },
+                  onLongPress: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            PacketLogScreen(bleService: provider.bleService),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.settings, size: 20),
+                  ),
+                ),
+                if (isConnected && _showRxTxIndicators) ...[
+                  const SizedBox(width: 8),
+                  // RX/TX indicators with long press to open packet log
+                  GestureDetector(
+                    onLongPress: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PacketLogScreen(bleService: provider.bleService),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // RX indicator
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: provider.rxActivity
+                                    ? Colors.green
+                                    : Colors.grey.withOpacity(0.3),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'RX:${provider.rxPacketCount}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        // TX indicator
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: provider.txActivity
+                                    ? Colors.blue
+                                    : Colors.grey.withOpacity(0.3),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'TX:${provider.txPacketCount}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(width: 8),
+                // Connect/Disconnect button on the right
+                if (!isConnected)
                   ElevatedButton.icon(
                     onPressed: provider.isReconnecting
-                        ? null // Disable button during reconnection
+                        ? null
                         : () => _showConnectionDialog(context),
                     icon: provider.isReconnecting
                         ? const SizedBox(
@@ -675,140 +786,22 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                   ),
-                  // Cancel button during reconnection
-                  if (provider.isReconnecting) ...[
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () => provider.cancelReconnection(),
-                      icon: const Icon(Icons.close, size: 20),
-                      tooltip: 'Cancel reconnection',
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.red.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.all(8),
-                      ),
-                    ),
-                  ],
-                ],
-              )
-            else
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Advertise button (broadcast location)
-                  FilledButton(
-                    onPressed: () => _advertiseDevice(context),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
+                // Cancel button during reconnection
+                if (provider.isReconnecting) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => provider.cancelReconnection(),
+                    icon: const Icon(Icons.close, size: 20),
+                    tooltip: 'Cancel reconnection',
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.red.shade700,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.all(10),
-                      minimumSize: const Size(40, 40),
-                      shape: const CircleBorder(),
-                    ),
-                    child: const Icon(Icons.campaign, size: 20),
-                  ),
-                  if (_showRxTxIndicators) ...[
-                    const SizedBox(width: 8),
-                    // RX/TX indicators with long press to open packet log
-                    GestureDetector(
-                      onLongPress: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                PacketLogScreen(bleService: provider.bleService),
-                          ),
-                        );
-                      },
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // RX indicator
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: provider.rxActivity
-                                      ? Colors.green
-                                      : Colors.grey.withOpacity(0.3),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'RX:${provider.rxPacketCount}',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          // TX indicator
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: provider.txActivity
-                                      ? Colors.blue
-                                      : Colors.grey.withOpacity(0.3),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'TX:${provider.txPacketCount}',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                  // Settings button (tap for device settings, long press for packet logs)
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const DeviceConfigScreen(),
-                        ),
-                      );
-                    },
-                    onLongPress: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              PacketLogScreen(bleService: provider.bleService),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.settings, size: 20),
+                      padding: const EdgeInsets.all(8),
                     ),
                   ),
-                  const SizedBox(width: 16),
-
-                  // Disconnect button (prominent, icon only) - pushed to far right edge
                 ],
-              ),
+              ],
+            ),
           ],
         );
       },
