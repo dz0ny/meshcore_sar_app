@@ -35,12 +35,14 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
     super.dispose();
   }
 
-  /// Load saved password for this room, or use default "hello"
+  /// Load saved password for this room
   Future<void> _loadSavedPassword() async {
     final prefs = await SharedPreferences.getInstance();
     final roomKey = 'room_password_${widget.contact.publicKeyHex}';
-    final savedPassword = prefs.getString(roomKey) ?? 'hello';
-    _passwordController.text = savedPassword;
+    final savedPassword = prefs.getString(roomKey);
+    if (savedPassword != null) {
+      _passwordController.text = savedPassword;
+    }
   }
 
   /// Save password for this room
@@ -51,19 +53,28 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
   }
 
   Future<void> _loginToRoom() async {
-    final password = _passwordController.text.trim().isEmpty
-        ? 'hello'
-        : _passwordController.text.trim();
+    final password = _passwordController.text.trim();
 
     final connectionProvider = context.read<ConnectionProvider>();
     final contactsProvider = context.read<ContactsProvider>();
 
+    if (password.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please enter a password'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
     if (!connectionProvider.deviceInfo.isConnected) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Not connected to device'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Not connected to device'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -144,7 +155,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
                   'The room may not have advertised yet.\n'
                   'Try waiting for the room to broadcast.',
                 ),
-                backgroundColor: Colors.red,
+                backgroundColor: Theme.of(context).colorScheme.error,
                 duration: const Duration(seconds: 7),
               ),
             );
@@ -173,7 +184,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to sync contacts: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         return;
@@ -203,10 +214,10 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Logged in successfully! Waiting for room messages...'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: const Text('Logged in successfully! Waiting for room messages...'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -221,10 +232,10 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login failed - incorrect password'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: const Text('Login failed - incorrect password'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -245,7 +256,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Logging in to ${widget.contact.displayName}...'),
-          backgroundColor: Colors.blue,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -258,7 +269,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to send login: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     } finally {
@@ -272,13 +283,16 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.75,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Padding(
         padding: EdgeInsets.only(
@@ -293,25 +307,25 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
+                        Text(
                           'Login to Room',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: colorScheme.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           widget.contact.displayName,
-                          style: const TextStyle(
-                            color: Colors.grey,
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 14,
                           ),
                         ),
@@ -333,19 +347,19 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
+                        color: colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onPrimaryContainer, size: 20),
+                          Icon(Icons.info_outline, color: colorScheme.onPrimaryContainer, size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Enter the password to access this room. Password defaults to "hello" and will be saved for future use.',
+                              'Enter the password to access this room. The password will be saved for future use.',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                color: colorScheme.onPrimaryContainer,
                                 fontSize: 12,
                               ),
                             ),
@@ -362,8 +376,8 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
             // Password input (fixed at bottom)
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Color(0xFF2D2D2D),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -375,29 +389,29 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
                   obscureText: _obscurePassword,
                   autofocus: true,
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    labelStyle: const TextStyle(color: Colors.grey),
-                    hintText: 'Enter room password (default: hello)',
-                    hintStyle: const TextStyle(color: Colors.grey),
+                    labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                    hintText: 'Enter room password',
+                    hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
+                      borderSide: BorderSide(color: colorScheme.outline),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
+                      borderSide: BorderSide(color: colorScheme.outline),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.white),
+                      borderSide: BorderSide(color: colorScheme.primary, width: 2),
                     ),
                     contentPadding: const EdgeInsets.all(16),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                        color: Colors.grey,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       onPressed: () {
                         setState(() {

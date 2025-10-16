@@ -29,7 +29,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late AppThemeMode _selectedTheme;
   PackageInfo? _packageInfo;
   bool _isLoadingSampleData = false;
-  bool _isSendingLocationUpdate = false;
   final LocationTrackingService _locationService = LocationTrackingService();
 
   @override
@@ -234,27 +233,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _sendLocationUpdateNow() async {
-    setState(() => _isSendingLocationUpdate = true);
-
-    try {
-      final success = await _locationService.broadcastLocationNow();
-
-      if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to send location update'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSendingLocationUpdate = false);
-      }
-    }
-  }
-
   Future<void> _clearSampleData() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -320,30 +298,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Location Settings Section
           _buildSectionHeader('Location Broadcasting'),
-
-          // Manual location update button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _isSendingLocationUpdate ? null : _sendLocationUpdateNow,
-                icon: _isSendingLocationUpdate
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.my_location),
-                label: const Text('Broadcast Location Now'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-          ),
-
-          const Divider(),
 
           // Automatic tracking settings
           SwitchListTile(

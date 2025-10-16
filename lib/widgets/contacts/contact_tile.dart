@@ -226,28 +226,6 @@ class ContactTile extends StatelessWidget {
               ),
               const SizedBox(height: 4),
             ],
-            // Type label (only for rooms - hide for chat and repeater)
-            if (contact.type == ContactType.room) ...[
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getTypeColor(contact.type, context).withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      contact.type.displayName,
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-            ],
             // Last seen + GPS info combined
             Row(
               children: [
