@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 
@@ -5,6 +6,7 @@ enum MapLayerType {
   openStreetMap,
   openTopoMap,
   esriWorldImagery,
+  vectorMbtiles,
 }
 
 class MapLayer {
@@ -14,12 +16,24 @@ class MapLayer {
   final String attribution;
   final double maxZoom;
 
+  // Vector tile specific properties
+  final bool isVector;
+  final File? mbtilesFile;
+  final String? styleUrl;
+  final String? sourceName;
+  final bool? isGzipped;
+
   const MapLayer({
     required this.type,
     required this.name,
     required this.urlTemplate,
     required this.attribution,
     required this.maxZoom,
+    this.isVector = false,
+    this.mbtilesFile,
+    this.styleUrl,
+    this.sourceName,
+    this.isGzipped,
   });
 
   /// Get localized name for the layer
@@ -32,6 +46,9 @@ class MapLayer {
         return localizations.openTopoMap;
       case MapLayerType.esriWorldImagery:
         return localizations.esriSatellite;
+      case MapLayerType.vectorMbtiles:
+        // For vector tiles, use the name from metadata
+        return name;
     }
   }
 
@@ -68,5 +85,29 @@ class MapLayer {
 
   static MapLayer fromType(MapLayerType type) {
     return allLayers.firstWhere((layer) => layer.type == type);
+  }
+
+  /// Create a MapLayer from an MBTiles file
+  static MapLayer fromMbtilesFile({
+    required String name,
+    required File mbtilesFile,
+    required String styleUrl,
+    required String sourceName,
+    required double maxZoom,
+    required bool isGzipped,
+    String? attribution,
+  }) {
+    return MapLayer(
+      type: MapLayerType.vectorMbtiles,
+      name: name,
+      urlTemplate: '', // Not used for vector tiles
+      attribution: attribution ?? 'MBTiles',
+      maxZoom: maxZoom,
+      isVector: true,
+      mbtilesFile: mbtilesFile,
+      styleUrl: styleUrl,
+      sourceName: sourceName,
+      isGzipped: isGzipped,
+    );
   }
 }

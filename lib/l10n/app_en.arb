@@ -1786,5 +1786,95 @@
   "you": "You",
   "@you": {
     "description": "Label for the current user in message bubbles"
+  },
+
+  "offlineVectorMaps": "Offline Vector Maps",
+  "@offlineVectorMaps": {
+    "description": "Title for offline vector maps section"
+  },
+
+  "offlineVectorMapsDescription": "Import and manage offline vector map tiles (MBTiles format) for use without internet connection",
+  "@offlineVectorMapsDescription": {
+    "description": "Description for offline vector maps section"
+  },
+
+  "importMbtiles": "Import MBTiles File",
+  "@importMbtiles": {
+    "description": "Button to import MBTiles file"
+  },
+
+  "importMbtilesNote": "Supports MBTiles files with vector tiles (PBF/MVT format). Geofabrik extracts work great!",
+  "@importMbtilesNote": {
+    "description": "Note about supported MBTiles file types"
+  },
+
+  "noMbtilesFiles": "No offline vector maps found",
+  "@noMbtilesFiles": {
+    "description": "Message when no MBTiles files are available"
+  },
+
+  "mbtilesImportedSuccessfully": "MBTiles file imported successfully",
+  "@mbtilesImportedSuccessfully": {
+    "description": "Success message after importing MBTiles file"
+  },
+
+  "failedToImportMbtiles": "Failed to import MBTiles file",
+  "@failedToImportMbtiles": {
+    "description": "Error message when MBTiles import fails"
+  },
+
+  "deleteMbtilesConfirmTitle": "Delete Offline Map",
+  "@deleteMbtilesConfirmTitle": {
+    "description": "Title for delete MBTiles confirmation dialog"
+  },
+
+  "deleteMbtilesConfirmMessage": "Are you sure you want to delete \"{name}\"? This will permanently remove the offline map.",
+  "@deleteMbtilesConfirmMessage": {
+    "description": "Confirmation message for deleting MBTiles file",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "mbtilesDeletedSuccessfully": "Offline map deleted successfully",
+  "@mbtilesDeletedSuccessfully": {
+    "description": "Success message after deleting MBTiles file"
+  },
+
+  "failedToDeleteMbtiles": "Failed to delete offline map",
+  "@failedToDeleteMbtiles": {
+    "description": "Error message when MBTiles deletion fails"
+  },
+
+  "vectorTiles": "Vector Tiles",
+  "@vectorTiles": {
+    "description": "Label for vector tile type"
+  },
+
+  "schema": "Schema",
+  "@schema": {
+    "description": "Label for vector tile schema"
+  },
+
+  "unknown": "Unknown",
+  "@unknown": {
+    "description": "Unknown value label"
+  },
+
+  "bounds": "Bounds",
+  "@bounds": {
+    "description": "Label for geographic bounds"
+  },
+
+  "onlineLayers": "Online Layers",
+  "@onlineLayers": {
+    "description": "Section header for online map layers"
+  },
+
+  "offlineLayers": "Offline Layers",
+  "@offlineLayers": {
+    "description": "Section header for offline map layers (MBTiles)"
   }
 }

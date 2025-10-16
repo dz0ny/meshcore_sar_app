@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:file_picker/file_picker.dart';
 import '../services/tile_cache_service.dart';
 import '../services/validation_service.dart';
+import '../services/mbtiles_service.dart';
 import '../models/map_layer.dart';
 import '../l10n/app_localizations.dart';
 
@@ -28,6 +31,8 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
   bool _isLoading = false;
   String? _statusMessage;
   Map<String, dynamic>? _cacheStats;
+  final MbtilesService _mbtilesService = MbtilesService();
+  List<MbtilesMetadata> _mbtilesFiles = [];
 
   // Download parameters
   late MapLayer _selectedLayer;
@@ -77,6 +82,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
     }
 
     _loadCacheStats();
+    _loadMbtilesFiles();
   }
 
   @override
@@ -104,6 +110,111 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
         _statusMessage = AppLocalizations.of(context)!.errorLoadingStats(e.toString());
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadMbtilesFiles() async {
+    if (!mounted) return;
+    try {
+      final files = await _mbtilesService.getAllMetadata();
+      if (!mounted) return;
+      setState(() {
+        _mbtilesFiles = files;
+      });
+    } catch (e) {
+      debugPrint('Error loading MBTiles files: $e');
+    }
+  }
+
+  Future<void> _importMbtilesFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['mbtiles'],
+      );
+
+      if (result == null || result.files.isEmpty) return;
+
+      final sourcePath = result.files.first.path;
+      if (sourcePath == null) return;
+
+      if (!mounted) return;
+      setState(() => _isLoading = true);
+
+      final importedFile = await _mbtilesService.importMbtilesFile(sourcePath);
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (importedFile != null) {
+        await _loadMbtilesFiles();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.mbtilesImportedSuccessfully),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        _showError(AppLocalizations.of(context)!.failedToImportMbtiles);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _showError('${AppLocalizations.of(context)!.failedToImportMbtiles}: $e');
+    }
+  }
+
+  Future<void> _deleteMbtilesFile(MbtilesMetadata metadata) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.deleteMbtilesConfirmTitle),
+        content: Text(
+          AppLocalizations.of(context)!.deleteMbtilesConfirmMessage(metadata.name),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(AppLocalizations.of(context)!.delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+
+    try {
+      final success = await _mbtilesService.deleteMbtilesFile(metadata.file);
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (success) {
+        await _loadMbtilesFiles();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.mbtilesDeletedSuccessfully),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        _showError(AppLocalizations.of(context)!.failedToDeleteMbtiles);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _showError('${AppLocalizations.of(context)!.failedToDeleteMbtiles}: $e');
     }
   }
 
@@ -309,6 +420,10 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                   _buildStatisticsCard(),
                   const SizedBox(height: 16),
 
+                  // Offline Vector Maps (MBTiles)
+                  _buildMbtilesCard(),
+                  const SizedBox(height: 16),
+
                   // Download Region
                   _buildDownloadCard(),
                   const SizedBox(height: 16),
@@ -377,6 +492,172 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
             child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
           ),
           Text(value, style: TextStyle(color: Colors.grey[600])),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMbtilesCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context)!.offlineVectorMaps,
+                    style: Theme.of(context).textTheme.titleLarge,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _loadMbtilesFiles,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context)!.offlineVectorMapsDescription,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+
+            // List of MBTiles files
+            if (_mbtilesFiles.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Icon(Icons.map_outlined, size: 48, color: Colors.grey[400]),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppLocalizations.of(context)!.noMbtilesFiles,
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ..._mbtilesFiles.map((metadata) => Card(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ExpansionTile(
+                      leading: Icon(
+                        metadata.isVector ? Icons.layers : Icons.image,
+                        color: metadata.isVector ? Colors.blue : Colors.orange,
+                      ),
+                      title: Text(
+                        metadata.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        '${metadata.fileSizeFormatted} • ${metadata.format?.toUpperCase() ?? "Unknown"}',
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (metadata.description != null) ...[
+                                Text(
+                                  metadata.description!,
+                                  style: TextStyle(color: Colors.grey[700]),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                              _buildInfoRow(
+                                AppLocalizations.of(context)!.zoomLevels,
+                                '${metadata.minZoom ?? "?"} - ${metadata.maxZoom ?? "?"}',
+                              ),
+                              if (metadata.bounds != null)
+                                _buildInfoRow(
+                                  AppLocalizations.of(context)!.bounds,
+                                  metadata.bounds!,
+                                ),
+                              if (metadata.isVector) ...[
+                                _buildInfoRow(
+                                  AppLocalizations.of(context)!.type,
+                                  AppLocalizations.of(context)!.vectorTiles,
+                                ),
+                                _buildInfoRow(
+                                  AppLocalizations.of(context)!.schema,
+                                  _mbtilesService.getVectorSchema(metadata) ??
+                                    AppLocalizations.of(context)!.unknown,
+                                ),
+                              ],
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton.icon(
+                                    onPressed: () => _deleteMbtilesFile(metadata),
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    label: Text(
+                                      AppLocalizations.of(context)!.delete,
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+
+            const SizedBox(height: 16),
+
+            // Import button
+            ElevatedButton.icon(
+              onPressed: _importMbtilesFile,
+              icon: const Icon(Icons.file_upload),
+              label: Text(AppLocalizations.of(context)!.importMbtiles),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context)!.importMbtilesNote,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(color: Colors.grey[800]),
+            ),
+          ),
         ],
       ),
     );
@@ -559,13 +840,17 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          _statusMessage ?? AppLocalizations.of(context)!.downloadingDots,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        Expanded(
+                          child: Text(
+                            _statusMessage ?? AppLocalizations.of(context)!.downloadingDots,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         Text(
                           '${_downloadProgress.toStringAsFixed(1)}%',
                           style: TextStyle(

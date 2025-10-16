@@ -1041,4 +1041,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get you => 'You';
+
+  @override
+  String get offlineVectorMaps => 'Offline Vector Maps';
+
+  @override
+  String get offlineVectorMapsDescription =>
+      'Import and manage offline vector map tiles (MBTiles format) for use without internet connection';
+
+  @override
+  String get importMbtiles => 'Import MBTiles File';
+
+  @override
+  String get importMbtilesNote =>
+      'Supports MBTiles files with vector tiles (PBF/MVT format). Geofabrik extracts work great!';
+
+  @override
+  String get noMbtilesFiles => 'No offline vector maps found';
+
+  @override
+  String get mbtilesImportedSuccessfully =>
+      'MBTiles file imported successfully';
+
+  @override
+  String get failedToImportMbtiles => 'Failed to import MBTiles file';
+
+  @override
+  String get deleteMbtilesConfirmTitle => 'Delete Offline Map';
+
+  @override
+  String deleteMbtilesConfirmMessage(String name) {
+    return 'Are you sure you want to delete \"$name\"? This will permanently remove the offline map.';
+  }
+
+  @override
+  String get mbtilesDeletedSuccessfully => 'Offline map deleted successfully';
+
+  @override
+  String get failedToDeleteMbtiles => 'Failed to delete offline map';
+
+  @override
+  String get vectorTiles => 'Vector Tiles';
+
+  @override
+  String get schema => 'Schema';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String get bounds => 'Bounds';
+
+  @override
+  String get onlineLayers => 'Online Layers';
+
+  @override
+  String get offlineLayers => 'Offline Layers';
 }

@@ -115,23 +115,24 @@ class ContactTile extends StatelessWidget {
             ),
             // Battery indicator
             if (battery != null) ...[
+              const SizedBox(width: 4),
               Icon(
                 _getBatteryIcon(battery),
                 size: 16,
                 color: _getBatteryColor(battery),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Text(
                 '${battery.round()}%',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: _getBatteryColor(battery),
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 8),
             ],
             // Connection type indicator (direct/flood) - shown for all contact types
             if (contact.type != ContactType.channel) ...[
+              const SizedBox(width: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(

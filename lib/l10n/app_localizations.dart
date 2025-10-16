@@ -1910,6 +1910,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You'**
   String get you;
+
+  /// Title for offline vector maps section
+  ///
+  /// In en, this message translates to:
+  /// **'Offline Vector Maps'**
+  String get offlineVectorMaps;
+
+  /// Description for offline vector maps section
+  ///
+  /// In en, this message translates to:
+  /// **'Import and manage offline vector map tiles (MBTiles format) for use without internet connection'**
+  String get offlineVectorMapsDescription;
+
+  /// Button to import MBTiles file
+  ///
+  /// In en, this message translates to:
+  /// **'Import MBTiles File'**
+  String get importMbtiles;
+
+  /// Note about supported MBTiles file types
+  ///
+  /// In en, this message translates to:
+  /// **'Supports MBTiles files with vector tiles (PBF/MVT format). Geofabrik extracts work great!'**
+  String get importMbtilesNote;
+
+  /// Message when no MBTiles files are available
+  ///
+  /// In en, this message translates to:
+  /// **'No offline vector maps found'**
+  String get noMbtilesFiles;
+
+  /// Success message after importing MBTiles file
+  ///
+  /// In en, this message translates to:
+  /// **'MBTiles file imported successfully'**
+  String get mbtilesImportedSuccessfully;
+
+  /// Error message when MBTiles import fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to import MBTiles file'**
+  String get failedToImportMbtiles;
+
+  /// Title for delete MBTiles confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Offline Map'**
+  String get deleteMbtilesConfirmTitle;
+
+  /// Confirmation message for deleting MBTiles file
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"? This will permanently remove the offline map.'**
+  String deleteMbtilesConfirmMessage(String name);
+
+  /// Success message after deleting MBTiles file
+  ///
+  /// In en, this message translates to:
+  /// **'Offline map deleted successfully'**
+  String get mbtilesDeletedSuccessfully;
+
+  /// Error message when MBTiles deletion fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete offline map'**
+  String get failedToDeleteMbtiles;
+
+  /// Label for vector tile type
+  ///
+  /// In en, this message translates to:
+  /// **'Vector Tiles'**
+  String get vectorTiles;
+
+  /// Label for vector tile schema
+  ///
+  /// In en, this message translates to:
+  /// **'Schema'**
+  String get schema;
+
+  /// Unknown value label
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknown;
+
+  /// Label for geographic bounds
+  ///
+  /// In en, this message translates to:
+  /// **'Bounds'**
+  String get bounds;
+
+  /// Section header for online map layers
+  ///
+  /// In en, this message translates to:
+  /// **'Online Layers'**
+  String get onlineLayers;
+
+  /// Section header for offline map layers (MBTiles)
+  ///
+  /// In en, this message translates to:
+  /// **'Offline Layers'**
+  String get offlineLayers;
 }
 
 class _AppLocalizationsDelegate

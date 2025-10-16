@@ -1,6 +1,8 @@
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:flutter_map_tile_caching/custom_backend_api.dart';
+import 'package:vector_map_tiles_mbtiles/vector_map_tiles_mbtiles.dart';
+import 'package:mbtiles/mbtiles.dart';
 import '../models/map_layer.dart';
 
 class TileCacheService {
@@ -142,6 +144,28 @@ class TileCacheService {
       'sizeMB': size / (1024 * 1024),
       'storeName': _storeName,
     };
+  }
+
+  /// Get vector tile provider for MBTiles layers
+  MbTilesVectorTileProvider? getVectorTileProvider(MapLayer layer) {
+    if (!layer.isVector || layer.mbtilesFile == null) {
+      return null;
+    }
+
+    try {
+      final mbtiles = MbTiles(
+        mbtilesPath: layer.mbtilesFile!.path,
+        gzip: layer.isGzipped ?? false,
+      );
+
+      return MbTilesVectorTileProvider(
+        mbtiles: mbtiles,
+        silenceTileNotFound: true,
+      );
+    } catch (e) {
+      print('Error creating vector tile provider: $e');
+      return null;
+    }
   }
 
   void dispose() {

@@ -594,5 +594,39 @@
   "txPowerDbm": "TX snaga (dBm)",
   "maxPowerDbm": "Maks: {power} dBm",
 
-  "you": "Ti"
+  "you": "Ti",
+
+  "offlineVectorMaps": "Offline vektorske karte",
+
+  "offlineVectorMapsDescription": "Uvezite i upravljajte offline vektorskim pločicama karata (MBTiles format) za upotrebu bez internetske veze",
+
+  "importMbtiles": "Uvezi MBTiles datoteku",
+
+  "importMbtilesNote": "Podržava MBTiles datoteke s vektorskim pločicama (PBF/MVT format). Geofabrik izvodi odlično rade!",
+
+  "noMbtilesFiles": "Nisu pronađene offline vektorske karte",
+
+  "mbtilesImportedSuccessfully": "MBTiles datoteka uspješno uvezena",
+
+  "failedToImportMbtiles": "Neuspjeli uvoz MBTiles datoteke",
+
+  "deleteMbtilesConfirmTitle": "Izbriši offline kartu",
+
+  "deleteMbtilesConfirmMessage": "Jeste li sigurni da želite izbrisati \"{name}\"? Ovo će trajno ukloniti offline kartu.",
+
+  "mbtilesDeletedSuccessfully": "Offline karta uspješno izbrisana",
+
+  "failedToDeleteMbtiles": "Neuspjelo brisanje offline karte",
+
+  "vectorTiles": "Vektorske pločice",
+
+  "schema": "Shema",
+
+  "unknown": "Nepoznato",
+
+  "bounds": "Granice",
+
+  "onlineLayers": "Mrežni slojevi",
+
+  "offlineLayers": "Offline slojevi"
 }

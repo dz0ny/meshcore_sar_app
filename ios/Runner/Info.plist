@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>dev.flutter.background.refresh</string>
+	</array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -21,9 +27,33 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>21</string>
+	<string>24</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>MeshCore SAR needs Bluetooth to communicate with MeshCore devices for Search &amp; Rescue operations</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>MeshCore SAR needs Bluetooth to communicate with MeshCore devices</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>MeshCore SAR needs location access for offline map functionality during field operations</string>
+	<key>NSLocationDefaultAccuracyReduced</key>
+	<false/>
+	<key>NSLocationTemporaryPreciseUsageDescription</key>
+	<string>MeshCore SAR needs precise location for accurate positioning in SAR operations</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>MeshCore SAR needs location access to display team members and SAR markers on the map</string>
+	<key>NSMotionUsageDescription</key>
+	<string>MeshCore SAR needs access to the compass to show your heading direction on the map</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>processing</string>
+		<string>external-accessory</string>
+		<string>bluetooth-central</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -41,33 +71,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>MeshCore SAR needs Bluetooth to communicate with MeshCore devices for Search &amp; Rescue operations</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>MeshCore SAR needs Bluetooth to communicate with MeshCore devices</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>MeshCore SAR needs location access to display team members and SAR markers on the map</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>MeshCore SAR needs location access for offline map functionality during field operations</string>
-	<key>NSLocationTemporaryPreciseUsageDescription</key>
-	<string>MeshCore SAR needs precise location for accurate positioning in SAR operations</string>
-	<key>NSLocationDefaultAccuracyReduced</key>
-	<false/>
-	<key>NSMotionUsageDescription</key>
-	<string>MeshCore SAR needs access to the compass to show your heading direction on the map</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>location</string>
-		<string>fetch</string>
-	</array>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>dev.flutter.background.refresh</string>
-	</array>
 	<key>UIUserNotificationSettings</key>
 	<dict>
 		<key>UIUserNotificationTypesEnabled</key>
@@ -77,5 +80,44 @@
 			<string>UIUserNotificationTypeSound</string>
 		</array>
 	</dict>
+	<key>UISupportsDocumentBrowser</key>
+	<true/>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>MBTiles Map File</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.database</string>
+				<string>public.data</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.mapbox.mbtiles</string>
+			<key>UTTypeDescription</key>
+			<string>MBTiles Map Archive</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.database</string>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mbtiles</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

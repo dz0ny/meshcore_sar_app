@@ -53,6 +53,16 @@ dependencies:
   # Offline tile caching
   flutter_map_tile_caching: ^10.1.1
 
+  # Vector map tiles
+  vector_map_tiles: ^9.0.0-beta.8
+  vector_map_tiles_mbtiles:
+    git:
+      url: https://github.com/josxha/flutter_map_plugins.git
+      path: vector_map_tiles_mbtiles
+  vector_tile_renderer: ^6.0.0
+  mbtiles: ^0.4.0
+  http: ^1.2.0
+
   # Permissions
   permission_handler: ^12.0.1
 
@@ -63,6 +73,7 @@ dependencies:
   # File handling
   share_plus: ^12.0.0
   path_provider: ^2.1.5
+  file_picker: ^8.0.0
 
   # Persistent storage
   shared_preferences: ^2.3.3

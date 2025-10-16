@@ -1,12 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vector_map_tiles/vector_map_tiles.dart';
+import 'package:vector_tile_renderer/vector_tile_renderer.dart' as vtr;
+import 'package:http/http.dart' as http;
 import '../providers/contacts_provider.dart';
 import '../providers/messages_provider.dart';
 import '../providers/map_provider.dart';
@@ -21,6 +26,7 @@ import '../services/tile_cache_service.dart';
 import '../services/background_location_service.dart';
 import '../services/location_tracking_service.dart';
 import '../services/map_marker_service.dart';
+import '../services/mbtiles_service.dart';
 import '../widgets/map_debug_info.dart';
 import '../widgets/map/map_legend.dart';
 import '../widgets/map/compass_widget.dart';
@@ -61,6 +67,13 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   StreamSubscription<CompassEvent>? _compassStreamSubscription;
   final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
 
+  // MBTiles layers
+  List<MapLayer> _mbtilesLayers = [];
+
+  // Vector tile theme
+  vtr.Theme? _vectorTheme;
+  bool _isLoadingTheme = false;
+
   // Dropped pin state
   LatLng? _droppedPinLocation;
   bool _isDraggingPin = false;
@@ -81,6 +94,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     _loadSettings();
+    _loadMbtilesLayers();
     _initializeTileCache();
     _initLocationTracking();
     _startCompassTracking();
@@ -172,6 +186,39 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  /// Load MBTiles layers from file system
+  Future<void> _loadMbtilesLayers() async {
+    try {
+      final mbtilesService = MbtilesService();
+      final metadata = await mbtilesService.getAllMetadata();
+
+      if (mounted) {
+        setState(() {
+          _mbtilesLayers = metadata.map((meta) {
+            // Determine if data is gzipped (for Geofabrik files)
+            final isGzipped = meta.format == 'pbf';
+
+            return MapLayer.fromMbtilesFile(
+              name: meta.name,
+              mbtilesFile: meta.file,
+              styleUrl: 'https://tiles.openfreemap.org/styles/bright',
+              sourceName: 'openmaptiles',
+              maxZoom: 20.0, // Override to 20 for overzooming
+              isGzipped: isGzipped,
+              attribution: meta.attribution,
+            );
+          }).toList();
+        });
+        debugPrint('Loaded ${_mbtilesLayers.length} MBTiles layers');
+      }
+    } catch (e) {
+      debugPrint('Error loading MBTiles layers: $e');
+    }
+  }
+
+  /// Get all available layers (default + MBTiles)
+  List<MapLayer> get _allLayers => [...MapLayer.allLayers, ..._mbtilesLayers];
+
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
@@ -180,8 +227,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
       final lastLon = prefs.getDouble('map_last_longitude');
       final lastZoom = prefs.getDouble('map_last_zoom');
 
-      // Load last map layer if available
-      final lastLayerIndex = prefs.getInt('map_last_layer');
+      // Load last map layer
+      final lastLayerType = prefs.getInt('map_last_layer_type');
+      final lastLayerName = prefs.getString('map_last_layer_name');
 
       setState(() {
         _showLegend = prefs.getBool('map_show_legend') ?? false;
@@ -202,9 +250,23 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           _savedMapZoom = lastZoom;
         }
 
-        // Restore last used map layer
-        if (lastLayerIndex != null && lastLayerIndex >= 0 && lastLayerIndex < MapLayer.allLayers.length) {
-          _currentLayer = MapLayer.allLayers[lastLayerIndex];
+        // Restore last used map layer (by type and name for MBTiles)
+        if (lastLayerType != null) {
+          final layerType = MapLayerType.values[lastLayerType];
+          if (layerType == MapLayerType.vectorMbtiles && lastLayerName != null) {
+            // Find MBTiles layer by name
+            final mbtilesLayer = _mbtilesLayers.firstWhere(
+              (layer) => layer.name == lastLayerName,
+              orElse: () => MapLayer.openStreetMap,
+            );
+            _currentLayer = mbtilesLayer;
+          } else {
+            // Use default layer
+            _currentLayer = MapLayer.allLayers.firstWhere(
+              (layer) => layer.type == layerType,
+              orElse: () => MapLayer.openStreetMap,
+            );
+          }
         }
       });
     }
@@ -218,7 +280,12 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     await prefs.setBool('map_fullscreen', _isFullscreen);
     await prefs.setDouble('map_gps_update_distance', _gpsUpdateDistance);
     await prefs.setBool('background_tracking_enabled', _backgroundTrackingEnabled);
-    await prefs.setInt('map_last_layer', MapLayer.allLayers.indexOf(_currentLayer));
+
+    // Save layer type and name (for MBTiles layers)
+    await prefs.setInt('map_last_layer_type', _currentLayer.type.index);
+    if (_currentLayer.type == MapLayerType.vectorMbtiles) {
+      await prefs.setString('map_last_layer_name', _currentLayer.name);
+    }
   }
 
   Future<void> _saveMapPosition() async {
@@ -344,6 +411,45 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  /// Load vector tile theme from URL
+  Future<void> _loadVectorTheme(String styleUrl) async {
+    if (_isLoadingTheme) return;
+
+    setState(() {
+      _isLoadingTheme = true;
+    });
+
+    try {
+      final response = await http.get(Uri.parse(styleUrl));
+      if (response.statusCode == 200) {
+        final styleJson = jsonDecode(response.body) as Map<String, Object?>;
+        final theme = vtr.ThemeReader().read(styleJson);
+
+        if (mounted) {
+          setState(() {
+            _vectorTheme = theme;
+            _isLoadingTheme = false;
+          });
+        }
+      } else {
+        throw Exception('Failed to load style: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error loading vector theme: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingTheme = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load map style: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showLayerSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -378,20 +484,76 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
               ),
             ),
             const Divider(),
-            ...MapLayer.allLayers.map((layer) => ListTile(
-                  leading: _currentLayer.type == layer.type
-                      ? const Icon(Icons.check_circle, color: Colors.green)
-                      : const Icon(Icons.radio_button_unchecked),
-                  title: Text(layer.getLocalizedName(context)),
-                  subtitle: Text(layer.attribution),
-                  onTap: () {
-                    setState(() {
-                      _currentLayer = layer;
-                    });
-                    _saveSettings();
-                    Navigator.pop(context);
-                  },
-                )),
+            Expanded(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  // Online layers section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(
+                      AppLocalizations.of(context)!.onlineLayers,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                    ),
+                  ),
+                  ...MapLayer.allLayers.map((layer) => ListTile(
+                        leading: _currentLayer == layer
+                            ? const Icon(Icons.check_circle, color: Colors.green)
+                            : const Icon(Icons.radio_button_unchecked),
+                        title: Text(layer.getLocalizedName(context)),
+                        subtitle: Text(layer.attribution),
+                        onTap: () async {
+                          setState(() {
+                            _currentLayer = layer;
+                          });
+                          _saveSettings();
+                          Navigator.pop(context);
+                        },
+                      )),
+                  // Offline MBTiles layers section
+                  if (_mbtilesLayers.isNotEmpty) ...[
+                    const Divider(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text(
+                        AppLocalizations.of(context)!.offlineLayers,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                      ),
+                    ),
+                    ..._mbtilesLayers.map((layer) => ListTile(
+                          leading: _currentLayer == layer
+                              ? const Icon(Icons.check_circle, color: Colors.green)
+                              : Icon(
+                                  layer.isVector ? Icons.layers : Icons.image,
+                                  color: layer.isVector ? Colors.blue : Colors.orange,
+                                ),
+                          title: Text(layer.name),
+                          subtitle: Text(layer.attribution),
+                          onTap: () async {
+                            // Load vector theme if switching to vector layer
+                            if (layer.isVector && layer.styleUrl != null) {
+                              Navigator.pop(context);
+                              await _loadVectorTheme(layer.styleUrl!);
+                            }
+
+                            setState(() {
+                              _currentLayer = layer;
+                            });
+                            _saveSettings();
+
+                            if (!layer.isVector) {
+                              Navigator.pop(context);
+                            }
+                          },
+                        )),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -946,12 +1108,23 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                       },
                     ),
                     children: [
-                      TileLayer(
-                        urlTemplate: _currentLayer.urlTemplate,
-                        tileProvider: _tileCache.getTileProvider(_currentLayer),
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: _currentLayer.maxZoom,
-                      ),
+                      // Render vector or raster tile layer based on layer type
+                      if (_currentLayer.isVector && _vectorTheme != null)
+                        VectorTileLayer(
+                          theme: _vectorTheme!,
+                          tileProviders: TileProviders({
+                            _currentLayer.sourceName ?? 'default':
+                              _tileCache.getVectorTileProvider(_currentLayer)!,
+                          }),
+                          maximumZoom: _currentLayer.maxZoom,
+                        )
+                      else if (!_currentLayer.isVector)
+                        flutter_map.TileLayer(
+                          urlTemplate: _currentLayer.urlTemplate,
+                          tileProvider: _tileCache.getTileProvider(_currentLayer),
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: _currentLayer.maxZoom,
+                        ),
                       // Advertisement path polylines (rendered before markers)
                       Consumer<MapProvider>(
                         builder: (context, mapProvider, _) {

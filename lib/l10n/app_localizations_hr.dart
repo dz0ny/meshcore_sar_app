@@ -1043,4 +1043,59 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get you => 'Ti';
+
+  @override
+  String get offlineVectorMaps => 'Offline vektorske karte';
+
+  @override
+  String get offlineVectorMapsDescription =>
+      'Uvezite i upravljajte offline vektorskim pločicama karata (MBTiles format) za upotrebu bez internetske veze';
+
+  @override
+  String get importMbtiles => 'Uvezi MBTiles datoteku';
+
+  @override
+  String get importMbtilesNote =>
+      'Podržava MBTiles datoteke s vektorskim pločicama (PBF/MVT format). Geofabrik izvodi odlično rade!';
+
+  @override
+  String get noMbtilesFiles => 'Nisu pronađene offline vektorske karte';
+
+  @override
+  String get mbtilesImportedSuccessfully => 'MBTiles datoteka uspješno uvezena';
+
+  @override
+  String get failedToImportMbtiles => 'Neuspjeli uvoz MBTiles datoteke';
+
+  @override
+  String get deleteMbtilesConfirmTitle => 'Izbriši offline kartu';
+
+  @override
+  String deleteMbtilesConfirmMessage(String name) {
+    return 'Jeste li sigurni da želite izbrisati \"$name\"? Ovo će trajno ukloniti offline kartu.';
+  }
+
+  @override
+  String get mbtilesDeletedSuccessfully => 'Offline karta uspješno izbrisana';
+
+  @override
+  String get failedToDeleteMbtiles => 'Neuspjelo brisanje offline karte';
+
+  @override
+  String get vectorTiles => 'Vektorske pločice';
+
+  @override
+  String get schema => 'Shema';
+
+  @override
+  String get unknown => 'Nepoznato';
+
+  @override
+  String get bounds => 'Granice';
+
+  @override
+  String get onlineLayers => 'Mrežni slojevi';
+
+  @override
+  String get offlineLayers => 'Offline slojevi';
 }

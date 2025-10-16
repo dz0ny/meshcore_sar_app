@@ -594,5 +594,39 @@
   "txPowerDbm": "Izhodna moč (dBm)",
   "maxPowerDbm": "Največ: {power} dBm",
 
-  "you": "Ti"
+  "you": "Ti",
+
+  "offlineVectorMaps": "Brezpovezni vektorski zemljevidi",
+
+  "offlineVectorMapsDescription": "Uvozite in upravljajte brezpovezne vektorske ploščice zemljevidov (format MBTiles) za uporabo brez internetne povezave",
+
+  "importMbtiles": "Uvozi MBTiles datoteko",
+
+  "importMbtilesNote": "Podpira MBTiles datoteke z vektorskimi ploščicami (format PBF/MVT). Geofabrik izvozi odlično delujejo!",
+
+  "noMbtilesFiles": "Ni najdenih brezpoveznih vektorskih zemljevidov",
+
+  "mbtilesImportedSuccessfully": "MBTiles datoteka uspešno uvožena",
+
+  "failedToImportMbtiles": "Uvoz MBTiles datoteke ni uspel",
+
+  "deleteMbtilesConfirmTitle": "Izbriši brezpovezni zemljevid",
+
+  "deleteMbtilesConfirmMessage": "Ste prepričani, da želite izbrisati \"{name}\"? To bo trajno odstranilo brezpovezni zemljevid.",
+
+  "mbtilesDeletedSuccessfully": "Brezpovezni zemljevid uspešno izbrisan",
+
+  "failedToDeleteMbtiles": "Brisanje brezpoveznega zemljevida ni uspelo",
+
+  "vectorTiles": "Vektorske ploščice",
+
+  "schema": "Shema",
+
+  "unknown": "Neznano",
+
+  "bounds": "Meje",
+
+  "onlineLayers": "Spletne plasti",
+
+  "offlineLayers": "Brezpovezne plasti"
 }

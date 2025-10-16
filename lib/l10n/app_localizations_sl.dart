@@ -1043,4 +1043,62 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get you => 'Ti';
+
+  @override
+  String get offlineVectorMaps => 'Brezpovezni vektorski zemljevidi';
+
+  @override
+  String get offlineVectorMapsDescription =>
+      'Uvozite in upravljajte brezpovezne vektorske ploščice zemljevidov (format MBTiles) za uporabo brez internetne povezave';
+
+  @override
+  String get importMbtiles => 'Uvozi MBTiles datoteko';
+
+  @override
+  String get importMbtilesNote =>
+      'Podpira MBTiles datoteke z vektorskimi ploščicami (format PBF/MVT). Geofabrik izvozi odlično delujejo!';
+
+  @override
+  String get noMbtilesFiles =>
+      'Ni najdenih brezpoveznih vektorskih zemljevidov';
+
+  @override
+  String get mbtilesImportedSuccessfully => 'MBTiles datoteka uspešno uvožena';
+
+  @override
+  String get failedToImportMbtiles => 'Uvoz MBTiles datoteke ni uspel';
+
+  @override
+  String get deleteMbtilesConfirmTitle => 'Izbriši brezpovezni zemljevid';
+
+  @override
+  String deleteMbtilesConfirmMessage(String name) {
+    return 'Ste prepričani, da želite izbrisati \"$name\"? To bo trajno odstranilo brezpovezni zemljevid.';
+  }
+
+  @override
+  String get mbtilesDeletedSuccessfully =>
+      'Brezpovezni zemljevid uspešno izbrisan';
+
+  @override
+  String get failedToDeleteMbtiles =>
+      'Brisanje brezpoveznega zemljevida ni uspelo';
+
+  @override
+  String get vectorTiles => 'Vektorske ploščice';
+
+  @override
+  String get schema => 'Shema';
+
+  @override
+  String get unknown => 'Neznano';
+
+  @override
+  String get bounds => 'Meje';
+
+  @override
+  String get onlineLayers => 'Spletne plasti';
+
+  @override
+  String get offlineLayers => 'Brezpovezne plasti';
 }
