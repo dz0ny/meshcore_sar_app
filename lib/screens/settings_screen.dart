@@ -772,6 +772,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.pop(context);
                 },
               ),
+              RadioListTile<AppThemeMode>(
+                title: Row(
+                  children: [
+                    const Text('SAR Navy Blue'),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF5C9FFF),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black26),
+                      ),
+                    ),
+                  ],
+                ),
+                subtitle: const Text('Professional/Operations Mode'),
+                value: AppThemeMode.sarNavyBlue,
+                groupValue: _selectedTheme,
+                onChanged: (value) {
+                  _handleThemeChange(value);
+                  Navigator.pop(context);
+                },
+              ),
               const Divider(),
               RadioListTile<AppThemeMode>(
                 title: Text(AppLocalizations.of(context)!.autoSystem),

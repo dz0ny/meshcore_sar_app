@@ -5,10 +5,12 @@ import '../../../l10n/app_localizations.dart';
 /// Allows filtering of contacts and SAR marker types.
 class CompassFilters extends StatefulWidget {
   final bool showContacts;
+  final bool showRepeaters;
   final bool showFoundPerson;
   final bool showFire;
   final bool showStagingArea;
   final ValueChanged<bool> onShowContactsChanged;
+  final ValueChanged<bool> onShowRepeatersChanged;
   final ValueChanged<bool> onShowFoundPersonChanged;
   final ValueChanged<bool> onShowFireChanged;
   final ValueChanged<bool> onShowStagingAreaChanged;
@@ -17,10 +19,12 @@ class CompassFilters extends StatefulWidget {
   const CompassFilters({
     super.key,
     required this.showContacts,
+    required this.showRepeaters,
     required this.showFoundPerson,
     required this.showFire,
     required this.showStagingArea,
     required this.onShowContactsChanged,
+    required this.onShowRepeatersChanged,
     required this.onShowFoundPersonChanged,
     required this.onShowFireChanged,
     required this.onShowStagingAreaChanged,
@@ -58,6 +62,18 @@ class _CompassFiltersState extends State<CompassFilters> {
                 value: widget.showContacts,
                 onChanged: (value) {
                   widget.onShowContactsChanged(value);
+                  setDialogState(() {});
+                },
+              ),
+              const SizedBox(height: 4),
+              // Repeaters filter
+              _CompactFilterItem(
+                icon: Icons.router,
+                color: Colors.purple,
+                label: l10n.repeatersFilter,
+                value: widget.showRepeaters,
+                onChanged: (value) {
+                  widget.onShowRepeatersChanged(value);
                   setDialogState(() {});
                 },
               ),

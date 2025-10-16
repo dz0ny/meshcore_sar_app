@@ -1097,6 +1097,11 @@
     "description": "Filter option for contacts"
   },
 
+  "repeatersFilter": "Repeaters",
+  "@repeatersFilter": {
+    "description": "Filter option for repeaters"
+  },
+
   "sarMarkers": "SAR Markers",
   "@sarMarkers": {
     "description": "SAR markers section header"

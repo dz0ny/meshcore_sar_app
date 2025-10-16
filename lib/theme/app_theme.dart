@@ -5,6 +5,7 @@ enum AppThemeMode {
   dark,
   sarRed,
   sarGreen,
+  sarNavyBlue,
   system,
 }
 
@@ -181,6 +182,65 @@ class AppTheme {
     );
   }
 
+  // SAR Navy Blue theme (Professional/Operations tones)
+  static ThemeData get sarNavyBlueTheme {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: const ColorScheme.dark(
+        brightness: Brightness.dark,
+        primary: Color(0xFF5C9FFF), // Bright navy blue
+        onPrimary: Color(0xFF000000),
+        primaryContainer: Color(0xFF003366), // Dark navy
+        onPrimaryContainer: Color(0xFFBBDEFF),
+        secondary: Color(0xFF80B3FF),
+        onSecondary: Color(0xFF000000),
+        secondaryContainer: Color(0xFF002244),
+        onSecondaryContainer: Color(0xFFBBDEFF),
+        tertiary: Color(0xFF4DB8FF),
+        onTertiary: Color(0xFF000000),
+        error: Color(0xFFCF6679),
+        onError: Color(0xFF000000),
+        surface: Color(0xFF00111C), // Very dark blue-tinted
+        onSurface: Color(0xFFE3F2FD),
+        surfaceContainerHighest: Color(0xFF001A2D),
+        onSurfaceVariant: Color(0xFFBBDEFF),
+        outline: Color(0xFF5C9FFF),
+      ),
+      scaffoldBackgroundColor: const Color(0xFF00111C),
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Color(0xFF001A2D),
+        foregroundColor: Color(0xFFE3F2FD),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 2,
+        color: const Color(0xFF001A2D),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(
+            color: Color(0xFF5C9FFF),
+            width: 1,
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF5C9FFF)),
+        ),
+        filled: true,
+        fillColor: const Color(0xFF001A2D),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF5C9FFF),
+          foregroundColor: const Color(0xFF000000),
+        ),
+      ),
+    );
+  }
+
   // Get theme by mode
   static ThemeData getTheme(AppThemeMode mode, Brightness systemBrightness) {
     switch (mode) {
@@ -192,6 +252,8 @@ class AppTheme {
         return sarRedTheme;
       case AppThemeMode.sarGreen:
         return sarGreenTheme;
+      case AppThemeMode.sarNavyBlue:
+        return sarNavyBlueTheme;
       case AppThemeMode.system:
         return systemBrightness == Brightness.dark ? darkTheme : lightTheme;
     }
@@ -208,6 +270,8 @@ class AppTheme {
         return 'SAR Red (Alert)';
       case AppThemeMode.sarGreen:
         return 'SAR Green (Safe)';
+      case AppThemeMode.sarNavyBlue:
+        return 'SAR Navy Blue (Ops)';
       case AppThemeMode.system:
         return 'Auto (System)';
     }

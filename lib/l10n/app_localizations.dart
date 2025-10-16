@@ -1215,6 +1215,12 @@ abstract class AppLocalizations {
   /// **'Contacts'**
   String get contactsFilter;
 
+  /// Filter option for repeaters
+  ///
+  /// In en, this message translates to:
+  /// **'Repeaters'**
+  String get repeatersFilter;
+
   /// SAR markers section header
   ///
   /// In en, this message translates to:

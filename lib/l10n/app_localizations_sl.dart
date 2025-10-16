@@ -644,6 +644,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get contactsFilter => 'Stiki';
 
   @override
+  String get repeatersFilter => 'Ponavljalniki';
+
+  @override
   String get sarMarkers => 'SAR označevalci';
 
   @override

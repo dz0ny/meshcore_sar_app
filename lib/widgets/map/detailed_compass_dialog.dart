@@ -65,6 +65,7 @@ class _DetailedCompassDialogState extends State<DetailedCompassDialog> {
 
   // Visibility toggles
   bool _showContacts = true;
+  bool _showRepeaters = false; // Hide repeaters by default
   bool _showFoundPerson = true;
   bool _showFire = true;
   bool _showStagingArea = true;
@@ -308,12 +309,18 @@ class _DetailedCompassDialogState extends State<DetailedCompassDialog> {
               ),
               CompassFilters(
                 showContacts: _showContacts,
+                showRepeaters: _showRepeaters,
                 showFoundPerson: _showFoundPerson,
                 showFire: _showFire,
                 showStagingArea: _showStagingArea,
                 onShowContactsChanged: (value) {
                   setState(() {
                     _showContacts = value;
+                  });
+                },
+                onShowRepeatersChanged: (value) {
+                  setState(() {
+                    _showRepeaters = value;
                   });
                 },
                 onShowFoundPersonChanged: (value) {
@@ -334,6 +341,7 @@ class _DetailedCompassDialogState extends State<DetailedCompassDialog> {
                 onShowAll: () {
                   setState(() {
                     _showContacts = true;
+                    _showRepeaters = true;
                     _showFoundPerson = true;
                     _showFire = true;
                     _showStagingArea = true;
@@ -363,7 +371,10 @@ class _DetailedCompassDialogState extends State<DetailedCompassDialog> {
                         ? [_selectedContact!]
                         : (_selectedSarMarker != null
                             ? []
-                            : (_showContacts ? widget.contacts : [])),
+                            : widget.contacts.where((c) =>
+                                (_showContacts && !c.isRepeater && !c.isRoom) ||
+                                (_showRepeaters && c.isRepeater)
+                              ).toList()),
                     sarMarkers: _selectedSarMarker != null
                         ? [_selectedSarMarker!]
                         : (_selectedContact != null
@@ -381,12 +392,14 @@ class _DetailedCompassDialogState extends State<DetailedCompassDialog> {
                     _buildSelectedItemDetail(context, heading, position),
                   const SizedBox(height: 12),
                   // Contacts list
-                  if (_showContacts && widget.contacts.isNotEmpty)
+                  if (widget.contacts.isNotEmpty)
                     CompassContactList(
                       contacts: widget.contacts,
                       position: position,
                       heading: heading,
                       selectedContact: _selectedContact,
+                      showContacts: _showContacts,
+                      showRepeaters: _showRepeaters,
                       onContactTap: (contact) {
                         setState(() {
                           _selectedContact = contact;
