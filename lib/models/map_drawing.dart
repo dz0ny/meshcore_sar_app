@@ -7,17 +7,29 @@ enum DrawingShapeType {
   rectangle,
 }
 
+/// Drawing color enum for compact network transmission
+enum DrawingColor {
+  red,      // 0
+  blue,     // 1
+  green,    // 2
+  yellow,   // 3
+  orange,   // 4
+  purple,   // 5
+  pink,     // 6
+  cyan,     // 7
+}
+
 /// Drawing colors available for user selection
 class DrawingColors {
   static const List<Color> palette = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.yellow,
-    Colors.orange,
-    Colors.purple,
-    Colors.pink,
-    Colors.cyan,
+    Colors.red,     // index 0
+    Colors.blue,    // index 1
+    Colors.green,   // index 2
+    Colors.yellow,  // index 3
+    Colors.orange,  // index 4
+    Colors.purple,  // index 5
+    Colors.pink,    // index 6
+    Colors.cyan,    // index 7
   ];
 
   static String colorToName(Color color) {
@@ -30,6 +42,24 @@ class DrawingColors {
     if (color == Colors.pink) return 'Pink';
     if (color == Colors.cyan) return 'Cyan';
     return 'Unknown';
+  }
+
+  /// Convert Color to enum index for network transmission
+  static int colorToIndex(Color color) {
+    for (int i = 0; i < palette.length; i++) {
+      if (palette[i].value == color.value) {
+        return i;
+      }
+    }
+    return 0; // Default to red if not found
+  }
+
+  /// Convert enum index to Color for network reception
+  static Color indexToColor(int index) {
+    if (index >= 0 && index < palette.length) {
+      return palette[index];
+    }
+    return palette[0]; // Default to red if invalid index
   }
 }
 
@@ -56,23 +86,25 @@ abstract class MapDrawing {
 
   /// Convert to JSON for network transmission (compact format)
   /// Uses short field names and excludes createdAt to minimize message size
-  Map<String, dynamic> toNetworkJson(String senderName);
+  /// Sender will be fetched from packet metadata
+  Map<String, dynamic> toNetworkJson();
 
   /// Parse network JSON (compact format)
-  static MapDrawing? fromNetworkJson(Map<String, dynamic> json) {
-    final typeStr = json['t'] as String?;
-    if (typeStr == null) return null;
+  /// senderName will be populated from packet metadata
+  static MapDrawing? fromNetworkJson(Map<String, dynamic> json, {String? senderName}) {
+    final typeNum = json['t'] as int?;
+    if (typeNum == null || typeNum < 0 || typeNum >= DrawingShapeType.values.length) {
+      return null;
+    }
 
     try {
-      final type = DrawingShapeType.values.firstWhere(
-        (e) => e.name == typeStr,
-      );
+      final type = DrawingShapeType.values[typeNum];
 
       switch (type) {
         case DrawingShapeType.line:
-          return LineDrawing.fromNetworkJson(json);
+          return LineDrawing.fromNetworkJson(json, senderName: senderName);
         case DrawingShapeType.rectangle:
-          return RectangleDrawing.fromNetworkJson(json);
+          return RectangleDrawing.fromNetworkJson(json, senderName: senderName);
       }
     } catch (e) {
       return null;
@@ -126,13 +158,13 @@ class LineDrawing extends MapDrawing {
   }
 
   @override
-  Map<String, dynamic> toNetworkJson(String senderName) {
-    // Compact format: t=type, c=color, s=sender, p=points
+  Map<String, dynamic> toNetworkJson() {
+    // Ultra-compact format: t=type (0=line, 1=rect), c=color index (0-7), p=points
     // Points are encoded as flat array [lat1,lon1,lat2,lon2,...]
+    // Sender is fetched from packet metadata, not included in JSON
     return {
-      't': type.name,
-      'c': color.value,
-      's': senderName,
+      't': type.index,
+      'c': DrawingColors.colorToIndex(color),
       'p': points.expand((p) => [p.latitude, p.longitude]).toList(),
     };
   }
@@ -152,18 +184,17 @@ class LineDrawing extends MapDrawing {
     );
   }
 
-  static LineDrawing fromNetworkJson(Map<String, dynamic> json) {
-    // Parse compact format
+  static LineDrawing fromNetworkJson(Map<String, dynamic> json, {String? senderName}) {
+    // Parse ultra-compact format
     final pointsFlat = (json['p'] as List<dynamic>).cast<double>();
     final points = <LatLng>[];
     for (int i = 0; i < pointsFlat.length; i += 2) {
       points.add(LatLng(pointsFlat[i], pointsFlat[i + 1]));
     }
-    final senderName = json['s'] as String?;
 
     return LineDrawing(
       id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate new ID
-      color: Color(json['c'] as int),
+      color: DrawingColors.indexToColor(json['c'] as int),
       createdAt: DateTime.now(),
       points: points,
       senderName: senderName,
@@ -219,12 +250,12 @@ class RectangleDrawing extends MapDrawing {
   }
 
   @override
-  Map<String, dynamic> toNetworkJson(String senderName) {
-    // Compact format: t=type, c=color, s=sender, b=bounds [lat1,lon1,lat2,lon2]
+  Map<String, dynamic> toNetworkJson() {
+    // Ultra-compact format: t=type (0=line, 1=rect), c=color index (0-7), b=bounds [lat1,lon1,lat2,lon2]
+    // Sender is fetched from packet metadata, not included in JSON
     return {
-      't': type.name,
-      'c': color.value,
-      's': senderName,
+      't': type.index,
+      'c': DrawingColors.colorToIndex(color),
       'b': [topLeft.latitude, topLeft.longitude, bottomRight.latitude, bottomRight.longitude],
     };
   }
@@ -245,14 +276,13 @@ class RectangleDrawing extends MapDrawing {
     );
   }
 
-  static RectangleDrawing fromNetworkJson(Map<String, dynamic> json) {
-    // Parse compact format
+  static RectangleDrawing fromNetworkJson(Map<String, dynamic> json, {String? senderName}) {
+    // Parse ultra-compact format
     final bounds = (json['b'] as List<dynamic>).cast<double>();
-    final senderName = json['s'] as String?;
 
     return RectangleDrawing(
       id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate new ID
-      color: Color(json['c'] as int),
+      color: DrawingColors.indexToColor(json['c'] as int),
       createdAt: DateTime.now(),
       topLeft: LatLng(bounds[0], bounds[1]),
       bottomRight: LatLng(bounds[2], bounds[3]),

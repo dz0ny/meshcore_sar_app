@@ -29,7 +29,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _currentIndex = 0;
   bool _isMapFullscreen = false;
@@ -70,7 +71,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (context.mounted) {
-          ToastLogger.error(context, 'Location services are disabled. Please enable them in Settings.');
+          ToastLogger.error(
+            context,
+            'Location services are disabled. Please enable them in Settings.',
+          );
         }
         return;
       }
@@ -89,7 +93,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
       if (permission == LocationPermission.deniedForever) {
         if (context.mounted) {
-          ToastLogger.error(context, 'Location permission permanently denied. Please enable in Settings.');
+          ToastLogger.error(
+            context,
+            'Location permission permanently denied. Please enable in Settings.',
+          );
         }
         return;
       }
@@ -124,7 +131,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       await connectionProvider.sendSelfAdvert(floodMode: true);
 
       if (context.mounted) {
-        ToastLogger.success(context, 'Advertised at ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}');
+        ToastLogger.success(
+          context,
+          'Advertised at ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}',
+        );
       }
     } catch (e) {
       print('❌ Failed to advertise device: $e');
@@ -146,31 +156,40 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.9,
-        decoration: const BoxDecoration(
-          color: Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           children: [
             // Header
             Container(
               padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     onPressed: () {
                       connectionProvider.stopScan();
                       Navigator.pop(context);
                     },
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       children: [
                         Text(
                           'MeshCore',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -178,7 +197,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         Text(
                           'Scanning for devices...',
                           style: TextStyle(
-                            color: Colors.grey,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontSize: 14,
                           ),
                         ),
@@ -186,8 +207,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.more_vert, color: Colors.white),
-                    onPressed: () {},
+                    icon: Icon(
+                      Icons.refresh,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: () {
+                      connectionProvider.stopScan();
+                      connectionProvider.startScan();
+                    },
                   ),
                 ],
               ),
@@ -203,12 +230,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                  Icon(
+                    Icons.info_outline,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'The default pin for devices without a screen is 123456. Trouble pairing? Forget the bluetooth device in system settings.',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontSize: 13),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
@@ -222,16 +255,41 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               child: Consumer<ConnectionProvider>(
                 builder: (context, provider, child) {
                   if (provider.isScanning && provider.scannedDevices.isEmpty) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (provider.scannedDevices.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No devices found',
-                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.bluetooth_searching,
+                            size: 64,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No devices found',
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: () {
+                              connectionProvider.stopScan();
+                              connectionProvider.startScan();
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Scan Again'),
+                          ),
+                        ],
                       ),
                     );
                   }
@@ -239,42 +297,80 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   return ListView.builder(
                     itemCount: provider.scannedDevices.length,
                     itemBuilder: (context, index) {
-                      final device = provider.scannedDevices[index];
+                      final scannedDevice = provider.scannedDevices[index];
+                      final device = scannedDevice.device;
+                      final rssi = scannedDevice.rssi;
+                      final signalColor = _getSignalColor(rssi);
+
                       return Container(
                         margin: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2D2D2D),
-                          borderRadius: BorderRadius.circular(8),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withOpacity(0.2),
+                            width: 1,
+                          ),
                         ),
                         child: ListTile(
-                          leading: const Icon(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          leading: Icon(
                             Icons.bluetooth,
-                            color: Colors.white,
+                            color: signalColor,
                             size: 32,
                           ),
                           title: Text(
                             device.platformName.isNotEmpty
                                 ? device.platformName
                                 : 'Unknown Device',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          subtitle: const Text(
-                            'Tap to connect',
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
+                          subtitle: Row(
+                            children: [
+                              Text(
+                                'Tap to connect',
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${rssi} dBm',
+                                style: TextStyle(
+                                  color: signalColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
-                          trailing: const Icon(
+                          trailing: Icon(
                             Icons.chevron_right,
-                            color: Colors.white,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                           onTap: () async {
-                            print('🔵 [UI] User tapped device: ${device.platformName}');
+                            print(
+                              '🔵 [UI] User tapped device: ${device.platformName}',
+                            );
 
                             // Get app provider reference before popping dialog
                             final appProvider = context.read<AppProvider>();
@@ -284,17 +380,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                             print('🔵 [UI] Calling provider.connect()...');
                             final success = await provider.connect(device);
-                            print(success
-                                ? '✅ [UI] provider.connect() returned success'
-                                : '❌ [UI] provider.connect() returned failure');
+                            print(
+                              success
+                                  ? '✅ [UI] provider.connect() returned success'
+                                  : '❌ [UI] provider.connect() returned failure',
+                            );
 
                             if (success && provider.deviceInfo.isConnected) {
-                              print('✅ [UI] Device is connected, initializing app provider...');
+                              print(
+                                '✅ [UI] Device is connected, initializing app provider...',
+                              );
                               await appProvider.initialize();
                               print('✅ [UI] App provider initialized');
                             } else {
-                              print('❌ [UI] Device not connected after connect() call');
-                              print('  Connection state: ${provider.deviceInfo.connectionState}');
+                              print(
+                                '❌ [UI] Device not connected after connect() call',
+                              );
+                              print(
+                                '  Connection state: ${provider.deviceInfo.connectionState}',
+                              );
                               print('  Error: ${provider.error}');
                             }
                           },
@@ -317,60 +421,77 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final shouldHideUI = _isMapFullscreen && _currentIndex == 2;
 
     return Scaffold(
-      appBar: shouldHideUI ? null : AppBar(
-        title: _buildCompactStatusBar(),
-        actions: [
-          PopupMenuButton(
-            icon: const Icon(Icons.more_vert),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                child: const Row(
-                  children: [
-                    Icon(Icons.map),
-                    SizedBox(width: 8),
-                    Text('Map Management'),
+      appBar: shouldHideUI
+          ? null
+          : AppBar(
+              title: _buildCompactStatusBar(),
+              actions: [
+                Consumer<ConnectionProvider>(
+                  builder: (context, provider, child) {
+                    if (provider.deviceInfo.isConnected) {
+                      return IconButton(
+                        onPressed: () async {
+                          await provider.disconnect();
+                        },
+                        icon: const Icon(Icons.power_settings_new),
+                        tooltip: 'Disconnect',
+                        color: Colors.red.shade700,
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+                PopupMenuButton(
+                  icon: const Icon(Icons.more_vert),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      child: const Row(
+                        children: [
+                          Icon(Icons.map),
+                          SizedBox(width: 8),
+                          Text('Map Management'),
+                        ],
+                      ),
+                      onTap: () {
+                        Future.delayed(Duration.zero, () {
+                          final appProvider = context.read<AppProvider>();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MapManagementScreen(
+                                tileCacheService: appProvider.tileCacheService,
+                              ),
+                            ),
+                          );
+                        });
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: const Row(
+                        children: [
+                          Icon(Icons.settings),
+                          SizedBox(width: 8),
+                          Text('Settings'),
+                        ],
+                      ),
+                      onTap: () {
+                        Future.delayed(Duration.zero, () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SettingsScreen(
+                                onThemeChanged: widget.onThemeChanged,
+                                currentTheme: widget.currentTheme,
+                              ),
+                            ),
+                          );
+                        });
+                      },
+                    ),
                   ],
                 ),
-                onTap: () {
-                  Future.delayed(Duration.zero, () {
-                    final appProvider = context.read<AppProvider>();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MapManagementScreen(
-                          tileCacheService: appProvider.tileCacheService,
-                        ),
-                      ),
-                    );
-                  });
-                },
-              ),
-              PopupMenuItem(
-                child: const Row(
-                  children: [
-                    Icon(Icons.settings),
-                    SizedBox(width: 8),
-                    Text('Settings'),
-                  ],
-                ),
-                onTap: () {
-                  Future.delayed(Duration.zero, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SettingsScreen(
-                          onThemeChanged: widget.onThemeChanged,
-                          currentTheme: widget.currentTheme,
-                        ),
-                      ),
-                    );
-                  });
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
+              ],
+            ),
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -385,44 +506,46 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
         ],
       ),
-      bottomNavigationBar: shouldHideUI ? null : Consumer2<MessagesProvider, ContactsProvider>(
-        builder: (context, messagesProvider, contactsProvider, child) {
-          final unreadCount = messagesProvider.unreadCount;
-          final newContactsCount = contactsProvider.newContactsCount;
+      bottomNavigationBar: shouldHideUI
+          ? null
+          : Consumer2<MessagesProvider, ContactsProvider>(
+              builder: (context, messagesProvider, contactsProvider, child) {
+                final unreadCount = messagesProvider.unreadCount;
+                final newContactsCount = contactsProvider.newContactsCount;
 
-          return Container(
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: TabBar(
-              controller: _tabController,
-              tabs: [
-                Tab(
-                  icon: _buildTabIconWithBadge(
-                    Icons.message,
-                    unreadCount,
+                return Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
                   ),
-                  text: 'Messages',
-                ),
-                Tab(
-                  icon: _buildTabIconWithBadge(
-                    Icons.contacts,
-                    newContactsCount,
+                  child: TabBar(
+                    controller: _tabController,
+                    tabs: [
+                      Tab(
+                        icon: _buildTabIconWithBadge(
+                          Icons.message,
+                          unreadCount,
+                        ),
+                        text: 'Messages',
+                      ),
+                      Tab(
+                        icon: _buildTabIconWithBadge(
+                          Icons.contacts,
+                          newContactsCount,
+                        ),
+                        text: 'Contacts',
+                      ),
+                      const Tab(icon: Icon(Icons.map), text: 'Map'),
+                    ],
                   ),
-                  text: 'Contacts',
-                ),
-                const Tab(icon: Icon(Icons.map), text: 'Map'),
-              ],
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 
@@ -432,7 +555,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         final deviceInfo = provider.deviceInfo;
         final isConnected = deviceInfo.isConnected;
 
-        print('🎨 [UI] Building status bar - isConnected: $isConnected, state: ${deviceInfo.connectionState}');
+        print(
+          '🎨 [UI] Building status bar - isConnected: $isConnected, state: ${deviceInfo.connectionState}',
+        );
 
         return Row(
           children: [
@@ -443,24 +568,46 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   const Text(
                     'MeshCore',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  Text(
-                    isConnected
-                        ? deviceInfo.displayName ?? 'Connected'
-                        : (provider.isReconnecting
-                            ? 'Reconnecting... (${provider.reconnectionAttempt}/${provider.maxReconnectionAttempts})'
-                            : 'Disconnected'),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: provider.isReconnecting
-                          ? Colors.orange[600]
-                          : Colors.grey[600],
+                  if (isConnected)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // BLE connection strength indicator
+                        Icon(
+                          Icons.bluetooth_connected,
+                          color: deviceInfo.signalRssi != null
+                              ? _getSignalColor(deviceInfo.signalRssi!)
+                              : Colors.grey,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        // Battery indicator
+                        if (deviceInfo.batteryPercent != null) ...[
+                          Icon(
+                            _getBatteryIcon(deviceInfo.batteryPercent!),
+                            color: _getBatteryColor(deviceInfo.batteryPercent!),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${deviceInfo.batteryPercent!.round()}%',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: _getBatteryColor(
+                                deviceInfo.batteryPercent!,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    )
+                  else if (provider.isReconnecting)
+                    Text(
+                      'Reconnecting... (${provider.reconnectionAttempt}/${provider.maxReconnectionAttempts})',
+                      style: TextStyle(fontSize: 14, color: Colors.orange[600]),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -478,13 +625,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             height: 14,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.black54),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.black54,
+                              ),
                             ),
                           )
                         : const Icon(Icons.bluetooth, size: 18),
-                    label: Text(provider.isReconnecting
-                        ? 'Reconnecting (${provider.reconnectionAttempt}/${provider.maxReconnectionAttempts})'
-                        : 'Connect'),
+                    label: Text(
+                      provider.isReconnecting
+                          ? 'Reconnecting (${provider.reconnectionAttempt}/${provider.maxReconnectionAttempts})'
+                          : 'Connect',
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black87,
@@ -514,15 +665,27 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Advertise button (broadcast location)
+                  FilledButton(
+                    onPressed: () => _advertiseDevice(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.blue.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.all(10),
+                      minimumSize: const Size(40, 40),
+                      shape: const CircleBorder(),
+                    ),
+                    child: const Icon(Icons.campaign, size: 20),
+                  ),
+                  const SizedBox(width: 8),
                   // RX/TX indicators with long press to open packet log
                   GestureDetector(
                     onLongPress: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PacketLogScreen(
-                            bleService: provider.bleService,
-                          ),
+                          builder: (context) =>
+                              PacketLogScreen(bleService: provider.bleService),
                         ),
                       );
                     },
@@ -597,9 +760,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PacketLogScreen(
-                            bleService: provider.bleService,
-                          ),
+                          builder: (context) =>
+                              PacketLogScreen(bleService: provider.bleService),
                         ),
                       );
                     },
@@ -610,34 +772,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       child: const Icon(Icons.settings, size: 20),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  // Advertise button (broadcast location)
-                  FilledButton(
-                    onPressed: () => _advertiseDevice(context),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.all(10),
-                      minimumSize: const Size(40, 40),
-                      shape: const CircleBorder(),
-                    ),
-                    child: const Icon(Icons.campaign, size: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  // Disconnect button (prominent, icon only)
-                  FilledButton(
-                    onPressed: () async {
-                      await provider.disconnect();
-                    },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.red.shade700,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.all(10),
-                      minimumSize: const Size(40, 40),
-                      shape: const CircleBorder(),
-                    ),
-                    child: const Icon(Icons.power_settings_new, size: 20),
-                  ),
+                  const SizedBox(width: 16),
+
+                  // Disconnect button (prominent, icon only) - pushed to far right edge
                 ],
               ),
           ],
@@ -661,7 +798,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   // Connection status
                   Icon(
-                    isConnected ? Icons.bluetooth_connected : Icons.bluetooth_disabled,
+                    isConnected
+                        ? Icons.bluetooth_connected
+                        : Icons.bluetooth_disabled,
                     color: isConnected ? Colors.green : Colors.grey,
                   ),
                   const SizedBox(width: 8),
@@ -764,7 +903,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       Expanded(
                         child: Text(
                           provider.error!,
-                          style: const TextStyle(color: Colors.red, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -822,10 +964,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               color: Colors.red,
               shape: BoxShape.circle,
             ),
-            constraints: const BoxConstraints(
-              minWidth: 18,
-              minHeight: 18,
-            ),
+            constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
             child: Text(
               count > 99 ? '99+' : count.toString(),
               style: const TextStyle(

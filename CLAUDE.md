@@ -32,7 +32,10 @@ AI assistant guide for the MeshCore SAR Flutter application.
 
 ```
 lib/
-├── models/              # Data models (contact, message, sar_marker, device_info, room_login_state, map_layer)
+├── models/              # Data models
+│   ├── contact.dart, message.dart, sar_marker.dart
+│   ├── map_drawing.dart           # MapDrawing, LineDrawing, RectangleDrawing
+│   ├── device_info.dart, room_login_state.dart, map_layer.dart
 ├── services/            # Business logic
 │   ├── meshcore_ble_service.dart      # BLE coordinator (399 lines)
 │   ├── protocol/                      # Frame parsing & building (628 lines)
@@ -40,10 +43,23 @@ lib/
 │   ├── location_tracking_service.dart # GPS + mesh broadcast (501 lines)
 │   ├── map_marker_service.dart        # Marker generation + geodesic (518 lines)
 │   └── validation_service.dart        # Form validation (511 lines)
-├── providers/           # State management (ConnectionProvider, ContactsProvider, MessagesProvider, MapProvider, AppProvider)
+├── providers/           # State management
+│   ├── connection_provider.dart       # BLE connection state
+│   ├── contacts_provider.dart         # Contact list
+│   ├── messages_provider.dart         # Messages + SAR markers
+│   ├── map_provider.dart              # Map navigation
+│   ├── drawing_provider.dart          # Map drawing state
+│   └── app_provider.dart              # Coordinator (uses all above)
 ├── screens/             # UI screens (home, messages, contacts, map, settings, device_config, map_management, packet_log)
-├── widgets/             # Reusable components (map_markers, messages/, contacts/, map/)
-└── utils/               # Utilities (sar_message_parser)
+├── widgets/             # Reusable components
+│   ├── map_markers.dart               # Map marker rendering
+│   ├── map/                           # Map-specific widgets
+│   │   ├── drawing_layer.dart         # Drawing rendering on map
+│   │   └── drawing_toolbar.dart       # Drawing UI controls
+│   ├── messages/, contacts/           # Feature-specific widgets
+└── utils/               # Utilities
+    ├── sar_message_parser.dart        # SAR marker parsing
+    └── drawing_message_parser.dart    # Drawing message parsing
 ```
 
 ## MeshCore Protocol
@@ -195,14 +211,64 @@ Format: `[Channel] [Type] [Data...]`
 
 ### SAR Message Format
 
-Format: `S:<emoji>:<latitude>,<longitude>`
+Format: `S:<emoji>:<latitude>,<longitude>:<optional_message>`
 
 **Recognized Emojis:**
 - 🧑 or 👤: Found Person
 - 🔥: Fire Location
 - 🏕️ or ⛺: Staging Area
 
-**Rules:** Must start with `S:`, single emoji after first colon, comma-separated lat/lon, no spaces
+**Rules:**
+- Must start with `S:`
+- Single emoji after first colon
+- Comma-separated lat/lon coordinates
+- Optional message after third colon (displayed in message bubble)
+- No spaces in coordinates section
+
+**Examples:**
+- `S:🧑:37.7749,-122.4194` - Basic SAR marker
+- `S:🔥:40.7128,-74.0060:Large wildfire spreading rapidly` - With message
+- `S:🏕️:34.0522,-118.2437:Base camp established, supplies available` - With detailed note
+
+**Message Display:**
+- SAR markers shown with highlighted colored bubble
+- Emoji, type name, and coordinates always displayed
+- Optional message shown in secondary container below coordinates
+- Tap to navigate to location on map
+
+### Map Drawing Message Format
+
+Format: `D:<json>`
+
+**Ultra-Compact JSON Format:**
+- **Prefix**: `D:` identifies drawing messages
+- **Sender**: Extracted from packet metadata (not in JSON)
+- **Type field (`t`)**: Shape type as integer
+  - `0`: Line drawing
+  - `1`: Rectangle drawing
+- **Color field (`c`)**: Color index (0-7)
+  - `0`: Red, `1`: Blue, `2`: Green, `3`: Yellow
+  - `4`: Orange, `5`: Purple, `6`: Pink, `7`: Cyan
+- **Points field (`p`)**: Flat array of coordinates `[lat1,lon1,lat2,lon2,...]`
+- **Bounds field (`b`)**: Rectangle bounds `[topLat,topLon,botLat,botLon]`
+
+**Example Line Drawing (red, 2 points):**
+```json
+D:{"t":0,"c":0,"p":[45.123,-122.456,45.234,-122.567]}
+```
+
+**Example Rectangle Drawing (blue):**
+```json
+D:{"t":1,"c":1,"b":[45.1,-122.5,45.2,-122.4]}
+```
+
+**Implementation Details:**
+- Models: `lib/models/map_drawing.dart` (MapDrawing, LineDrawing, RectangleDrawing)
+- Parser: `lib/utils/drawing_message_parser.dart` (DrawingMessageParser)
+- Provider: `lib/providers/drawing_provider.dart` (DrawingProvider)
+- Colors: 8 predefined colors mapped to indices for bandwidth efficiency
+- Local persistence uses full JSON format with timestamps and IDs
+- Network transmission uses ultra-compact format (~37% size reduction)
 
 ## State Management Architecture
 
@@ -213,6 +279,7 @@ MultiProvider
 ├── ContactsProvider        # Contact list
 ├── MessagesProvider        # Messages + SAR markers
 ├── MapProvider            # Map navigation
+├── DrawingProvider        # Map drawing state
 └── AppProvider            # Coordinator (uses all above)
 ```
 
@@ -222,8 +289,16 @@ BLE Device → MeshCoreBleService → ConnectionProvider → AppProvider
                                          ↓
                                   ContactsProvider
                                   MessagesProvider
+                                  DrawingProvider
                                          ↓
                                         UI
+```
+
+**Drawing Message Flow:**
+```
+User draws → DrawingProvider → DrawingToolbar (share) → ConnectionProvider (BLE)
+                                                              ↓
+Remote User ← UI ← DrawingProvider ← AppProvider ← ConnectionProvider ← BLE Device
 ```
 
 **Contact Types:**
@@ -320,6 +395,28 @@ Ultra-compact location display, tap to toggle DD/DMS formats, no close button (t
 1. Add to model in `lib/models/map_layer.dart`
 2. Add to `allLayers` list
 3. Layer appears automatically in layer selector UI
+
+### Working with Map Drawings
+**Drawing Flow:**
+1. User selects drawing mode (line/rectangle) → `DrawingProvider.setDrawingMode()`
+2. User taps map → touch events captured by `DrawingLayer`
+3. Preview rendered during drawing → `DrawingProvider.getPreviewDrawing()`
+4. User completes drawing → saved to `DrawingProvider._drawings` list
+5. User shares drawing → `DrawingToolbar._shareDrawingsToChannel()` or `_shareDrawingsToRoom()`
+6. Message sent via BLE → `ConnectionProvider.sendChannelMessage()` or `sendTextMessage()`
+7. Receiver parses message → `DrawingMessageParser.parseDrawingMessage()` with sender from packet
+8. Drawing added to map → `DrawingProvider.addReceivedDrawing()`
+
+**Color Management:**
+- UI uses `DrawingColors.palette` (8 Flutter Color objects)
+- Network uses color indices (0-7) via `DrawingColors.colorToIndex()`/`indexToColor()`
+- Persistence uses full ARGB32 color values
+
+**Key Files:**
+- Models: `lib/models/map_drawing.dart` (278 lines)
+- Parser: `lib/utils/drawing_message_parser.dart` (45 lines)
+- Provider: `lib/providers/drawing_provider.dart` (280 lines)
+- UI: `lib/widgets/map/drawing_toolbar.dart`, `lib/widgets/map/drawing_layer.dart`
 
 ## Build Commands
 

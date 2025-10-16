@@ -453,10 +453,8 @@ class DrawingToolbar extends StatelessWidget {
     for (final drawing in drawings) {
       try {
         debugPrint('  Creating message for drawing ${drawing.id}...');
-        final message = drawingProvider.createDrawingBroadcastMessage(
-          drawing,
-          senderName,
-        );
+        // Sender name is no longer included in JSON - will be extracted from packet metadata
+        final message = drawingProvider.createDrawingBroadcastMessage(drawing);
         debugPrint('  Message created (${message.length} chars): ${message.substring(0, message.length > 100 ? 100 : message.length)}...');
         debugPrint('  Sending to channel 0...');
         await connectionProvider.sendChannelMessage(
@@ -525,10 +523,8 @@ class DrawingToolbar extends StatelessWidget {
     for (final drawing in drawings) {
       try {
         debugPrint('  Creating message for drawing ${drawing.id}...');
-        final message = drawingProvider.createDrawingBroadcastMessage(
-          drawing,
-          senderName,
-        );
+        // Sender name is no longer included in JSON - will be extracted from packet metadata
+        final message = drawingProvider.createDrawingBroadcastMessage(drawing);
         debugPrint('  Message created (${message.length} chars): ${message.substring(0, message.length > 100 ? 100 : message.length)}...');
         debugPrint('  Sending to room ${room.advName}...');
         await connectionProvider.sendTextMessage(

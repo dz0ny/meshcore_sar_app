@@ -273,7 +273,8 @@ class DrawingProvider with ChangeNotifier {
 
   /// Broadcast a drawing to contacts
   /// Returns the formatted message string ready to send
-  String createDrawingBroadcastMessage(MapDrawing drawing, String senderName) {
-    return DrawingMessageParser.createDrawingMessage(drawing, senderName);
+  /// Sender will be determined from packet metadata on receiving end
+  String createDrawingBroadcastMessage(MapDrawing drawing) {
+    return DrawingMessageParser.createDrawingMessage(drawing);
   }
 }

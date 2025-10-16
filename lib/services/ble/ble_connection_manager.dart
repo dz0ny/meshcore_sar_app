@@ -6,6 +6,7 @@ import '../meshcore_constants.dart';
 typedef OnConnectionStateCallback = void Function(bool isConnected);
 typedef OnErrorCallback = void Function(String error);
 typedef OnReconnectionAttemptCallback = void Function(int attemptNumber, int maxAttempts);
+typedef OnRssiUpdateCallback = void Function(int rssi);
 
 /// Manages BLE connection lifecycle with automatic reconnection
 class BleConnectionManager {
@@ -20,6 +21,10 @@ class BleConnectionManager {
   int _reconnectionAttempt = 0;
   Timer? _reconnectionTimer;
   StreamSubscription<BluetoothConnectionState>? _connectionStateSubscription;
+
+  // RSSI monitoring
+  Timer? _rssiTimer;
+  int? _lastRssi;
 
   // SAR-optimized reconnection: ~15 minutes total
   // Pattern: Fast retries first (for temporary issues), then slower retries (for extended disconnections)
@@ -38,6 +43,7 @@ class BleConnectionManager {
   OnConnectionStateCallback? onConnectionStateChanged;
   OnErrorCallback? onError;
   OnReconnectionAttemptCallback? onReconnectionAttempt;
+  OnRssiUpdateCallback? onRssiUpdate;
 
   // Getters
   bool get isConnected => _isConnected;
@@ -49,7 +55,7 @@ class BleConnectionManager {
   BluetoothCharacteristic? get txCharacteristic => _txCharacteristic;
 
   /// Scan for MeshCore devices
-  Stream<BluetoothDevice> scanForDevices({Duration timeout = const Duration(seconds: 10)}) async* {
+  Stream<ScanResult> scanForDevices({Duration timeout = const Duration(seconds: 10)}) async* {
     try {
       print('🔍 [BLE] Starting scan for MeshCore devices...');
       print('  Service UUID: ${MeshCoreConstants.bleServiceUuid}');
@@ -73,7 +79,7 @@ class BleConnectionManager {
               .contains(Guid(MeshCoreConstants.bleServiceUuid))) {
             deviceCount++;
             print('  ✅ MeshCore device found! Total: $deviceCount');
-            yield result.device;
+            yield result;
           } else {
             print('  ❌ Not a MeshCore device (service UUID mismatch)');
           }
@@ -170,6 +176,9 @@ class BleConnectionManager {
       // Monitor connection state for automatic reconnection
       _setupConnectionMonitoring();
 
+      // Start RSSI monitoring
+      _startRssiMonitoring();
+
       print('✅✅✅ [BLE] Connection completed successfully!');
       return true;
     } catch (e) {
@@ -189,6 +198,7 @@ class BleConnectionManager {
       // Disable reconnection before disconnecting
       _reconnectionEnabled = false;
       _cancelReconnection();
+      _stopRssiMonitoring();
 
       await _device?.disconnect();
       _isConnected = false;
@@ -317,10 +327,40 @@ class BleConnectionManager {
     _reconnectionEnabled = true;
   }
 
+  /// Start monitoring RSSI in the background
+  void _startRssiMonitoring() {
+    print('📡 [BLE] Starting RSSI monitoring (every 5 seconds)');
+    _stopRssiMonitoring(); // Cancel any existing timer
+
+    _rssiTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      if (_device != null && _isConnected) {
+        try {
+          final rssi = await _device!.readRssi();
+          if (_lastRssi != rssi) {
+            _lastRssi = rssi;
+            print('📡 [BLE] RSSI updated: $rssi dBm');
+            onRssiUpdate?.call(rssi);
+          }
+        } catch (e) {
+          print('⚠️ [BLE] Failed to read RSSI: $e');
+        }
+      }
+    });
+  }
+
+  /// Stop RSSI monitoring
+  void _stopRssiMonitoring() {
+    _rssiTimer?.cancel();
+    _rssiTimer = null;
+    _lastRssi = null;
+    print('📡 [BLE] RSSI monitoring stopped');
+  }
+
   /// Dispose resources
   void dispose() {
     print('🔴 [BLE] Disposing BLE connection manager');
     _cancelReconnection();
+    _stopRssiMonitoring();
     _device = null;
     _rxCharacteristic = null;
     _txCharacteristic = null;

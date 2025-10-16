@@ -117,7 +117,6 @@ class _MessagesTabState extends State<MessagesTab> {
     }
   }
 
-
   void _showSarDialog() {
     showModalBottomSheet(
       context: context,
@@ -125,7 +124,13 @@ class _MessagesTabState extends State<MessagesTab> {
       backgroundColor: Colors.transparent,
       builder: (context) => SarUpdateSheet(
         onSend: (sarType, position, notes, roomPublicKey, sendToChannel) async {
-          await _sendSarMessage(sarType, position, notes, roomPublicKey, sendToChannel);
+          await _sendSarMessage(
+            sarType,
+            position,
+            notes,
+            roomPublicKey,
+            sendToChannel,
+          );
         },
       ),
     );
@@ -155,7 +160,8 @@ class _MessagesTabState extends State<MessagesTab> {
 
     try {
       // Format: S:<emoji>:<latitude>,<longitude>
-      final sarMessage = 'S:${sarType.emoji}:${position.latitude},${position.longitude}';
+      final sarMessage =
+          'S:${sarType.emoji}:${position.latitude},${position.longitude}';
 
       // Add notes if provided
       final fullMessage = notes != null && notes.isNotEmpty
@@ -170,7 +176,10 @@ class _MessagesTabState extends State<MessagesTab> {
         );
 
         if (!mounted) return;
-        ToastLogger.warning(context, '${sarType.displayName} marker broadcast to public channel');
+        ToastLogger.warning(
+          context,
+          '${sarType.displayName} marker broadcast to public channel',
+        );
       } else {
         // Create message ID
         final messageId = '${DateTime.now().millisecondsSinceEpoch}_sent';
@@ -202,7 +211,7 @@ class _MessagesTabState extends State<MessagesTab> {
         final contactsProvider = context.read<ContactsProvider>();
         final roomContact = contactsProvider.contacts.where((c) {
           return c.publicKey.length >= roomPublicKey!.length &&
-                 _publicKeysMatch(c.publicKey, roomPublicKey!);
+              _publicKeysMatch(c.publicKey, roomPublicKey!);
         }).firstOrNull;
 
         // Send SAR message to selected room (persisted and immutable)
@@ -219,14 +228,16 @@ class _MessagesTabState extends State<MessagesTab> {
         }
 
         if (!mounted) return;
-        ToastLogger.success(context, '${sarType.displayName} marker sent to room');
+        ToastLogger.success(
+          context,
+          '${sarType.displayName} marker sent to room',
+        );
       }
     } catch (e) {
       if (!mounted) return;
       ToastLogger.error(context, 'Failed to send SAR marker: $e');
     }
   }
-
 
   /// Handle pull-to-refresh for manual message sync
   /// This is a FALLBACK mechanism - messages are normally synced automatically via PUSH_CODE_MSG_WAITING
@@ -242,8 +253,6 @@ class _MessagesTabState extends State<MessagesTab> {
     try {
       print('🔄 [MessagesTab] Manual refresh triggered - syncing messages');
       final messageCount = await connectionProvider.syncAllMessages();
-      print('✅ [MessagesTab] Synced $messageCount message(s)');
-
       if (!mounted) return;
       if (messageCount > 0) {
         ToastLogger.success(context, 'Synced $messageCount message(s)');
@@ -277,65 +286,73 @@ class _MessagesTabState extends State<MessagesTab> {
                 onRefresh: _handleRefresh,
                 child: messages.isEmpty
                     ? LayoutBuilder(
-                        builder: (context, constraints) => SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.message_outlined,
-                                    size: 64,
-                                    color: Theme.of(context).disabledColor,
+                        builder: (context, constraints) =>
+                            SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight: constraints.maxHeight,
+                                ),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.message_outlined,
+                                        size: 64,
+                                        color: Theme.of(context).disabledColor,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No messages yet',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleLarge,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Pull down to sync messages',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No messages yet',
-                                    style: Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Pull down to sync messages',
-                                    style: Theme.of(context).textTheme.bodyMedium,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        ),
                       )
                     : ListView.builder(
-                      reverse: true,
-                      padding: const EdgeInsets.all(8),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final message = messages[index];
+                        reverse: true,
+                        padding: const EdgeInsets.all(8),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
 
-                        // Display system messages with minimal styling
-                        if (message.isSystemMessage) {
-                          return _SystemMessageBubble(message: message);
-                        }
+                          // Display system messages with minimal styling
+                          if (message.isSystemMessage) {
+                            return _SystemMessageBubble(message: message);
+                          }
 
-                        return _MessageBubble(
-                          message: message,
-                          onTap: message.isSarMarker &&
-                                  message.sarGpsCoordinates != null
-                              ? () {
-                                  final mapProvider =
-                                      context.read<MapProvider>();
-                                  mapProvider.navigateToLocation(
-                                    location: message.sarGpsCoordinates!,
-                                    zoom: 15.0,
-                                  );
-                                  widget.onNavigateToMap();
-                                }
-                              : null,
-                        );
-                      },
-                    ),
+                          return _MessageBubble(
+                            message: message,
+                            onTap:
+                                message.isSarMarker &&
+                                    message.sarGpsCoordinates != null
+                                ? () {
+                                    final mapProvider = context
+                                        .read<MapProvider>();
+                                    mapProvider.navigateToLocation(
+                                      location: message.sarGpsCoordinates!,
+                                      zoom: 15.0,
+                                    );
+                                    widget.onNavigateToMap();
+                                  }
+                                : null,
+                          );
+                        },
+                      ),
               ),
             ),
 
@@ -352,68 +369,72 @@ class _MessagesTabState extends State<MessagesTab> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // SAR quick action button
-                      IconButton(
-                        icon: const Icon(Icons.add_location_alt),
-                        tooltip: 'Send SAR marker',
-                        onPressed: _showSarDialog,
-                        style: IconButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Text field with embedded send button
-                      Expanded(
-                        child: TextField(
-                          controller: _textController,
-                          focusNode: _focusNode,
-                          maxLength: _maxCharacters,
-                          maxLines: null,
-                          maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                          style: const TextStyle(fontSize: 14),
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            hintStyle: const TextStyle(fontSize: 14),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            isDense: true,
-                            counterText: _characterCount >= 150
-                                ? '$_characterCount/$_maxCharacters'
-                                : '',
-                            counterStyle: TextStyle(
-                              fontSize: 10,
-                              color: _characterCount > _maxCharacters * 0.9
-                                  ? Colors.orange
-                                  : Theme.of(context).textTheme.bodySmall?.color,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                Icons.send_rounded,
-                                size: 22,
-                                color: _textController.text.trim().isEmpty
-                                    ? Theme.of(context).disabledColor
-                                    : Theme.of(context).colorScheme.primary,
-                              ),
-                              onPressed: _textController.text.trim().isEmpty
-                                  ? null
-                                  : _sendMessage,
-                              tooltip: 'Send',
-                            ),
-                          ),
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _sendMessage(),
-                        ),
-                      ),
-                    ],
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // SAR quick action button
+                  IconButton(
+                    icon: const Icon(Icons.add_location_alt),
+                    tooltip: 'Send SAR marker',
+                    onPressed: _showSarDialog,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer,
+                      foregroundColor: Theme.of(
+                        context,
+                      ).colorScheme.onPrimaryContainer,
+                    ),
                   ),
+                  const SizedBox(width: 8),
+                  // Text field with embedded send button
+                  Expanded(
+                    child: TextField(
+                      controller: _textController,
+                      focusNode: _focusNode,
+                      maxLength: _maxCharacters,
+                      maxLines: null,
+                      maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                      style: const TextStyle(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        hintStyle: const TextStyle(fontSize: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        isDense: true,
+                        counterText: _characterCount >= 150
+                            ? '$_characterCount/$_maxCharacters'
+                            : '',
+                        counterStyle: TextStyle(
+                          fontSize: 10,
+                          color: _characterCount > _maxCharacters * 0.9
+                              ? Colors.orange
+                              : Theme.of(context).textTheme.bodySmall?.color,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            Icons.send_rounded,
+                            size: 22,
+                            color: _textController.text.trim().isEmpty
+                                ? Theme.of(context).disabledColor
+                                : Theme.of(context).colorScheme.primary,
+                          ),
+                          onPressed: _textController.text.trim().isEmpty
+                              ? null
+                              : _sendMessage,
+                          tooltip: 'Send',
+                        ),
+                      ),
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         );
@@ -426,10 +447,7 @@ class _MessageBubble extends StatelessWidget {
   final Message message;
   final VoidCallback? onTap;
 
-  const _MessageBubble({
-    required this.message,
-    this.onTap,
-  });
+  const _MessageBubble({required this.message, this.onTap});
 
   /// Helper method to compare two public keys for equality
   bool _publicKeysMatch(Uint8List key1, Uint8List key2) {
@@ -440,7 +458,10 @@ class _MessageBubble extends StatelessWidget {
     return true;
   }
 
-  Future<void> _retryFailedMessage(BuildContext context, Message failedMessage) async {
+  Future<void> _retryFailedMessage(
+    BuildContext context,
+    Message failedMessage,
+  ) async {
     final connectionProvider = context.read<ConnectionProvider>();
     final messagesProvider = context.read<MessagesProvider>();
 
@@ -467,15 +488,19 @@ class _MessageBubble extends StatelessWidget {
         // Direct message retry (for SAR markers sent to rooms)
         if (failedMessage.recipientPublicKey == null) {
           messagesProvider.markMessageFailed(retryMessageId);
-          ToastLogger.error(context, 'Cannot retry: recipient information missing');
+          ToastLogger.error(
+            context,
+            'Cannot retry: recipient information missing',
+          );
           return;
         }
 
         // Look up the room contact for path logging
         final contactsProvider = context.read<ContactsProvider>();
         final roomContact = contactsProvider.contacts.where((c) {
-          return c.publicKey.length >= failedMessage.recipientPublicKey!.length &&
-                 _publicKeysMatch(c.publicKey, failedMessage.recipientPublicKey!);
+          return c.publicKey.length >=
+                  failedMessage.recipientPublicKey!.length &&
+              _publicKeysMatch(c.publicKey, failedMessage.recipientPublicKey!);
         }).firstOrNull;
 
         // Resend to the same room
@@ -511,12 +536,14 @@ class _MessageBubble extends StatelessWidget {
     // Determine if this is own message
     final connectionProvider = context.read<ConnectionProvider>();
     final selfPublicKey = connectionProvider.deviceInfo.publicKey;
-    final isOwnMessage = message.isSentMessage || message.isFromSelf(selfPublicKey);
+    final isOwnMessage =
+        message.isSentMessage || message.isFromSelf(selfPublicKey);
 
     // Check if we can reply to this message (must be contact message from someone else)
-    final canReply = message.isContactMessage &&
-                    !isOwnMessage &&
-                    message.senderPublicKeyPrefix != null;
+    final canReply =
+        message.isContactMessage &&
+        !isOwnMessage &&
+        message.senderPublicKeyPrefix != null;
 
     showModalBottomSheet(
       context: context,
@@ -552,7 +579,10 @@ class _MessageBubble extends StatelessWidget {
             // Delete message option
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Delete message', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Delete message',
+                style: TextStyle(color: Colors.red),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _showDeleteConfirmation(context);
@@ -575,7 +605,12 @@ class _MessageBubble extends StatelessWidget {
 
     // Find contact by public key prefix (first 6 bytes)
     final senderKeyHex = message.senderPublicKeyPrefix!
-        .sublist(0, message.senderPublicKeyPrefix!.length < 6 ? message.senderPublicKeyPrefix!.length : 6)
+        .sublist(
+          0,
+          message.senderPublicKeyPrefix!.length < 6
+              ? message.senderPublicKeyPrefix!.length
+              : 6,
+        )
         .map((b) => b.toRadixString(16).padLeft(2, '0'))
         .join('');
 
@@ -633,7 +668,8 @@ class _MessageBubble extends StatelessWidget {
     // after loading from storage
     final connectionProvider = context.read<ConnectionProvider>();
     final selfPublicKey = connectionProvider.deviceInfo.publicKey;
-    final isOwnMessage = message.isSentMessage || message.isFromSelf(selfPublicKey);
+    final isOwnMessage =
+        message.isSentMessage || message.isFromSelf(selfPublicKey);
 
     // Debug logging for sent messages
     if (message.isSentMessage) {
@@ -642,9 +678,13 @@ class _MessageBubble extends StatelessWidget {
       debugPrint('   Delivery Status: ${message.deliveryStatus.name}');
       debugPrint('   isSentMessage: ${message.isSentMessage}');
       debugPrint('   isOwnMessage: $isOwnMessage');
-      debugPrint('   Has recipientPublicKey: ${message.recipientPublicKey != null}');
+      debugPrint(
+        '   Has recipientPublicKey: ${message.recipientPublicKey != null}',
+      );
       if (message.recipientPublicKey != null) {
-        debugPrint('   Recipient key (first 12 hex): ${message.recipientPublicKey!.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join()}');
+        debugPrint(
+          '   Recipient key (first 12 hex): ${message.recipientPublicKey!.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+        );
       }
     }
 
@@ -654,7 +694,12 @@ class _MessageBubble extends StatelessWidget {
     if (message.senderPublicKeyPrefix != null && !isOwnMessage) {
       // Find contact by public key prefix (first 6 bytes)
       final senderKeyHex = message.senderPublicKeyPrefix!
-          .sublist(0, message.senderPublicKeyPrefix!.length < 6 ? message.senderPublicKeyPrefix!.length : 6)
+          .sublist(
+            0,
+            message.senderPublicKeyPrefix!.length < 6
+                ? message.senderPublicKeyPrefix!.length
+                : 6,
+          )
           .map((b) => b.toRadixString(16).padLeft(2, '0'))
           .join('');
 
@@ -671,10 +716,17 @@ class _MessageBubble extends StatelessWidget {
     // For sent direct messages, look up recipient contact
     dynamic recipientContact;
     String? recipientDisplayName;
-    if (isOwnMessage && message.isContactMessage && message.recipientPublicKey != null) {
+    if (isOwnMessage &&
+        message.isContactMessage &&
+        message.recipientPublicKey != null) {
       // Find recipient by public key
       final recipientKeyHex = message.recipientPublicKey!
-          .sublist(0, message.recipientPublicKey!.length < 6 ? message.recipientPublicKey!.length : 6)
+          .sublist(
+            0,
+            message.recipientPublicKey!.length < 6
+                ? message.recipientPublicKey!.length
+                : 6,
+          )
           .map((b) => b.toRadixString(16).padLeft(2, '0'))
           .join('');
 
@@ -686,8 +738,12 @@ class _MessageBubble extends StatelessWidget {
       for (final c in contactsProvider.contacts) {
         debugPrint('   Contact: ${c.displayName ?? c.advName}');
         debugPrint('      Key: ${c.publicKeyHex}');
-        debugPrint('      First 12 chars: ${c.publicKeyHex.substring(0, c.publicKeyHex.length >= 12 ? 12 : c.publicKeyHex.length)}');
-        debugPrint('      Matches: ${c.publicKeyHex.startsWith(recipientKeyHex)}');
+        debugPrint(
+          '      First 12 chars: ${c.publicKeyHex.substring(0, c.publicKeyHex.length >= 12 ? 12 : c.publicKeyHex.length)}',
+        );
+        debugPrint(
+          '      Matches: ${c.publicKeyHex.startsWith(recipientKeyHex)}',
+        );
       }
 
       recipientContact = contactsProvider.contacts.where((c) {
@@ -704,7 +760,8 @@ class _MessageBubble extends StatelessWidget {
         if (roleEmoji != null && roleEmoji.isNotEmpty) {
           recipientDisplayName = '$roleEmoji ${recipientContact.displayName}';
         } else {
-          recipientDisplayName = recipientContact.displayName ?? recipientContact.advName;
+          recipientDisplayName =
+              recipientContact.displayName ?? recipientContact.advName;
         }
         debugPrint('   Final recipient name: $recipientDisplayName');
       } else {
@@ -737,20 +794,24 @@ class _MessageBubble extends StatelessWidget {
                   width: 2,
                 )
               : isOwnMessage
-                  ? Border.all(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                      width: 1.5,
-                    )
-                  : !message.isRead && !message.isSentMessage && !message.isSystemMessage
-                      ? Border.all(
-                          color: Colors.blue,
-                          width: 1.5,
-                        )
-                      : null,
+              ? Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.3),
+                  width: 1.5,
+                )
+              : !message.isRead &&
+                    !message.isSentMessage &&
+                    !message.isSystemMessage
+              ? Border.all(color: Colors.blue, width: 1.5)
+              : null,
           boxShadow: isSarMarker
               ? [
                   BoxShadow(
-                    color: _getSarMarkerBorderColor(context, isDarkMode).withValues(alpha: 0.3),
+                    color: _getSarMarkerBorderColor(
+                      context,
+                      isDarkMode,
+                    ).withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -764,7 +825,10 @@ class _MessageBubble extends StatelessWidget {
             Row(
               children: [
                 // Unread indicator badge
-                if (!message.isRead && !message.isSentMessage && !message.isSystemMessage && !isSarMarker)
+                if (!message.isRead &&
+                    !message.isSentMessage &&
+                    !message.isSystemMessage &&
+                    !isSarMarker)
                   Container(
                     width: 8,
                     height: 8,
@@ -795,7 +859,8 @@ class _MessageBubble extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           'SAR ALERT',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
@@ -806,7 +871,11 @@ class _MessageBubble extends StatelessWidget {
                   )
                 else ...[
                   if (isOwnMessage)
-                    Icon(Icons.account_circle, size: 16, color: Theme.of(context).colorScheme.primary)
+                    Icon(
+                      Icons.account_circle,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                   else if (message.isChannelMessage)
                     const Icon(Icons.tag, size: 16)
                   else
@@ -815,25 +884,33 @@ class _MessageBubble extends StatelessWidget {
                   Text(
                     displayName,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isOwnMessage ? Theme.of(context).colorScheme.primary : null,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: isOwnMessage
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
                   ),
                   // Show recipient for sent direct messages
-                  if (isOwnMessage && message.isContactMessage && recipientDisplayName != null) ...[
+                  if (isOwnMessage &&
+                      message.isContactMessage &&
+                      recipientDisplayName != null) ...[
                     const SizedBox(width: 4),
                     Icon(
                       Icons.arrow_forward,
                       size: 14,
-                      color: Theme.of(context).textTheme.labelSmall?.color?.withValues(alpha: 0.6),
+                      color: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.color?.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       recipientDisplayName,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).textTheme.labelSmall?.color?.withValues(alpha: 0.7),
-                            fontStyle: FontStyle.italic,
-                          ),
+                        color: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.color?.withValues(alpha: 0.7),
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ],
                 ],
@@ -841,8 +918,10 @@ class _MessageBubble extends StatelessWidget {
                 Text(
                   message.timeAgo,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: isSarMarker ? FontWeight.w600 : FontWeight.normal,
-                      ),
+                    fontWeight: isSarMarker
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
                 ),
               ],
             ),
@@ -863,16 +942,14 @@ class _MessageBubble extends StatelessWidget {
                       children: [
                         Text(
                           message.sarMarkerType!.displayName,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         if (message.sarGpsCoordinates != null)
                           Text(
                             '${message.sarGpsCoordinates!.latitude.toStringAsFixed(5)}, ${message.sarGpsCoordinates!.longitude.toStringAsFixed(5)}',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  fontFamily: 'monospace',
-                                ),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(fontFamily: 'monospace'),
                           ),
                       ],
                     ),
@@ -884,13 +961,25 @@ class _MessageBubble extends StatelessWidget {
                   ),
                 ],
               ),
+              // Display SAR notes/message if present
+              if (message.sarNotes != null && message.sarNotes!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    message.sarNotes!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
             ]
             // Regular message content
             else
-              Text(
-                message.text,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(message.text, style: Theme.of(context).textTheme.bodyMedium),
 
             // Delivery status for sent messages
             if (message.isSentMessage) ...[
@@ -907,17 +996,21 @@ class _MessageBubble extends StatelessWidget {
                   Text(
                     message.deliveryStatusText,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: _getDeliveryStatusColor(message.deliveryStatus),
-                          fontStyle: FontStyle.italic,
-                        ),
+                      color: _getDeliveryStatusColor(message.deliveryStatus),
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                   // Show retry button for failed messages
-                  if (message.deliveryStatus == MessageDeliveryStatus.failed) ...[
+                  if (message.deliveryStatus ==
+                      MessageDeliveryStatus.failed) ...[
                     const SizedBox(width: 6),
                     GestureDetector(
                       onTap: () => _retryFailedMessage(context, message),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.orange.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(4),
@@ -926,11 +1019,16 @@ class _MessageBubble extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.refresh, size: 12, color: Colors.orange),
+                            const Icon(
+                              Icons.refresh,
+                              size: 12,
+                              color: Colors.orange,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Retry',
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
                                     color: Colors.orange,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -979,12 +1077,20 @@ class _MessageBubble extends StatelessWidget {
     }
   }
 
-  Color _getMessageBubbleColor(BuildContext context, bool isOwnMessage, bool isDarkMode) {
+  Color _getMessageBubbleColor(
+    BuildContext context,
+    bool isOwnMessage,
+    bool isDarkMode,
+  ) {
     if (isOwnMessage) {
       // Own messages: slightly highlighted with primary color tint
       return isDarkMode
-          ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
-          : Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.15);
+          ? Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.3)
+          : Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.15);
     } else {
       // Others' messages: default surface color
       return Theme.of(context).colorScheme.surfaceVariant;
@@ -1000,24 +1106,24 @@ class _MessageBubble extends StatelessWidget {
     switch (message.sarMarkerType!) {
       case SarMarkerType.foundPerson:
         return isDarkMode
-            ? const Color(0xFF1B5E20).withValues(alpha: 0.4)  // Dark green
-            : const Color(0xFFC8E6C9).withValues(alpha: 0.9);  // Light green
+            ? const Color(0xFF1B5E20).withValues(alpha: 0.4) // Dark green
+            : const Color(0xFFC8E6C9).withValues(alpha: 0.9); // Light green
       case SarMarkerType.fire:
         return isDarkMode
-            ? const Color(0xFFB71C1C).withValues(alpha: 0.4)  // Dark red
-            : const Color(0xFFFFCDD2).withValues(alpha: 0.9);  // Light red
+            ? const Color(0xFFB71C1C).withValues(alpha: 0.4) // Dark red
+            : const Color(0xFFFFCDD2).withValues(alpha: 0.9); // Light red
       case SarMarkerType.stagingArea:
         return isDarkMode
-            ? const Color(0xFF0D47A1).withValues(alpha: 0.4)  // Dark blue
-            : const Color(0xFFBBDEFB).withValues(alpha: 0.9);  // Light blue
+            ? const Color(0xFF0D47A1).withValues(alpha: 0.4) // Dark blue
+            : const Color(0xFFBBDEFB).withValues(alpha: 0.9); // Light blue
       case SarMarkerType.object:
         return isDarkMode
-            ? const Color(0xFF4A148C).withValues(alpha: 0.4)  // Dark purple
-            : const Color(0xFFE1BEE7).withValues(alpha: 0.9);  // Light purple
+            ? const Color(0xFF4A148C).withValues(alpha: 0.4) // Dark purple
+            : const Color(0xFFE1BEE7).withValues(alpha: 0.9); // Light purple
       case SarMarkerType.unknown:
         return isDarkMode
-            ? const Color(0xFF424242).withValues(alpha: 0.4)  // Dark gray
-            : const Color(0xFFEEEEEE).withValues(alpha: 0.9);  // Light gray
+            ? const Color(0xFF424242).withValues(alpha: 0.4) // Dark gray
+            : const Color(0xFFEEEEEE).withValues(alpha: 0.9); // Light gray
     }
   }
 
@@ -1029,15 +1135,15 @@ class _MessageBubble extends StatelessWidget {
     // Use vibrant type-specific colors for borders
     switch (message.sarMarkerType!) {
       case SarMarkerType.foundPerson:
-        return const Color(0xFF4CAF50);  // Green
+        return const Color(0xFF4CAF50); // Green
       case SarMarkerType.fire:
-        return const Color(0xFFF44336);  // Red
+        return const Color(0xFFF44336); // Red
       case SarMarkerType.stagingArea:
-        return const Color(0xFF2196F3);  // Blue
+        return const Color(0xFF2196F3); // Blue
       case SarMarkerType.object:
-        return const Color(0xFF9C27B0);  // Purple
+        return const Color(0xFF9C27B0); // Purple
       case SarMarkerType.unknown:
-        return const Color(0xFF9E9E9E);  // Gray
+        return const Color(0xFF9E9E9E); // Gray
     }
   }
 
@@ -1127,27 +1233,27 @@ class _SystemMessageBubble extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            _getLevelIcon(level),
-            size: 14,
-            color: levelColor,
-          ),
+          Icon(_getLevelIcon(level), size: 14, color: levelColor),
           const SizedBox(width: 6),
           Text(
             message.timeAgo,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-                  fontSize: 10,
-                ),
+              color: Theme.of(
+                context,
+              ).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+              fontSize: 10,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message.text,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: 11,
-                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.8),
-                  ),
+                fontSize: 11,
+                color: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.color?.withValues(alpha: 0.8),
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1157,4 +1263,3 @@ class _SystemMessageBubble extends StatelessWidget {
     );
   }
 }
-

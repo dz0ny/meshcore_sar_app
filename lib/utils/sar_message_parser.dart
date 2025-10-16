@@ -3,17 +3,17 @@ import '../models/sar_marker.dart';
 import '../models/message.dart';
 
 /// Parser for SAR (Search & Rescue) special messages
-/// Format: S:<emoji>:<latitude>,<longitude>
+/// Format: S:<emoji>:<latitude>,<longitude>:<optional_message>
 /// Examples:
 ///   S:🧑:37.7749,-122.4194
-///   S:🔥:40.7128,-74.0060
-///   S:🏕️:34.0522,-118.2437
+///   S:🔥:40.7128,-74.0060:Large wildfire spreading
+///   S:🏕️:34.0522,-118.2437:Base camp established
 class SarMessageParser {
-  // Updated regex to allow optional notes after coordinates
-  // Captures: emoji (one or more non-colon chars), latitude, longitude
+  // Updated regex to capture optional message after coordinates
+  // Captures: emoji (one or more non-colon chars), latitude, longitude, optional message
   // Note: Emojis are multi-byte characters, so we use [^:]+ instead of .
   static final RegExp _sarPattern = RegExp(
-    r'^S:([^:]+):(-?\d+\.?\d*),(-?\d+\.?\d*)',
+    r'^S:([^:]+):(-?\d+\.?\d*),(-?\d+\.?\d*):?(.*)',
     multiLine: false,
   );
 
@@ -39,6 +39,7 @@ class SarMessageParser {
       final emoji = match.group(1)!;
       final latitude = double.parse(match.group(2)!);
       final longitude = double.parse(match.group(3)!);
+      final inlineMessage = match.group(4)?.trim(); // Optional message after colon
 
       // Validate coordinates
       if (latitude < -90 || latitude > 90) return null;
@@ -47,14 +48,13 @@ class SarMessageParser {
       final markerType = SarMarkerType.fromEmoji(emoji);
       final location = LatLng(latitude, longitude);
 
-      // Extract notes if present (everything after coordinates on first line, or subsequent lines)
+      // Combine inline message with multi-line notes
       String? notes;
-      final coordsEnd = match.end;
-      if (coordsEnd < firstLine.length) {
-        // Notes on same line after coordinates
-        notes = firstLine.substring(coordsEnd).trim();
+      if (inlineMessage != null && inlineMessage.isNotEmpty) {
+        notes = inlineMessage;
       }
-      // Check for multi-line notes
+
+      // Check for multi-line notes (lines after the first line)
       final additionalNotes = extractNotes(text);
       if (additionalNotes != null) {
         notes = notes != null ? '$notes\n$additionalNotes' : additionalNotes;
@@ -80,6 +80,7 @@ class SarMessageParser {
       isSarMarker: true,
       sarMarkerType: sarInfo.type,
       sarGpsCoordinates: sarInfo.location,
+      sarNotes: sarInfo.notes, // Extract and store notes
     );
   }
 
@@ -91,7 +92,8 @@ class SarMessageParser {
   }) {
     final text = 'S:${type.emoji}:${location.latitude},${location.longitude}';
     if (notes != null && notes.isNotEmpty) {
-      return '$text\n$notes';
+      // Use colon-separated format for inline message
+      return '$text:$notes';
     }
     return text;
   }

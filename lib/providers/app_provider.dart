@@ -68,7 +68,12 @@ class AppProvider with ChangeNotifier {
       // Check if message is a drawing broadcast
       if (DrawingMessageParser.isDrawingMessage(message.text)) {
         debugPrint('🎨 [AppProvider] Drawing message received, parsing...');
-        final drawing = DrawingMessageParser.parseDrawingMessage(message.text);
+        // Extract sender name from message packet metadata
+        final senderName = message.senderName ?? 'unknown';
+        final drawing = DrawingMessageParser.parseDrawingMessage(
+          message.text,
+          senderName: senderName,
+        );
         if (drawing != null) {
           debugPrint('🎨 [AppProvider] Drawing parsed successfully: ${drawing.type.name} from ${drawing.senderName ?? "unknown"}');
           drawingProvider.addReceivedDrawing(drawing);
@@ -176,6 +181,9 @@ class AppProvider with ChangeNotifier {
 
       // Sync device time
       await connectionProvider.syncDeviceTime();
+
+      // Get battery and storage information
+      await connectionProvider.getBatteryAndStorage();
 
       // Load contacts
       await connectionProvider.getContacts();

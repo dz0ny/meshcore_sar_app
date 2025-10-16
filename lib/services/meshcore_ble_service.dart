@@ -31,6 +31,7 @@ typedef OnBatteryAndStorageCallback = void Function(int millivolts, int? usedKb,
 typedef OnErrorCallback = void Function(String error);
 typedef OnConnectionStateCallback = void Function(bool isConnected);
 typedef OnReconnectionAttemptCallback = void Function(int attemptNumber, int maxAttempts);
+typedef OnRssiUpdateCallback = void Function(int rssi);
 
 /// MeshCore BLE Service - coordinates BLE communication components
 class MeshCoreBleService {
@@ -42,6 +43,7 @@ class MeshCoreBleService {
   // Event callbacks
   OnConnectionStateCallback? onConnectionStateChanged;
   OnReconnectionAttemptCallback? onReconnectionAttempt;
+  OnRssiUpdateCallback? onRssiUpdate;
   OnContactCallback? onContactReceived;
   OnContactsCompleteCallback? onContactsComplete;
   OnMessageCallback? onMessageReceived;
@@ -82,6 +84,9 @@ class MeshCoreBleService {
     _connectionManager.onReconnectionAttempt = (attemptNumber, maxAttempts) {
       print('🔄 [Service] Reconnection attempt $attemptNumber/$maxAttempts');
       onReconnectionAttempt?.call(attemptNumber, maxAttempts);
+    };
+    _connectionManager.onRssiUpdate = (rssi) {
+      onRssiUpdate?.call(rssi);
     };
 
     // Command sender callbacks
@@ -167,7 +172,7 @@ class MeshCoreBleService {
   }
 
   /// Scan for MeshCore devices
-  Stream<BluetoothDevice> scanForDevices({Duration timeout = const Duration(seconds: 10)}) {
+  Stream<ScanResult> scanForDevices({Duration timeout = const Duration(seconds: 10)}) {
     return _connectionManager.scanForDevices(timeout: timeout);
   }
 

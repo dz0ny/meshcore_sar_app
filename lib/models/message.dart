@@ -50,6 +50,7 @@ class Message {
   final bool isSarMarker;
   final SarMarkerType? sarMarkerType;
   final LatLng? sarGpsCoordinates;
+  final String? sarNotes; // Optional message/notes for SAR marker
 
   // Display metadata
   final DateTime receivedAt;
@@ -78,6 +79,7 @@ class Message {
     this.isSarMarker = false,
     this.sarMarkerType,
     this.sarGpsCoordinates,
+    this.sarNotes,
     required this.receivedAt,
     this.senderName,
     this.deliveryStatus = MessageDeliveryStatus.received,
@@ -162,7 +164,7 @@ class Message {
       timestamp: sentAt,
       senderPublicKey: senderPublicKeyPrefix,
       senderName: senderName,
-      notes: text,
+      notes: sarNotes, // Use dedicated notes field instead of full text
     );
   }
 
@@ -218,6 +220,7 @@ class Message {
     bool? isSarMarker,
     SarMarkerType? sarMarkerType,
     LatLng? sarGpsCoordinates,
+    String? sarNotes,
     DateTime? receivedAt,
     String? senderName,
     MessageDeliveryStatus? deliveryStatus,
@@ -240,6 +243,7 @@ class Message {
       isSarMarker: isSarMarker ?? this.isSarMarker,
       sarMarkerType: sarMarkerType ?? this.sarMarkerType,
       sarGpsCoordinates: sarGpsCoordinates ?? this.sarGpsCoordinates,
+      sarNotes: sarNotes ?? this.sarNotes,
       receivedAt: receivedAt ?? this.receivedAt,
       senderName: senderName ?? this.senderName,
       deliveryStatus: deliveryStatus ?? this.deliveryStatus,

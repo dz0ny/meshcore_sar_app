@@ -26,6 +26,14 @@ class PingResult {
   });
 }
 
+/// Scanned device with RSSI information
+class ScannedDevice {
+  final BluetoothDevice device;
+  final int rssi;
+
+  ScannedDevice({required this.device, required this.rssi});
+}
+
 /// Connection Provider - manages MeshCore BLE connection
 class ConnectionProvider with ChangeNotifier {
   final MeshCoreBleService _bleService = MeshCoreBleService();
@@ -36,8 +44,8 @@ class ConnectionProvider with ChangeNotifier {
   DeviceInfo _deviceInfo = DeviceInfo();
   DeviceInfo get deviceInfo => _deviceInfo;
 
-  List<BluetoothDevice> _scannedDevices = [];
-  List<BluetoothDevice> get scannedDevices => _scannedDevices;
+  List<ScannedDevice> _scannedDevices = [];
+  List<ScannedDevice> get scannedDevices => _scannedDevices;
 
   bool _isScanning = false;
   bool get isScanning => _isScanning;
@@ -352,6 +360,15 @@ class ConnectionProvider with ChangeNotifier {
         notifyListeners();
       });
     };
+
+    _bleService.onRssiUpdate = (rssi) {
+      print('📡 [Provider] RSSI updated: $rssi dBm');
+      _deviceInfo = _deviceInfo.copyWith(
+        signalRssi: rssi,
+        lastUpdate: DateTime.now(),
+      );
+      notifyListeners();
+    };
   }
 
   /// Start scanning for MeshCore devices
@@ -364,15 +381,26 @@ class ConnectionProvider with ChangeNotifier {
     print('✅ [Provider] Scan state initialized, notifying listeners');
 
     try {
-      await for (final device
+      await for (final scanResult
           in _bleService.scanForDevices(timeout: const Duration(seconds: 10))) {
-        print('📱 [Provider] Device received from scan stream');
-        if (!_scannedDevices.any((d) => d.remoteId == device.remoteId)) {
-          _scannedDevices.add(device);
-          print('✅ [Provider] Added device to list: ${device.platformName}, total: ${_scannedDevices.length}');
+        print('📱 [Provider] Scan result received from scan stream');
+        final device = scanResult.device;
+        final rssi = scanResult.rssi;
+
+        if (!_scannedDevices.any((d) => d.device.remoteId == device.remoteId)) {
+          _scannedDevices.add(ScannedDevice(device: device, rssi: rssi));
+          print('✅ [Provider] Added device to list: ${device.platformName} (RSSI: $rssi dBm), total: ${_scannedDevices.length}');
           notifyListeners();
         } else {
-          print('  ⏭️ [Provider] Device already in list, skipping');
+          // Update RSSI if device already exists
+          final index = _scannedDevices.indexWhere((d) => d.device.remoteId == device.remoteId);
+          if (index != -1 && _scannedDevices[index].rssi != rssi) {
+            _scannedDevices[index] = ScannedDevice(device: device, rssi: rssi);
+            print('  🔄 [Provider] Updated RSSI for ${device.platformName}: $rssi dBm');
+            notifyListeners();
+          } else {
+            print('  ⏭️ [Provider] Device already in list with same RSSI, skipping');
+          }
         }
       }
     } catch (e) {
