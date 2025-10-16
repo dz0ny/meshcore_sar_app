@@ -677,5 +677,496 @@
   "typeYourMessage": "Type your message...",
   "@typeYourMessage": {
     "description": "Placeholder text for message input field"
+  },
+
+  "quickLocationMarker": "Quick location marker",
+  "@quickLocationMarker": {
+    "description": "Subtitle for SAR marker sheet header"
+  },
+
+  "markerType": "Marker Type",
+  "@markerType": {
+    "description": "Label for marker type selection section"
+  },
+
+  "sendTo": "Send To",
+  "@sendTo": {
+    "description": "Label for destination selection section"
+  },
+
+  "noDestinationsAvailable": "No destinations available.",
+  "@noDestinationsAvailable": {
+    "description": "Warning when no rooms or channels exist"
+  },
+
+  "selectDestination": "Select destination...",
+  "@selectDestination": {
+    "description": "Placeholder for destination dropdown"
+  },
+
+  "ephemeralBroadcastInfo": "Ephemeral: Broadcast over-the-air only. Not stored - nodes must be online.",
+  "@ephemeralBroadcastInfo": {
+    "description": "Information about ephemeral channel broadcasts"
+  },
+
+  "persistentRoomInfo": "Persistent: Stored immutably in room. Synced automatically and preserved offline.",
+  "@persistentRoomInfo": {
+    "description": "Information about persistent room storage"
+  },
+
+  "location": "Location",
+  "@location": {
+    "description": "Label for location section"
+  },
+
+  "fromMap": "From Map",
+  "@fromMap": {
+    "description": "Badge showing location is from map tap"
+  },
+
+  "gettingLocation": "Getting location...",
+  "@gettingLocation": {
+    "description": "Loading message while fetching GPS location"
+  },
+
+  "locationError": "Location Error",
+  "@locationError": {
+    "description": "Title for location error messages"
+  },
+
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button label"
+  },
+
+  "refreshLocation": "Refresh location",
+  "@refreshLocation": {
+    "description": "Tooltip for refresh location button"
+  },
+
+  "accuracyMeters": "Accuracy: ±{accuracy}m",
+  "@accuracyMeters": {
+    "description": "Display of GPS accuracy in meters",
+    "placeholders": {
+      "accuracy": {
+        "type": "int"
+      }
+    }
+  },
+
+  "notesOptional": "Notes (optional)",
+  "@notesOptional": {
+    "description": "Label for optional notes field"
+  },
+
+  "addAdditionalInformation": "Add additional information...",
+  "@addAdditionalInformation": {
+    "description": "Placeholder for notes field"
+  },
+
+  "lowAccuracyWarning": "Location accuracy is ±{accuracy}m. This may not be accurate enough for SAR operations.\n\nContinue anyway?",
+  "@lowAccuracyWarning": {
+    "description": "Warning dialog content for low GPS accuracy",
+    "placeholders": {
+      "accuracy": {
+        "type": "int"
+      }
+    }
+  },
+
+  "loginToRoom": "Login to Room",
+  "@loginToRoom": {
+    "description": "Title for room login dialog"
+  },
+
+  "enterPasswordInfo": "Enter the password to access this room. The password will be saved for future use.",
+  "@enterPasswordInfo": {
+    "description": "Information about room password"
+  },
+
+  "password": "Password",
+  "@password": {
+    "description": "Password field label"
+  },
+
+  "enterRoomPassword": "Enter room password",
+  "@enterRoomPassword": {
+    "description": "Password field hint"
+  },
+
+  "loggingInDots": "Logging in...",
+  "@loggingInDots": {
+    "description": "Button text while logging in"
+  },
+
+  "login": "Login",
+  "@login": {
+    "description": "Login button label"
+  },
+
+  "failedToAddRoom": "Failed to add room to device: {error}\n\nThe room may not have advertised yet.\nTry waiting for the room to broadcast.",
+  "@failedToAddRoom": {
+    "description": "Error message when adding room fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "direct": "Direct",
+  "@direct": {
+    "description": "Direct routing indicator"
+  },
+
+  "flood": "Flood",
+  "@flood": {
+    "description": "Flood routing indicator"
+  },
+
+  "admin": "Admin",
+  "@admin": {
+    "description": "Admin badge label"
+  },
+
+  "loggedIn": "Logged In",
+  "@loggedIn": {
+    "description": "Logged in status badge"
+  },
+
+  "noGpsData": "No GPS data",
+  "@noGpsData": {
+    "description": "Message when GPS data is not available"
+  },
+
+  "distance": "Distance",
+  "@distance": {
+    "description": "Distance label"
+  },
+
+  "pingingDirect": "Pinging {name} (direct via path)...",
+  "@pingingDirect": {
+    "description": "Status message for direct ping",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pingingFlood": "Pinging {name} (flooding - no path)...",
+  "@pingingFlood": {
+    "description": "Status message for flood ping",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "directPingTimeout": "Direct ping timeout - retrying {name} with flooding...",
+  "@directPingTimeout": {
+    "description": "Warning when direct ping times out",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pingSuccessful": "Ping successful to {name}{fallback}",
+  "@pingSuccessful": {
+    "description": "Success message for ping",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "fallback": {
+        "type": "String"
+      }
+    }
+  },
+
+  "viaFloodingFallback": " (via flooding fallback)",
+  "@viaFloodingFallback": {
+    "description": "Suffix for ping success with fallback"
+  },
+
+  "pingFailed": "Ping failed to {name} - no response received",
+  "@pingFailed": {
+    "description": "Error message when ping fails",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "deleteContactConfirmation": "Are you sure you want to delete \"{name}\"?\n\nThis will remove the contact from both the app and the companion radio device.",
+  "@deleteContactConfirmation": {
+    "description": "Confirmation message for deleting contact",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "removingContact": "Removing {name}...",
+  "@removingContact": {
+    "description": "Status message while removing contact",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "contactRemoved": "Contact \"{name}\" removed",
+  "@contactRemoved": {
+    "description": "Success message after removing contact",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToRemoveContact": "Failed to remove contact: {error}",
+  "@failedToRemoveContact": {
+    "description": "Error message when contact removal fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "type": "Type",
+  "@type": {
+    "description": "Contact type label"
+  },
+
+  "publicKey": "Public Key",
+  "@publicKey": {
+    "description": "Public key label"
+  },
+
+  "lastSeen": "Last Seen",
+  "@lastSeen": {
+    "description": "Last seen label"
+  },
+
+  "roomStatus": "Room Status",
+  "@roomStatus": {
+    "description": "Room status section header"
+  },
+
+  "loginStatus": "Login Status",
+  "@loginStatus": {
+    "description": "Login status label"
+  },
+
+  "notLoggedIn": "Not Logged In",
+  "@notLoggedIn": {
+    "description": "Not logged in status"
+  },
+
+  "adminAccess": "Admin Access",
+  "@adminAccess": {
+    "description": "Admin access label"
+  },
+
+  "yes": "Yes",
+  "@yes": {
+    "description": "Yes answer"
+  },
+
+  "no": "No",
+  "@no": {
+    "description": "No answer"
+  },
+
+  "permissions": "Permissions",
+  "@permissions": {
+    "description": "Permissions label"
+  },
+
+  "passwordSaved": "Password Saved",
+  "@passwordSaved": {
+    "description": "Password saved label"
+  },
+
+  "locationColon": "Location:",
+  "@locationColon": {
+    "description": "Location section header"
+  },
+
+  "telemetry": "Telemetry",
+  "@telemetry": {
+    "description": "Telemetry section header"
+  },
+
+  "requestingTelemetry": "Requesting telemetry from {name}...",
+  "@requestingTelemetry": {
+    "description": "Status message while requesting telemetry",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "voltage": "Voltage",
+  "@voltage": {
+    "description": "Voltage label"
+  },
+
+  "battery": "Battery",
+  "@battery": {
+    "description": "Battery label"
+  },
+
+  "temperature": "Temperature",
+  "@temperature": {
+    "description": "Temperature label"
+  },
+
+  "humidity": "Humidity",
+  "@humidity": {
+    "description": "Humidity label"
+  },
+
+  "pressure": "Pressure",
+  "@pressure": {
+    "description": "Pressure label"
+  },
+
+  "gpsTelemetry": "GPS (Telemetry)",
+  "@gpsTelemetry": {
+    "description": "GPS from telemetry label"
+  },
+
+  "updated": "Updated",
+  "@updated": {
+    "description": "Updated timestamp label"
+  },
+
+  "pathResetInfo": "Path reset for {name}. Next message will find a new route.",
+  "@pathResetInfo": {
+    "description": "Info message after path reset",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "reLoginToRoom": "Re-Login to Room",
+  "@reLoginToRoom": {
+    "description": "Button to re-login to room"
+  },
+
+  "heading": "Heading",
+  "@heading": {
+    "description": "Compass heading label"
+  },
+
+  "elevation": "Elevation",
+  "@elevation": {
+    "description": "Elevation/altitude label"
+  },
+
+  "accuracy": "Accuracy",
+  "@accuracy": {
+    "description": "GPS accuracy label"
+  },
+
+  "filterMarkers": "Filter Markers",
+  "@filterMarkers": {
+    "description": "Title for filter markers dialog"
+  },
+
+  "filterMarkersTooltip": "Filter markers",
+  "@filterMarkersTooltip": {
+    "description": "Tooltip for filter button"
+  },
+
+  "contactsFilter": "Contacts",
+  "@contactsFilter": {
+    "description": "Filter option for contacts"
+  },
+
+  "sarMarkers": "SAR Markers",
+  "@sarMarkers": {
+    "description": "SAR markers section header"
+  },
+
+  "foundPerson": "Found Person",
+  "@foundPerson": {
+    "description": "Found person SAR marker type"
+  },
+
+  "fire": "Fire",
+  "@fire": {
+    "description": "Fire SAR marker type"
+  },
+
+  "stagingArea": "Staging Area",
+  "@stagingArea": {
+    "description": "Staging area SAR marker type"
+  },
+
+  "showAll": "Show All",
+  "@showAll": {
+    "description": "Button to show all filters"
+  },
+
+  "nearbyContacts": "Nearby Contacts",
+  "@nearbyContacts": {
+    "description": "Title for nearby contacts list in compass"
+  },
+
+  "locationUnavailable": "Location unavailable",
+  "@locationUnavailable": {
+    "description": "Message when GPS location is unavailable"
+  },
+
+  "ahead": "ahead",
+  "@ahead": {
+    "description": "Relative bearing direction - ahead"
+  },
+
+  "degreesRight": "{degrees}° right",
+  "@degreesRight": {
+    "description": "Relative bearing direction - right",
+    "placeholders": {
+      "degrees": {
+        "type": "int"
+      }
+    }
+  },
+
+  "degreesLeft": "{degrees}° left",
+  "@degreesLeft": {
+    "description": "Relative bearing direction - left",
+    "placeholders": {
+      "degrees": {
+        "type": "int"
+      }
+    }
+  },
+
+  "latLonFormat": "Lat: {latitude} Lon: {longitude}",
+  "@latLonFormat": {
+    "description": "Latitude and longitude display format",
+    "placeholders": {
+      "latitude": {
+        "type": "String"
+      },
+      "longitude": {
+        "type": "String"
+      }
+    }
   }
 }

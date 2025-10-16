@@ -176,7 +176,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                         ),
                       ),
                       Text(
-                        'Quick location marker',
+                        AppLocalizations.of(context)!.quickLocationMarker,
                         style: TextStyle(
                           color: colorScheme.onSurfaceVariant,
                           fontSize: 14,
@@ -203,7 +203,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                 children: [
                   // Marker type selection
                   Text(
-                    'Marker Type',
+                    AppLocalizations.of(context)!.markerType,
                     style: TextStyle(
                       color: colorScheme.onSurface,
                       fontSize: 16,
@@ -238,7 +238,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
 
                   // Destination selection (compact dropdown with rooms and channel)
                   Text(
-                    'Send To',
+                    AppLocalizations.of(context)!.sendTo,
                     style: TextStyle(
                       color: colorScheme.onSurface,
                       fontSize: 16,
@@ -262,14 +262,14 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                               width: 1,
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             children: [
-                              Icon(Icons.error_outline, color: Colors.red, size: 20),
-                              SizedBox(width: 8),
+                              const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'No destinations available.',
-                                  style: TextStyle(
+                                  AppLocalizations.of(context)!.noDestinationsAvailable,
+                                  style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 11,
                                   ),
@@ -298,7 +298,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                                 Icon(Icons.arrow_drop_down_circle, size: 18, color: colorScheme.onSurfaceVariant),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Select destination...',
+                                  AppLocalizations.of(context)!.selectDestination,
                                   style: TextStyle(color: colorScheme.onSurfaceVariant),
                                 ),
                               ],
@@ -373,8 +373,8 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                           Expanded(
                             child: Text(
                               _selectedContact!.isChannel
-                                  ? 'Ephemeral: Broadcast over-the-air only. Not stored - nodes must be online.'
-                                  : 'Persistent: Stored immutably in room. Synced automatically and preserved offline.',
+                                  ? AppLocalizations.of(context)!.ephemeralBroadcastInfo
+                                  : AppLocalizations.of(context)!.persistentRoomInfo,
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 11,
@@ -390,7 +390,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                   Row(
                     children: [
                       Text(
-                        'Location',
+                        AppLocalizations.of(context)!.location,
                         style: TextStyle(
                           color: colorScheme.onSurface,
                           fontSize: 16,
@@ -409,9 +409,9 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                               width: 1,
                             ),
                           ),
-                          child: const Text(
-                            'From Map',
-                            style: TextStyle(
+                          child: Text(
+                            AppLocalizations.of(context)!.fromMap,
+                            style: const TextStyle(
                               color: Colors.blue,
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -441,7 +441,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                           ),
                           const SizedBox(width: 16),
                           Text(
-                            'Getting location...',
+                            AppLocalizations.of(context)!.gettingLocation,
                             style: TextStyle(color: colorScheme.onSurface),
                           ),
                         ],
@@ -466,9 +466,9 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Location Error',
-                                  style: TextStyle(
+                                Text(
+                                  AppLocalizations.of(context)!.locationError,
+                                  style: const TextStyle(
                                     color: Colors.red,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
@@ -488,7 +488,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                           IconButton(
                             icon: const Icon(Icons.refresh, color: Colors.red),
                             onPressed: _getCurrentLocation,
-                            tooltip: 'Retry',
+                            tooltip: AppLocalizations.of(context)!.retry,
                           ),
                         ],
                       ),
@@ -529,7 +529,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                                   onPressed: _getCurrentLocation,
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
-                                  tooltip: 'Refresh location',
+                                  tooltip: AppLocalizations.of(context)!.refreshLocation,
                                 ),
                             ],
                           ),
@@ -544,7 +544,9 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'Accuracy: ±${_currentPosition!.accuracy!.round()}m',
+                                  AppLocalizations.of(context)!.accuracyMeters(
+                                    _currentPosition!.accuracy!.round(),
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: colorScheme.onSurfaceVariant,
@@ -560,7 +562,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
 
                   // Optional notes
                   Text(
-                    'Notes (optional)',
+                    AppLocalizations.of(context)!.notesOptional,
                     style: TextStyle(
                       color: colorScheme.onSurface,
                       fontSize: 16,
@@ -574,7 +576,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                     maxLength: 100,
                     style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
                     decoration: InputDecoration(
-                      hintText: 'Add additional information...',
+                      hintText: AppLocalizations.of(context)!.addAdditionalInformation,
                       hintStyle: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
                       filled: true,
                       fillColor: colorScheme.surfaceContainerHighest,
@@ -648,9 +650,9 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                               builder: (context) => AlertDialog(
                                 title: Text(AppLocalizations.of(context)!.lowLocationAccuracy),
                                 content: Text(
-                                  'Location accuracy is ±${_currentPosition!.accuracy!.round()}m. '
-                                  'This may not be accurate enough for SAR operations.\n\n'
-                                  'Continue anyway?',
+                                  AppLocalizations.of(context)!.lowAccuracyWarning(
+                                    _currentPosition!.accuracy!.round(),
+                                  ),
                                 ),
                                 actions: [
                                   TextButton(

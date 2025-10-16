@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/contact.dart';
 import '../../../models/sar_marker.dart';
 
@@ -76,18 +77,19 @@ class CompassHeader extends StatelessWidget {
   }
 
   Widget _buildInfoRow(BuildContext context, double? heading, Position? position) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _buildInfoCard(
           context,
-          'Heading',
+          l10n.heading,
           heading != null ? '${heading.round()}°' : '--',
           Icons.explore,
         ),
         _buildInfoCard(
           context,
-          'Elevation',
+          l10n.elevation,
           position?.altitude != null
               ? '${position!.altitude.round()}m'
               : '--',
@@ -95,7 +97,7 @@ class CompassHeader extends StatelessWidget {
         ),
         _buildInfoCard(
           context,
-          'Accuracy',
+          l10n.accuracy,
           position?.accuracy != null
               ? '±${position!.accuracy.round()}m'
               : '--',
@@ -566,12 +568,16 @@ class _LocationFormatToggleState extends State<_LocationFormatToggle> {
       return const SizedBox.shrink();
     }
 
+    final l10n = AppLocalizations.of(context)!;
     final String displayText;
 
     if (_showDMS) {
       displayText = '${_formatDMS(position.latitude, true)} ${_formatDMS(position.longitude, false)}';
     } else {
-      displayText = 'Lat: ${position.latitude.toStringAsFixed(5)} Lon: ${position.longitude.toStringAsFixed(5)}';
+      displayText = l10n.latLonFormat(
+        position.latitude.toStringAsFixed(5),
+        position.longitude.toStringAsFixed(5),
+      );
     }
 
     return GestureDetector(

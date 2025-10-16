@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Filter controls for the compass dialog.
 /// Allows filtering of contacts and SAR marker types.
@@ -32,15 +33,16 @@ class CompassFilters extends StatefulWidget {
 
 class _CompassFiltersState extends State<CompassFilters> {
   void _showFilterDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.filter_list, size: 20),
-              SizedBox(width: 8),
-              Text('Filter Markers'),
+              const Icon(Icons.filter_list, size: 20),
+              const SizedBox(width: 8),
+              Text(l10n.filterMarkers),
             ],
           ),
           contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
@@ -52,7 +54,7 @@ class _CompassFiltersState extends State<CompassFilters> {
               _CompactFilterItem(
                 icon: Icons.person,
                 color: Theme.of(context).colorScheme.primary,
-                label: 'Contacts',
+                label: l10n.contactsFilter,
                 value: widget.showContacts,
                 onChanged: (value) {
                   widget.onShowContactsChanged(value);
@@ -66,7 +68,7 @@ class _CompassFiltersState extends State<CompassFilters> {
               Padding(
                 padding: const EdgeInsets.only(left: 8, bottom: 8, top: 4),
                 child: Text(
-                  'SAR Markers',
+                  l10n.sarMarkers,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -75,7 +77,7 @@ class _CompassFiltersState extends State<CompassFilters> {
               _CompactFilterItem(
                 icon: Icons.person_pin,
                 color: Colors.green,
-                label: 'Found Person',
+                label: l10n.foundPerson,
                 value: widget.showFoundPerson,
                 onChanged: (value) {
                   widget.onShowFoundPersonChanged(value);
@@ -86,7 +88,7 @@ class _CompassFiltersState extends State<CompassFilters> {
               _CompactFilterItem(
                 icon: Icons.local_fire_department,
                 color: Colors.red,
-                label: 'Fire',
+                label: l10n.fire,
                 value: widget.showFire,
                 onChanged: (value) {
                   widget.onShowFireChanged(value);
@@ -97,7 +99,7 @@ class _CompassFiltersState extends State<CompassFilters> {
               _CompactFilterItem(
                 icon: Icons.home_work,
                 color: Colors.orange,
-                label: 'Staging Area',
+                label: l10n.stagingArea,
                 value: widget.showStagingArea,
                 onChanged: (value) {
                   widget.onShowStagingAreaChanged(value);
@@ -112,11 +114,11 @@ class _CompassFiltersState extends State<CompassFilters> {
                 widget.onShowAll();
                 setDialogState(() {});
               },
-              child: const Text('Show All'),
+              child: Text(l10n.showAll),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text(l10n.close),
             ),
           ],
         ),
@@ -126,9 +128,10 @@ class _CompassFiltersState extends State<CompassFilters> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return IconButton(
       icon: const Icon(Icons.filter_list),
-      tooltip: 'Filter markers',
+      tooltip: l10n.filterMarkersTooltip,
       onPressed: () => _showFilterDialog(),
     );
   }

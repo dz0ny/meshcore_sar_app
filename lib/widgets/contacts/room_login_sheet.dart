@@ -151,11 +151,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  'Failed to add room to device: $e\n\n'
-                  'The room may not have advertised yet.\n'
-                  'Try waiting for the room to broadcast.',
-                ),
+                content: Text(AppLocalizations.of(context)!.failedToAddRoom(e.toString())),
                 backgroundColor: Theme.of(context).colorScheme.error,
                 duration: const Duration(seconds: 7),
               ),
@@ -316,7 +312,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Login to Room',
+                          AppLocalizations.of(context)!.loginToRoom,
                           style: TextStyle(
                             color: colorScheme.onSurface,
                             fontSize: 18,
@@ -358,7 +354,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Enter the password to access this room. The password will be saved for future use.',
+                              AppLocalizations.of(context)!.enterPasswordInfo,
                               style: TextStyle(
                                 color: colorScheme.onPrimaryContainer,
                                 fontSize: 12,
@@ -392,9 +388,9 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
                   style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: AppLocalizations.of(context)!.password,
                     labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                    hintText: 'Enter room password',
+                    hintText: AppLocalizations.of(context)!.enterRoomPassword,
                     hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -436,7 +432,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.login),
-                    label: Text(_isLoggingIn ? 'Logging in...' : 'Login'),
+                    label: Text(_isLoggingIn ? AppLocalizations.of(context)!.loggingInDots : AppLocalizations.of(context)!.login),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),

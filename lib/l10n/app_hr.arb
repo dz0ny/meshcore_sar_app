@@ -231,5 +231,165 @@
 
   "directMessageInfo": "Ova poruka će biti poslana izravno {contactName}. Također će se prikazati u glavnom feedu poruka.",
 
-  "typeYourMessage": "Upišite svoju poruku..."
+  "typeYourMessage": "Upišite svoju poruku...",
+
+  "quickLocationMarker": "Brzi označitelj lokacije",
+
+  "markerType": "Vrsta markera",
+
+  "sendTo": "Pošalji na",
+
+  "noDestinationsAvailable": "Nema dostupnih odredišta.",
+
+  "selectDestination": "Odaberite odredište...",
+
+  "ephemeralBroadcastInfo": "Privremeno: Samo emitiranje. Nije pohranjeno - čvorovi moraju biti online.",
+
+  "persistentRoomInfo": "Trajno: Nepromjenjivo pohranjeno u sobi. Automatski sinkronizirano i očuvano offline.",
+
+  "location": "Lokacija",
+
+  "fromMap": "S karte",
+
+  "gettingLocation": "Dohvaćanje lokacije...",
+
+  "locationError": "Greška lokacije",
+
+  "retry": "Pokušaj ponovno",
+
+  "refreshLocation": "Osvježi lokaciju",
+
+  "accuracyMeters": "Točnost: ±{accuracy}m",
+
+  "notesOptional": "Napomene (opcionalno)",
+
+  "addAdditionalInformation": "Dodajte dodatne informacije...",
+
+  "lowAccuracyWarning": "Točnost lokacije je ±{accuracy}m. Ovo možda nije dovoljno precizno za SAR operacije.\n\nNastaviti svejedno?",
+
+  "loginToRoom": "Prijava u sobu",
+
+  "enterPasswordInfo": "Unesite lozinku za pristup ovoj sobi. Lozinka će biti spremljena za buduću upotrebu.",
+
+  "password": "Lozinka",
+
+  "enterRoomPassword": "Unesite lozinku sobe",
+
+  "loggingInDots": "Prijavljivanje...",
+
+  "login": "Prijava",
+
+  "failedToAddRoom": "Neuspjelo dodavanje sobe na uređaj: {error}\n\nSoba možda još nije oglašena.\nPokušajte pričekati da soba emitira.",
+
+  "direct": "Izravno",
+
+  "flood": "Poplava",
+
+  "admin": "Administrator",
+
+  "loggedIn": "Prijavljen",
+
+  "noGpsData": "Nema GPS podataka",
+
+  "distance": "Udaljenost",
+
+  "pingingDirect": "Pingiranje {name} (izravno putem puta)...",
+
+  "pingingFlood": "Pingiranje {name} (poplava - nema puta)...",
+
+  "directPingTimeout": "Istek izravnog pinga - ponovni pokušaj {name} s poplavom...",
+
+  "pingSuccessful": "Ping uspješan prema {name}{fallback}",
+
+  "viaFloodingFallback": " (putem rezervnog plavljenja)",
+
+  "pingFailed": "Ping neuspješan prema {name} - nije primljen odgovor",
+
+  "deleteContactConfirmation": "Jeste li sigurni da želite izbrisati \"{name}\"?\n\nOvo će ukloniti kontakt iz aplikacije i pratećeg radio uređaja.",
+
+  "removingContact": "Uklanjanje {name}...",
+
+  "contactRemoved": "Kontakt \"{name}\" uklonjen",
+
+  "failedToRemoveContact": "Neuspjelo uklanjanje kontakta: {error}",
+
+  "type": "Vrsta",
+
+  "publicKey": "Javni ključ",
+
+  "lastSeen": "Zadnje viđen",
+
+  "roomStatus": "Status sobe",
+
+  "loginStatus": "Status prijave",
+
+  "notLoggedIn": "Nije prijavljen",
+
+  "adminAccess": "Administratorski pristup",
+
+  "yes": "Da",
+
+  "no": "Ne",
+
+  "permissions": "Dopuštenja",
+
+  "passwordSaved": "Lozinka spremljena",
+
+  "locationColon": "Lokacija:",
+
+  "telemetry": "Telemetrija",
+
+  "requestingTelemetry": "Zahtijevanje telemetrije od {name}...",
+
+  "voltage": "Napon",
+
+  "battery": "Baterija",
+
+  "temperature": "Temperatura",
+
+  "humidity": "Vlažnost",
+
+  "pressure": "Tlak",
+
+  "gpsTelemetry": "GPS (Telemetrija)",
+
+  "updated": "Ažurirano",
+
+  "pathResetInfo": "Put resetiran za {name}. Sljedeća poruka će pronaći novu rutu.",
+
+  "reLoginToRoom": "Ponovna prijava u sobu",
+
+  "heading": "Smjer",
+
+  "elevation": "Nadmorska visina",
+
+  "accuracy": "Točnost",
+
+  "filterMarkers": "Filtriraj markere",
+
+  "filterMarkersTooltip": "Filtriraj markere",
+
+  "contactsFilter": "Kontakti",
+
+  "sarMarkers": "SAR markeri",
+
+  "foundPerson": "Pronađena osoba",
+
+  "fire": "Požar",
+
+  "stagingArea": "Zbirno mjesto",
+
+  "showAll": "Prikaži sve",
+
+  "nearbyContacts": "Obližnji kontakti",
+
+  "locationUnavailable": "Lokacija nije dostupna",
+
+  "ahead": "naprijed",
+
+  "degreesRight": "{degrees}° desno",
+
+  "degreesLeft": "{degrees}° lijevo",
+
+  "latLonFormat": "Ššir: {latitude} Dužina: {longitude}"
 }

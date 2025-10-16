@@ -404,4 +404,281 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get typeYourMessage => 'Type your message...';
+
+  @override
+  String get quickLocationMarker => 'Quick location marker';
+
+  @override
+  String get markerType => 'Marker Type';
+
+  @override
+  String get sendTo => 'Send To';
+
+  @override
+  String get noDestinationsAvailable => 'No destinations available.';
+
+  @override
+  String get selectDestination => 'Select destination...';
+
+  @override
+  String get ephemeralBroadcastInfo =>
+      'Ephemeral: Broadcast over-the-air only. Not stored - nodes must be online.';
+
+  @override
+  String get persistentRoomInfo =>
+      'Persistent: Stored immutably in room. Synced automatically and preserved offline.';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get fromMap => 'From Map';
+
+  @override
+  String get gettingLocation => 'Getting location...';
+
+  @override
+  String get locationError => 'Location Error';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get refreshLocation => 'Refresh location';
+
+  @override
+  String accuracyMeters(int accuracy) {
+    return 'Accuracy: ±${accuracy}m';
+  }
+
+  @override
+  String get notesOptional => 'Notes (optional)';
+
+  @override
+  String get addAdditionalInformation => 'Add additional information...';
+
+  @override
+  String lowAccuracyWarning(int accuracy) {
+    return 'Location accuracy is ±${accuracy}m. This may not be accurate enough for SAR operations.\n\nContinue anyway?';
+  }
+
+  @override
+  String get loginToRoom => 'Login to Room';
+
+  @override
+  String get enterPasswordInfo =>
+      'Enter the password to access this room. The password will be saved for future use.';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get enterRoomPassword => 'Enter room password';
+
+  @override
+  String get loggingInDots => 'Logging in...';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String failedToAddRoom(String error) {
+    return 'Failed to add room to device: $error\n\nThe room may not have advertised yet.\nTry waiting for the room to broadcast.';
+  }
+
+  @override
+  String get direct => 'Direct';
+
+  @override
+  String get flood => 'Flood';
+
+  @override
+  String get admin => 'Admin';
+
+  @override
+  String get loggedIn => 'Logged In';
+
+  @override
+  String get noGpsData => 'No GPS data';
+
+  @override
+  String get distance => 'Distance';
+
+  @override
+  String pingingDirect(String name) {
+    return 'Pinging $name (direct via path)...';
+  }
+
+  @override
+  String pingingFlood(String name) {
+    return 'Pinging $name (flooding - no path)...';
+  }
+
+  @override
+  String directPingTimeout(String name) {
+    return 'Direct ping timeout - retrying $name with flooding...';
+  }
+
+  @override
+  String pingSuccessful(String name, String fallback) {
+    return 'Ping successful to $name$fallback';
+  }
+
+  @override
+  String get viaFloodingFallback => ' (via flooding fallback)';
+
+  @override
+  String pingFailed(String name) {
+    return 'Ping failed to $name - no response received';
+  }
+
+  @override
+  String deleteContactConfirmation(String name) {
+    return 'Are you sure you want to delete \"$name\"?\n\nThis will remove the contact from both the app and the companion radio device.';
+  }
+
+  @override
+  String removingContact(String name) {
+    return 'Removing $name...';
+  }
+
+  @override
+  String contactRemoved(String name) {
+    return 'Contact \"$name\" removed';
+  }
+
+  @override
+  String failedToRemoveContact(String error) {
+    return 'Failed to remove contact: $error';
+  }
+
+  @override
+  String get type => 'Type';
+
+  @override
+  String get publicKey => 'Public Key';
+
+  @override
+  String get lastSeen => 'Last Seen';
+
+  @override
+  String get roomStatus => 'Room Status';
+
+  @override
+  String get loginStatus => 'Login Status';
+
+  @override
+  String get notLoggedIn => 'Not Logged In';
+
+  @override
+  String get adminAccess => 'Admin Access';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get permissions => 'Permissions';
+
+  @override
+  String get passwordSaved => 'Password Saved';
+
+  @override
+  String get locationColon => 'Location:';
+
+  @override
+  String get telemetry => 'Telemetry';
+
+  @override
+  String requestingTelemetry(String name) {
+    return 'Requesting telemetry from $name...';
+  }
+
+  @override
+  String get voltage => 'Voltage';
+
+  @override
+  String get battery => 'Battery';
+
+  @override
+  String get temperature => 'Temperature';
+
+  @override
+  String get humidity => 'Humidity';
+
+  @override
+  String get pressure => 'Pressure';
+
+  @override
+  String get gpsTelemetry => 'GPS (Telemetry)';
+
+  @override
+  String get updated => 'Updated';
+
+  @override
+  String pathResetInfo(String name) {
+    return 'Path reset for $name. Next message will find a new route.';
+  }
+
+  @override
+  String get reLoginToRoom => 'Re-Login to Room';
+
+  @override
+  String get heading => 'Heading';
+
+  @override
+  String get elevation => 'Elevation';
+
+  @override
+  String get accuracy => 'Accuracy';
+
+  @override
+  String get filterMarkers => 'Filter Markers';
+
+  @override
+  String get filterMarkersTooltip => 'Filter markers';
+
+  @override
+  String get contactsFilter => 'Contacts';
+
+  @override
+  String get sarMarkers => 'SAR Markers';
+
+  @override
+  String get foundPerson => 'Found Person';
+
+  @override
+  String get fire => 'Fire';
+
+  @override
+  String get stagingArea => 'Staging Area';
+
+  @override
+  String get showAll => 'Show All';
+
+  @override
+  String get nearbyContacts => 'Nearby Contacts';
+
+  @override
+  String get locationUnavailable => 'Location unavailable';
+
+  @override
+  String get ahead => 'ahead';
+
+  @override
+  String degreesRight(int degrees) {
+    return '$degrees° right';
+  }
+
+  @override
+  String degreesLeft(int degrees) {
+    return '$degrees° left';
+  }
+
+  @override
+  String latLonFormat(String latitude, String longitude) {
+    return 'Lat: $latitude Lon: $longitude';
+  }
 }

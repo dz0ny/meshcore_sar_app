@@ -78,7 +78,10 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (!connectionProvider.deviceInfo.isConnected) {
       if (context.mounted) {
-        ToastLogger.error(context, AppLocalizations.of(context)!.deviceNotConnected);
+        ToastLogger.error(
+          context,
+          AppLocalizations.of(context)!.deviceNotConnected,
+        );
       }
       return;
     }
@@ -102,7 +105,10 @@ class _HomeScreenState extends State<HomeScreen>
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           if (context.mounted) {
-            ToastLogger.error(context, AppLocalizations.of(context)!.locationPermissionDenied);
+            ToastLogger.error(
+              context,
+              AppLocalizations.of(context)!.locationPermissionDenied,
+            );
           }
           return;
         }
@@ -130,7 +136,10 @@ class _HomeScreenState extends State<HomeScreen>
       } catch (e) {
         print('❌ Failed to get GPS position: $e');
         if (context.mounted) {
-          ToastLogger.error(context, AppLocalizations.of(context)!.failedToGetGpsLocation);
+          ToastLogger.error(
+            context,
+            AppLocalizations.of(context)!.failedToGetGpsLocation,
+          );
         }
         return;
       }
@@ -159,7 +168,10 @@ class _HomeScreenState extends State<HomeScreen>
     } catch (e) {
       print('❌ Failed to advertise device: $e');
       if (context.mounted) {
-        ToastLogger.error(context, AppLocalizations.of(context)!.failedToAdvertise(e.toString()));
+        ToastLogger.error(
+          context,
+          AppLocalizations.of(context)!.failedToAdvertise(e.toString()),
+        );
       }
     }
   }
@@ -307,7 +319,9 @@ class _HomeScreenState extends State<HomeScreen>
                               connectionProvider.startScan();
                             },
                             icon: const Icon(Icons.refresh),
-                            label: Text(AppLocalizations.of(context)!.scanAgain),
+                            label: Text(
+                              AppLocalizations.of(context)!.scanAgain,
+                            ),
                           ),
                         ],
                       ),
@@ -564,7 +578,10 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                         text: AppLocalizations.of(context)!.contacts,
                       ),
-                      Tab(icon: const Icon(Icons.map), text: AppLocalizations.of(context)!.map),
+                      Tab(
+                        icon: const Icon(Icons.map),
+                        text: AppLocalizations.of(context)!.map,
+                      ),
                     ],
                   ),
                 );
@@ -579,10 +596,6 @@ class _HomeScreenState extends State<HomeScreen>
         final deviceInfo = provider.deviceInfo;
         final isConnected = deviceInfo.isConnected;
 
-        print(
-          '🎨 [UI] Building status bar - isConnected: $isConnected, state: ${deviceInfo.connectionState}',
-        );
-
         if (!isConnected) {
           // Disconnected state: show connect button
           return Row(
@@ -590,7 +603,10 @@ class _HomeScreenState extends State<HomeScreen>
               Expanded(
                 child: Text(
                   AppLocalizations.of(context)!.appTitle,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               ElevatedButton.icon(
@@ -654,8 +670,12 @@ class _HomeScreenState extends State<HomeScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          deviceInfo.selfName ?? AppLocalizations.of(context)!.appTitle,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          deviceInfo.selfName ??
+                              AppLocalizations.of(context)!.appTitle,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Row(
@@ -674,7 +694,9 @@ class _HomeScreenState extends State<HomeScreen>
                                 '${deviceInfo.signalRssi}',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: _getSignalColor(deviceInfo.signalRssi!),
+                                  color: _getSignalColor(
+                                    deviceInfo.signalRssi!,
+                                  ),
                                 ),
                               ),
                             ],
@@ -682,7 +704,9 @@ class _HomeScreenState extends State<HomeScreen>
                               const SizedBox(width: 8),
                               Icon(
                                 _getBatteryIcon(deviceInfo.batteryPercent!),
-                                color: _getBatteryColor(deviceInfo.batteryPercent!),
+                                color: _getBatteryColor(
+                                  deviceInfo.batteryPercent!,
+                                ),
                                 size: 13,
                               ),
                               const SizedBox(width: 3),
@@ -690,7 +714,9 @@ class _HomeScreenState extends State<HomeScreen>
                                 '${deviceInfo.batteryPercent!.round()}%',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: _getBatteryColor(deviceInfo.batteryPercent!),
+                                  color: _getBatteryColor(
+                                    deviceInfo.batteryPercent!,
+                                  ),
                                 ),
                               ),
                             ],
@@ -811,7 +837,9 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               )
             else
-              const SizedBox(width: 52), // Placeholder to maintain layout balance
+              const SizedBox(
+                width: 52,
+              ), // Placeholder to maintain layout balance
           ],
         );
       },
@@ -842,7 +870,8 @@ class _HomeScreenState extends State<HomeScreen>
                   Expanded(
                     child: Text(
                       isConnected
-                          ? deviceInfo.displayName ?? AppLocalizations.of(context)!.connect
+                          ? deviceInfo.displayName ??
+                                AppLocalizations.of(context)!.connect
                           : AppLocalizations.of(context)!.deviceNotConnected,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),

@@ -154,7 +154,7 @@ class ContactTile extends StatelessWidget {
                     ),
                     const SizedBox(width: 2),
                     Text(
-                      contact.hasPath ? 'Direct' : 'Flood',
+                      contact.hasPath ? AppLocalizations.of(context)!.direct : AppLocalizations.of(context)!.flood,
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
@@ -189,7 +189,7 @@ class ContactTile extends StatelessWidget {
                           const Icon(Icons.admin_panel_settings, size: 10, color: Colors.red),
                           const SizedBox(width: 2),
                           Text(
-                            'Admin',
+                            AppLocalizations.of(context)!.admin,
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: Colors.red,
                               fontWeight: FontWeight.bold,
@@ -213,7 +213,7 @@ class ContactTile extends StatelessWidget {
                         const Icon(Icons.check_circle, size: 10, color: Colors.green),
                         const SizedBox(width: 2),
                         Text(
-                          'Logged In',
+                          AppLocalizations.of(context)!.loggedIn,
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: Colors.green,
                             fontWeight: FontWeight.bold,
@@ -263,7 +263,7 @@ class ContactTile extends StatelessWidget {
                   const Icon(Icons.sensors_off, size: 12, color: Colors.grey),
                   const SizedBox(width: 4),
                   Text(
-                    'No GPS data',
+                    AppLocalizations.of(context)!.noGpsData,
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
                 ],
@@ -277,7 +277,7 @@ class ContactTile extends StatelessWidget {
                   const Icon(Icons.straighten, size: 12, color: Colors.blue),
                   const SizedBox(width: 4),
                   Text(
-                    'Distance: $distanceText',
+                    '${AppLocalizations.of(context)!.distance}: $distanceText',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Colors.blue,
                       fontWeight: FontWeight.w500,
@@ -300,8 +300,8 @@ class ContactTile extends StatelessWidget {
           ToastLogger.info(
             context,
             hasPath
-                ? 'Pinging ${contact.displayName} (direct via path)...'
-                : 'Pinging ${contact.displayName} (flooding - no path)...',
+                ? AppLocalizations.of(context)!.pingingDirect(contact.displayName)
+                : AppLocalizations.of(context)!.pingingFlood(contact.displayName),
           );
 
           // Use smart ping with automatic fallback
@@ -313,7 +313,7 @@ class ContactTile extends StatelessWidget {
               if (context.mounted) {
                 ToastLogger.warning(
                   context,
-                  'Direct ping timeout - retrying ${contact.displayName} with flooding...',
+                  AppLocalizations.of(context)!.directPingTimeout(contact.displayName),
                 );
               }
             },
@@ -324,12 +324,15 @@ class ContactTile extends StatelessWidget {
             if (result.success) {
               ToastLogger.success(
                 context,
-                'Ping successful to ${contact.displayName}${result.retriedWithFlooding ? ' (via flooding fallback)' : ''}',
+                AppLocalizations.of(context)!.pingSuccessful(
+                  contact.displayName,
+                  result.retriedWithFlooding ? AppLocalizations.of(context)!.viaFloodingFallback : '',
+                ),
               );
             } else {
               ToastLogger.error(
                 context,
-                'Ping failed to ${contact.displayName} - no response received',
+                AppLocalizations.of(context)!.pingFailed(contact.displayName),
               );
             }
           }
@@ -362,8 +365,7 @@ class ContactTile extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.deleteContact),
         content: Text(
-          'Are you sure you want to delete "${contact.displayName}"?\n\n'
-          'This will remove the contact from both the app and the companion radio device.',
+          AppLocalizations.of(context)!.deleteContactConfirmation(contact.displayName),
         ),
         actions: [
           TextButton(
@@ -390,7 +392,7 @@ class ContactTile extends StatelessWidget {
 
     try {
       // Show loading toast
-      ToastLogger.info(context, 'Removing ${contact.displayName}...');
+      ToastLogger.info(context, AppLocalizations.of(context)!.removingContact(contact.displayName));
 
       // Remove contact from provider (which will also remove from device)
       await contactsProvider.removeContact(
@@ -403,11 +405,11 @@ class ContactTile extends StatelessWidget {
       );
 
       if (context.mounted) {
-        ToastLogger.success(context, 'Contact "${contact.displayName}" removed');
+        ToastLogger.success(context, AppLocalizations.of(context)!.contactRemoved(contact.displayName));
       }
     } catch (e) {
       if (context.mounted) {
-        ToastLogger.error(context, 'Failed to remove contact: $e');
+        ToastLogger.error(context, AppLocalizations.of(context)!.failedToRemoveContact(e.toString()));
       }
     }
   }
@@ -483,18 +485,18 @@ class ContactTile extends StatelessWidget {
                 controller: scrollController,
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _DetailRow('Type', contact.type.displayName),
+                  _DetailRow(AppLocalizations.of(context)!.type, contact.type.displayName),
                   // Public Key with copy button
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const SizedBox(
+                        SizedBox(
                           width: 100,
                           child: Text(
-                            'Public Key:',
-                            style: TextStyle(fontWeight: FontWeight.w500),
+                            '${AppLocalizations.of(context)!.publicKey}:',
+                            style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
                         ),
                         Expanded(
@@ -524,40 +526,40 @@ class ContactTile extends StatelessWidget {
                       ],
                     ),
                   ),
-                  _DetailRow('Last Seen', contact.timeSinceLastSeen),
+                  _DetailRow(AppLocalizations.of(context)!.lastSeen, contact.timeSinceLastSeen),
                   const SizedBox(height: 16),
                   // Room Login Status
                   if (roomLoginState != null) ...[
-                    const Text(
-                      'Room Status:',
-                      style: TextStyle(
+                    Text(
+                      '${AppLocalizations.of(context)!.roomStatus}:',
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
                     const SizedBox(height: 8),
                     _DetailRow(
-                      'Login Status',
-                      roomLoginState.isLoggedIn ? 'Logged In' : 'Not Logged In',
+                      AppLocalizations.of(context)!.loginStatus,
+                      roomLoginState.isLoggedIn ? AppLocalizations.of(context)!.loggedIn : AppLocalizations.of(context)!.notLoggedIn,
                     ),
                     if (roomLoginState.isLoggedIn) ...[
                       _DetailRow(
-                        'Admin Access',
-                        roomLoginState.isAdmin ? 'Yes' : 'No',
+                        AppLocalizations.of(context)!.adminAccess,
+                        roomLoginState.isAdmin ? AppLocalizations.of(context)!.yes : AppLocalizations.of(context)!.no,
                       ),
                       _DetailRow(
-                        'Permissions',
+                        AppLocalizations.of(context)!.permissions,
                         roomLoginState.permissions.toString(),
                       ),
                       if (roomLoginState.loginDurationFormatted != null)
                         _DetailRow(
-                          'Logged In',
+                          AppLocalizations.of(context)!.loggedIn,
                           roomLoginState.loginDurationFormatted!,
                         ),
                     ],
                     _DetailRow(
-                      'Password Saved',
-                      roomLoginState.hasPassword ? 'Yes' : 'No',
+                      AppLocalizations.of(context)!.passwordSaved,
+                      roomLoginState.hasPassword ? AppLocalizations.of(context)!.yes : AppLocalizations.of(context)!.no,
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -565,9 +567,9 @@ class ContactTile extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Location:',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!.locationColon,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -632,9 +634,9 @@ class ContactTile extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Telemetry:',
-                          style: TextStyle(
+                        Text(
+                          '${AppLocalizations.of(context)!.telemetry}:',
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -643,7 +645,7 @@ class ContactTile extends StatelessWidget {
                           onPressed: () {
                             final connectionProvider = context.read<ConnectionProvider>();
                             connectionProvider.requestTelemetry(contact.publicKey, zeroHop: true);
-                            ToastLogger.info(context, 'Requesting telemetry from ${contact.displayName}...');
+                            ToastLogger.info(context, AppLocalizations.of(context)!.requestingTelemetry(contact.displayName));
                           },
                           icon: const Icon(Icons.refresh, size: 18),
                           label: Text(AppLocalizations.of(context)!.refresh),
@@ -656,25 +658,25 @@ class ContactTile extends StatelessWidget {
                     const SizedBox(height: 8),
                     if (contact.telemetry!.batteryMilliVolts != null)
                       _DetailRow(
-                        'Voltage',
+                        AppLocalizations.of(context)!.voltage,
                         '${(contact.telemetry!.batteryMilliVolts! / 1000).toStringAsFixed(3)}V'
                         '${contact.telemetry!.batteryPercentage != null ? ' (${contact.telemetry!.batteryPercentage!.toStringAsFixed(1)}%)' : ''}',
                       )
                     else if (contact.telemetry!.batteryPercentage != null)
-                      _DetailRow('Battery', '${contact.telemetry!.batteryPercentage!.toStringAsFixed(1)}%'),
+                      _DetailRow(AppLocalizations.of(context)!.battery, '${contact.telemetry!.batteryPercentage!.toStringAsFixed(1)}%'),
                     if (contact.telemetry!.temperature != null)
-                      _DetailRow('Temperature', '${contact.telemetry!.temperature!.toStringAsFixed(1)}°C'),
+                      _DetailRow(AppLocalizations.of(context)!.temperature, '${contact.telemetry!.temperature!.toStringAsFixed(1)}°C'),
                     if (contact.telemetry!.humidity != null)
-                      _DetailRow('Humidity', '${contact.telemetry!.humidity!.toStringAsFixed(1)}%'),
+                      _DetailRow(AppLocalizations.of(context)!.humidity, '${contact.telemetry!.humidity!.toStringAsFixed(1)}%'),
                     if (contact.telemetry!.pressure != null)
-                      _DetailRow('Pressure', '${contact.telemetry!.pressure!.toStringAsFixed(1)} hPa'),
+                      _DetailRow(AppLocalizations.of(context)!.pressure, '${contact.telemetry!.pressure!.toStringAsFixed(1)} hPa'),
                     if (contact.telemetry!.gpsLocation != null)
                       _DetailRow(
-                        'GPS (Telemetry)',
+                        AppLocalizations.of(context)!.gpsTelemetry,
                         '${contact.telemetry!.gpsLocation!.latitude.toStringAsFixed(6)}, ${contact.telemetry!.gpsLocation!.longitude.toStringAsFixed(6)}',
                       ),
                     _DetailRow(
-                      'Updated',
+                      AppLocalizations.of(context)!.updated,
                       '${_formatTimestamp(contact.telemetry!.timestamp)} (${_formatTimeAgo(contact.telemetry!.timestamp)})',
                     ),
                   ],
@@ -703,7 +705,7 @@ class ContactTile extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () {
                           connectionProvider.resetPath(contact.publicKey);
-                          ToastLogger.info(context, 'Path reset for ${contact.displayName}. Next message will find a new route.');
+                          ToastLogger.info(context, AppLocalizations.of(context)!.pathResetInfo(contact.displayName));
                         },
                         icon: const Icon(Icons.route),
                         label: Text(AppLocalizations.of(context)!.resetPath),
@@ -726,7 +728,7 @@ class ContactTile extends StatelessWidget {
                           _showRoomLoginDialog(context, contact);
                         },
                         icon: const Icon(Icons.login),
-                        label: Text(roomLoginState?.isLoggedIn == true ? 'Re-Login to Room' : 'Login to Room'),
+                        label: Text(roomLoginState?.isLoggedIn == true ? AppLocalizations.of(context)!.reLoginToRoom : AppLocalizations.of(context)!.loginToRoom),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           backgroundColor: _getTypeColor(contact.type, context),

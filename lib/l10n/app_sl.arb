@@ -231,5 +231,165 @@
 
   "directMessageInfo": "To sporočilo bo poslano neposredno {contactName}. Prikazalo se bo tudi v glavnem viru sporočil.",
 
-  "typeYourMessage": "Vnesite svoje sporočilo..."
+  "typeYourMessage": "Vnesite svoje sporočilo...",
+
+  "quickLocationMarker": "Hitri označevalec lokacije",
+
+  "markerType": "Vrsta označevalca",
+
+  "sendTo": "Pošlji na",
+
+  "noDestinationsAvailable": "Ni dostopnih ciljev.",
+
+  "selectDestination": "Izberite cilj...",
+
+  "ephemeralBroadcastInfo": "Začasno: Samo oddajanje. Ni shranjeno - vozlišča morajo biti povezana.",
+
+  "persistentRoomInfo": "Trajno: Nespremenljivo shranjeno v sobi. Samodejno sinhronizirano in ohranjeno brez povezave.",
+
+  "location": "Lokacija",
+
+  "fromMap": "Z zemljevida",
+
+  "gettingLocation": "Pridobivanje lokacije...",
+
+  "locationError": "Napaka lokacije",
+
+  "retry": "Poskusi znova",
+
+  "refreshLocation": "Osveži lokacijo",
+
+  "accuracyMeters": "Natančnost: ±{accuracy}m",
+
+  "notesOptional": "Opombe (neobvezno)",
+
+  "addAdditionalInformation": "Dodajte dodatne informacije...",
+
+  "lowAccuracyWarning": "Natančnost lokacije je ±{accuracy}m. To morda ni dovolj natančno za SAR operacije.\n\nVseeno nadaljuj?",
+
+  "loginToRoom": "Prijava v sobo",
+
+  "enterPasswordInfo": "Vnesite geslo za dostop do te sobe. Geslo bo shranjeno za prihodnjo uporabo.",
+
+  "password": "Geslo",
+
+  "enterRoomPassword": "Vnesite geslo sobe",
+
+  "loggingInDots": "Prijavljanje...",
+
+  "login": "Prijava",
+
+  "failedToAddRoom": "Dodajanje sobe v napravo ni uspelo: {error}\n\nSoba morda še ni oglašena.\nPoskusite počakati, da soba odda.",
+
+  "direct": "Neposredno",
+
+  "flood": "Poplava",
+
+  "admin": "Administrator",
+
+  "loggedIn": "Prijavljen",
+
+  "noGpsData": "Ni GPS podatkov",
+
+  "distance": "Razdalja",
+
+  "pingingDirect": "Pinganje {name} (neposredno preko poti)...",
+
+  "pingingFlood": "Pinganje {name} (poplava - brez poti)...",
+
+  "directPingTimeout": "Časovna omejitev neposrednega pinga - ponovni poskus {name} s poplavo...",
+
+  "pingSuccessful": "Ping uspešen do {name}{fallback}",
+
+  "viaFloodingFallback": " (preko rezervnega poplavljanja)",
+
+  "pingFailed": "Ping neuspešen do {name} - odgovor ni prejet",
+
+  "deleteContactConfirmation": "Ste prepričani, da želite izbrisati \"{name}\"?\n\nTo bo odstranilo stik iz aplikacije in spremljevalne radijske naprave.",
+
+  "removingContact": "Odstranjevanje {name}...",
+
+  "contactRemoved": "Stik \"{name}\" odstranjen",
+
+  "failedToRemoveContact": "Odstranjevanje stika ni uspelo: {error}",
+
+  "type": "Vrsta",
+
+  "publicKey": "Javni ključ",
+
+  "lastSeen": "Nazadnje viden",
+
+  "roomStatus": "Status sobe",
+
+  "loginStatus": "Status prijave",
+
+  "notLoggedIn": "Ni prijavljen",
+
+  "adminAccess": "Administratorski dostop",
+
+  "yes": "Da",
+
+  "no": "Ne",
+
+  "permissions": "Dovoljenja",
+
+  "passwordSaved": "Geslo shranjeno",
+
+  "locationColon": "Lokacija:",
+
+  "telemetry": "Telemetrija",
+
+  "requestingTelemetry": "Zahtevanje telemetrije od {name}...",
+
+  "voltage": "Napetost",
+
+  "battery": "Baterija",
+
+  "temperature": "Temperatura",
+
+  "humidity": "Vlažnost",
+
+  "pressure": "Tlak",
+
+  "gpsTelemetry": "GPS (Telemetrija)",
+
+  "updated": "Posodobljeno",
+
+  "pathResetInfo": "Pot ponastavljena za {name}. Naslednje sporočilo bo našlo novo pot.",
+
+  "reLoginToRoom": "Ponovna prijava v sobo",
+
+  "heading": "Smer",
+
+  "elevation": "Nadmorska višina",
+
+  "accuracy": "Natančnost",
+
+  "filterMarkers": "Filtriraj označevalce",
+
+  "filterMarkersTooltip": "Filtriraj označevalce",
+
+  "contactsFilter": "Stiki",
+
+  "sarMarkers": "SAR označevalci",
+
+  "foundPerson": "Najdena oseba",
+
+  "fire": "Ogenj",
+
+  "stagingArea": "Zbirališče",
+
+  "showAll": "Prikaži vse",
+
+  "nearbyContacts": "Bližnji stiki",
+
+  "locationUnavailable": "Lokacija ni na voljo",
+
+  "ahead": "naravnost",
+
+  "degreesRight": "{degrees}° desno",
+
+  "degreesLeft": "{degrees}° levo",
+
+  "latLonFormat": "Šir: {latitude} Dolž: {longitude}"
 }

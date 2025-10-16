@@ -5,7 +5,8 @@ import '../meshcore_constants.dart';
 /// Callback types for connection events
 typedef OnConnectionStateCallback = void Function(bool isConnected);
 typedef OnErrorCallback = void Function(String error);
-typedef OnReconnectionAttemptCallback = void Function(int attemptNumber, int maxAttempts);
+typedef OnReconnectionAttemptCallback =
+    void Function(int attemptNumber, int maxAttempts);
 typedef OnRssiUpdateCallback = void Function(int rssi);
 
 /// Manages BLE connection lifecycle with automatic reconnection
@@ -30,13 +31,13 @@ class BleConnectionManager {
   // Pattern: Fast retries first (for temporary issues), then slower retries (for extended disconnections)
   static const int _maxReconnectionAttempts = 30;
   static const List<int> _reconnectionDelaysMs = [
-    2000,   // 2s  - immediate retry
-    3000,   // 3s  - quick retry
-    5000,   // 5s  - fast retry
-    10000,  // 10s - moderate retry
-    15000,  // 15s - longer retry
-    30000,  // 30s - extended retry
-    30000,  // 30s - keep trying every 30s after this
+    2000, // 2s  - immediate retry
+    3000, // 3s  - quick retry
+    5000, // 5s  - fast retry
+    10000, // 10s - moderate retry
+    15000, // 15s - longer retry
+    30000, // 30s - extended retry
+    30000, // 30s - keep trying every 30s after this
   ]; // Total: ~15 minutes of reconnection attempts
 
   // Callbacks
@@ -55,7 +56,9 @@ class BleConnectionManager {
   BluetoothCharacteristic? get txCharacteristic => _txCharacteristic;
 
   /// Scan for MeshCore devices
-  Stream<ScanResult> scanForDevices({Duration timeout = const Duration(seconds: 10)}) async* {
+  Stream<ScanResult> scanForDevices({
+    Duration timeout = const Duration(seconds: 10),
+  }) async* {
     try {
       print('🔍 [BLE] Starting scan for MeshCore devices...');
       print('  Service UUID: ${MeshCoreConstants.bleServiceUuid}');
@@ -69,14 +72,19 @@ class BleConnectionManager {
 
       int deviceCount = 0;
       await for (final scanResult in FlutterBluePlus.scanResults) {
-        print('📡 [BLE] Scan results batch received: ${scanResult.length} results');
+        print(
+          '📡 [BLE] Scan results batch received: ${scanResult.length} results',
+        );
         for (final result in scanResult) {
-          print('  Device: ${result.device.platformName} (${result.device.remoteId})');
+          print(
+            '  Device: ${result.device.platformName} (${result.device.remoteId})',
+          );
           print('    RSSI: ${result.rssi}');
           print('    Service UUIDs: ${result.advertisementData.serviceUuids}');
 
-          if (result.advertisementData.serviceUuids
-              .contains(Guid(MeshCoreConstants.bleServiceUuid))) {
+          if (result.advertisementData.serviceUuids.contains(
+            Guid(MeshCoreConstants.bleServiceUuid),
+          )) {
             deviceCount++;
             print('  ✅ MeshCore device found! Total: $deviceCount');
             yield result;
@@ -95,7 +103,9 @@ class BleConnectionManager {
   /// Connect to a MeshCore device
   Future<bool> connect(BluetoothDevice device) async {
     try {
-      print('🔵 [BLE] Starting connection to device: ${device.platformName} (${device.remoteId})');
+      print(
+        '🔵 [BLE] Starting connection to device: ${device.platformName} (${device.remoteId})',
+      );
       _device = device;
 
       // Connect to device
@@ -121,7 +131,9 @@ class BleConnectionManager {
       }
 
       // Find MeshCore service
-      print('🔵 [BLE] Looking for MeshCore service: ${MeshCoreConstants.bleServiceUuid}');
+      print(
+        '🔵 [BLE] Looking for MeshCore service: ${MeshCoreConstants.bleServiceUuid}',
+      );
       BluetoothService? meshCoreService;
       for (final service in services) {
         if (service.uuid.toString().toLowerCase() ==
@@ -169,7 +181,8 @@ class BleConnectionManager {
       print('✅ [BLE] Notifications enabled');
 
       _isConnected = true;
-      _reconnectionAttempt = 0; // Reset reconnection counter on successful connection
+      _reconnectionAttempt =
+          0; // Reset reconnection counter on successful connection
       print('🔵 [BLE] Notifying connection state change: connected');
       onConnectionStateChanged?.call(true);
 
@@ -213,7 +226,9 @@ class BleConnectionManager {
 
   /// Setup connection monitoring for automatic reconnection
   void _setupConnectionMonitoring() {
-    print('🔵 [BLE] Setting up connection monitoring for device: ${_device?.platformName}');
+    print(
+      '🔵 [BLE] Setting up connection monitoring for device: ${_device?.platformName}',
+    );
 
     // Cancel any existing subscription
     _connectionStateSubscription?.cancel();
@@ -251,21 +266,32 @@ class BleConnectionManager {
     _isReconnecting = true;
     _reconnectionAttempt++;
 
-    print('🔄 [BLE] Reconnection attempt $_reconnectionAttempt of $_maxReconnectionAttempts');
+    print(
+      '🔄 [BLE] Reconnection attempt $_reconnectionAttempt of $_maxReconnectionAttempts',
+    );
     onReconnectionAttempt?.call(_reconnectionAttempt, _maxReconnectionAttempts);
 
     if (_reconnectionAttempt > _maxReconnectionAttempts) {
-      print('❌ [BLE] Max reconnection attempts reached after ~15 minutes. Giving up.');
+      print(
+        '❌ [BLE] Max reconnection attempts reached after ~15 minutes. Giving up.',
+      );
       _isReconnecting = false;
-      onError?.call('Connection lost. Unable to reconnect after 15 minutes ($_maxReconnectionAttempts attempts).');
+      onError?.call(
+        'Connection lost. Unable to reconnect after 15 minutes ($_maxReconnectionAttempts attempts).',
+      );
       return;
     }
 
     // Calculate delay with exponential backoff (uses last delay for attempts beyond array length)
-    final delayIndex = (_reconnectionAttempt - 1).clamp(0, _reconnectionDelaysMs.length - 1);
+    final delayIndex = (_reconnectionAttempt - 1).clamp(
+      0,
+      _reconnectionDelaysMs.length - 1,
+    );
     final delayMs = _reconnectionDelaysMs[delayIndex];
 
-    print('🔄 [BLE] Waiting ${(delayMs / 1000).toStringAsFixed(0)}s before reconnection attempt $_reconnectionAttempt...');
+    print(
+      '🔄 [BLE] Waiting ${(delayMs / 1000).toStringAsFixed(0)}s before reconnection attempt $_reconnectionAttempt...',
+    );
 
     // Wait before attempting reconnection
     _reconnectionTimer = Timer(Duration(milliseconds: delayMs), () async {
@@ -293,7 +319,9 @@ class BleConnectionManager {
           if (_reconnectionAttempt < _maxReconnectionAttempts) {
             _attemptReconnection();
           } else {
-            onError?.call('Connection lost. Unable to reconnect after 15 minutes ($_maxReconnectionAttempts attempts).');
+            onError?.call(
+              'Connection lost. Unable to reconnect after 15 minutes ($_maxReconnectionAttempts attempts).',
+            );
           }
         }
       } catch (e) {
@@ -304,7 +332,9 @@ class BleConnectionManager {
         if (_reconnectionAttempt < _maxReconnectionAttempts) {
           _attemptReconnection();
         } else {
-          onError?.call('Connection lost. Unable to reconnect after 15 minutes: $e');
+          onError?.call(
+            'Connection lost. Unable to reconnect after 15 minutes: $e',
+          );
         }
       }
     });
@@ -338,7 +368,6 @@ class BleConnectionManager {
           final rssi = await _device!.readRssi();
           if (_lastRssi != rssi) {
             _lastRssi = rssi;
-            print('📡 [BLE] RSSI updated: $rssi dBm');
             onRssiUpdate?.call(rssi);
           }
         } catch (e) {

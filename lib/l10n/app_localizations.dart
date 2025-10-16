@@ -800,6 +800,486 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type your message...'**
   String get typeYourMessage;
+
+  /// Subtitle for SAR marker sheet header
+  ///
+  /// In en, this message translates to:
+  /// **'Quick location marker'**
+  String get quickLocationMarker;
+
+  /// Label for marker type selection section
+  ///
+  /// In en, this message translates to:
+  /// **'Marker Type'**
+  String get markerType;
+
+  /// Label for destination selection section
+  ///
+  /// In en, this message translates to:
+  /// **'Send To'**
+  String get sendTo;
+
+  /// Warning when no rooms or channels exist
+  ///
+  /// In en, this message translates to:
+  /// **'No destinations available.'**
+  String get noDestinationsAvailable;
+
+  /// Placeholder for destination dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'Select destination...'**
+  String get selectDestination;
+
+  /// Information about ephemeral channel broadcasts
+  ///
+  /// In en, this message translates to:
+  /// **'Ephemeral: Broadcast over-the-air only. Not stored - nodes must be online.'**
+  String get ephemeralBroadcastInfo;
+
+  /// Information about persistent room storage
+  ///
+  /// In en, this message translates to:
+  /// **'Persistent: Stored immutably in room. Synced automatically and preserved offline.'**
+  String get persistentRoomInfo;
+
+  /// Label for location section
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get location;
+
+  /// Badge showing location is from map tap
+  ///
+  /// In en, this message translates to:
+  /// **'From Map'**
+  String get fromMap;
+
+  /// Loading message while fetching GPS location
+  ///
+  /// In en, this message translates to:
+  /// **'Getting location...'**
+  String get gettingLocation;
+
+  /// Title for location error messages
+  ///
+  /// In en, this message translates to:
+  /// **'Location Error'**
+  String get locationError;
+
+  /// Retry button label
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// Tooltip for refresh location button
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh location'**
+  String get refreshLocation;
+
+  /// Display of GPS accuracy in meters
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy: ±{accuracy}m'**
+  String accuracyMeters(int accuracy);
+
+  /// Label for optional notes field
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get notesOptional;
+
+  /// Placeholder for notes field
+  ///
+  /// In en, this message translates to:
+  /// **'Add additional information...'**
+  String get addAdditionalInformation;
+
+  /// Warning dialog content for low GPS accuracy
+  ///
+  /// In en, this message translates to:
+  /// **'Location accuracy is ±{accuracy}m. This may not be accurate enough for SAR operations.\n\nContinue anyway?'**
+  String lowAccuracyWarning(int accuracy);
+
+  /// Title for room login dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Login to Room'**
+  String get loginToRoom;
+
+  /// Information about room password
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the password to access this room. The password will be saved for future use.'**
+  String get enterPasswordInfo;
+
+  /// Password field label
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// Password field hint
+  ///
+  /// In en, this message translates to:
+  /// **'Enter room password'**
+  String get enterRoomPassword;
+
+  /// Button text while logging in
+  ///
+  /// In en, this message translates to:
+  /// **'Logging in...'**
+  String get loggingInDots;
+
+  /// Login button label
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// Error message when adding room fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add room to device: {error}\n\nThe room may not have advertised yet.\nTry waiting for the room to broadcast.'**
+  String failedToAddRoom(String error);
+
+  /// Direct routing indicator
+  ///
+  /// In en, this message translates to:
+  /// **'Direct'**
+  String get direct;
+
+  /// Flood routing indicator
+  ///
+  /// In en, this message translates to:
+  /// **'Flood'**
+  String get flood;
+
+  /// Admin badge label
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get admin;
+
+  /// Logged in status badge
+  ///
+  /// In en, this message translates to:
+  /// **'Logged In'**
+  String get loggedIn;
+
+  /// Message when GPS data is not available
+  ///
+  /// In en, this message translates to:
+  /// **'No GPS data'**
+  String get noGpsData;
+
+  /// Distance label
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get distance;
+
+  /// Status message for direct ping
+  ///
+  /// In en, this message translates to:
+  /// **'Pinging {name} (direct via path)...'**
+  String pingingDirect(String name);
+
+  /// Status message for flood ping
+  ///
+  /// In en, this message translates to:
+  /// **'Pinging {name} (flooding - no path)...'**
+  String pingingFlood(String name);
+
+  /// Warning when direct ping times out
+  ///
+  /// In en, this message translates to:
+  /// **'Direct ping timeout - retrying {name} with flooding...'**
+  String directPingTimeout(String name);
+
+  /// Success message for ping
+  ///
+  /// In en, this message translates to:
+  /// **'Ping successful to {name}{fallback}'**
+  String pingSuccessful(String name, String fallback);
+
+  /// Suffix for ping success with fallback
+  ///
+  /// In en, this message translates to:
+  /// **' (via flooding fallback)'**
+  String get viaFloodingFallback;
+
+  /// Error message when ping fails
+  ///
+  /// In en, this message translates to:
+  /// **'Ping failed to {name} - no response received'**
+  String pingFailed(String name);
+
+  /// Confirmation message for deleting contact
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"?\n\nThis will remove the contact from both the app and the companion radio device.'**
+  String deleteContactConfirmation(String name);
+
+  /// Status message while removing contact
+  ///
+  /// In en, this message translates to:
+  /// **'Removing {name}...'**
+  String removingContact(String name);
+
+  /// Success message after removing contact
+  ///
+  /// In en, this message translates to:
+  /// **'Contact \"{name}\" removed'**
+  String contactRemoved(String name);
+
+  /// Error message when contact removal fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove contact: {error}'**
+  String failedToRemoveContact(String error);
+
+  /// Contact type label
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get type;
+
+  /// Public key label
+  ///
+  /// In en, this message translates to:
+  /// **'Public Key'**
+  String get publicKey;
+
+  /// Last seen label
+  ///
+  /// In en, this message translates to:
+  /// **'Last Seen'**
+  String get lastSeen;
+
+  /// Room status section header
+  ///
+  /// In en, this message translates to:
+  /// **'Room Status'**
+  String get roomStatus;
+
+  /// Login status label
+  ///
+  /// In en, this message translates to:
+  /// **'Login Status'**
+  String get loginStatus;
+
+  /// Not logged in status
+  ///
+  /// In en, this message translates to:
+  /// **'Not Logged In'**
+  String get notLoggedIn;
+
+  /// Admin access label
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Access'**
+  String get adminAccess;
+
+  /// Yes answer
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No answer
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// Permissions label
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions'**
+  String get permissions;
+
+  /// Password saved label
+  ///
+  /// In en, this message translates to:
+  /// **'Password Saved'**
+  String get passwordSaved;
+
+  /// Location section header
+  ///
+  /// In en, this message translates to:
+  /// **'Location:'**
+  String get locationColon;
+
+  /// Telemetry section header
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry'**
+  String get telemetry;
+
+  /// Status message while requesting telemetry
+  ///
+  /// In en, this message translates to:
+  /// **'Requesting telemetry from {name}...'**
+  String requestingTelemetry(String name);
+
+  /// Voltage label
+  ///
+  /// In en, this message translates to:
+  /// **'Voltage'**
+  String get voltage;
+
+  /// Battery label
+  ///
+  /// In en, this message translates to:
+  /// **'Battery'**
+  String get battery;
+
+  /// Temperature label
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get temperature;
+
+  /// Humidity label
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get humidity;
+
+  /// Pressure label
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get pressure;
+
+  /// GPS from telemetry label
+  ///
+  /// In en, this message translates to:
+  /// **'GPS (Telemetry)'**
+  String get gpsTelemetry;
+
+  /// Updated timestamp label
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get updated;
+
+  /// Info message after path reset
+  ///
+  /// In en, this message translates to:
+  /// **'Path reset for {name}. Next message will find a new route.'**
+  String pathResetInfo(String name);
+
+  /// Button to re-login to room
+  ///
+  /// In en, this message translates to:
+  /// **'Re-Login to Room'**
+  String get reLoginToRoom;
+
+  /// Compass heading label
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get heading;
+
+  /// Elevation/altitude label
+  ///
+  /// In en, this message translates to:
+  /// **'Elevation'**
+  String get elevation;
+
+  /// GPS accuracy label
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy'**
+  String get accuracy;
+
+  /// Title for filter markers dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Markers'**
+  String get filterMarkers;
+
+  /// Tooltip for filter button
+  ///
+  /// In en, this message translates to:
+  /// **'Filter markers'**
+  String get filterMarkersTooltip;
+
+  /// Filter option for contacts
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts'**
+  String get contactsFilter;
+
+  /// SAR markers section header
+  ///
+  /// In en, this message translates to:
+  /// **'SAR Markers'**
+  String get sarMarkers;
+
+  /// Found person SAR marker type
+  ///
+  /// In en, this message translates to:
+  /// **'Found Person'**
+  String get foundPerson;
+
+  /// Fire SAR marker type
+  ///
+  /// In en, this message translates to:
+  /// **'Fire'**
+  String get fire;
+
+  /// Staging area SAR marker type
+  ///
+  /// In en, this message translates to:
+  /// **'Staging Area'**
+  String get stagingArea;
+
+  /// Button to show all filters
+  ///
+  /// In en, this message translates to:
+  /// **'Show All'**
+  String get showAll;
+
+  /// Title for nearby contacts list in compass
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby Contacts'**
+  String get nearbyContacts;
+
+  /// Message when GPS location is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Location unavailable'**
+  String get locationUnavailable;
+
+  /// Relative bearing direction - ahead
+  ///
+  /// In en, this message translates to:
+  /// **'ahead'**
+  String get ahead;
+
+  /// Relative bearing direction - right
+  ///
+  /// In en, this message translates to:
+  /// **'{degrees}° right'**
+  String degreesRight(int degrees);
+
+  /// Relative bearing direction - left
+  ///
+  /// In en, this message translates to:
+  /// **'{degrees}° left'**
+  String degreesLeft(int degrees);
+
+  /// Latitude and longitude display format
+  ///
+  /// In en, this message translates to:
+  /// **'Lat: {latitude} Lon: {longitude}'**
+  String latLonFormat(String latitude, String longitude);
 }
 
 class _AppLocalizationsDelegate

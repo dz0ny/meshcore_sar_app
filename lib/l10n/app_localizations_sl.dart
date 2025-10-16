@@ -404,4 +404,281 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get typeYourMessage => 'Vnesite svoje sporočilo...';
+
+  @override
+  String get quickLocationMarker => 'Hitri označevalec lokacije';
+
+  @override
+  String get markerType => 'Vrsta označevalca';
+
+  @override
+  String get sendTo => 'Pošlji na';
+
+  @override
+  String get noDestinationsAvailable => 'Ni dostopnih ciljev.';
+
+  @override
+  String get selectDestination => 'Izberite cilj...';
+
+  @override
+  String get ephemeralBroadcastInfo =>
+      'Začasno: Samo oddajanje. Ni shranjeno - vozlišča morajo biti povezana.';
+
+  @override
+  String get persistentRoomInfo =>
+      'Trajno: Nespremenljivo shranjeno v sobi. Samodejno sinhronizirano in ohranjeno brez povezave.';
+
+  @override
+  String get location => 'Lokacija';
+
+  @override
+  String get fromMap => 'Z zemljevida';
+
+  @override
+  String get gettingLocation => 'Pridobivanje lokacije...';
+
+  @override
+  String get locationError => 'Napaka lokacije';
+
+  @override
+  String get retry => 'Poskusi znova';
+
+  @override
+  String get refreshLocation => 'Osveži lokacijo';
+
+  @override
+  String accuracyMeters(int accuracy) {
+    return 'Natančnost: ±${accuracy}m';
+  }
+
+  @override
+  String get notesOptional => 'Opombe (neobvezno)';
+
+  @override
+  String get addAdditionalInformation => 'Dodajte dodatne informacije...';
+
+  @override
+  String lowAccuracyWarning(int accuracy) {
+    return 'Natančnost lokacije je ±${accuracy}m. To morda ni dovolj natančno za SAR operacije.\n\nVseeno nadaljuj?';
+  }
+
+  @override
+  String get loginToRoom => 'Prijava v sobo';
+
+  @override
+  String get enterPasswordInfo =>
+      'Vnesite geslo za dostop do te sobe. Geslo bo shranjeno za prihodnjo uporabo.';
+
+  @override
+  String get password => 'Geslo';
+
+  @override
+  String get enterRoomPassword => 'Vnesite geslo sobe';
+
+  @override
+  String get loggingInDots => 'Prijavljanje...';
+
+  @override
+  String get login => 'Prijava';
+
+  @override
+  String failedToAddRoom(String error) {
+    return 'Dodajanje sobe v napravo ni uspelo: $error\n\nSoba morda še ni oglašena.\nPoskusite počakati, da soba odda.';
+  }
+
+  @override
+  String get direct => 'Neposredno';
+
+  @override
+  String get flood => 'Poplava';
+
+  @override
+  String get admin => 'Administrator';
+
+  @override
+  String get loggedIn => 'Prijavljen';
+
+  @override
+  String get noGpsData => 'Ni GPS podatkov';
+
+  @override
+  String get distance => 'Razdalja';
+
+  @override
+  String pingingDirect(String name) {
+    return 'Pinganje $name (neposredno preko poti)...';
+  }
+
+  @override
+  String pingingFlood(String name) {
+    return 'Pinganje $name (poplava - brez poti)...';
+  }
+
+  @override
+  String directPingTimeout(String name) {
+    return 'Časovna omejitev neposrednega pinga - ponovni poskus $name s poplavo...';
+  }
+
+  @override
+  String pingSuccessful(String name, String fallback) {
+    return 'Ping uspešen do $name$fallback';
+  }
+
+  @override
+  String get viaFloodingFallback => ' (preko rezervnega poplavljanja)';
+
+  @override
+  String pingFailed(String name) {
+    return 'Ping neuspešen do $name - odgovor ni prejet';
+  }
+
+  @override
+  String deleteContactConfirmation(String name) {
+    return 'Ste prepričani, da želite izbrisati \"$name\"?\n\nTo bo odstranilo stik iz aplikacije in spremljevalne radijske naprave.';
+  }
+
+  @override
+  String removingContact(String name) {
+    return 'Odstranjevanje $name...';
+  }
+
+  @override
+  String contactRemoved(String name) {
+    return 'Stik \"$name\" odstranjen';
+  }
+
+  @override
+  String failedToRemoveContact(String error) {
+    return 'Odstranjevanje stika ni uspelo: $error';
+  }
+
+  @override
+  String get type => 'Vrsta';
+
+  @override
+  String get publicKey => 'Javni ključ';
+
+  @override
+  String get lastSeen => 'Nazadnje viden';
+
+  @override
+  String get roomStatus => 'Status sobe';
+
+  @override
+  String get loginStatus => 'Status prijave';
+
+  @override
+  String get notLoggedIn => 'Ni prijavljen';
+
+  @override
+  String get adminAccess => 'Administratorski dostop';
+
+  @override
+  String get yes => 'Da';
+
+  @override
+  String get no => 'Ne';
+
+  @override
+  String get permissions => 'Dovoljenja';
+
+  @override
+  String get passwordSaved => 'Geslo shranjeno';
+
+  @override
+  String get locationColon => 'Lokacija:';
+
+  @override
+  String get telemetry => 'Telemetrija';
+
+  @override
+  String requestingTelemetry(String name) {
+    return 'Zahtevanje telemetrije od $name...';
+  }
+
+  @override
+  String get voltage => 'Napetost';
+
+  @override
+  String get battery => 'Baterija';
+
+  @override
+  String get temperature => 'Temperatura';
+
+  @override
+  String get humidity => 'Vlažnost';
+
+  @override
+  String get pressure => 'Tlak';
+
+  @override
+  String get gpsTelemetry => 'GPS (Telemetrija)';
+
+  @override
+  String get updated => 'Posodobljeno';
+
+  @override
+  String pathResetInfo(String name) {
+    return 'Pot ponastavljena za $name. Naslednje sporočilo bo našlo novo pot.';
+  }
+
+  @override
+  String get reLoginToRoom => 'Ponovna prijava v sobo';
+
+  @override
+  String get heading => 'Smer';
+
+  @override
+  String get elevation => 'Nadmorska višina';
+
+  @override
+  String get accuracy => 'Natančnost';
+
+  @override
+  String get filterMarkers => 'Filtriraj označevalce';
+
+  @override
+  String get filterMarkersTooltip => 'Filtriraj označevalce';
+
+  @override
+  String get contactsFilter => 'Stiki';
+
+  @override
+  String get sarMarkers => 'SAR označevalci';
+
+  @override
+  String get foundPerson => 'Najdena oseba';
+
+  @override
+  String get fire => 'Ogenj';
+
+  @override
+  String get stagingArea => 'Zbirališče';
+
+  @override
+  String get showAll => 'Prikaži vse';
+
+  @override
+  String get nearbyContacts => 'Bližnji stiki';
+
+  @override
+  String get locationUnavailable => 'Lokacija ni na voljo';
+
+  @override
+  String get ahead => 'naravnost';
+
+  @override
+  String degreesRight(int degrees) {
+    return '$degrees° desno';
+  }
+
+  @override
+  String degreesLeft(int degrees) {
+    return '$degrees° levo';
+  }
+
+  @override
+  String latLonFormat(String latitude, String longitude) {
+    return 'Šir: $latitude Dolž: $longitude';
+  }
 }

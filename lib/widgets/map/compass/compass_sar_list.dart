@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../../models/sar_marker.dart';
 
 /// SAR marker list section for the compass dialog.
@@ -28,7 +29,7 @@ class CompassSarList extends StatelessWidget {
     }
 
     if (position == null) {
-      return const Text('Location unavailable');
+      return Text(AppLocalizations.of(context)!.locationUnavailable);
     }
 
     // Calculate bearings and distances for SAR markers
@@ -58,13 +59,14 @@ class CompassSarList extends StatelessWidget {
     markersWithBearing.sort((a, b) =>
         (a['distance'] as double).compareTo(b['distance'] as double));
 
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
           child: Text(
-            'SAR Markers',
+            l10n.sarMarkers,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -139,7 +141,7 @@ class CompassSarList extends StatelessWidget {
                   ),
                   if (heading != null)
                     Text(
-                      _formatRelativeBearing(bearing, heading!),
+                      _formatRelativeBearing(bearing, heading!, context),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: Colors.grey,
                           ),
@@ -208,7 +210,8 @@ class CompassSarList extends StatelessWidget {
     }
   }
 
-  String _formatRelativeBearing(double bearing, double heading) {
+  String _formatRelativeBearing(double bearing, double heading, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Calculate relative bearing (how much to turn from current heading)
     double relative = bearing - heading;
 
@@ -223,11 +226,11 @@ class CompassSarList extends StatelessWidget {
     final absRelative = relative.abs().round();
 
     if (absRelative < 10) {
-      return 'ahead';
+      return l10n.ahead;
     } else if (relative > 0) {
-      return '$absRelative° right';
+      return l10n.degreesRight(absRelative);
     } else {
-      return '$absRelative° left';
+      return l10n.degreesLeft(absRelative);
     }
   }
 }

@@ -76,22 +76,27 @@ class ConnectionProvider with ChangeNotifier {
 
   // Helper instances
   final RoomLoginManager _roomLoginManager = RoomLoginManager();
-  final MessageDeliveryTracker _messageDeliveryTracker = MessageDeliveryTracker();
+  final MessageDeliveryTracker _messageDeliveryTracker =
+      MessageDeliveryTracker();
   final PingTracker _pingTracker = PingTracker();
 
   // Expose room login states
-  Map<String, RoomLoginState> get roomLoginStates => _roomLoginManager.roomLoginStates;
+  Map<String, RoomLoginState> get roomLoginStates =>
+      _roomLoginManager.roomLoginStates;
 
   // Callbacks for other providers
   Function(Contact)? onContactReceived;
   Function(List<Contact>)? onContactsComplete;
   Function(Message)? onMessageReceived;
   Function(Uint8List publicKey, Uint8List lppData)? onTelemetryReceived;
-  Function(Uint8List publicKeyPrefix, int tag, Uint8List responseData)? onBinaryResponse;
+  Function(Uint8List publicKeyPrefix, int tag, Uint8List responseData)?
+  onBinaryResponse;
   Function(Uint8List publicKey)? onPathUpdated;
-  Function(Uint8List publicKeyPrefix, int permissions, bool isAdmin, int tag)? onLoginSuccess;
+  Function(Uint8List publicKeyPrefix, int permissions, bool isAdmin, int tag)?
+  onLoginSuccess;
   Function(Uint8List publicKeyPrefix)? onLoginFail;
-  Function(String messageId, int expectedAckTag, int suggestedTimeoutMs)? onMessageSent;
+  Function(String messageId, int expectedAckTag, int suggestedTimeoutMs)?
+  onMessageSent;
   Function(int ackCode, int roundTripTimeMs)? onMessageDelivered;
   Function(Uint8List publicKeyPrefix, Uint8List statusData)? onStatusResponse;
 
@@ -106,11 +111,13 @@ class ConnectionProvider with ChangeNotifier {
         connectionState: isConnected
             ? ConnectionState.connected
             : (_bleService.isReconnecting
-                ? ConnectionState.connecting
-                : ConnectionState.disconnected),
+                  ? ConnectionState.connecting
+                  : ConnectionState.disconnected),
         lastUpdate: DateTime.now(),
       );
-      print('  Updated deviceInfo.connectionState: ${_deviceInfo.connectionState}');
+      print(
+        '  Updated deviceInfo.connectionState: ${_deviceInfo.connectionState}',
+      );
       print('  Updated deviceInfo.isConnected: ${_deviceInfo.isConnected}');
       print('  isReconnecting: ${_bleService.isReconnecting}');
       notifyListeners();
@@ -137,7 +144,9 @@ class ConnectionProvider with ChangeNotifier {
           connectionState: ConnectionState.error,
         );
       } else {
-        print('  Keeping connection state as connected (ignoring data parsing error)');
+        print(
+          '  Keeping connection state as connected (ignoring data parsing error)',
+        );
       }
 
       notifyListeners();
@@ -165,7 +174,9 @@ class ConnectionProvider with ChangeNotifier {
 
     _bleService.onBinaryResponse = (publicKeyPrefix, tag, responseData) {
       print('📥 [Provider] Binary response received');
-      print('  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+      print(
+        '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
+      );
       print('  Tag: $tag');
       print('  Response data: ${responseData.length} bytes');
       // Mark ping as successful if this was a ping request
@@ -180,15 +191,20 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onMessageWaiting = () {
-      print('📥 [Provider] PUSH_CODE_MSG_WAITING received - auto-fetching messages via event');
+      print(
+        '📥 [Provider] PUSH_CODE_MSG_WAITING received - auto-fetching messages via event',
+      );
       // Automatically fetch messages when push notification received
       // This is the CORRECT way to receive messages - room server pushes them
       syncAllMessages();
     };
 
-    _bleService.onLoginSuccess = (publicKeyPrefix, permissions, isAdmin, tag) async {
+    _bleService
+        .onLoginSuccess = (publicKeyPrefix, permissions, isAdmin, tag) async {
       print('📥 [Provider] Login successful to room');
-      print('  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+      print(
+        '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
+      );
       print('  Permissions: $permissions, Admin: $isAdmin, Tag: $tag');
 
       // Update room login state via helper
@@ -205,12 +221,12 @@ class ConnectionProvider with ChangeNotifier {
 
     _bleService.onLoginFail = (publicKeyPrefix) {
       print('📥 [Provider] Login failed to room');
-      print('  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+      print(
+        '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
+      );
 
       // Update room login state to logged out via helper
-      _roomLoginManager.handleLoginFail(
-        publicKeyPrefix: publicKeyPrefix,
-      );
+      _roomLoginManager.handleLoginFail(publicKeyPrefix: publicKeyPrefix);
       notifyListeners();
 
       onLoginFail?.call(publicKeyPrefix);
@@ -218,22 +234,33 @@ class ConnectionProvider with ChangeNotifier {
 
     _bleService.onAdvertReceived = (publicKey) {
       print('📥 [Provider] Advert received from node');
-      print('  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...');
-      print('  Note: Waiting for PUSH_CODE_NEW_ADVERT (0x8A) with full contact details');
+      print(
+        '  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
+      );
+      print(
+        '  Note: Waiting for PUSH_CODE_NEW_ADVERT (0x8A) with full contact details',
+      );
       // The companion radio will automatically send PUSH_CODE_NEW_ADVERT if manual_add_contacts=0
       // which will trigger onContactReceived callback and add/update the contact
     };
 
     _bleService.onPathUpdated = (publicKey) {
       print('📥 [Provider] Path updated for contact');
-      print('  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...');
-      print('  Note: Mesh network discovered a new/better routing path to this contact');
+      print(
+        '  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
+      );
+      print(
+        '  Note: Mesh network discovered a new/better routing path to this contact',
+      );
       // Forward the callback to ContactsProvider to trigger contact sync
       onPathUpdated?.call(publicKey);
     };
 
-    _bleService.onMessageSent = (expectedAckTag, suggestedTimeoutMs, isFloodMode) {
-      print('📥 [Provider] Message sent - ACK tag: $expectedAckTag, timeout: ${suggestedTimeoutMs}ms');
+    _bleService
+        .onMessageSent = (expectedAckTag, suggestedTimeoutMs, isFloodMode) {
+      print(
+        '📥 [Provider] Message sent - ACK tag: $expectedAckTag, timeout: ${suggestedTimeoutMs}ms',
+      );
 
       // Pop the first pending message ID from the queue (FIFO) via helper
       final messageId = _messageDeliveryTracker.popPendingMessageId();
@@ -247,18 +274,24 @@ class ConnectionProvider with ChangeNotifier {
         // Notify callback with message ID
         onMessageSent?.call(messageId, expectedAckTag, suggestedTimeoutMs);
       } else {
-        print('⚠️ [Provider] SENT response received but no pending message IDs');
+        print(
+          '⚠️ [Provider] SENT response received but no pending message IDs',
+        );
       }
     };
 
     _bleService.onMessageDelivered = (ackCode, roundTripTimeMs) {
-      print('📥 [Provider] Message delivered - ACK code: $ackCode, RTT: ${roundTripTimeMs}ms');
+      print(
+        '📥 [Provider] Message delivered - ACK code: $ackCode, RTT: ${roundTripTimeMs}ms',
+      );
       onMessageDelivered?.call(ackCode, roundTripTimeMs);
     };
 
     _bleService.onStatusResponse = (publicKeyPrefix, statusData) {
       print('📥 [Provider] Status response received from node');
-      print('  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+      print(
+        '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
+      );
       print('  Status data: ${statusData.length} bytes');
       // Forward the callback to whoever needs it (e.g., ContactsProvider)
       onStatusResponse?.call(publicKeyPrefix, statusData);
@@ -289,9 +322,15 @@ class ConnectionProvider with ChangeNotifier {
 
     _bleService.onSelfInfoReceived = (selfInfo) {
       print('📥 [Provider] Received SelfInfo:');
-      print('  TX Power: ${selfInfo['txPower']} / ${selfInfo['maxTxPower']} dBm');
-      print('  Radio: freq=${selfInfo['radioFreq']}, bw=${selfInfo['radioBw']}, sf=${selfInfo['radioSf']}, cr=${selfInfo['radioCr']}');
-      print('  Position: ${selfInfo['advLat'] / 1000000.0}, ${selfInfo['advLon'] / 1000000.0}');
+      print(
+        '  TX Power: ${selfInfo['txPower']} / ${selfInfo['maxTxPower']} dBm',
+      );
+      print(
+        '  Radio: freq=${selfInfo['radioFreq']}, bw=${selfInfo['radioBw']}, sf=${selfInfo['radioSf']}, cr=${selfInfo['radioCr']}',
+      );
+      print(
+        '  Position: ${selfInfo['advLat'] / 1000000.0}, ${selfInfo['advLon'] / 1000000.0}',
+      );
       print('  Self Name: ${selfInfo['selfName']}');
 
       _deviceInfo = _deviceInfo.copyWith(
@@ -316,7 +355,9 @@ class ConnectionProvider with ChangeNotifier {
 
     _bleService.onBatteryAndStorage = (millivolts, usedKb, totalKb) {
       print('📥 [Provider] Received BatteryAndStorage:');
-      print('  Battery: ${millivolts}mV (${(millivolts / 1000.0).toStringAsFixed(2)}V)');
+      print(
+        '  Battery: ${millivolts}mV (${(millivolts / 1000.0).toStringAsFixed(2)}V)',
+      );
       if (usedKb != null) {
         print('  Storage Used: ${usedKb}KB');
       }
@@ -362,7 +403,6 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onRssiUpdate = (rssi) {
-      print('📡 [Provider] RSSI updated: $rssi dBm');
       _deviceInfo = _deviceInfo.copyWith(
         signalRssi: rssi,
         lastUpdate: DateTime.now(),
@@ -381,25 +421,34 @@ class ConnectionProvider with ChangeNotifier {
     print('✅ [Provider] Scan state initialized, notifying listeners');
 
     try {
-      await for (final scanResult
-          in _bleService.scanForDevices(timeout: const Duration(seconds: 10))) {
+      await for (final scanResult in _bleService.scanForDevices(
+        timeout: const Duration(seconds: 10),
+      )) {
         print('📱 [Provider] Scan result received from scan stream');
         final device = scanResult.device;
         final rssi = scanResult.rssi;
 
         if (!_scannedDevices.any((d) => d.device.remoteId == device.remoteId)) {
           _scannedDevices.add(ScannedDevice(device: device, rssi: rssi));
-          print('✅ [Provider] Added device to list: ${device.platformName} (RSSI: $rssi dBm), total: ${_scannedDevices.length}');
+          print(
+            '✅ [Provider] Added device to list: ${device.platformName} (RSSI: $rssi dBm), total: ${_scannedDevices.length}',
+          );
           notifyListeners();
         } else {
           // Update RSSI if device already exists
-          final index = _scannedDevices.indexWhere((d) => d.device.remoteId == device.remoteId);
+          final index = _scannedDevices.indexWhere(
+            (d) => d.device.remoteId == device.remoteId,
+          );
           if (index != -1 && _scannedDevices[index].rssi != rssi) {
             _scannedDevices[index] = ScannedDevice(device: device, rssi: rssi);
-            print('  🔄 [Provider] Updated RSSI for ${device.platformName}: $rssi dBm');
+            print(
+              '  🔄 [Provider] Updated RSSI for ${device.platformName}: $rssi dBm',
+            );
             notifyListeners();
           } else {
-            print('  ⏭️ [Provider] Device already in list with same RSSI, skipping');
+            print(
+              '  ⏭️ [Provider] Device already in list with same RSSI, skipping',
+            );
           }
         }
       }
@@ -426,7 +475,9 @@ class ConnectionProvider with ChangeNotifier {
 
     _deviceInfo = _deviceInfo.copyWith(
       deviceId: device.remoteId.toString(),
-      deviceName: device.platformName.isNotEmpty ? device.platformName : 'Unknown',
+      deviceName: device.platformName.isNotEmpty
+          ? device.platformName
+          : 'Unknown',
       connectionState: ConnectionState.connecting,
     );
     _error = null;
@@ -457,10 +508,9 @@ class ConnectionProvider with ChangeNotifier {
 
     await _bleService.disconnect();
 
-    _deviceInfo = DeviceInfo(
-      connectionState: ConnectionState.disconnected,
-    );
-    _roomLoginManager.clearRoomLoginStates(); // Clear login states on disconnect
+    _deviceInfo = DeviceInfo(connectionState: ConnectionState.disconnected);
+    _roomLoginManager
+        .clearRoomLoginStates(); // Clear login states on disconnect
     _pingTracker.clearAll(); // Clear pending pings on disconnect
     notifyListeners();
   }
@@ -579,10 +629,7 @@ class ConnectionProvider with ChangeNotifier {
     }
 
     try {
-      await _bleService.sendChannelMessage(
-        channelIdx: channelIdx,
-        text: text,
-      );
+      await _bleService.sendChannelMessage(channelIdx: channelIdx, text: text);
 
       // Channel messages are ephemeral (not persisted) - mark as "sent" immediately
       // They don't have ACK/TAG mechanism like direct messages
@@ -622,7 +669,10 @@ class ConnectionProvider with ChangeNotifier {
   /// deprecated and should continue to be used for telemetry requests.
   ///
   /// [zeroHop] - if true, only direct connection (no mesh forwarding)
-  Future<void> requestTelemetry(Uint8List contactPublicKey, {bool zeroHop = false}) async {
+  Future<void> requestTelemetry(
+    Uint8List contactPublicKey, {
+    bool zeroHop = false,
+  }) async {
     if (!_bleService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
@@ -684,7 +734,9 @@ class ConnectionProvider with ChangeNotifier {
 
       // First attempt timed out - retry with flooding if first was direct
       if (firstAttemptDirect) {
-        print('⚠️ [Provider] Ping timeout on direct attempt, retrying with flooding...');
+        print(
+          '⚠️ [Provider] Ping timeout on direct attempt, retrying with flooding...',
+        );
         onRetryWithFlooding?.call();
 
         // Track the retry
@@ -708,11 +760,7 @@ class ConnectionProvider with ChangeNotifier {
       }
 
       // First attempt was already flooding and it timed out
-      return PingResult(
-        success: false,
-        usedFlooding: true,
-        timedOut: true,
-      );
+      return PingResult(success: false, usedFlooding: true, timedOut: true);
     } catch (e) {
       _error = 'Failed to ping contact: $e';
       notifyListeners();
@@ -1003,14 +1051,19 @@ class ConnectionProvider with ChangeNotifier {
       // Keep syncing until we get NoMoreMessages response
       // The device will send ContactMsgRecv or ChannelMsgRecv responses
       // until it sends NoMoreMessages
-      for (int i = 0; i < 100; i++) {  // Safety limit
+      for (int i = 0; i < 100; i++) {
+        // Safety limit
         // Check flag BEFORE sending (not after)
         if (_noMoreMessages) {
-          print('✅ [Provider] Message sync complete - NoMoreMessages flag set after $count requests');
+          print(
+            '✅ [Provider] Message sync complete - NoMoreMessages flag set after $count requests',
+          );
           break;
         }
 
-        print('📤 [Provider] Sync iteration ${i + 1}: Sending CMD_SYNC_NEXT_MESSAGE');
+        print(
+          '📤 [Provider] Sync iteration ${i + 1}: Sending CMD_SYNC_NEXT_MESSAGE',
+        );
 
         await _bleService.syncNextMessage();
         count++;
@@ -1022,10 +1075,14 @@ class ConnectionProvider with ChangeNotifier {
       }
 
       if (!_noMoreMessages && count >= 100) {
-        print('⚠️ [Provider] Message sync stopped - reached safety limit of 100 requests without NoMoreMessages');
+        print(
+          '⚠️ [Provider] Message sync stopped - reached safety limit of 100 requests without NoMoreMessages',
+        );
       }
 
-      print('🏁 [Provider] Message sync finished: sent $count sync requests, _noMoreMessages=$_noMoreMessages');
+      print(
+        '🏁 [Provider] Message sync finished: sent $count sync requests, _noMoreMessages=$_noMoreMessages',
+      );
       return count;
     } catch (e) {
       print('❌ [Provider] Failed to sync messages: $e');
