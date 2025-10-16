@@ -73,6 +73,23 @@ class ConnectionProvider with ChangeNotifier {
 
   // Message sync state
   bool _noMoreMessages = false;
+  // Prevent overlapping/too-frequent sync requests
+  bool _isSyncingMessages = false;
+  DateTime? _lastSyncNextRequestedAt;
+  static const Duration _minSyncNextInterval = Duration(milliseconds: 150);
+
+  // Lightweight guards for other commands that can be double-tapped
+  bool _isLoginInProgress = false;
+  DateTime? _lastLoginRequestedAt;
+  static const Duration _minLoginInterval = Duration(seconds: 1);
+
+  bool _isStatusRequestInProgress = false;
+  DateTime? _lastStatusRequestedAt;
+  static const Duration _minStatusInterval = Duration(milliseconds: 200);
+
+  bool _isAdvertInProgress = false;
+  DateTime? _lastAdvertRequestedAt;
+  static const Duration _minAdvertInterval = Duration(milliseconds: 500);
 
   // Helper instances
   final RoomLoginManager _roomLoginManager = RoomLoginManager();
@@ -899,10 +916,24 @@ class ConnectionProvider with ChangeNotifier {
     }
 
     try {
+      if (_isAdvertInProgress) return;
+      // Throttle rapid advert requests
+      final now = DateTime.now();
+      if (_lastAdvertRequestedAt != null) {
+        final elapsed = now.difference(_lastAdvertRequestedAt!);
+        if (elapsed < _minAdvertInterval) {
+          final wait = _minAdvertInterval - elapsed;
+          await Future.delayed(wait);
+        }
+      }
+      _isAdvertInProgress = true;
       await _bleService.sendSelfAdvert(floodMode: floodMode);
+      _lastAdvertRequestedAt = DateTime.now();
     } catch (e) {
       _error = 'Failed to send advertisement: $e';
       notifyListeners();
+    } finally {
+      _isAdvertInProgress = false;
     }
   }
 
@@ -1017,6 +1048,12 @@ class ConnectionProvider with ChangeNotifier {
   /// Sync messages from device queue
   /// Call this repeatedly until no more messages are available
   Future<bool> syncNextMessage() async {
+    // Prevent re-entrancy and too-fast triggers
+    if (_isSyncingMessages) {
+      // Another sync (single or loop) is in progress
+      return false;
+    }
+
     if (!_bleService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
@@ -1024,17 +1061,36 @@ class ConnectionProvider with ChangeNotifier {
     }
 
     try {
+      // Enforce a small gap between consecutive requests
+      final now = DateTime.now();
+      if (_lastSyncNextRequestedAt != null) {
+        final elapsed = now.difference(_lastSyncNextRequestedAt!);
+        if (elapsed < _minSyncNextInterval) {
+          final remaining = _minSyncNextInterval - elapsed;
+          await Future.delayed(remaining);
+        }
+      }
+
+      _isSyncingMessages = true;
       await _bleService.syncNextMessage();
+      _lastSyncNextRequestedAt = DateTime.now();
       return true;
     } catch (e) {
       _error = 'Failed to sync message: $e';
       notifyListeners();
       return false;
+    } finally {
+      _isSyncingMessages = false;
     }
   }
 
   /// Sync all waiting messages from device
   Future<int> syncAllMessages() async {
+    if (_isSyncingMessages) {
+      // Already syncing; avoid overlapping loops
+      return 0;
+    }
+
     if (!_bleService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
@@ -1045,6 +1101,7 @@ class ConnectionProvider with ChangeNotifier {
     _noMoreMessages = false; // Reset flag
 
     try {
+      _isSyncingMessages = true;
       print('🔄 [Provider] Starting message sync loop...');
       print('  Initial _noMoreMessages state: $_noMoreMessages');
 
@@ -1065,7 +1122,18 @@ class ConnectionProvider with ChangeNotifier {
           '📤 [Provider] Sync iteration ${i + 1}: Sending CMD_SYNC_NEXT_MESSAGE',
         );
 
+        // Respect the minimum interval between requests
+        final now = DateTime.now();
+        if (_lastSyncNextRequestedAt != null) {
+          final elapsed = now.difference(_lastSyncNextRequestedAt!);
+          if (elapsed < _minSyncNextInterval) {
+            final remaining = _minSyncNextInterval - elapsed;
+            await Future.delayed(remaining);
+          }
+        }
+
         await _bleService.syncNextMessage();
+        _lastSyncNextRequestedAt = DateTime.now();
         count++;
 
         // Small delay to allow response to be processed
@@ -1089,6 +1157,8 @@ class ConnectionProvider with ChangeNotifier {
       _error = 'Failed to sync messages: $e';
       notifyListeners();
       return count;
+    } finally {
+      _isSyncingMessages = false;
     }
   }
 
@@ -1121,13 +1191,27 @@ class ConnectionProvider with ChangeNotifier {
     }
 
     try {
+      if (_isLoginInProgress) return;
+      // Throttle rapid login attempts
+      final now = DateTime.now();
+      if (_lastLoginRequestedAt != null) {
+        final elapsed = now.difference(_lastLoginRequestedAt!);
+        if (elapsed < _minLoginInterval) {
+          final wait = _minLoginInterval - elapsed;
+          await Future.delayed(wait);
+        }
+      }
+      _isLoginInProgress = true;
       await _bleService.loginToRoom(
         roomPublicKey: roomPublicKey,
         password: password,
       );
+      _lastLoginRequestedAt = DateTime.now();
     } catch (e) {
       _error = 'Failed to send login request: $e';
       notifyListeners();
+    } finally {
+      _isLoginInProgress = false;
     }
   }
 
@@ -1151,10 +1235,24 @@ class ConnectionProvider with ChangeNotifier {
     }
 
     try {
+      if (_isStatusRequestInProgress) return;
+      // Throttle rapid status requests
+      final now = DateTime.now();
+      if (_lastStatusRequestedAt != null) {
+        final elapsed = now.difference(_lastStatusRequestedAt!);
+        if (elapsed < _minStatusInterval) {
+          final wait = _minStatusInterval - elapsed;
+          await Future.delayed(wait);
+        }
+      }
+      _isStatusRequestInProgress = true;
       await _bleService.sendStatusRequest(contactPublicKey);
+      _lastStatusRequestedAt = DateTime.now();
     } catch (e) {
       _error = 'Failed to send status request: $e';
       notifyListeners();
+    } finally {
+      _isStatusRequestInProgress = false;
     }
   }
 
