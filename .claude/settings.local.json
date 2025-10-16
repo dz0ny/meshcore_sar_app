@@ -11,7 +11,10 @@
       "Bash(flutter precache:*)",
       "Bash(flutter analyze:*)",
       "Bash(flutter pub get:*)",
-      "Bash(dart:*)"
+      "Bash(dart:*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter build:*)"
     ],
     "deny": [],
     "ask": []

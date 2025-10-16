@@ -61,7 +61,7 @@ dependencies:
   flutter_compass: ^0.8.0
 
   # File handling
-  share_plus: ^10.1.3
+  share_plus: ^12.0.0
   path_provider: ^2.1.5
 
   # Persistent storage
