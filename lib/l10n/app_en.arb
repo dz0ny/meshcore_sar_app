@@ -1886,5 +1886,215 @@
   "offlineLayers": "Offline Layers",
   "@offlineLayers": {
     "description": "Section header for offline map layers (MBTiles)"
+  },
+
+  "locationTrail": "Location Trail",
+  "@locationTrail": {
+    "description": "Location trail title"
+  },
+
+  "showTrailOnMap": "Show Trail on Map",
+  "@showTrailOnMap": {
+    "description": "Toggle to show/hide trail on map"
+  },
+
+  "trailVisible": "Trail is visible on the map",
+  "@trailVisible": {
+    "description": "Trail visibility status - visible"
+  },
+
+  "trailHiddenRecording": "Trail is hidden (still recording)",
+  "@trailHiddenRecording": {
+    "description": "Trail visibility status - hidden but recording"
+  },
+
+  "distance": "Distance",
+  "@distance": {
+    "description": "Distance label"
+  },
+
+  "duration": "Duration",
+  "@duration": {
+    "description": "Duration label"
+  },
+
+  "points": "Points",
+  "@points": {
+    "description": "Trail points count label"
+  },
+
+  "clearTrail": "Clear Trail",
+  "@clearTrail": {
+    "description": "Button to clear location trail"
+  },
+
+  "clearTrailQuestion": "Clear Trail?",
+  "@clearTrailQuestion": {
+    "description": "Confirmation dialog title"
+  },
+
+  "clearTrailConfirmation": "Are you sure you want to clear the current location trail? This action cannot be undone.",
+  "@clearTrailConfirmation": {
+    "description": "Confirmation dialog message"
+  },
+
+  "noTrailRecorded": "No trail recorded yet",
+  "@noTrailRecorded": {
+    "description": "Message when no trail exists"
+  },
+
+  "startTrackingToRecord": "Start location tracking to record your trail",
+  "@startTrackingToRecord": {
+    "description": "Instructions to start trail recording"
+  },
+
+  "trailControls": "Trail Controls",
+  "@trailControls": {
+    "description": "Trail controls tooltip"
+  },
+
+  "deviceInformation": "Device Information",
+  "@deviceInformation": {
+    "description": "Device information section header"
+  },
+
+  "bleName": "BLE Name",
+  "@bleName": {
+    "description": "Bluetooth Low Energy device name label"
+  },
+
+  "meshName": "Mesh Name",
+  "@meshName": {
+    "description": "Mesh network name label"
+  },
+
+  "notSet": "Not set",
+  "@notSet": {
+    "description": "Label when a value is not set"
+  },
+
+  "model": "Model",
+  "@model": {
+    "description": "Device model label"
+  },
+
+  "version": "Version",
+  "@version": {
+    "description": "Version label"
+  },
+
+  "buildDate": "Build Date",
+  "@buildDate": {
+    "description": "Firmware build date label"
+  },
+
+  "firmware": "Firmware",
+  "@firmware": {
+    "description": "Firmware label"
+  },
+
+  "maxContacts": "Max Contacts",
+  "@maxContacts": {
+    "description": "Maximum contacts capacity label"
+  },
+
+  "maxChannels": "Max Channels",
+  "@maxChannels": {
+    "description": "Maximum channels capacity label"
+  },
+
+  "publicInfo": "Public Info",
+  "@publicInfo": {
+    "description": "Public information section header"
+  },
+
+  "meshNetworkName": "Mesh Network Name",
+  "@meshNetworkName": {
+    "description": "Mesh network name field label"
+  },
+
+  "nameBroadcastInMesh": "Name broadcast in mesh advertisements",
+  "@nameBroadcastInMesh": {
+    "description": "Helper text for mesh network name field"
+  },
+
+  "telemetryAndLocationSharing": "Telemetry & Location Sharing",
+  "@telemetryAndLocationSharing": {
+    "description": "Telemetry and location sharing toggle label"
+  },
+
+  "lat": "Lat",
+  "@lat": {
+    "description": "Latitude field label (short form)"
+  },
+
+  "lon": "Lon",
+  "@lon": {
+    "description": "Longitude field label (short form)"
+  },
+
+  "useCurrentLocation": "Use current location",
+  "@useCurrentLocation": {
+    "description": "Tooltip for use current location button"
+  },
+
+  "noneUnknown": "None/Unknown",
+  "@noneUnknown": {
+    "description": "Device type: none or unknown"
+  },
+
+  "chatNode": "Chat Node",
+  "@chatNode": {
+    "description": "Device type: chat node"
+  },
+
+  "repeater": "Repeater",
+  "@repeater": {
+    "description": "Device type: repeater"
+  },
+
+  "roomChannel": "Room/Channel",
+  "@roomChannel": {
+    "description": "Device type: room or channel"
+  },
+
+  "typeNumber": "Type {number}",
+  "@typeNumber": {
+    "description": "Generic device type with number",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+
+  "copiedToClipboardShort": "Copied {label} to clipboard",
+  "@copiedToClipboardShort": {
+    "description": "Short success message when copying to clipboard",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToSave": "Failed to save: {error}",
+  "@failedToSave": {
+    "description": "Generic error message for save failures",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToGetLocation": "Failed to get location: {error}",
+  "@failedToGetLocation": {
+    "description": "Error message when getting location fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   }
 }

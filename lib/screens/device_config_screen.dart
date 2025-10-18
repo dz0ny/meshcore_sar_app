@@ -209,7 +209,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save: $e'),
+            content: Text(AppLocalizations.of(context)!.failedToSave(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -282,7 +282,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save: $e'),
+            content: Text(AppLocalizations.of(context)!.failedToSave(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -367,7 +367,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Failed to get location: $e')));
+        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.failedToGetLocation(e.toString()))));
       }
     }
   }
@@ -446,35 +446,35 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Device Information',
+                    AppLocalizations.of(context)!.deviceInformation,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _InfoRow('BLE Name', deviceInfo.deviceName ?? 'Unknown'),
-                  _InfoRow('Mesh Name', deviceInfo.selfName ?? 'Not set'),
-                  _InfoRow('Type', _getDeviceTypeString(deviceInfo.deviceType)),
-                  _InfoRow('Model', deviceInfo.manufacturerModel ?? 'Unknown'),
-                  _InfoRow('Version', deviceInfo.semanticVersion ?? 'Unknown'),
+                  _InfoRow(AppLocalizations.of(context)!.bleName, deviceInfo.deviceName ?? AppLocalizations.of(context)!.unknown),
+                  _InfoRow(AppLocalizations.of(context)!.meshName, deviceInfo.selfName ?? AppLocalizations.of(context)!.notSet),
+                  _InfoRow(AppLocalizations.of(context)!.type, _getDeviceTypeString(context, deviceInfo.deviceType)),
+                  _InfoRow(AppLocalizations.of(context)!.model, deviceInfo.manufacturerModel ?? AppLocalizations.of(context)!.unknown),
+                  _InfoRow(AppLocalizations.of(context)!.version, deviceInfo.semanticVersion ?? AppLocalizations.of(context)!.unknown),
                   _InfoRow(
-                    'Build Date',
-                    deviceInfo.firmwareBuildDate ?? 'Unknown',
+                    AppLocalizations.of(context)!.buildDate,
+                    deviceInfo.firmwareBuildDate ?? AppLocalizations.of(context)!.unknown,
                   ),
                   _InfoRow(
-                    'Firmware',
+                    AppLocalizations.of(context)!.firmware,
                     'v${deviceInfo.firmwareVersion?.toString() ?? "?"}',
                   ),
                   _InfoRow(
-                    'Max Contacts',
-                    deviceInfo.maxContacts?.toString() ?? 'Unknown',
+                    AppLocalizations.of(context)!.maxContacts,
+                    deviceInfo.maxContacts?.toString() ?? AppLocalizations.of(context)!.unknown,
                   ),
                   _InfoRow(
-                    'Max Channels',
-                    deviceInfo.maxChannels?.toString() ?? 'Unknown',
+                    AppLocalizations.of(context)!.maxChannels,
+                    deviceInfo.maxChannels?.toString() ?? AppLocalizations.of(context)!.unknown,
                   ),
                   _CopyableInfoRow(
-                    'Public Key',
+                    AppLocalizations.of(context)!.publicKey,
                     _getPublicKeyHex(deviceInfo.publicKey),
                   ),
                 ],
@@ -495,7 +495,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Public Info',
+                        AppLocalizations.of(context)!.publicInfo,
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -518,10 +518,10 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                   // Mesh Network Name
                   TextField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Mesh Network Name',
-                      border: OutlineInputBorder(),
-                      helperText: 'Name broadcast in mesh advertisements',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.meshNetworkName,
+                      border: const OutlineInputBorder(),
+                      helperText: AppLocalizations.of(context)!.nameBroadcastInMesh,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -531,7 +531,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Telemetry & Location Sharing',
+                          AppLocalizations.of(context)!.telemetryAndLocationSharing,
                           style: theme.textTheme.bodyMedium,
                         ),
                       ),
@@ -554,9 +554,9 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         Expanded(
                           child: TextField(
                             controller: _latController,
-                            decoration: const InputDecoration(
-                              labelText: 'Lat',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: AppLocalizations.of(context)!.lat,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             keyboardType: const TextInputType.numberWithOptions(
@@ -569,9 +569,9 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         Expanded(
                           child: TextField(
                             controller: _lonController,
-                            decoration: const InputDecoration(
-                              labelText: 'Lon',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: AppLocalizations.of(context)!.lon,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             keyboardType: const TextInputType.numberWithOptions(
@@ -584,7 +584,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         IconButton.filled(
                           onPressed: _useCurrentLocation,
                           icon: const Icon(Icons.my_location, size: 20),
-                          tooltip: 'Use current location',
+                          tooltip: AppLocalizations.of(context)!.useCurrentLocation,
                         ),
                       ],
                     ),
@@ -729,19 +729,19 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     );
   }
 
-  String _getDeviceTypeString(int? deviceType) {
-    if (deviceType == null) return 'Unknown';
+  String _getDeviceTypeString(BuildContext context, int? deviceType) {
+    if (deviceType == null) return AppLocalizations.of(context)!.unknown;
     switch (deviceType) {
       case 0:
-        return 'None/Unknown';
+        return AppLocalizations.of(context)!.noneUnknown;
       case 1:
-        return 'Chat Node';
+        return AppLocalizations.of(context)!.chatNode;
       case 2:
-        return 'Repeater';
+        return AppLocalizations.of(context)!.repeater;
       case 3:
-        return 'Room/Channel';
+        return AppLocalizations.of(context)!.roomChannel;
       default:
-        return 'Type $deviceType';
+        return AppLocalizations.of(context)!.typeNumber(deviceType);
     }
   }
 
@@ -815,7 +815,7 @@ class _CopyableInfoRow extends StatelessWidget {
                 Clipboard.setData(ClipboardData(text: value));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Copied $label to clipboard'),
+                    content: Text(AppLocalizations.of(context)!.copiedToClipboardShort(label)),
                     duration: const Duration(seconds: 2),
                     backgroundColor: Colors.green,
                   ),

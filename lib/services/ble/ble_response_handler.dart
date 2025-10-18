@@ -245,7 +245,8 @@ class BleResponseHandler {
   void _handleContact(BufferReader reader) {
     try {
       final contact = FrameParser.parseContact(reader);
-      print('  ✅ [Contact] Parsed successfully');
+      print('  ✅ [Contact] Parsed successfully: ${contact.advName}');
+      print('     outPathLen: ${contact.outPathLen} (${contact.pathDescription})');
       _pendingContacts.add(contact);
       onContactReceived?.call(contact);
     } catch (e) {
@@ -468,7 +469,8 @@ class BleResponseHandler {
   void _handleNewAdvert(BufferReader reader) {
     try {
       final contact = FrameParser.parseContact(reader);
-      print('  ✅ [NewAdvert] Parsed successfully');
+      print('  ✅ [NewAdvert] Parsed successfully: ${contact.advName}');
+      print('     outPathLen: ${contact.outPathLen} (${contact.pathDescription})');
       onContactReceived?.call(contact);
     } catch (e) {
       print('  ❌ [NewAdvert] Parsing error: $e');

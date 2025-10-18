@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/map_provider.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Trail management controls widget
 class TrailControls extends StatelessWidget {
@@ -8,31 +9,52 @@ class TrailControls extends StatelessWidget {
 
   void _showTrailMenu(BuildContext context) {
     final mapProvider = Provider.of<MapProvider>(context, listen: false);
+    final l10n = AppLocalizations.of(context)!;
 
     showModalBottomSheet(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.timeline, size: 24),
-                const SizedBox(width: 12),
-                const Text(
-                  'Location Trail',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.timeline, size: 24),
+                  const SizedBox(width: 12),
+                  Text(
+                    l10n.locationTrail,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-            // Trail stats
+              // Trail visibility toggle
+              SwitchListTile(
+                secondary: const Icon(Icons.visibility),
+                title: Text(l10n.showTrailOnMap),
+                subtitle: Text(
+                  mapProvider.isTrailVisible
+                    ? l10n.trailVisible
+                    : l10n.trailHiddenRecording,
+                ),
+                value: mapProvider.isTrailVisible,
+                onChanged: (value) {
+                  mapProvider.toggleTrailVisibility();
+                  setModalState(() {}); // Update modal UI
+                },
+              ),
+              const Divider(),
+              const SizedBox(height: 8),
+
+              // Trail stats
             if (mapProvider.currentTrail != null && mapProvider.currentTrail!.points.isNotEmpty)
               Container(
                 padding: const EdgeInsets.all(12),
@@ -46,19 +68,19 @@ class TrailControls extends StatelessWidget {
                   children: [
                     _buildStatRow(
                       icon: Icons.straighten,
-                      label: 'Distance',
+                      label: l10n.distance,
                       value: _formatDistance(mapProvider.totalTrailDistance),
                     ),
                     const SizedBox(height: 8),
                     _buildStatRow(
                       icon: Icons.access_time,
-                      label: 'Duration',
+                      label: l10n.duration,
                       value: _formatDuration(mapProvider.trailDuration),
                     ),
                     const SizedBox(height: 8),
                     _buildStatRow(
                       icon: Icons.place,
-                      label: 'Points',
+                      label: l10n.points,
                       value: '${mapProvider.currentTrail!.points.length}',
                     ),
                   ],
@@ -71,10 +93,10 @@ class TrailControls extends StatelessWidget {
             if (mapProvider.currentTrail != null && mapProvider.currentTrail!.points.isNotEmpty)
               ElevatedButton.icon(
                 onPressed: () {
-                  _showClearConfirmation(context, mapProvider);
+                  _showClearConfirmation(context, mapProvider, l10n);
                 },
                 icon: const Icon(Icons.delete_outline),
-                label: const Text('Clear Trail'),
+                label: Text(l10n.clearTrail),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
@@ -84,24 +106,24 @@ class TrailControls extends StatelessWidget {
 
             // No trail message
             if (mapProvider.currentTrail == null || mapProvider.currentTrail!.points.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(16),
+              Padding(
+                padding: const EdgeInsets.all(16),
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(Icons.timeline, size: 48, color: Colors.grey),
-                      SizedBox(height: 8),
+                      const Icon(Icons.timeline, size: 48, color: Colors.grey),
+                      const SizedBox(height: 8),
                       Text(
-                        'No trail recorded yet',
-                        style: TextStyle(
+                        l10n.noTrailRecorded,
+                        style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 16,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        'Start location tracking to record your trail',
-                        style: TextStyle(
+                        l10n.startTrackingToRecord,
+                        style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 12,
                         ),
@@ -115,28 +137,27 @@ class TrailControls extends StatelessWidget {
             const SizedBox(height: 8),
 
             // Close button
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
-            ),
-          ],
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.close),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _showClearConfirmation(BuildContext context, MapProvider mapProvider) {
+  void _showClearConfirmation(BuildContext context, MapProvider mapProvider, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear Trail?'),
-        content: const Text(
-          'Are you sure you want to clear the current location trail? This action cannot be undone.',
-        ),
+        title: Text(l10n.clearTrailQuestion),
+        content: Text(l10n.clearTrailConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -145,7 +166,7 @@ class TrailControls extends StatelessWidget {
               Navigator.pop(context); // Close bottom sheet
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear'),
+            child: Text(l10n.clearTrail),
           ),
         ],
       ),
@@ -204,9 +225,10 @@ class TrailControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return FloatingActionButton.small(
       heroTag: 'trail_controls',
-      tooltip: 'Trail Controls',
+      tooltip: l10n.trailControls,
       onPressed: () => _showTrailMenu(context),
       child: const Icon(Icons.timeline),
     );

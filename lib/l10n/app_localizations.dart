@@ -5,8 +5,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
 import 'app_localizations_hr.dart';
+import 'app_localizations_it.dart';
 import 'app_localizations_sl.dart';
 
 // ignore_for_file: type=lint
@@ -95,8 +99,12 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
     Locale('en'),
+    Locale('es'),
+    Locale('fr'),
     Locale('hr'),
+    Locale('it'),
     Locale('sl'),
   ];
 
@@ -2024,6 +2032,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Offline Layers'**
   String get offlineLayers;
+
+  /// Location trail title
+  ///
+  /// In en, this message translates to:
+  /// **'Location Trail'**
+  String get locationTrail;
+
+  /// Toggle to show/hide trail on map
+  ///
+  /// In en, this message translates to:
+  /// **'Show Trail on Map'**
+  String get showTrailOnMap;
+
+  /// Trail visibility status - visible
+  ///
+  /// In en, this message translates to:
+  /// **'Trail is visible on the map'**
+  String get trailVisible;
+
+  /// Trail visibility status - hidden but recording
+  ///
+  /// In en, this message translates to:
+  /// **'Trail is hidden (still recording)'**
+  String get trailHiddenRecording;
+
+  /// Duration label
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get duration;
+
+  /// Trail points count label
+  ///
+  /// In en, this message translates to:
+  /// **'Points'**
+  String get points;
+
+  /// Button to clear location trail
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Trail'**
+  String get clearTrail;
+
+  /// Confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Trail?'**
+  String get clearTrailQuestion;
+
+  /// Confirmation dialog message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear the current location trail? This action cannot be undone.'**
+  String get clearTrailConfirmation;
+
+  /// Message when no trail exists
+  ///
+  /// In en, this message translates to:
+  /// **'No trail recorded yet'**
+  String get noTrailRecorded;
+
+  /// Instructions to start trail recording
+  ///
+  /// In en, this message translates to:
+  /// **'Start location tracking to record your trail'**
+  String get startTrackingToRecord;
+
+  /// Trail controls tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Trail Controls'**
+  String get trailControls;
+
+  /// Device information section header
+  ///
+  /// In en, this message translates to:
+  /// **'Device Information'**
+  String get deviceInformation;
+
+  /// Bluetooth Low Energy device name label
+  ///
+  /// In en, this message translates to:
+  /// **'BLE Name'**
+  String get bleName;
+
+  /// Mesh network name label
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh Name'**
+  String get meshName;
+
+  /// Label when a value is not set
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSet;
+
+  /// Device model label
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get model;
+
+  /// Version label
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get version;
+
+  /// Firmware build date label
+  ///
+  /// In en, this message translates to:
+  /// **'Build Date'**
+  String get buildDate;
+
+  /// Firmware label
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware'**
+  String get firmware;
+
+  /// Maximum contacts capacity label
+  ///
+  /// In en, this message translates to:
+  /// **'Max Contacts'**
+  String get maxContacts;
+
+  /// Maximum channels capacity label
+  ///
+  /// In en, this message translates to:
+  /// **'Max Channels'**
+  String get maxChannels;
+
+  /// Public information section header
+  ///
+  /// In en, this message translates to:
+  /// **'Public Info'**
+  String get publicInfo;
+
+  /// Mesh network name field label
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh Network Name'**
+  String get meshNetworkName;
+
+  /// Helper text for mesh network name field
+  ///
+  /// In en, this message translates to:
+  /// **'Name broadcast in mesh advertisements'**
+  String get nameBroadcastInMesh;
+
+  /// Telemetry and location sharing toggle label
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry & Location Sharing'**
+  String get telemetryAndLocationSharing;
+
+  /// Latitude field label (short form)
+  ///
+  /// In en, this message translates to:
+  /// **'Lat'**
+  String get lat;
+
+  /// Longitude field label (short form)
+  ///
+  /// In en, this message translates to:
+  /// **'Lon'**
+  String get lon;
+
+  /// Tooltip for use current location button
+  ///
+  /// In en, this message translates to:
+  /// **'Use current location'**
+  String get useCurrentLocation;
+
+  /// Device type: none or unknown
+  ///
+  /// In en, this message translates to:
+  /// **'None/Unknown'**
+  String get noneUnknown;
+
+  /// Device type: chat node
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Node'**
+  String get chatNode;
+
+  /// Device type: repeater
+  ///
+  /// In en, this message translates to:
+  /// **'Repeater'**
+  String get repeater;
+
+  /// Device type: room or channel
+  ///
+  /// In en, this message translates to:
+  /// **'Room/Channel'**
+  String get roomChannel;
+
+  /// Generic device type with number
+  ///
+  /// In en, this message translates to:
+  /// **'Type {number}'**
+  String typeNumber(int number);
+
+  /// Short success message when copying to clipboard
+  ///
+  /// In en, this message translates to:
+  /// **'Copied {label} to clipboard'**
+  String copiedToClipboardShort(String label);
+
+  /// Generic error message for save failures
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save: {error}'**
+  String failedToSave(String error);
+
+  /// Error message when getting location fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get location: {error}'**
+  String failedToGetLocation(String error);
 }
 
 class _AppLocalizationsDelegate
@@ -2036,8 +2266,15 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'hr', 'sl'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'de',
+    'en',
+    'es',
+    'fr',
+    'hr',
+    'it',
+    'sl',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2046,10 +2283,18 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
     case 'hr':
       return AppLocalizationsHr();
+    case 'it':
+      return AppLocalizationsIt();
     case 'sl':
       return AppLocalizationsSl();
   }

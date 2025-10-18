@@ -1353,9 +1353,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   objectCount: messagesProvider.objectMarkers.length,
                 ),
               ),
-            // Trail stats overlay (top-left, below legend if shown)
-            if (!_isFullscreen)
-              const TrailStatsOverlay(),
             // Map controls - right side (hidden in fullscreen mode)
             if (!_isFullscreen)
               Positioned(

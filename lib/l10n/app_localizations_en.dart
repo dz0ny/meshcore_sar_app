@@ -1104,4 +1104,125 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offlineLayers => 'Offline Layers';
+
+  @override
+  String get locationTrail => 'Location Trail';
+
+  @override
+  String get showTrailOnMap => 'Show Trail on Map';
+
+  @override
+  String get trailVisible => 'Trail is visible on the map';
+
+  @override
+  String get trailHiddenRecording => 'Trail is hidden (still recording)';
+
+  @override
+  String get duration => 'Duration';
+
+  @override
+  String get points => 'Points';
+
+  @override
+  String get clearTrail => 'Clear Trail';
+
+  @override
+  String get clearTrailQuestion => 'Clear Trail?';
+
+  @override
+  String get clearTrailConfirmation =>
+      'Are you sure you want to clear the current location trail? This action cannot be undone.';
+
+  @override
+  String get noTrailRecorded => 'No trail recorded yet';
+
+  @override
+  String get startTrackingToRecord =>
+      'Start location tracking to record your trail';
+
+  @override
+  String get trailControls => 'Trail Controls';
+
+  @override
+  String get deviceInformation => 'Device Information';
+
+  @override
+  String get bleName => 'BLE Name';
+
+  @override
+  String get meshName => 'Mesh Name';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get model => 'Model';
+
+  @override
+  String get version => 'Version';
+
+  @override
+  String get buildDate => 'Build Date';
+
+  @override
+  String get firmware => 'Firmware';
+
+  @override
+  String get maxContacts => 'Max Contacts';
+
+  @override
+  String get maxChannels => 'Max Channels';
+
+  @override
+  String get publicInfo => 'Public Info';
+
+  @override
+  String get meshNetworkName => 'Mesh Network Name';
+
+  @override
+  String get nameBroadcastInMesh => 'Name broadcast in mesh advertisements';
+
+  @override
+  String get telemetryAndLocationSharing => 'Telemetry & Location Sharing';
+
+  @override
+  String get lat => 'Lat';
+
+  @override
+  String get lon => 'Lon';
+
+  @override
+  String get useCurrentLocation => 'Use current location';
+
+  @override
+  String get noneUnknown => 'None/Unknown';
+
+  @override
+  String get chatNode => 'Chat Node';
+
+  @override
+  String get repeater => 'Repeater';
+
+  @override
+  String get roomChannel => 'Room/Channel';
+
+  @override
+  String typeNumber(int number) {
+    return 'Type $number';
+  }
+
+  @override
+  String copiedToClipboardShort(String label) {
+    return 'Copied $label to clipboard';
+  }
+
+  @override
+  String failedToSave(String error) {
+    return 'Failed to save: $error';
+  }
+
+  @override
+  String failedToGetLocation(String error) {
+    return 'Failed to get location: $error';
+  }
 }

@@ -1,0 +1,2100 @@
+{
+  "@@locale": "it",
+
+  "appTitle": "MeshCore SAR",
+  "@appTitle": {
+    "description": "Il titolo dell'applicazione"
+  },
+
+  "messages": "Messaggi",
+  "@messages": {
+    "description": "Etichetta della scheda Messaggi"
+  },
+
+  "contacts": "Contatti",
+  "@contacts": {
+    "description": "Etichetta della scheda Contatti"
+  },
+
+  "map": "Mappa",
+  "@map": {
+    "description": "Etichetta della scheda Mappa"
+  },
+
+  "settings": "Impostazioni",
+  "@settings": {
+    "description": "Titolo della schermata Impostazioni"
+  },
+
+  "connect": "Connetti",
+  "@connect": {
+    "description": "Etichetta del pulsante Connetti"
+  },
+
+  "disconnect": "Disconnetti",
+  "@disconnect": {
+    "description": "Etichetta del pulsante Disconnetti"
+  },
+
+  "scanningForDevices": "Ricerca dispositivi in corso...",
+  "@scanningForDevices": {
+    "description": "Testo mostrato durante la ricerca di dispositivi BLE"
+  },
+
+  "noDevicesFound": "Nessun dispositivo trovato",
+  "@noDevicesFound": {
+    "description": "Testo mostrato quando non vengono trovati dispositivi BLE"
+  },
+
+  "scanAgain": "Cerca Nuovamente",
+  "@scanAgain": {
+    "description": "Pulsante per riavviare la ricerca BLE"
+  },
+
+  "tapToConnect": "Tocca per connettere",
+  "@tapToConnect": {
+    "description": "Testo sottotitolo per dispositivo nell'elenco di ricerca"
+  },
+
+  "deviceNotConnected": "Dispositivo non connesso",
+  "@deviceNotConnected": {
+    "description": "Messaggio di errore quando il dispositivo non è connesso"
+  },
+
+  "locationPermissionDenied": "Autorizzazione posizione negata",
+  "@locationPermissionDenied": {
+    "description": "Errore quando l'autorizzazione alla posizione viene negata"
+  },
+
+  "locationPermissionPermanentlyDenied": "Autorizzazione posizione negata permanentemente. Abilitarla nelle Impostazioni.",
+  "@locationPermissionPermanentlyDenied": {
+    "description": "Errore quando l'autorizzazione alla posizione è negata permanentemente"
+  },
+
+  "locationPermissionRequired": "L'autorizzazione alla posizione è necessaria per il tracciamento GPS e il coordinamento del team. Puoi abilitarla successivamente nelle Impostazioni.",
+  "@locationPermissionRequired": {
+    "description": "Messaggio quando è necessaria l'autorizzazione alla posizione"
+  },
+
+  "locationServicesDisabled": "I servizi di localizzazione sono disabilitati. Abilitarli nelle Impostazioni.",
+  "@locationServicesDisabled": {
+    "description": "Errore quando i servizi di localizzazione sono disabilitati"
+  },
+
+  "failedToGetGpsLocation": "Impossibile ottenere la posizione GPS",
+  "@failedToGetGpsLocation": {
+    "description": "Errore quando non è possibile ottenere la posizione GPS"
+  },
+
+  "advertisedAtLocation": "Annunciato a {latitude}, {longitude}",
+  "@advertisedAtLocation": {
+    "description": "Messaggio di successo che mostra la posizione annunciata",
+    "placeholders": {
+      "latitude": {
+        "type": "String"
+      },
+      "longitude": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToAdvertise": "Annuncio fallito: {error}",
+  "@failedToAdvertise": {
+    "description": "Messaggio di errore per annuncio fallito",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "reconnecting": "Riconnessione in corso... ({attempt}/{max})",
+  "@reconnecting": {
+    "description": "Testo mostrato durante i tentativi di riconnessione",
+    "placeholders": {
+      "attempt": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+
+  "cancelReconnection": "Annulla riconnessione",
+  "@cancelReconnection": {
+    "description": "Tooltip per il pulsante annulla riconnessione"
+  },
+
+  "mapManagement": "Gestione Mappa",
+  "@mapManagement": {
+    "description": "Voce di menu per la gestione della mappa"
+  },
+
+  "general": "Generale",
+  "@general": {
+    "description": "Intestazione sezione impostazioni generali"
+  },
+
+  "theme": "Tema",
+  "@theme": {
+    "description": "Etichetta impostazione tema"
+  },
+
+  "chooseTheme": "Scegli Tema",
+  "@chooseTheme": {
+    "description": "Titolo della finestra di selezione tema"
+  },
+
+  "light": "Chiaro",
+  "@light": {
+    "description": "Opzione tema chiaro"
+  },
+
+  "dark": "Scuro",
+  "@dark": {
+    "description": "Opzione tema scuro"
+  },
+
+  "blueLightTheme": "Tema blu chiaro",
+  "@blueLightTheme": {
+    "description": "Descrizione per il tema blu chiaro"
+  },
+
+  "blueDarkTheme": "Tema blu scuro",
+  "@blueDarkTheme": {
+    "description": "Descrizione per il tema blu scuro"
+  },
+
+  "sarRed": "SAR Rosso",
+  "@sarRed": {
+    "description": "Opzione tema SAR Rosso"
+  },
+
+  "alertEmergencyMode": "Modalità Allerta/Emergenza",
+  "@alertEmergencyMode": {
+    "description": "Descrizione per il tema SAR Rosso"
+  },
+
+  "sarGreen": "SAR Verde",
+  "@sarGreen": {
+    "description": "Opzione tema SAR Verde"
+  },
+
+  "safeAllClearMode": "Modalità Sicuro/Tutto Libero",
+  "@safeAllClearMode": {
+    "description": "Descrizione per il tema SAR Verde"
+  },
+
+  "autoSystem": "Auto (Sistema)",
+  "@autoSystem": {
+    "description": "Opzione tema Auto/Sistema"
+  },
+
+  "followSystemTheme": "Segui tema di sistema",
+  "@followSystemTheme": {
+    "description": "Descrizione per il tema di sistema"
+  },
+
+  "showRxTxIndicators": "Mostra Indicatori RX/TX",
+  "@showRxTxIndicators": {
+    "description": "Impostazione per mostrare gli indicatori RX/TX"
+  },
+
+  "displayPacketActivity": "Mostra indicatori di attività pacchetti nella barra superiore",
+  "@displayPacketActivity": {
+    "description": "Descrizione per l'impostazione degli indicatori RX/TX"
+  },
+
+  "language": "Lingua",
+  "@language": {
+    "description": "Etichetta impostazione lingua"
+  },
+
+  "chooseLanguage": "Scegli Lingua",
+  "@chooseLanguage": {
+    "description": "Titolo della finestra di selezione lingua"
+  },
+
+  "english": "Inglese",
+  "@english": {
+    "description": "Opzione lingua inglese"
+  },
+
+  "slovenian": "Sloveno",
+  "@slovenian": {
+    "description": "Opzione lingua slovena"
+  },
+
+  "croatian": "Croato",
+  "@croatian": {
+    "description": "Opzione lingua croata"
+  },
+
+  "locationBroadcasting": "Trasmissione Posizione",
+  "@locationBroadcasting": {
+    "description": "Intestazione sezione impostazioni posizione"
+  },
+
+  "autoLocationTracking": "Tracciamento Posizione Automatico",
+  "@autoLocationTracking": {
+    "description": "Impostazione tracciamento posizione automatico"
+  },
+
+  "automaticallyBroadcastPosition": "Trasmetti automaticamente aggiornamenti di posizione",
+  "@automaticallyBroadcastPosition": {
+    "description": "Descrizione per il tracciamento posizione automatico"
+  },
+
+  "configureTracking": "Configura Tracciamento",
+  "@configureTracking": {
+    "description": "Etichetta pulsante configura tracciamento"
+  },
+
+  "distanceAndTimeThresholds": "Soglie di distanza e tempo",
+  "@distanceAndTimeThresholds": {
+    "description": "Descrizione per la configurazione del tracciamento"
+  },
+
+  "locationTrackingConfiguration": "Configurazione Tracciamento Posizione",
+  "@locationTrackingConfiguration": {
+    "description": "Titolo della finestra di configurazione tracciamento"
+  },
+
+  "configureWhenLocationBroadcasts": "Configura quando le trasmissioni di posizione vengono inviate alla rete mesh",
+  "@configureWhenLocationBroadcasts": {
+    "description": "Descrizione per la finestra di configurazione tracciamento"
+  },
+
+  "minimumDistance": "Distanza Minima",
+  "@minimumDistance": {
+    "description": "Etichetta impostazione distanza minima"
+  },
+
+  "broadcastAfterMoving": "Trasmetti solo dopo essersi spostati di {distance} metri",
+  "@broadcastAfterMoving": {
+    "description": "Descrizione per la distanza minima",
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+
+  "maximumDistance": "Distanza Massima",
+  "@maximumDistance": {
+    "description": "Etichetta impostazione distanza massima"
+  },
+
+  "alwaysBroadcastAfterMoving": "Trasmetti sempre dopo essersi spostati di {distance} metri",
+  "@alwaysBroadcastAfterMoving": {
+    "description": "Descrizione per la distanza massima",
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+
+  "minimumTimeInterval": "Intervallo Minimo di Tempo",
+  "@minimumTimeInterval": {
+    "description": "Etichetta impostazione intervallo minimo di tempo"
+  },
+
+  "alwaysBroadcastEvery": "Trasmetti sempre ogni {duration}",
+  "@alwaysBroadcastEvery": {
+    "description": "Descrizione per l'intervallo di tempo",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+
+  "save": "Salva",
+  "@save": {
+    "description": "Etichetta pulsante Salva"
+  },
+
+  "cancel": "Annulla",
+  "@cancel": {
+    "description": "Etichetta pulsante Annulla"
+  },
+
+  "close": "Chiudi",
+  "@close": {
+    "description": "Etichetta pulsante Chiudi"
+  },
+
+  "about": "Informazioni",
+  "@about": {
+    "description": "Intestazione sezione Informazioni"
+  },
+
+  "appVersion": "Versione App",
+  "@appVersion": {
+    "description": "Etichetta versione app"
+  },
+
+  "appName": "Nome App",
+  "@appName": {
+    "description": "Etichetta nome app"
+  },
+
+  "aboutMeshCoreSar": "Informazioni su MeshCore SAR",
+  "@aboutMeshCoreSar": {
+    "description": "Titolo della finestra Informazioni"
+  },
+
+  "aboutDescription": "Un'applicazione di Ricerca e Soccorso progettata per i team di emergenza. Le caratteristiche includono:\n\n• Rete mesh BLE per comunicazione dispositivo-a-dispositivo\n• Mappe offline con opzioni di livelli multipli\n• Tracciamento in tempo reale dei membri del team\n• Marcatori tattici SAR (persona trovata, incendio, area di appoggio)\n• Gestione contatti e messaggistica\n• Tracciamento GPS con direzione bussola\n• Caching dei tile della mappa per uso offline",
+  "@aboutDescription": {
+    "description": "Descrizione nella finestra Informazioni"
+  },
+
+  "technologiesUsed": "Tecnologie Utilizzate:",
+  "@technologiesUsed": {
+    "description": "Titolo sezione tecnologie utilizzate"
+  },
+
+  "technologiesList": "• Flutter per lo sviluppo multipiattaforma\n• BLE (Bluetooth Low Energy) per la rete mesh\n• OpenStreetMap per la mappatura\n• Provider per la gestione dello stato\n• SharedPreferences per l'archiviazione locale",
+  "@technologiesList": {
+    "description": "Elenco delle tecnologie utilizzate"
+  },
+
+  "developer": "Sviluppatore",
+  "@developer": {
+    "description": "Intestazione sezione sviluppatore"
+  },
+
+  "packageName": "Nome Pacchetto",
+  "@packageName": {
+    "description": "Etichetta nome pacchetto"
+  },
+
+  "sampleData": "Dati di Esempio",
+  "@sampleData": {
+    "description": "Intestazione sezione dati di esempio"
+  },
+
+  "sampleDataDescription": "Carica o cancella contatti di esempio, messaggi di canale e marcatori SAR per test",
+  "@sampleDataDescription": {
+    "description": "Descrizione sezione dati di esempio"
+  },
+
+  "loadSampleData": "Carica Dati di Esempio",
+  "@loadSampleData": {
+    "description": "Pulsante carica dati di esempio"
+  },
+
+  "clearAllData": "Cancella Tutti i Dati",
+  "@clearAllData": {
+    "description": "Pulsante cancella tutti i dati"
+  },
+
+  "clearAllDataConfirmTitle": "Cancella Tutti i Dati",
+  "@clearAllDataConfirmTitle": {
+    "description": "Titolo della finestra di conferma cancellazione dati"
+  },
+
+  "clearAllDataConfirmMessage": "Questo cancellerà tutti i contatti e i marcatori SAR. Sei sicuro?",
+  "@clearAllDataConfirmMessage": {
+    "description": "Messaggio di conferma cancellazione dati"
+  },
+
+  "clear": "Cancella",
+  "@clear": {
+    "description": "Etichetta pulsante Cancella"
+  },
+
+  "loadedSampleData": "Caricati {teamCount} membri del team, {channelCount} canali, {sarCount} marcatori SAR, {messageCount} messaggi",
+  "@loadedSampleData": {
+    "description": "Messaggio di successo dopo il caricamento dei dati di esempio",
+    "placeholders": {
+      "teamCount": {
+        "type": "int"
+      },
+      "channelCount": {
+        "type": "int"
+      },
+      "sarCount": {
+        "type": "int"
+      },
+      "messageCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "failedToLoadSampleData": "Impossibile caricare dati di esempio: {error}",
+  "@failedToLoadSampleData": {
+    "description": "Messaggio di errore quando il caricamento dei dati di esempio fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "allDataCleared": "Tutti i dati cancellati",
+  "@allDataCleared": {
+    "description": "Messaggio di successo dopo la cancellazione di tutti i dati"
+  },
+
+  "failedToStartBackgroundTracking": "Impossibile avviare il tracciamento in background. Verifica le autorizzazioni e la connessione BLE.",
+  "@failedToStartBackgroundTracking": {
+    "description": "Messaggio di errore quando il tracciamento in background fallisce"
+  },
+
+  "locationBroadcast": "Trasmissione posizione: {latitude}, {longitude}",
+  "@locationBroadcast": {
+    "description": "Messaggio di successo per la trasmissione della posizione",
+    "placeholders": {
+      "latitude": {
+        "type": "String"
+      },
+      "longitude": {
+        "type": "String"
+      }
+    }
+  },
+
+  "defaultPinInfo": "Il PIN predefinito per i dispositivi senza schermo è 123456. Problemi di accoppiamento? Dimentica il dispositivo bluetooth nelle impostazioni di sistema.",
+  "@defaultPinInfo": {
+    "description": "Informazioni sul PIN predefinito per l'accoppiamento"
+  },
+
+  "noMessagesYet": "Nessun messaggio ancora",
+  "@noMessagesYet": {
+    "description": "Messaggio di stato vuoto quando non ci sono messaggi"
+  },
+
+  "pullDownToSync": "Trascina verso il basso per sincronizzare i messaggi",
+  "@pullDownToSync": {
+    "description": "Istruzione per trascinare verso il basso per aggiornare i messaggi"
+  },
+
+  "deleteContact": "Elimina Contatto",
+  "@deleteContact": {
+    "description": "Etichetta azione elimina contatto"
+  },
+
+  "delete": "Elimina",
+  "@delete": {
+    "description": "Etichetta pulsante Elimina"
+  },
+
+  "viewOnMap": "Visualizza su Mappa",
+  "@viewOnMap": {
+    "description": "Azione per visualizzare la posizione del contatto sulla mappa"
+  },
+
+  "refresh": "Aggiorna",
+  "@refresh": {
+    "description": "Etichetta pulsante Aggiorna"
+  },
+
+  "sendDirectMessage": "Invia Messaggio Diretto",
+  "@sendDirectMessage": {
+    "description": "Azione per inviare messaggio diretto al contatto"
+  },
+
+  "resetPath": "Resetta Percorso (Ri-instrada)",
+  "@resetPath": {
+    "description": "Azione per resettare il percorso del contatto per il re-instradamento"
+  },
+
+  "publicKeyCopied": "Chiave pubblica copiata negli appunti",
+  "@publicKeyCopied": {
+    "description": "Messaggio di successo quando la chiave pubblica viene copiata"
+  },
+
+  "copiedToClipboard": "{label} copiato negli appunti",
+  "@copiedToClipboard": {
+    "description": "Messaggio di successo quando un valore viene copiato negli appunti",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pleaseEnterPassword": "Inserisci una password",
+  "@pleaseEnterPassword": {
+    "description": "Messaggio di validazione per campo password vuoto"
+  },
+
+  "failedToSyncContacts": "Impossibile sincronizzare i contatti: {error}",
+  "@failedToSyncContacts": {
+    "description": "Messaggio di errore quando la sincronizzazione dei contatti fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "loggedInSuccessfully": "Accesso effettuato con successo! In attesa dei messaggi della stanza...",
+  "@loggedInSuccessfully": {
+    "description": "Messaggio di successo dopo l'accesso alla stanza"
+  },
+
+  "loginFailed": "Accesso fallito - password errata",
+  "@loginFailed": {
+    "description": "Messaggio di errore quando l'accesso alla stanza fallisce"
+  },
+
+  "loggingIn": "Accesso a {roomName} in corso...",
+  "@loggingIn": {
+    "description": "Messaggio di stato durante il processo di accesso alla stanza",
+    "placeholders": {
+      "roomName": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToSendLogin": "Impossibile inviare l'accesso: {error}",
+  "@failedToSendLogin": {
+    "description": "Messaggio di errore quando il comando di accesso fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "lowLocationAccuracy": "Precisione Posizione Bassa",
+  "@lowLocationAccuracy": {
+    "description": "Titolo avviso per precisione GPS bassa"
+  },
+
+  "continue_": "Continua",
+  "@continue_": {
+    "description": "Etichetta pulsante Continua"
+  },
+
+  "sendSarMarker": "Invia marcatore SAR",
+  "@sendSarMarker": {
+    "description": "Azione per inviare marcatore SAR"
+  },
+
+  "deleteDrawing": "Elimina Disegno",
+  "@deleteDrawing": {
+    "description": "Azione per eliminare un disegno sulla mappa"
+  },
+
+  "drawLine": "Disegna Linea",
+  "@drawLine": {
+    "description": "Modalità disegno mappa: linea"
+  },
+
+  "drawLineDesc": "Disegna una linea a mano libera sulla mappa",
+  "@drawLineDesc": {
+    "description": "Descrizione per la modalità disegno linea"
+  },
+
+  "drawRectangle": "Disegna Rettangolo",
+  "@drawRectangle": {
+    "description": "Modalità disegno mappa: rettangolo"
+  },
+
+  "drawRectangleDesc": "Disegna un'area rettangolare sulla mappa",
+  "@drawRectangleDesc": {
+    "description": "Descrizione per la modalità disegno rettangolo"
+  },
+
+  "shareDrawings": "Condividi Disegni",
+  "@shareDrawings": {
+    "description": "Azione per condividere disegni sulla rete"
+  },
+
+  "clearAllDrawings": "Cancella Tutti i Disegni",
+  "@clearAllDrawings": {
+    "description": "Azione per cancellare tutti i disegni locali"
+  },
+
+  "clearAll": "Cancella Tutto",
+  "@clearAll": {
+    "description": "Etichetta pulsante Cancella Tutto"
+  },
+
+  "noLocalDrawings": "Nessun disegno locale da condividere",
+  "@noLocalDrawings": {
+    "description": "Messaggio quando non ci sono disegni da condividere"
+  },
+
+  "publicChannel": "Canale Pubblico",
+  "@publicChannel": {
+    "description": "Opzione canale pubblico per la condivisione"
+  },
+
+  "broadcastToAll": "Trasmetti a tutti i nodi vicini (effimero)",
+  "@broadcastToAll": {
+    "description": "Descrizione per la trasmissione sul canale pubblico"
+  },
+
+  "storedPermanently": "Archiviato permanentemente nella stanza",
+  "@storedPermanently": {
+    "description": "Descrizione per la permanenza dell'archiviazione nella stanza"
+  },
+
+  "notConnectedToDevice": "Non connesso al dispositivo",
+  "@notConnectedToDevice": {
+    "description": "Messaggio di errore quando il dispositivo non è connesso per la messaggistica diretta"
+  },
+
+  "directMessage": "Messaggio Diretto",
+  "@directMessage": {
+    "description": "Titolo per il pannello messaggio diretto"
+  },
+
+  "directMessageSentTo": "Messaggio diretto inviato a {contactName}",
+  "@directMessageSentTo": {
+    "description": "Messaggio di successo dopo l'invio del messaggio diretto",
+    "placeholders": {
+      "contactName": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToSend": "Invio fallito: {error}",
+  "@failedToSend": {
+    "description": "Messaggio di errore quando l'invio del messaggio diretto fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "directMessageInfo": "Questo messaggio verrà inviato direttamente a {contactName}. Apparirà anche nel feed dei messaggi principali.",
+  "@directMessageInfo": {
+    "description": "Informazioni sul comportamento della messaggistica diretta",
+    "placeholders": {
+      "contactName": {
+        "type": "String"
+      }
+    }
+  },
+
+  "typeYourMessage": "Scrivi il tuo messaggio...",
+  "@typeYourMessage": {
+    "description": "Testo segnaposto per il campo di input del messaggio"
+  },
+
+  "quickLocationMarker": "Marcatore posizione rapido",
+  "@quickLocationMarker": {
+    "description": "Sottotitolo per l'intestazione del pannello marcatore SAR"
+  },
+
+  "markerType": "Tipo Marcatore",
+  "@markerType": {
+    "description": "Etichetta per la sezione di selezione tipo marcatore"
+  },
+
+  "sendTo": "Invia A",
+  "@sendTo": {
+    "description": "Etichetta per la sezione di selezione destinazione"
+  },
+
+  "noDestinationsAvailable": "Nessuna destinazione disponibile.",
+  "@noDestinationsAvailable": {
+    "description": "Avviso quando non esistono stanze o canali"
+  },
+
+  "selectDestination": "Seleziona destinazione...",
+  "@selectDestination": {
+    "description": "Segnaposto per il menu a discesa della destinazione"
+  },
+
+  "ephemeralBroadcastInfo": "Effimero: Trasmissione via etere solamente. Non archiviato - i nodi devono essere online.",
+  "@ephemeralBroadcastInfo": {
+    "description": "Informazioni sulle trasmissioni di canale effimere"
+  },
+
+  "persistentRoomInfo": "Persistente: Archiviato in modo immutabile nella stanza. Sincronizzato automaticamente e conservato offline.",
+  "@persistentRoomInfo": {
+    "description": "Informazioni sull'archiviazione persistente della stanza"
+  },
+
+  "location": "Posizione",
+  "@location": {
+    "description": "Etichetta per la sezione posizione"
+  },
+
+  "fromMap": "Dalla Mappa",
+  "@fromMap": {
+    "description": "Badge che mostra che la posizione proviene dal tocco sulla mappa"
+  },
+
+  "gettingLocation": "Ottenimento posizione...",
+  "@gettingLocation": {
+    "description": "Messaggio di caricamento durante il recupero della posizione GPS"
+  },
+
+  "locationError": "Errore Posizione",
+  "@locationError": {
+    "description": "Titolo per i messaggi di errore della posizione"
+  },
+
+  "retry": "Riprova",
+  "@retry": {
+    "description": "Etichetta pulsante Riprova"
+  },
+
+  "refreshLocation": "Aggiorna posizione",
+  "@refreshLocation": {
+    "description": "Tooltip per il pulsante aggiorna posizione"
+  },
+
+  "accuracyMeters": "Precisione: ±{accuracy}m",
+  "@accuracyMeters": {
+    "description": "Visualizzazione della precisione GPS in metri",
+    "placeholders": {
+      "accuracy": {
+        "type": "int"
+      }
+    }
+  },
+
+  "notesOptional": "Note (facoltativo)",
+  "@notesOptional": {
+    "description": "Etichetta per il campo note facoltativo"
+  },
+
+  "addAdditionalInformation": "Aggiungi informazioni aggiuntive...",
+  "@addAdditionalInformation": {
+    "description": "Segnaposto per il campo note"
+  },
+
+  "lowAccuracyWarning": "La precisione della posizione è ±{accuracy}m. Potrebbe non essere abbastanza accurata per le operazioni SAR.\n\nContinuare comunque?",
+  "@lowAccuracyWarning": {
+    "description": "Contenuto della finestra di avviso per precisione GPS bassa",
+    "placeholders": {
+      "accuracy": {
+        "type": "int"
+      }
+    }
+  },
+
+  "loginToRoom": "Accedi alla Stanza",
+  "@loginToRoom": {
+    "description": "Titolo per la finestra di accesso alla stanza"
+  },
+
+  "enterPasswordInfo": "Inserisci la password per accedere a questa stanza. La password verrà salvata per usi futuri.",
+  "@enterPasswordInfo": {
+    "description": "Informazioni sulla password della stanza"
+  },
+
+  "password": "Password",
+  "@password": {
+    "description": "Etichetta campo password"
+  },
+
+  "enterRoomPassword": "Inserisci password stanza",
+  "@enterRoomPassword": {
+    "description": "Suggerimento campo password"
+  },
+
+  "loggingInDots": "Accesso in corso...",
+  "@loggingInDots": {
+    "description": "Testo pulsante durante l'accesso"
+  },
+
+  "login": "Accedi",
+  "@login": {
+    "description": "Etichetta pulsante Accedi"
+  },
+
+  "failedToAddRoom": "Impossibile aggiungere la stanza al dispositivo: {error}\n\nLa stanza potrebbe non aver ancora trasmesso.\nProva ad attendere che la stanza trasmetta.",
+  "@failedToAddRoom": {
+    "description": "Messaggio di errore quando l'aggiunta della stanza fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "direct": "Diretto",
+  "@direct": {
+    "description": "Indicatore instradamento diretto"
+  },
+
+  "flood": "Flood",
+  "@flood": {
+    "description": "Indicatore instradamento flood"
+  },
+
+  "admin": "Admin",
+  "@admin": {
+    "description": "Etichetta badge amministratore"
+  },
+
+  "loggedIn": "Connesso",
+  "@loggedIn": {
+    "description": "Badge stato connesso"
+  },
+
+  "noGpsData": "Nessun dato GPS",
+  "@noGpsData": {
+    "description": "Messaggio quando i dati GPS non sono disponibili"
+  },
+
+  "distance": "Distanza",
+  "@distance": {
+    "description": "Etichetta distanza"
+  },
+
+  "pingingDirect": "Ping {name} (diretto via percorso)...",
+  "@pingingDirect": {
+    "description": "Messaggio di stato per ping diretto",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pingingFlood": "Ping {name} (flooding - nessun percorso)...",
+  "@pingingFlood": {
+    "description": "Messaggio di stato per ping flood",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "directPingTimeout": "Timeout ping diretto - nuovo tentativo {name} con flooding...",
+  "@directPingTimeout": {
+    "description": "Avviso quando il ping diretto va in timeout",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pingSuccessful": "Ping riuscito a {name}{fallback}",
+  "@pingSuccessful": {
+    "description": "Messaggio di successo per ping",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "fallback": {
+        "type": "String"
+      }
+    }
+  },
+
+  "viaFloodingFallback": " (via fallback flooding)",
+  "@viaFloodingFallback": {
+    "description": "Suffisso per successo ping con fallback"
+  },
+
+  "pingFailed": "Ping fallito a {name} - nessuna risposta ricevuta",
+  "@pingFailed": {
+    "description": "Messaggio di errore quando il ping fallisce",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "deleteContactConfirmation": "Sei sicuro di voler eliminare \"{name}\"?\n\nQuesto rimuoverà il contatto sia dall'app che dal dispositivo radio companion.",
+  "@deleteContactConfirmation": {
+    "description": "Messaggio di conferma per l'eliminazione del contatto",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "removingContact": "Rimozione di {name}...",
+  "@removingContact": {
+    "description": "Messaggio di stato durante la rimozione del contatto",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "contactRemoved": "Contatto \"{name}\" rimosso",
+  "@contactRemoved": {
+    "description": "Messaggio di successo dopo la rimozione del contatto",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToRemoveContact": "Impossibile rimuovere il contatto: {error}",
+  "@failedToRemoveContact": {
+    "description": "Messaggio di errore quando la rimozione del contatto fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "type": "Tipo",
+  "@type": {
+    "description": "Etichetta tipo contatto"
+  },
+
+  "publicKey": "Chiave Pubblica",
+  "@publicKey": {
+    "description": "Etichetta chiave pubblica"
+  },
+
+  "lastSeen": "Ultima Visita",
+  "@lastSeen": {
+    "description": "Etichetta ultima visita"
+  },
+
+  "roomStatus": "Stato Stanza",
+  "@roomStatus": {
+    "description": "Intestazione sezione stato stanza"
+  },
+
+  "loginStatus": "Stato Accesso",
+  "@loginStatus": {
+    "description": "Etichetta stato accesso"
+  },
+
+  "notLoggedIn": "Non Connesso",
+  "@notLoggedIn": {
+    "description": "Stato non connesso"
+  },
+
+  "adminAccess": "Accesso Admin",
+  "@adminAccess": {
+    "description": "Etichetta accesso amministratore"
+  },
+
+  "yes": "Sì",
+  "@yes": {
+    "description": "Risposta Sì"
+  },
+
+  "no": "No",
+  "@no": {
+    "description": "Risposta No"
+  },
+
+  "permissions": "Permessi",
+  "@permissions": {
+    "description": "Etichetta permessi"
+  },
+
+  "passwordSaved": "Password Salvata",
+  "@passwordSaved": {
+    "description": "Etichetta password salvata"
+  },
+
+  "locationColon": "Posizione:",
+  "@locationColon": {
+    "description": "Intestazione sezione posizione"
+  },
+
+  "telemetry": "Telemetria",
+  "@telemetry": {
+    "description": "Intestazione sezione telemetria"
+  },
+
+  "requestingTelemetry": "Richiesta telemetria da {name}...",
+  "@requestingTelemetry": {
+    "description": "Messaggio di stato durante la richiesta telemetria",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "voltage": "Tensione",
+  "@voltage": {
+    "description": "Etichetta tensione"
+  },
+
+  "battery": "Batteria",
+  "@battery": {
+    "description": "Etichetta batteria"
+  },
+
+  "temperature": "Temperatura",
+  "@temperature": {
+    "description": "Etichetta temperatura"
+  },
+
+  "humidity": "Umidità",
+  "@humidity": {
+    "description": "Etichetta umidità"
+  },
+
+  "pressure": "Pressione",
+  "@pressure": {
+    "description": "Etichetta pressione"
+  },
+
+  "gpsTelemetry": "GPS (Telemetria)",
+  "@gpsTelemetry": {
+    "description": "Etichetta GPS da telemetria"
+  },
+
+  "updated": "Aggiornato",
+  "@updated": {
+    "description": "Etichetta timestamp aggiornato"
+  },
+
+  "pathResetInfo": "Percorso resettato per {name}. Il prossimo messaggio troverà un nuovo instradamento.",
+  "@pathResetInfo": {
+    "description": "Messaggio informativo dopo il reset del percorso",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "reLoginToRoom": "Riaccedi alla Stanza",
+  "@reLoginToRoom": {
+    "description": "Pulsante per riaccedere alla stanza"
+  },
+
+  "heading": "Direzione",
+  "@heading": {
+    "description": "Etichetta direzione bussola"
+  },
+
+  "elevation": "Elevazione",
+  "@elevation": {
+    "description": "Etichetta elevazione/altitudine"
+  },
+
+  "accuracy": "Precisione",
+  "@accuracy": {
+    "description": "Etichetta precisione GPS"
+  },
+
+  "filterMarkers": "Filtra Marcatori",
+  "@filterMarkers": {
+    "description": "Titolo per la finestra filtra marcatori"
+  },
+
+  "filterMarkersTooltip": "Filtra marcatori",
+  "@filterMarkersTooltip": {
+    "description": "Tooltip per il pulsante filtro"
+  },
+
+  "contactsFilter": "Contatti",
+  "@contactsFilter": {
+    "description": "Opzione filtro per contatti"
+  },
+
+  "repeatersFilter": "Ripetitori",
+  "@repeatersFilter": {
+    "description": "Opzione filtro per ripetitori"
+  },
+
+  "sarMarkers": "Marcatori SAR",
+  "@sarMarkers": {
+    "description": "Intestazione sezione marcatori SAR"
+  },
+
+  "foundPerson": "Persona Trovata",
+  "@foundPerson": {
+    "description": "Tipo marcatore SAR persona trovata"
+  },
+
+  "fire": "Incendio",
+  "@fire": {
+    "description": "Tipo marcatore SAR incendio"
+  },
+
+  "stagingArea": "Area di Appoggio",
+  "@stagingArea": {
+    "description": "Tipo marcatore SAR area di appoggio"
+  },
+
+  "showAll": "Mostra Tutto",
+  "@showAll": {
+    "description": "Pulsante per mostrare tutti i filtri"
+  },
+
+  "nearbyContacts": "Contatti Vicini",
+  "@nearbyContacts": {
+    "description": "Titolo per l'elenco contatti vicini nella bussola"
+  },
+
+  "locationUnavailable": "Posizione non disponibile",
+  "@locationUnavailable": {
+    "description": "Messaggio quando la posizione GPS non è disponibile"
+  },
+
+  "ahead": "avanti",
+  "@ahead": {
+    "description": "Direzione rilevamento relativo - avanti"
+  },
+
+  "degreesRight": "{degrees}° destra",
+  "@degreesRight": {
+    "description": "Direzione rilevamento relativo - destra",
+    "placeholders": {
+      "degrees": {
+        "type": "int"
+      }
+    }
+  },
+
+  "degreesLeft": "{degrees}° sinistra",
+  "@degreesLeft": {
+    "description": "Direzione rilevamento relativo - sinistra",
+    "placeholders": {
+      "degrees": {
+        "type": "int"
+      }
+    }
+  },
+
+  "latLonFormat": "Lat: {latitude} Lon: {longitude}",
+  "@latLonFormat": {
+    "description": "Formato visualizzazione latitudine e longitudine",
+    "placeholders": {
+      "latitude": {
+        "type": "String"
+      },
+      "longitude": {
+        "type": "String"
+      }
+    }
+  },
+
+  "noContactsYet": "Nessun contatto ancora",
+  "@noContactsYet": {
+    "description": "Messaggio di stato vuoto quando non ci sono contatti"
+  },
+
+  "connectToDeviceToLoadContacts": "Connetti a un dispositivo per caricare i contatti",
+  "@connectToDeviceToLoadContacts": {
+    "description": "Istruzione per connettere dispositivo per caricare contatti"
+  },
+
+  "teamMembers": "Membri del Team",
+  "@teamMembers": {
+    "description": "Intestazione sezione per i membri del team (contatti chat)"
+  },
+
+  "repeaters": "Ripetitori",
+  "@repeaters": {
+    "description": "Intestazione sezione per i nodi ripetitori"
+  },
+
+  "rooms": "Stanze",
+  "@rooms": {
+    "description": "Intestazione sezione per le stanze"
+  },
+
+  "channels": "Canali",
+  "@channels": {
+    "description": "Intestazione sezione per i canali di trasmissione"
+  },
+
+  "cacheStatistics": "Statistiche Cache",
+  "@cacheStatistics": {
+    "description": "Titolo per la sezione statistiche cache"
+  },
+
+  "totalTiles": "Tile Totali",
+  "@totalTiles": {
+    "description": "Etichetta per il numero totale di tile in cache"
+  },
+
+  "cacheSize": "Dimensione Cache",
+  "@cacheSize": {
+    "description": "Etichetta per la dimensione della cache in MB"
+  },
+
+  "storeName": "Nome Archivio",
+  "@storeName": {
+    "description": "Etichetta per il nome dell'archivio cache"
+  },
+
+  "noCacheStatistics": "Nessuna statistica cache disponibile",
+  "@noCacheStatistics": {
+    "description": "Messaggio quando le statistiche cache non sono disponibili"
+  },
+
+  "downloadRegion": "Scarica Regione",
+  "@downloadRegion": {
+    "description": "Titolo per la sezione scarica regione"
+  },
+
+  "mapLayer": "Livello Mappa",
+  "@mapLayer": {
+    "description": "Etichetta per la selezione del livello mappa"
+  },
+
+  "regionBounds": "Limiti Regione",
+  "@regionBounds": {
+    "description": "Titolo per la sezione input limiti regione"
+  },
+
+  "north": "Nord",
+  "@north": {
+    "description": "Etichetta per coordinata nord"
+  },
+
+  "south": "Sud",
+  "@south": {
+    "description": "Etichetta per coordinata sud"
+  },
+
+  "east": "Est",
+  "@east": {
+    "description": "Etichetta per coordinata est"
+  },
+
+  "west": "Ovest",
+  "@west": {
+    "description": "Etichetta per coordinata ovest"
+  },
+
+  "zoomLevels": "Livelli di Zoom",
+  "@zoomLevels": {
+    "description": "Titolo per la sezione livelli di zoom"
+  },
+
+  "minZoom": "Min: {zoom}",
+  "@minZoom": {
+    "description": "Etichetta per il livello di zoom minimo",
+    "placeholders": {
+      "zoom": {
+        "type": "int"
+      }
+    }
+  },
+
+  "maxZoom": "Max: {zoom}",
+  "@maxZoom": {
+    "description": "Etichetta per il livello di zoom massimo",
+    "placeholders": {
+      "zoom": {
+        "type": "int"
+      }
+    }
+  },
+
+  "downloadingDots": "Scaricamento in corso...",
+  "@downloadingDots": {
+    "description": "Messaggio di stato durante il download"
+  },
+
+  "cancelDownload": "Annulla Download",
+  "@cancelDownload": {
+    "description": "Pulsante per annullare il download"
+  },
+
+  "downloadRegionButton": "Scarica Regione",
+  "@downloadRegionButton": {
+    "description": "Pulsante per avviare il download della regione"
+  },
+
+  "downloadNote": "Nota: Regioni grandi o livelli di zoom elevati possono richiedere tempo e spazio di archiviazione significativi.",
+  "@downloadNote": {
+    "description": "Avviso sulla dimensione e durata del download"
+  },
+
+  "cacheManagement": "Gestione Cache",
+  "@cacheManagement": {
+    "description": "Titolo per la sezione gestione cache"
+  },
+
+  "clearAllMaps": "Cancella Tutte le Mappe",
+  "@clearAllMaps": {
+    "description": "Pulsante per cancellare tutte le mappe in cache"
+  },
+
+  "clearMapsConfirmTitle": "Cancella Tutte le Mappe",
+  "@clearMapsConfirmTitle": {
+    "description": "Titolo per la finestra di conferma cancellazione mappe"
+  },
+
+  "clearMapsConfirmMessage": "Sei sicuro di voler eliminare tutte le mappe scaricate? Questa azione non può essere annullata.",
+  "@clearMapsConfirmMessage": {
+    "description": "Messaggio di conferma per la cancellazione delle mappe"
+  },
+
+  "mapDownloadCompleted": "Download mappa completato!",
+  "@mapDownloadCompleted": {
+    "description": "Messaggio di successo dopo il download della mappa"
+  },
+
+  "cacheClearedSuccessfully": "Cache cancellata con successo!",
+  "@cacheClearedSuccessfully": {
+    "description": "Messaggio di successo dopo la cancellazione della cache"
+  },
+
+  "downloadCancelled": "Download annullato",
+  "@downloadCancelled": {
+    "description": "Messaggio quando il download viene annullato"
+  },
+
+  "startingDownload": "Avvio download...",
+  "@startingDownload": {
+    "description": "Stato iniziale quando inizia il download"
+  },
+
+  "downloadingMapTiles": "Scaricamento tile mappa...",
+  "@downloadingMapTiles": {
+    "description": "Stato durante il download dei tile"
+  },
+
+  "downloadCompletedSuccessfully": "Download completato con successo!",
+  "@downloadCompletedSuccessfully": {
+    "description": "Stato dopo il download riuscito"
+  },
+
+  "cancellingDownload": "Annullamento download...",
+  "@cancellingDownload": {
+    "description": "Stato durante l'annullamento del download"
+  },
+
+  "errorLoadingStats": "Errore nel caricamento delle statistiche: {error}",
+  "@errorLoadingStats": {
+    "description": "Messaggio di errore quando il caricamento delle statistiche cache fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadFailed": "Download fallito: {error}",
+  "@downloadFailed": {
+    "description": "Messaggio di errore quando il download fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "cancelFailed": "Annullamento fallito: {error}",
+  "@cancelFailed": {
+    "description": "Messaggio di errore quando l'annullamento fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "clearCacheFailed": "Cancellazione cache fallita: {error}",
+  "@clearCacheFailed": {
+    "description": "Messaggio di errore quando la cancellazione della cache fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "minZoomError": "Zoom minimo: {error}",
+  "@minZoomError": {
+    "description": "Errore di validazione per lo zoom minimo",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "maxZoomError": "Zoom massimo: {error}",
+  "@maxZoomError": {
+    "description": "Errore di validazione per lo zoom massimo",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "minZoomGreaterThanMax": "Lo zoom minimo deve essere minore o uguale allo zoom massimo",
+  "@minZoomGreaterThanMax": {
+    "description": "Errore di validazione quando zoom minimo > zoom massimo"
+  },
+
+  "selectMapLayer": "Seleziona Livello Mappa",
+  "@selectMapLayer": {
+    "description": "Titolo per la finestra di selezione livello mappa"
+  },
+
+  "mapOptions": "Opzioni Mappa",
+  "@mapOptions": {
+    "description": "Titolo per la finestra opzioni mappa"
+  },
+
+  "showLegend": "Mostra Legenda",
+  "@showLegend": {
+    "description": "Interruttore per mostrare la legenda della mappa"
+  },
+
+  "displayMarkerTypeCounts": "Visualizza conteggio tipi di marcatori",
+  "@displayMarkerTypeCounts": {
+    "description": "Descrizione per l'interruttore mostra legenda"
+  },
+
+  "rotateMapWithHeading": "Ruota Mappa con Direzione",
+  "@rotateMapWithHeading": {
+    "description": "Interruttore per ruotare la mappa con la direzione della bussola"
+  },
+
+  "mapFollowsDirection": "La mappa segue la tua direzione quando ti muovi",
+  "@mapFollowsDirection": {
+    "description": "Descrizione per l'interruttore ruota mappa"
+  },
+
+  "showMapDebugInfo": "Mostra Info Debug Mappa",
+  "@showMapDebugInfo": {
+    "description": "Interruttore per mostrare informazioni di debug della mappa"
+  },
+
+  "displayZoomLevelBounds": "Visualizza livello di zoom e limiti",
+  "@displayZoomLevelBounds": {
+    "description": "Descrizione per l'interruttore info debug"
+  },
+
+  "fullscreenMode": "Modalità Schermo Intero",
+  "@fullscreenMode": {
+    "description": "Interruttore per la modalità mappa a schermo intero"
+  },
+
+  "hideUiFullMapView": "Nascondi tutti i controlli UI per la visualizzazione completa della mappa",
+  "@hideUiFullMapView": {
+    "description": "Descrizione per l'interruttore modalità schermo intero"
+  },
+
+  "openStreetMap": "OpenStreetMap",
+  "@openStreetMap": {
+    "description": "Nome livello OpenStreetMap"
+  },
+
+  "openTopoMap": "OpenTopoMap",
+  "@openTopoMap": {
+    "description": "Nome livello OpenTopoMap"
+  },
+
+  "esriSatellite": "ESRI Satellite",
+  "@esriSatellite": {
+    "description": "Nome livello immagini satellitari ESRI"
+  },
+
+  "downloadVisibleArea": "Scarica area visibile",
+  "@downloadVisibleArea": {
+    "description": "Tooltip per il pulsante scarica area visibile"
+  },
+
+  "initializingMap": "Inizializzazione mappa...",
+  "@initializingMap": {
+    "description": "Messaggio di caricamento per l'inizializzazione della mappa"
+  },
+
+  "dragToPosition": "Trascina per Posizionare",
+  "@dragToPosition": {
+    "description": "Etichetta quando si trascina un segnaposto sulla mappa"
+  },
+
+  "createSarMarker": "Crea Marcatore SAR",
+  "@createSarMarker": {
+    "description": "Etichetta per creare marcatore SAR dal segnaposto"
+  },
+
+  "compass": "Bussola",
+  "@compass": {
+    "description": "Titolo della bussola nella finestra bussola dettagliata"
+  },
+
+  "navigationAndContacts": "Navigazione e Contatti",
+  "@navigationAndContacts": {
+    "description": "Sottotitolo per la finestra bussola"
+  },
+
+  "sarAlert": "ALLERTA SAR",
+  "@sarAlert": {
+    "description": "Etichetta per il badge allerta SAR sui messaggi"
+  },
+
+  "messageSentToPublicChannel": "Messaggio inviato al canale pubblico",
+  "@messageSentToPublicChannel": {
+    "description": "Messaggio di successo quando il messaggio viene inviato al canale pubblico"
+  },
+
+  "pleaseSelectRoomToSendSar": "Seleziona una stanza per inviare il marcatore SAR",
+  "@pleaseSelectRoomToSendSar": {
+    "description": "Errore quando non è selezionata alcuna stanza per il marcatore SAR"
+  },
+
+  "failedToSendSarMarker": "Impossibile inviare il marcatore SAR: {error}",
+  "@failedToSendSarMarker": {
+    "description": "Messaggio di errore quando l'invio del marcatore SAR fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "sarMarkerSentTo": "Marcatore SAR inviato a {roomName}",
+  "@sarMarkerSentTo": {
+    "description": "Messaggio di successo quando il marcatore SAR viene inviato alla stanza",
+    "placeholders": {
+      "roomName": {
+        "type": "String"
+      }
+    }
+  },
+
+  "notConnectedCannotSync": "Non connesso - impossibile sincronizzare i messaggi",
+  "@notConnectedCannotSync": {
+    "description": "Avviso quando si tenta di sincronizzare i messaggi senza essere connessi"
+  },
+
+  "syncedMessageCount": "Sincronizzati {count} messaggio(i)",
+  "@syncedMessageCount": {
+    "description": "Messaggio di successo che mostra il numero di messaggi sincronizzati",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noNewMessages": "Nessun nuovo messaggio",
+  "@noNewMessages": {
+    "description": "Messaggio informativo quando non ci sono nuovi messaggi da sincronizzare"
+  },
+
+  "syncFailed": "Sincronizzazione fallita: {error}",
+  "@syncFailed": {
+    "description": "Messaggio di errore quando la sincronizzazione fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToResendMessage": "Impossibile reinviare il messaggio",
+  "@failedToResendMessage": {
+    "description": "Errore quando il nuovo tentativo di invio del messaggio fallisce"
+  },
+
+  "retryingMessage": "Nuovo tentativo messaggio...",
+  "@retryingMessage": {
+    "description": "Messaggio informativo quando si riprova un messaggio fallito"
+  },
+
+  "retryFailed": "Nuovo tentativo fallito: {error}",
+  "@retryFailed": {
+    "description": "Messaggio di errore quando il nuovo tentativo fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "textCopiedToClipboard": "Testo copiato negli appunti",
+  "@textCopiedToClipboard": {
+    "description": "Messaggio di successo quando il testo viene copiato"
+  },
+
+  "cannotReplySenderMissing": "Impossibile rispondere: informazioni mittente mancanti",
+  "@cannotReplySenderMissing": {
+    "description": "Errore quando le informazioni del mittente mancano per la risposta"
+  },
+
+  "cannotReplyContactNotFound": "Impossibile rispondere: contatto non trovato",
+  "@cannotReplyContactNotFound": {
+    "description": "Errore quando il contatto non viene trovato per la risposta"
+  },
+
+  "messageDeleted": "Messaggio eliminato",
+  "@messageDeleted": {
+    "description": "Messaggio informativo quando un messaggio viene eliminato"
+  },
+
+  "refreshedContacts": "Contatti aggiornati",
+  "@refreshedContacts": {
+    "description": "Messaggio di successo quando i contatti vengono aggiornati"
+  },
+
+  "justNow": "Proprio ora",
+  "@justNow": {
+    "description": "Indicatore tempo per attività molto recente"
+  },
+
+  "minutesAgo": "{minutes}m fa",
+  "@minutesAgo": {
+    "description": "Indicatore tempo per minuti fa",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "hoursAgo": "{hours}h fa",
+  "@hoursAgo": {
+    "description": "Indicatore tempo per ore fa",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+
+  "daysAgo": "{days}g fa",
+  "@daysAgo": {
+    "description": "Indicatore tempo per giorni fa",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+
+  "secondsAgo": "{seconds}s fa",
+  "@secondsAgo": {
+    "description": "Indicatore tempo per secondi fa",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "sending": "Invio...",
+  "@sending": {
+    "description": "Stato consegna: invio"
+  },
+
+  "sent": "Inviato",
+  "@sent": {
+    "description": "Stato consegna: inviato"
+  },
+
+  "delivered": "Consegnato",
+  "@delivered": {
+    "description": "Stato consegna: consegnato"
+  },
+
+  "deliveredWithTime": "Consegnato ({time}ms)",
+  "@deliveredWithTime": {
+    "description": "Stato consegna con tempo di andata e ritorno",
+    "placeholders": {
+      "time": {
+        "type": "int"
+      }
+    }
+  },
+
+  "failed": "Fallito",
+  "@failed": {
+    "description": "Stato consegna: fallito"
+  },
+
+  "sarMarkerFoundPerson": "Persona Trovata",
+  "@sarMarkerFoundPerson": {
+    "description": "Tipo marcatore SAR: persona trovata"
+  },
+
+  "sarMarkerFire": "Posizione Incendio",
+  "@sarMarkerFire": {
+    "description": "Tipo marcatore SAR: incendio"
+  },
+
+  "sarMarkerStagingArea": "Area di Appoggio",
+  "@sarMarkerStagingArea": {
+    "description": "Tipo marcatore SAR: area di appoggio"
+  },
+
+  "sarMarkerObject": "Oggetto Trovato",
+  "@sarMarkerObject": {
+    "description": "Tipo marcatore SAR: oggetto"
+  },
+
+  "from": "Da",
+  "@from": {
+    "description": "Etichetta mittente nelle notifiche"
+  },
+
+  "coordinates": "Coordinate",
+  "@coordinates": {
+    "description": "Etichetta coordinate"
+  },
+
+  "tapToViewOnMap": "Tocca per visualizzare sulla mappa",
+  "@tapToViewOnMap": {
+    "description": "Testo azione notifica"
+  },
+
+  "radioSettings": "Impostazioni Radio",
+  "@radioSettings": {
+    "description": "Titolo sezione per le impostazioni radio"
+  },
+
+  "frequencyMHz": "Frequenza (MHz)",
+  "@frequencyMHz": {
+    "description": "Etichetta per il campo frequenza radio"
+  },
+
+  "frequencyExample": "es., 869.618",
+  "@frequencyExample": {
+    "description": "Testo di aiuto esempio per la frequenza"
+  },
+
+  "bandwidth": "Larghezza di Banda",
+  "@bandwidth": {
+    "description": "Etichetta per il menu a discesa larghezza di banda"
+  },
+
+  "spreadingFactor": "Fattore di Spreading",
+  "@spreadingFactor": {
+    "description": "Etichetta per il menu a discesa fattore di spreading"
+  },
+
+  "codingRate": "Tasso di Codifica",
+  "@codingRate": {
+    "description": "Etichetta per il menu a discesa tasso di codifica"
+  },
+
+  "txPowerDbm": "Potenza TX (dBm)",
+  "@txPowerDbm": {
+    "description": "Etichetta per il campo potenza TX"
+  },
+
+  "maxPowerDbm": "Max: {power} dBm",
+  "@maxPowerDbm": {
+    "description": "Testo di aiuto che mostra la potenza TX massima",
+    "placeholders": {
+      "power": { "type": "int" }
+    }
+  },
+
+  "you": "Tu",
+  "@you": {
+    "description": "Etichetta per l'utente corrente nelle bolle dei messaggi"
+  },
+
+  "offlineVectorMaps": "Mappe Vettoriali Offline",
+  "@offlineVectorMaps": {
+    "description": "Titolo per la sezione mappe vettoriali offline"
+  },
+
+  "offlineVectorMapsDescription": "Importa e gestisci tile di mappe vettoriali offline (formato MBTiles) per l'uso senza connessione internet",
+  "@offlineVectorMapsDescription": {
+    "description": "Descrizione per la sezione mappe vettoriali offline"
+  },
+
+  "importMbtiles": "Importa File MBTiles",
+  "@importMbtiles": {
+    "description": "Pulsante per importare file MBTiles"
+  },
+
+  "importMbtilesNote": "Supporta file MBTiles con tile vettoriali (formato PBF/MVT). Gli estratti Geofabrik funzionano benissimo!",
+  "@importMbtilesNote": {
+    "description": "Nota sui tipi di file MBTiles supportati"
+  },
+
+  "noMbtilesFiles": "Nessuna mappa vettoriale offline trovata",
+  "@noMbtilesFiles": {
+    "description": "Messaggio quando non sono disponibili file MBTiles"
+  },
+
+  "mbtilesImportedSuccessfully": "File MBTiles importato con successo",
+  "@mbtilesImportedSuccessfully": {
+    "description": "Messaggio di successo dopo l'importazione del file MBTiles"
+  },
+
+  "failedToImportMbtiles": "Impossibile importare il file MBTiles",
+  "@failedToImportMbtiles": {
+    "description": "Messaggio di errore quando l'importazione MBTiles fallisce"
+  },
+
+  "deleteMbtilesConfirmTitle": "Elimina Mappa Offline",
+  "@deleteMbtilesConfirmTitle": {
+    "description": "Titolo per la finestra di conferma eliminazione MBTiles"
+  },
+
+  "deleteMbtilesConfirmMessage": "Sei sicuro di voler eliminare \"{name}\"? Questo rimuoverà permanentemente la mappa offline.",
+  "@deleteMbtilesConfirmMessage": {
+    "description": "Messaggio di conferma per l'eliminazione del file MBTiles",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "mbtilesDeletedSuccessfully": "Mappa offline eliminata con successo",
+  "@mbtilesDeletedSuccessfully": {
+    "description": "Messaggio di successo dopo l'eliminazione del file MBTiles"
+  },
+
+  "failedToDeleteMbtiles": "Impossibile eliminare la mappa offline",
+  "@failedToDeleteMbtiles": {
+    "description": "Messaggio di errore quando l'eliminazione MBTiles fallisce"
+  },
+
+  "vectorTiles": "Tile Vettoriali",
+  "@vectorTiles": {
+    "description": "Etichetta per il tipo tile vettoriale"
+  },
+
+  "schema": "Schema",
+  "@schema": {
+    "description": "Etichetta per lo schema tile vettoriale"
+  },
+
+  "unknown": "Sconosciuto",
+  "@unknown": {
+    "description": "Etichetta valore sconosciuto"
+  },
+
+  "bounds": "Limiti",
+  "@bounds": {
+    "description": "Etichetta per i limiti geografici"
+  },
+
+  "onlineLayers": "Livelli Online",
+  "@onlineLayers": {
+    "description": "Intestazione sezione per i livelli mappa online"
+  },
+
+  "offlineLayers": "Livelli Offline",
+  "@offlineLayers": {
+    "description": "Intestazione sezione per i livelli mappa offline (MBTiles)"
+  },
+
+  "locationTrail": "Traccia Posizione",
+  "@locationTrail": {
+    "description": "Titolo traccia posizione"
+  },
+
+  "showTrailOnMap": "Mostra Traccia sulla Mappa",
+  "@showTrailOnMap": {
+    "description": "Interruttore per mostrare/nascondere la traccia sulla mappa"
+  },
+
+  "trailVisible": "La traccia è visibile sulla mappa",
+  "@trailVisible": {
+    "description": "Stato visibilità traccia - visibile"
+  },
+
+  "trailHiddenRecording": "La traccia è nascosta (ancora in registrazione)",
+  "@trailHiddenRecording": {
+    "description": "Stato visibilità traccia - nascosta ma in registrazione"
+  },
+
+  "distance": "Distanza",
+  "@distance": {
+    "description": "Etichetta distanza"
+  },
+
+  "duration": "Durata",
+  "@duration": {
+    "description": "Etichetta durata"
+  },
+
+  "points": "Punti",
+  "@points": {
+    "description": "Etichetta conteggio punti traccia"
+  },
+
+  "clearTrail": "Cancella Traccia",
+  "@clearTrail": {
+    "description": "Pulsante per cancellare la traccia posizione"
+  },
+
+  "clearTrailQuestion": "Cancellare Traccia?",
+  "@clearTrailQuestion": {
+    "description": "Titolo finestra di conferma"
+  },
+
+  "clearTrailConfirmation": "Sei sicuro di voler cancellare la traccia posizione attuale? Questa azione non può essere annullata.",
+  "@clearTrailConfirmation": {
+    "description": "Messaggio finestra di conferma"
+  },
+
+  "noTrailRecorded": "Nessuna traccia registrata ancora",
+  "@noTrailRecorded": {
+    "description": "Messaggio quando non esiste traccia"
+  },
+
+  "startTrackingToRecord": "Avvia il tracciamento posizione per registrare la tua traccia",
+  "@startTrackingToRecord": {
+    "description": "Istruzioni per avviare la registrazione della traccia"
+  },
+
+  "trailControls": "Controlli Traccia",
+  "@trailControls": {
+    "description": "Tooltip controlli traccia"
+  },
+
+  "deviceInformation": "Informazioni Dispositivo",
+  "@deviceInformation": {
+    "description": "Intestazione sezione informazioni dispositivo"
+  },
+
+  "bleName": "Nome BLE",
+  "@bleName": {
+    "description": "Etichetta nome dispositivo Bluetooth Low Energy"
+  },
+
+  "meshName": "Nome Mesh",
+  "@meshName": {
+    "description": "Etichetta nome rete mesh"
+  },
+
+  "notSet": "Non impostato",
+  "@notSet": {
+    "description": "Etichetta quando un valore non è impostato"
+  },
+
+  "model": "Modello",
+  "@model": {
+    "description": "Etichetta modello dispositivo"
+  },
+
+  "version": "Versione",
+  "@version": {
+    "description": "Etichetta versione"
+  },
+
+  "buildDate": "Data Build",
+  "@buildDate": {
+    "description": "Etichetta data build firmware"
+  },
+
+  "firmware": "Firmware",
+  "@firmware": {
+    "description": "Etichetta firmware"
+  },
+
+  "maxContacts": "Contatti Max",
+  "@maxContacts": {
+    "description": "Etichetta capacità massima contatti"
+  },
+
+  "maxChannels": "Canali Max",
+  "@maxChannels": {
+    "description": "Etichetta capacità massima canali"
+  },
+
+  "publicInfo": "Informazioni Pubbliche",
+  "@publicInfo": {
+    "description": "Intestazione sezione informazioni pubbliche"
+  },
+
+  "meshNetworkName": "Nome Rete Mesh",
+  "@meshNetworkName": {
+    "description": "Etichetta campo nome rete mesh"
+  },
+
+  "nameBroadcastInMesh": "Nome trasmesso negli annunci mesh",
+  "@nameBroadcastInMesh": {
+    "description": "Testo di aiuto per il campo nome rete mesh"
+  },
+
+  "telemetryAndLocationSharing": "Telemetria e Condivisione Posizione",
+  "@telemetryAndLocationSharing": {
+    "description": "Etichetta interruttore telemetria e condivisione posizione"
+  },
+
+  "lat": "Lat",
+  "@lat": {
+    "description": "Etichetta campo latitudine (forma breve)"
+  },
+
+  "lon": "Lon",
+  "@lon": {
+    "description": "Etichetta campo longitudine (forma breve)"
+  },
+
+  "useCurrentLocation": "Usa posizione attuale",
+  "@useCurrentLocation": {
+    "description": "Tooltip per il pulsante usa posizione attuale"
+  },
+
+  "noneUnknown": "Nessuno/Sconosciuto",
+  "@noneUnknown": {
+    "description": "Tipo dispositivo: nessuno o sconosciuto"
+  },
+
+  "chatNode": "Nodo Chat",
+  "@chatNode": {
+    "description": "Tipo dispositivo: nodo chat"
+  },
+
+  "repeater": "Ripetitore",
+  "@repeater": {
+    "description": "Tipo dispositivo: ripetitore"
+  },
+
+  "roomChannel": "Stanza/Canale",
+  "@roomChannel": {
+    "description": "Tipo dispositivo: stanza o canale"
+  },
+
+  "typeNumber": "Tipo {number}",
+  "@typeNumber": {
+    "description": "Tipo dispositivo generico con numero",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+
+  "copiedToClipboardShort": "Copiato {label} negli appunti",
+  "@copiedToClipboardShort": {
+    "description": "Messaggio di successo breve quando si copia negli appunti",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToSave": "Impossibile salvare: {error}",
+  "@failedToSave": {
+    "description": "Messaggio di errore generico per fallimenti di salvataggio",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToGetLocation": "Impossibile ottenere la posizione: {error}",
+  "@failedToGetLocation": {
+    "description": "Messaggio di errore quando l'ottenimento della posizione fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
+}

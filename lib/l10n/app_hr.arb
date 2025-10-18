@@ -632,5 +632,81 @@
 
   "onlineLayers": "Mrežni slojevi",
 
-  "offlineLayers": "Offline slojevi"
+  "offlineLayers": "Offline slojevi",
+
+  "locationTrail": "Putanja lokacije",
+
+  "showTrailOnMap": "Prikaži putanju na karti",
+
+  "trailVisible": "Putanja je vidljiva na karti",
+
+  "trailHiddenRecording": "Putanja je skrivena (još se snima)",
+
+  "distance": "Udaljenost",
+
+  "duration": "Trajanje",
+
+  "points": "Točke",
+
+  "clearTrail": "Obriši putanju",
+
+  "clearTrailQuestion": "Obrisati putanju?",
+
+  "clearTrailConfirmation": "Jeste li sigurni da želite obrisati trenutnu putanju lokacije? Ova radnja se ne može poništiti.",
+
+  "noTrailRecorded": "Još nije snimljena putanja",
+
+  "startTrackingToRecord": "Pokrenite praćenje lokacije za snimanje putanje",
+
+  "trailControls": "Upravljanje putanjom",
+
+  "deviceInformation": "Informacije o uređaju",
+
+  "bleName": "BLE naziv",
+
+  "meshName": "Mesh naziv",
+
+  "notSet": "Nije postavljeno",
+
+  "model": "Model",
+
+  "version": "Verzija",
+
+  "buildDate": "Datum izgradnje",
+
+  "firmware": "Firmware",
+
+  "maxContacts": "Maks. kontakata",
+
+  "maxChannels": "Maks. kanala",
+
+  "publicInfo": "Javne informacije",
+
+  "meshNetworkName": "Naziv mesh mreže",
+
+  "nameBroadcastInMesh": "Naziv koji se emitira u mesh oglasima",
+
+  "telemetryAndLocationSharing": "Telemetrija i dijeljenje lokacije",
+
+  "lat": "Šir",
+
+  "lon": "Dug",
+
+  "useCurrentLocation": "Koristi trenutnu lokaciju",
+
+  "noneUnknown": "Nema/Nepoznato",
+
+  "chatNode": "Čvorište za razgovor",
+
+  "repeater": "Repetitor",
+
+  "roomChannel": "Soba/Kanal",
+
+  "typeNumber": "Tip {number}",
+
+  "copiedToClipboardShort": "Kopirano {label} u međuspremnik",
+
+  "failedToSave": "Neuspjelo spremanje: {error}",
+
+  "failedToGetLocation": "Neuspjelo dohvaćanje lokacije: {error}"
 }

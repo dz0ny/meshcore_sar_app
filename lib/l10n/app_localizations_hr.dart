@@ -1105,4 +1105,125 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get offlineLayers => 'Offline slojevi';
+
+  @override
+  String get locationTrail => 'Putanja lokacije';
+
+  @override
+  String get showTrailOnMap => 'Prikaži putanju na karti';
+
+  @override
+  String get trailVisible => 'Putanja je vidljiva na karti';
+
+  @override
+  String get trailHiddenRecording => 'Putanja je skrivena (još se snima)';
+
+  @override
+  String get duration => 'Trajanje';
+
+  @override
+  String get points => 'Točke';
+
+  @override
+  String get clearTrail => 'Obriši putanju';
+
+  @override
+  String get clearTrailQuestion => 'Obrisati putanju?';
+
+  @override
+  String get clearTrailConfirmation =>
+      'Jeste li sigurni da želite obrisati trenutnu putanju lokacije? Ova radnja se ne može poništiti.';
+
+  @override
+  String get noTrailRecorded => 'Još nije snimljena putanja';
+
+  @override
+  String get startTrackingToRecord =>
+      'Pokrenite praćenje lokacije za snimanje putanje';
+
+  @override
+  String get trailControls => 'Upravljanje putanjom';
+
+  @override
+  String get deviceInformation => 'Informacije o uređaju';
+
+  @override
+  String get bleName => 'BLE naziv';
+
+  @override
+  String get meshName => 'Mesh naziv';
+
+  @override
+  String get notSet => 'Nije postavljeno';
+
+  @override
+  String get model => 'Model';
+
+  @override
+  String get version => 'Verzija';
+
+  @override
+  String get buildDate => 'Datum izgradnje';
+
+  @override
+  String get firmware => 'Firmware';
+
+  @override
+  String get maxContacts => 'Maks. kontakata';
+
+  @override
+  String get maxChannels => 'Maks. kanala';
+
+  @override
+  String get publicInfo => 'Javne informacije';
+
+  @override
+  String get meshNetworkName => 'Naziv mesh mreže';
+
+  @override
+  String get nameBroadcastInMesh => 'Naziv koji se emitira u mesh oglasima';
+
+  @override
+  String get telemetryAndLocationSharing => 'Telemetrija i dijeljenje lokacije';
+
+  @override
+  String get lat => 'Šir';
+
+  @override
+  String get lon => 'Dug';
+
+  @override
+  String get useCurrentLocation => 'Koristi trenutnu lokaciju';
+
+  @override
+  String get noneUnknown => 'Nema/Nepoznato';
+
+  @override
+  String get chatNode => 'Čvorište za razgovor';
+
+  @override
+  String get repeater => 'Repetitor';
+
+  @override
+  String get roomChannel => 'Soba/Kanal';
+
+  @override
+  String typeNumber(int number) {
+    return 'Tip $number';
+  }
+
+  @override
+  String copiedToClipboardShort(String label) {
+    return 'Kopirano $label u međuspremnik';
+  }
+
+  @override
+  String failedToSave(String error) {
+    return 'Neuspjelo spremanje: $error';
+  }
+
+  @override
+  String failedToGetLocation(String error) {
+    return 'Neuspjelo dohvaćanje lokacije: $error';
+  }
 }
