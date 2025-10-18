@@ -11,6 +11,23 @@ import 'helpers/room_login_manager.dart';
 import 'helpers/message_delivery_tracker.dart';
 import 'helpers/ping_tracker.dart';
 
+/// Pending send operation for auto-recovery
+class _PendingSendOperation {
+  final Uint8List contactPublicKey;
+  final String text;
+  final String? messageId;
+  final Contact? contact;
+  final int retryAttempt;
+
+  _PendingSendOperation({
+    required this.contactPublicKey,
+    required this.text,
+    this.messageId,
+    this.contact,
+    this.retryAttempt = 0,
+  });
+}
+
 /// Result of a ping (telemetry request) operation
 class PingResult {
   final bool success;
@@ -117,6 +134,9 @@ class ConnectionProvider with ChangeNotifier {
   Function(int ackCode, int roundTripTimeMs)? onMessageDelivered;
   Function(Uint8List publicKeyPrefix, Uint8List statusData)? onStatusResponse;
 
+  // Track pending send operations for auto-recovery
+  final Map<String, _PendingSendOperation> _pendingSendOperations = {};
+
   ConnectionProvider() {
     _initializeBleService();
   }
@@ -147,8 +167,9 @@ class ConnectionProvider with ChangeNotifier {
       notifyListeners();
     };
 
-    _bleService.onError = (error) {
+    _bleService.onError = (error, {int? errorCode}) {
       print('⚠️ [Provider] BLE error received: $error');
+      print('  Error code: ${errorCode ?? "none"}');
       print('  Current connection state: ${_deviceInfo.connectionState}');
 
       _error = error;
@@ -167,6 +188,57 @@ class ConnectionProvider with ChangeNotifier {
       }
 
       notifyListeners();
+    };
+
+    _bleService.onContactNotFound = (contactPublicKey) async {
+      print('🔧 [Provider] Contact not found error detected - initiating auto-recovery');
+
+      if (contactPublicKey == null) {
+        print('  ⚠️ No contact public key available for recovery');
+        return;
+      }
+
+      // Generate operation ID from public key
+      final operationId = contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
+      final pendingOp = _pendingSendOperations[operationId];
+
+      if (pendingOp == null || pendingOp.contact == null) {
+        print('  ⚠️ No pending operation found for recovery: $operationId');
+        return;
+      }
+
+      print('  📋 Found pending operation for: ${pendingOp.contact!.advName}');
+      print('  📤 Step 1: Adding contact to radio...');
+
+      try {
+        // Step 1: Add the contact to the radio
+        await _bleService.addOrUpdateContact(pendingOp.contact!);
+
+        // Small delay to ensure contact is added before retrying
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        print('  ✅ Contact added successfully');
+        print('  🔄 Step 2: Retrying message send...');
+
+        // Step 2: Retry the send operation
+        await _bleService.sendTextMessage(
+          contactPublicKey: pendingOp.contactPublicKey,
+          text: pendingOp.text,
+          attempt: pendingOp.retryAttempt,
+        );
+
+        print('  ✅ Auto-recovery completed - message resent');
+
+        // Clear pending operation after successful recovery
+        _pendingSendOperations.remove(operationId);
+      } catch (e) {
+        print('  ❌ Auto-recovery failed: $e');
+        _error = 'Auto-recovery failed: $e';
+        notifyListeners();
+
+        // Clear pending operation after failed recovery
+        _pendingSendOperations.remove(operationId);
+      }
     };
 
     _bleService.onContactReceived = (contact) {
@@ -529,6 +601,7 @@ class ConnectionProvider with ChangeNotifier {
     _roomLoginManager
         .clearRoomLoginStates(); // Clear login states on disconnect
     _pingTracker.clearAll(); // Clear pending pings on disconnect
+    _pendingSendOperations.clear(); // Clear pending operations on disconnect
     notifyListeners();
   }
 
@@ -582,11 +655,13 @@ class ConnectionProvider with ChangeNotifier {
   ///
   /// [messageId] - optional message ID to track delivery status
   /// [contact] - optional contact object for path status logging
+  /// [retryAttempt] - retry attempt number (0 = first send, 1-3 = retries)
   Future<bool> sendTextMessage({
     required Uint8List contactPublicKey,
     required String text,
     String? messageId,
     Contact? contact,
+    int retryAttempt = 0,
   }) async {
     if (!_bleService.isConnected) {
       _error = 'Not connected to device';
@@ -595,9 +670,13 @@ class ConnectionProvider with ChangeNotifier {
     }
 
     try {
-      // Log path status if contact info is available
+      // Log path status and retry info
       if (contact != null) {
-        print('📤 [ConnectionProvider] Sending message to ${contact.advName}');
+        if (retryAttempt > 0) {
+          print('🔄 [ConnectionProvider] Sending message to ${contact.advName} (retry $retryAttempt/3)');
+        } else {
+          print('📤 [ConnectionProvider] Sending message to ${contact.advName}');
+        }
         print('   Type: ${contact.type.displayName}');
         print('   Path status: ${contact.pathDescription}');
         if (contact.hasPath) {
@@ -605,6 +684,21 @@ class ConnectionProvider with ChangeNotifier {
         } else {
           print('   ⚠️ No path available - will use flood mode');
         }
+      } else if (retryAttempt > 0) {
+        print('🔄 [ConnectionProvider] Sending message (retry $retryAttempt/3)');
+      }
+
+      // Track pending operation for auto-recovery (if contact not found in radio)
+      if (contact != null) {
+        final operationId = contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
+        _pendingSendOperations[operationId] = _PendingSendOperation(
+          contactPublicKey: contactPublicKey,
+          text: text,
+          messageId: messageId,
+          contact: contact,
+          retryAttempt: retryAttempt,
+        );
+        print('  📝 Tracked pending operation for auto-recovery: $operationId');
       }
 
       // IMPORTANT: Track pending message BEFORE sending to avoid race condition
@@ -615,11 +709,22 @@ class ConnectionProvider with ChangeNotifier {
         print('  Added message ID to pending queue BEFORE sending: $messageId');
       }
 
-      // Send the message
+      // Send the message with retry attempt info
       await _bleService.sendTextMessage(
         contactPublicKey: contactPublicKey,
         text: text,
+        attempt: retryAttempt,
       );
+
+      // Clear pending operation after successful send (no error)
+      // If ERR_CODE_NOT_FOUND occurs, the operation will be recovered automatically
+      if (contact != null) {
+        final operationId = contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':');
+        // Use a small delay to allow error response to arrive before clearing
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _pendingSendOperations.remove(operationId);
+        });
+      }
 
       return true;
     } catch (e) {

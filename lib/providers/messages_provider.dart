@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/message.dart';
+import '../models/contact.dart';
 import '../models/sar_marker.dart';
 import '../services/message_storage_service.dart';
 import '../services/notification_service.dart';
 import '../utils/sar_message_parser.dart';
 import '../l10n/app_localizations.dart';
+import 'helpers/message_retry_manager.dart';
 
 /// Messages Provider - manages message history and SAR markers
 class MessagesProvider with ChangeNotifier {
@@ -22,6 +24,21 @@ class MessagesProvider with ChangeNotifier {
 
   // Track timeout timers for pending messages
   final Map<int, Timer> _timeoutTimers = {};
+
+  // Retry management
+  final MessageRetryManager _retryManager = MessageRetryManager();
+
+  // Track which contact each sent message was sent to (for retry logic)
+  final Map<String, Contact> _messageContactMap = {};
+
+  // Callback to connection provider for sending messages (set by AppProvider)
+  Future<bool> Function({
+    required Uint8List contactPublicKey,
+    required String text,
+    required String messageId,
+    required Contact contact,
+    int retryAttempt,
+  })? sendMessageCallback;
 
   List<Message> get messages => List.unmodifiable(_messages);
 
@@ -176,7 +193,16 @@ class MessagesProvider with ChangeNotifier {
   /// 2. Same channel index (for channel messages)
   /// 3. Same sender timestamp
   /// 4. Same text content
+  ///
+  /// Note: Sent messages (isSentMessage=true) are NEVER duplicates
+  /// because they can be retried with different message IDs
   bool _isDuplicate(Message message) {
+    // Sent messages (our own messages) should never be considered duplicates
+    // They can be retried multiple times with different IDs
+    if (message.isSentMessage) {
+      return false;
+    }
+
     return _messages.any((existing) {
       // Check message type matches
       if (existing.messageType != message.messageType) {
@@ -468,7 +494,7 @@ class MessagesProvider with ChangeNotifier {
   }
 
   /// Add a sent message with initial status
-  void addSentMessage(Message message) {
+  void addSentMessage(Message message, {Contact? contact}) {
     print('📝 [MessagesProvider] addSentMessage called');
     print('  Message ID: ${message.id}');
     print('  Message type: ${message.messageType}');
@@ -492,6 +518,12 @@ class MessagesProvider with ChangeNotifier {
     _messages.add(sendingMessage);
     print('  ✅ Message added to list at index ${_messages.length - 1}');
     print('  Total messages in list: ${_messages.length}');
+
+    // Store contact mapping for retry logic
+    if (contact != null) {
+      _messageContactMap[message.id] = contact;
+      print('  ✅ Stored contact mapping for retry logic');
+    }
 
     // If it's a SAR marker message, extract and store the marker
     if (sendingMessage.isSarMarker) {
@@ -599,6 +631,9 @@ class MessagesProvider with ChangeNotifier {
         // Remove from pending
         _pendingSentMessages.remove(ackCode);
 
+        // Clear retry tracking on successful delivery
+        _retryManager.clearRetry(message.id);
+
         print('✅ [MessagesProvider] Message ${message.id} delivered in ${roundTripTimeMs}ms (ACK $ackCode)');
         print('  Updated status to: ${updatedMessage.deliveryStatus}');
         print('  Calling notifyListeners() to update UI');
@@ -640,15 +675,130 @@ class MessagesProvider with ChangeNotifier {
     }
   }
 
-  /// Update message status to failed
+  /// Update message status to failed (with retry logic)
   void markMessageFailed(String messageId) {
     final index = _messages.indexWhere((m) => m.id == messageId);
+    if (index == -1) {
+      print('⚠️ [MessagesProvider] markMessageFailed: Message not found: $messageId');
+      return;
+    }
+
+    final message = _messages[index];
+    final contact = _messageContactMap[messageId];
+
+    print('❌ [MessagesProvider] Message $messageId timeout/failed');
+    print('   Retry attempt: ${message.retryAttempt}');
+    print('   Contact has path: ${contact?.hasPath ?? false}');
+    print('   Used flood fallback: ${message.usedFloodFallback}');
+
+    // Decision tree for retry/flood/fail
+    if (contact != null && _retryManager.canRetry(message, contact)) {
+      // RETRY: Contact has path and retry attempts < 3
+      _scheduleRetry(messageId, message, contact);
+    } else if (contact != null && _retryManager.shouldUseFloodFallback(message, contact)) {
+      // FLOOD FALLBACK: After 3 retries failed, try flood once
+      _sendWithFloodMode(messageId, message, contact);
+    } else {
+      // PERMANENTLY FAILED: No retry possible
+      _markAsPermanentlyFailed(messageId, message);
+    }
+  }
+
+  /// Schedule a retry with progressive timeout
+  void _scheduleRetry(String messageId, Message message, Contact contact) {
+    final nextAttempt = message.retryAttempt + 1;
+    final timeout = _retryManager.getTimeoutForAttempt(message.retryAttempt);
+
+    print('🔄 [MessagesProvider] Scheduling retry $nextAttempt/3 for message $messageId');
+    print('   Timeout: ${timeout}ms');
+
+    // Update message with new retry attempt
+    final index = _messages.indexWhere((m) => m.id == messageId);
     if (index != -1) {
-      final message = _messages[index];
-      final updatedMessage = message.copyWith(
+      _messages[index] = message.copyWith(
+        retryAttempt: nextAttempt,
+        deliveryStatus: MessageDeliveryStatus.sending,
+        lastRetryAt: DateTime.now(),
+      );
+
+      // Cancel old timeout timer
+      if (message.expectedAckTag != null) {
+        _timeoutTimers[message.expectedAckTag]?.cancel();
+        _timeoutTimers.remove(message.expectedAckTag);
+        _pendingSentMessages.remove(message.expectedAckTag);
+      }
+
+      // Track retry
+      _retryManager.trackRetry(messageId, nextAttempt);
+
+      notifyListeners(); // Update UI to show "Retrying (X/3)..."
+
+      // Schedule actual retry after delay
+      Timer(Duration(milliseconds: timeout), () async {
+        print('⏰ [MessagesProvider] Executing retry $nextAttempt for message $messageId');
+        if (sendMessageCallback != null) {
+          await sendMessageCallback!(
+            contactPublicKey: contact.publicKey,
+            text: message.text,
+            messageId: messageId,
+            contact: contact,
+            retryAttempt: nextAttempt,
+          );
+        } else {
+          print('⚠️ [MessagesProvider] sendMessageCallback not set, cannot retry');
+        }
+      });
+
+      _persistMessages();
+    }
+  }
+
+  /// Send message with flood mode as last resort
+  Future<void> _sendWithFloodMode(String messageId, Message message, Contact contact) async {
+    print('🌊 [MessagesProvider] Trying flood mode for message $messageId');
+
+    final index = _messages.indexWhere((m) => m.id == messageId);
+    if (index != -1) {
+      _messages[index] = message.copyWith(
+        usedFloodFallback: true,
+        deliveryStatus: MessageDeliveryStatus.sending,
+      );
+
+      // Cancel old timeout timer
+      if (message.expectedAckTag != null) {
+        _timeoutTimers[message.expectedAckTag]?.cancel();
+        _timeoutTimers.remove(message.expectedAckTag);
+        _pendingSentMessages.remove(message.expectedAckTag);
+      }
+
+      notifyListeners();
+
+      // Send with flood mode (no retry after this)
+      if (sendMessageCallback != null) {
+        await sendMessageCallback!(
+          contactPublicKey: contact.publicKey,
+          text: message.text,
+          messageId: messageId,
+          contact: contact,
+          retryAttempt: 0, // Reset attempt for flood
+        );
+      } else {
+        print('⚠️ [MessagesProvider] sendMessageCallback not set, cannot send flood');
+      }
+
+      _persistMessages();
+    }
+  }
+
+  /// Mark message as permanently failed
+  void _markAsPermanentlyFailed(String messageId, Message message) {
+    print('❌ [MessagesProvider] Message $messageId permanently failed');
+
+    final index = _messages.indexWhere((m) => m.id == messageId);
+    if (index != -1) {
+      _messages[index] = message.copyWith(
         deliveryStatus: MessageDeliveryStatus.failed,
       );
-      _messages[index] = updatedMessage;
 
       // Cancel timeout timer if it exists
       if (message.expectedAckTag != null) {
@@ -657,11 +807,59 @@ class MessagesProvider with ChangeNotifier {
         _pendingSentMessages.remove(message.expectedAckTag);
       }
 
-      print('❌ [MessagesProvider] Message $messageId marked as failed');
+      // Clear retry tracking
+      _retryManager.clearRetry(messageId);
 
       _persistMessages();
       notifyListeners();
     }
+  }
+
+  /// Resend a failed message
+  Future<void> resendMessage(String messageId) async {
+    final index = _messages.indexWhere((m) => m.id == messageId);
+    if (index == -1) {
+      print('⚠️ [MessagesProvider] resendMessage: Message not found: $messageId');
+      return;
+    }
+
+    final message = _messages[index];
+    final contact = _messageContactMap[messageId];
+
+    if (contact == null) {
+      print('⚠️ [MessagesProvider] Cannot resend: Contact not found for message $messageId');
+      return;
+    }
+
+    print('🔁 [MessagesProvider] Resending message $messageId');
+
+    // Reset retry state
+    _messages[index] = message.copyWith(
+      retryAttempt: 0,
+      usedFloodFallback: false,
+      deliveryStatus: MessageDeliveryStatus.sending,
+      lastRetryAt: DateTime.now(),
+    );
+
+    // Clear retry tracking
+    _retryManager.clearRetry(messageId);
+
+    notifyListeners();
+
+    // Send again
+    if (sendMessageCallback != null) {
+      await sendMessageCallback!(
+        contactPublicKey: contact.publicKey,
+        text: message.text,
+        messageId: messageId,
+        contact: contact,
+        retryAttempt: 0,
+      );
+    } else {
+      print('⚠️ [MessagesProvider] sendMessageCallback not set, cannot resend');
+    }
+
+    _persistMessages();
   }
 
   @override
@@ -671,6 +869,10 @@ class MessagesProvider with ChangeNotifier {
       timer.cancel();
     }
     _timeoutTimers.clear();
+
+    // Clear retry manager
+    _retryManager.clearAll();
+
     super.dispose();
   }
 }

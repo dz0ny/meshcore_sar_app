@@ -14,7 +14,9 @@
       "Bash(dart:*)",
       "Bash(flutter pub:*)",
       "Bash(flutter clean:*)",
-      "Bash(flutter build:*)"
+      "Bash(flutter build:*)",
+      "Bash(xcrun simctl:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

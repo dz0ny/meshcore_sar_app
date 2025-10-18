@@ -77,6 +77,9 @@ class LocationTrackingService {
   /// Whether service has been initialized with BLE service
   bool _isInitialized = false;
 
+  /// Whether the first stable position has been set (without broadcast)
+  bool _firstPositionSet = false;
+
   // ============================================================================
   // Private Properties
   // ============================================================================
@@ -172,22 +175,52 @@ class LocationTrackingService {
   /// Get current GPS position
   ///
   /// Returns null if position unavailable or permissions denied.
-  Future<Position?> getCurrentPosition() async {
-    try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.best,
-          timeLimit: Duration(seconds: 5),
-        ),
-      );
+  /// [timeLimit] - Maximum time to wait for position (default: 15 seconds)
+  /// [retryCount] - Number of retry attempts (default: 2)
+  Future<Position?> getCurrentPosition({
+    Duration timeLimit = const Duration(seconds: 15),
+    int retryCount = 2,
+  }) async {
+    for (int attempt = 0; attempt <= retryCount; attempt++) {
+      try {
+        if (attempt > 0) {
+          debugPrint('🔄 [LocationTracking] Retry attempt $attempt/$retryCount');
+          // Exponential backoff: wait 2^attempt seconds before retry
+          await Future.delayed(Duration(seconds: 1 << attempt));
+        }
 
-      currentPosition = position;
-      return position;
-    } catch (e) {
-      debugPrint('❌ [LocationTracking] Error getting position: $e');
-      onError?.call('Failed to get current position: $e');
-      return null;
+        final position = await Geolocator.getCurrentPosition(
+          locationSettings: LocationSettings(
+            accuracy: LocationAccuracy.best,
+            timeLimit: timeLimit,
+          ),
+        );
+
+        currentPosition = position;
+        if (attempt > 0) {
+          debugPrint('✅ [LocationTracking] Position acquired after $attempt retries');
+        }
+        return position;
+      } catch (e) {
+        final isLastAttempt = attempt == retryCount;
+        if (isLastAttempt) {
+          debugPrint('❌ [LocationTracking] Failed to get position after $retryCount retries: $e');
+          // Only call error callback on final failure, and make it user-friendly
+          if (e.toString().contains('TimeoutException')) {
+            onError?.call('GPS signal weak. Position stream will continue trying...');
+          } else {
+            onError?.call('Failed to get GPS position. Check device settings.');
+          }
+        } else {
+          debugPrint('⚠️ [LocationTracking] Position attempt $attempt failed: $e');
+        }
+
+        if (isLastAttempt) {
+          return null;
+        }
+      }
     }
+    return null;
   }
 
   /// Get position stream with configurable distance filter
@@ -211,6 +244,8 @@ class LocationTrackingService {
   /// [distanceThreshold] - GPS update distance filter
   ///
   /// Returns true if successful, false otherwise.
+  /// Note: This method returns immediately after starting the position stream.
+  /// Initial position acquisition happens asynchronously in the background.
   Future<bool> startTracking({double? distanceThreshold}) async {
     if (!_isInitialized || _bleService == null) {
       debugPrint(
@@ -239,17 +274,28 @@ class LocationTrackingService {
     // Save settings
     await saveSettings();
 
-    // Get initial position
-    await getCurrentPosition();
+    // Try to get initial position in background (non-blocking)
+    // This will populate currentPosition but won't block tracking startup
+    getCurrentPosition(
+      timeLimit: const Duration(seconds: 10),
+      retryCount: 1,
+    ).then((position) {
+      if (position != null) {
+        debugPrint('✅ [LocationTracking] Initial position acquired in background');
+      }
+    }).catchError((error) {
+      debugPrint('⚠️ [LocationTracking] Background initial position failed: $error');
+      // Not critical - position stream will eventually provide position
+    });
 
-    // Start position stream
+    // Start position stream immediately (don't wait for initial position)
     try {
       _positionSubscription = getPositionStream(distanceFilter: threshold)
           .listen(
             _handlePositionUpdate,
             onError: (error) {
               debugPrint('❌ [LocationTracking] Position stream error: $error');
-              onError?.call('Position stream error: $error');
+              onError?.call('GPS stream error. Retrying...');
             },
           );
 
@@ -259,10 +305,11 @@ class LocationTrackingService {
       debugPrint(
         '✅ [LocationTracking] Tracking started with ${threshold}m threshold',
       );
+      debugPrint('📡 [LocationTracking] Waiting for GPS signal...');
       return true;
     } catch (e) {
       debugPrint('❌ [LocationTracking] Failed to start tracking: $e');
-      onError?.call('Failed to start tracking: $e');
+      onError?.call('Failed to start GPS tracking: $e');
       return false;
     }
   }
@@ -276,6 +323,9 @@ class LocationTrackingService {
 
     isTracking = false;
     onTrackingStateChanged?.call(false);
+
+    // Reset first position flag so next connection starts fresh
+    _firstPositionSet = false;
 
     // Save disabled state
     final prefs = await SharedPreferences.getInstance();
@@ -316,8 +366,55 @@ class LocationTrackingService {
     // Notify listeners
     onPositionUpdate?.call(position);
 
+    // SPECIAL CASE: First stable position after connection
+    // Set lat/lon on device WITHOUT broadcasting to mesh network
+    if (!_firstPositionSet) {
+      _setInitialPosition(position);
+      return;
+    }
+
     // Check if we should broadcast to mesh network
     _checkAndBroadcast(position);
+  }
+
+  /// Set initial position on device without broadcasting
+  ///
+  /// Called only for the first stable GPS position after connection starts.
+  /// Updates the device's advertised lat/lon but does NOT send an advertisement.
+  void _setInitialPosition(Position position) async {
+    if (_bleService == null || !_bleService!.isConnected) {
+      debugPrint('⚠️ [LocationTracking] Cannot set initial position: BLE not connected');
+      return;
+    }
+
+    try {
+      debugPrint('📍 [LocationTracking] Setting initial position (no broadcast)');
+
+      // Update device's advertised location WITHOUT sending advertisement
+      await _bleService!.setAdvertLatLon(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      // Mark first position as set
+      _firstPositionSet = true;
+
+      // Update last broadcast position to prevent immediate broadcast on next update
+      _lastBroadcastPosition = position;
+      _lastBroadcastTime = DateTime.now();
+
+      // Save to preferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(_prefKeyLastLat, position.latitude);
+      await prefs.setDouble(_prefKeyLastLon, position.longitude);
+
+      debugPrint('✅ [LocationTracking] Initial position set without broadcast');
+      debugPrint('   Next broadcast allowed in ${minTimeIntervalSeconds}s');
+    } catch (e) {
+      debugPrint('❌ [LocationTracking] Failed to set initial position: $e');
+      onError?.call('Failed to set initial position: $e');
+      // Don't mark as set on failure, so it will retry on next update
+    }
   }
 
   /// Check if position should be broadcast based on distance and time thresholds

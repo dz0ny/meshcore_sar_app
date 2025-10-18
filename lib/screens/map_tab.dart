@@ -52,7 +52,8 @@ class MapTab extends StatefulWidget {
 class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
   final TileCacheService _tileCache = TileCacheService();
-  final LocationTrackingService _locationService = LocationTrackingService();
+  // DO NOT create a new LocationTrackingService instance here
+  // Use the singleton from AppProvider instead via _locationService getter
   final MapMarkerService _markerService = MapMarkerService();
   bool _isInitialized = false;
   bool _isMapReady = false; // Track when map widget is actually rendered
@@ -90,13 +91,16 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
+  // Access the singleton LocationTrackingService from AppProvider
+  LocationTrackingService get _locationService => LocationTrackingService();
+
   @override
   void initState() {
     super.initState();
     _loadSettings();
     _loadMbtilesLayers();
     _initializeTileCache();
-    _initLocationTracking();
+    _setupLocationCallbacks();
     _startCompassTracking();
 
     // Listen to map provider for navigation requests
@@ -113,16 +117,22 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     });
   }
 
-  Future<void> _initLocationTracking() async {
-    // Initialize LocationTrackingService
-    final appProvider = context.read<AppProvider>();
-    await _locationService.initialize(appProvider.connectionProvider.bleService);
+  /// Setup location tracking callbacks for map-specific features
+  /// Note: LocationTrackingService is initialized and started by AppProvider
+  /// This method only adds map-specific callbacks for rotation and UI updates
+  void _setupLocationCallbacks() {
+    // Store the original callback from AppProvider
+    final originalCallback = _locationService.onPositionUpdate;
 
-    // Set up callbacks
+    // Add map-specific callback that chains with the original
     _locationService.onPositionUpdate = (position) {
+      // Call original callback first (AppProvider's logging)
+      originalCallback?.call(position);
+
+      // Then handle map-specific logic
       if (mounted) {
         setState(() {
-          // Position updates are now handled by the service
+          // Position updates trigger UI rebuild for markers
         });
 
         // Rotate map if rotation mode is enabled and heading is available
@@ -140,16 +150,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
         }
       }
     };
-
-    _locationService.onError = (error) {
-      debugPrint('Location tracking error: $error');
-    };
-
-    // Request permissions and start tracking
-    final hasPermission = await _locationService.requestPermissions();
-    if (hasPermission) {
-      await _locationService.startTracking(distanceThreshold: _gpsUpdateDistance);
-    }
   }
 
   void _startCompassTracking() {
@@ -372,7 +372,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     final mapProvider = context.read<MapProvider>();
     mapProvider.removeListener(_handleMapNavigation);
     _compassStreamSubscription?.cancel();
-    _locationService.stopTracking();
+    // DO NOT stop location tracking - it's managed by AppProvider
+    // Just clear the map-specific callback
+    _locationService.onPositionUpdate = null;
     _mapController.dispose();
     _tileCache.dispose();
     super.dispose();

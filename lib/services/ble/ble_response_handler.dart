@@ -29,7 +29,8 @@ typedef OnMessageDeliveredCallback = void Function(int ackCode, int roundTripTim
 typedef OnStatusResponseCallback = void Function(Uint8List publicKeyPrefix, Uint8List statusData);
 typedef OnBinaryResponseCallback = void Function(Uint8List publicKeyPrefix, int tag, Uint8List responseData);
 typedef OnBatteryAndStorageCallback = void Function(int millivolts, int? usedKb, int? totalKb);
-typedef OnErrorCallback = void Function(String error);
+typedef OnErrorCallback = void Function(String error, {int? errorCode});
+typedef OnContactNotFoundCallback = void Function(Uint8List? contactPublicKey);
 
 /// Processes incoming responses from the BLE device
 class BleResponseHandler {
@@ -58,7 +59,11 @@ class BleResponseHandler {
   OnBinaryResponseCallback? onBinaryResponse;
   OnBatteryAndStorageCallback? onBatteryAndStorage;
   OnErrorCallback? onError;
+  OnContactNotFoundCallback? onContactNotFound;
   VoidCallback? onRxActivity;
+
+  // Track the last command that was sent, so we can retry if it fails with ERR_CODE_NOT_FOUND
+  Uint8List? _lastContactPublicKey;
 
   // Getters
   int get rxPacketCount => _rxPacketCount;
@@ -574,11 +579,23 @@ class BleResponseHandler {
       if (errorCode != null) {
         final errorMsg = FrameParser.getErrorMessage(errorCode);
         print('  ❌ [Error] $errorMsg');
-        onError?.call(errorMsg);
+
+        // Special handling for ERR_CODE_NOT_FOUND (2) - contact not in radio
+        if (errorCode == 2) {  // ERR_CODE_NOT_FOUND
+          print('  ⚠️ [Error] Contact not found in radio - attempting auto-recovery');
+          onContactNotFound?.call(_lastContactPublicKey);
+        }
+
+        onError?.call(errorMsg, errorCode: errorCode);
       }
     } catch (e) {
       print('  ❌ [Error] Parsing error: $e');
     }
+  }
+
+  /// Track the last contact public key for retry logic
+  void setLastContactPublicKey(Uint8List? publicKey) {
+    _lastContactPublicKey = publicKey;
   }
 
   /// Log a packet

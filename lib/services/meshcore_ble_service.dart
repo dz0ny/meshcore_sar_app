@@ -28,7 +28,8 @@ typedef OnMessageDeliveredCallback = void Function(int ackCode, int roundTripTim
 typedef OnStatusResponseCallback = void Function(Uint8List publicKeyPrefix, Uint8List statusData);
 typedef OnBinaryResponseCallback = void Function(Uint8List publicKeyPrefix, int tag, Uint8List responseData);
 typedef OnBatteryAndStorageCallback = void Function(int millivolts, int? usedKb, int? totalKb);
-typedef OnErrorCallback = void Function(String error);
+typedef OnErrorCallback = void Function(String error, {int? errorCode});
+typedef OnContactNotFoundCallback = void Function(Uint8List? contactPublicKey);
 typedef OnConnectionStateCallback = void Function(bool isConnected);
 typedef OnReconnectionAttemptCallback = void Function(int attemptNumber, int maxAttempts);
 typedef OnRssiUpdateCallback = void Function(int rssi);
@@ -62,6 +63,7 @@ class MeshCoreBleService {
   OnBinaryResponseCallback? onBinaryResponse;
   OnBatteryAndStorageCallback? onBatteryAndStorage;
   OnErrorCallback? onError;
+  OnContactNotFoundCallback? onContactNotFound;
 
   // Activity callbacks (for blinking indicators)
   VoidCallback? onRxActivity;
@@ -149,8 +151,11 @@ class MeshCoreBleService {
     _responseHandler.onBatteryAndStorage = (millivolts, usedKb, totalKb) {
       onBatteryAndStorage?.call(millivolts, usedKb, totalKb);
     };
-    _responseHandler.onError = (error) {
-      onError?.call(error);
+    _responseHandler.onError = (error, {int? errorCode}) {
+      onError?.call(error, errorCode: errorCode);
+    };
+    _responseHandler.onContactNotFound = (contactPublicKey) {
+      onContactNotFound?.call(contactPublicKey);
     };
     _responseHandler.onRxActivity = () {
       onRxActivity?.call();
@@ -246,6 +251,9 @@ class MeshCoreBleService {
     if (text.length > 160) {
       throw ArgumentError('Text message exceeds 160 character limit');
     }
+
+    // Track the last contact for auto-recovery if contact not found
+    _responseHandler.setLastContactPublicKey(contactPublicKey);
 
     await _commandSender.writeData(FrameBuilder.buildSendTxtMsg(
       contactPublicKey: contactPublicKey,

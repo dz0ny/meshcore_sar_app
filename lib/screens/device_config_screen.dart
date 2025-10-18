@@ -194,6 +194,9 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
         );
       }
 
+      // Refetch device info to update UI with new settings
+      await connectionProvider.refreshDeviceInfo();
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -263,6 +266,9 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
 
       // Save TX power
       await connectionProvider.setTxPower(txPowerResult.value!);
+
+      // Refetch device info to update UI with new settings
+      await connectionProvider.refreshDeviceInfo();
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

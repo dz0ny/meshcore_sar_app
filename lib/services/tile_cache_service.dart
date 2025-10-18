@@ -47,7 +47,9 @@ class TileCacheService {
 
   FMTCTileProvider getTileProvider(MapLayer layer) {
     if (!_isInitialized) {
-      throw StateError('TileCacheService not initialized. Call initialize() first.');
+      throw StateError(
+        'TileCacheService not initialized. Call initialize() first.',
+      );
     }
     return _store.getTileProvider(
       loadingStrategy: BrowseLoadingStrategy.cacheFirst,
@@ -63,7 +65,9 @@ class TileCacheService {
     Function(double progress)? onProgress,
   }) async {
     if (!_isInitialized) {
-      throw StateError('TileCacheService not initialized. Call initialize() first.');
+      throw StateError(
+        'TileCacheService not initialized. Call initialize() first.',
+      );
     }
 
     if (_isDownloading) {
@@ -78,21 +82,19 @@ class TileCacheService {
       final downloadable = region.toDownloadable(
         minZoom: minZoom,
         maxZoom: maxZoom,
-        options: TileLayer(
-          urlTemplate: layer.urlTemplate,
-        ),
+        options: TileLayer(urlTemplate: layer.urlTemplate),
       );
 
-      final download = _store.download.startForeground(
-        region: downloadable,
-      );
+      final download = _store.download.startForeground(region: downloadable);
 
       await for (final progress in download.downloadProgress) {
         if (onProgress != null && progress.maxTilesCount > 0) {
           // Use attemptedTilesCount instead of successfulTilesCount
           // attemptedTilesCount includes successful + buffered + skipped tiles
           final percentage = progress.percentageProgress;
-          print('Download progress: ${progress.attemptedTilesCount}/${progress.maxTilesCount} = ${percentage.toStringAsFixed(1)}% (successful: ${progress.successfulTilesCount}, buffered: ${progress.bufferedTilesCount}, skipped: ${progress.skippedTilesCount})');
+          print(
+            'Download progress: ${progress.attemptedTilesCount}/${progress.maxTilesCount} = ${percentage.toStringAsFixed(1)}% (successful: ${progress.successfulTilesCount}, buffered: ${progress.bufferedTilesCount}, skipped: ${progress.skippedTilesCount})',
+          );
           onProgress(percentage);
         }
       }
@@ -126,7 +128,9 @@ class TileCacheService {
 
   Future<List<String>> getAvailableStores() async {
     if (!_isInitialized) {
-      throw StateError('TileCacheService not initialized. Call initialize() first.');
+      throw StateError(
+        'TileCacheService not initialized. Call initialize() first.',
+      );
     }
 
     final stores = await FMTCRoot.stats.storesAvailable;
@@ -137,11 +141,11 @@ class TileCacheService {
     if (!_isInitialized) return {};
 
     final length = await _store.stats.length;
-    final size = await _store.stats.size;
+    final size = await _store.stats.all.then((a) => a.size);
 
     return {
       'tileCount': length,
-      'sizeMB': size / (1024 * 1024),
+      'sizeMB': size / 1024,
       'storeName': _storeName,
     };
   }

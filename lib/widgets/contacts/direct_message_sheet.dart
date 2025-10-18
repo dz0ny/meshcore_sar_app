@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../models/contact.dart';
 import '../../models/message.dart';
 import '../../providers/connection_provider.dart';
@@ -43,6 +44,66 @@ class _DirectMessageSheetState extends State<DirectMessageSheet> {
     });
   }
 
+  /// Insert current GPS location at cursor position
+  Future<void> _insertCurrentLocation() async {
+    try {
+      // Check location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (!mounted) return;
+          ToastLogger.error(context, 'Location permission denied');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
+        ToastLogger.error(context, 'Location permission permanently denied');
+        return;
+      }
+
+      // Get current position
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
+
+      // Format location text
+      final locationText = '📍 Lat: ${position.latitude.toStringAsFixed(5)}, Lon: ${position.longitude.toStringAsFixed(5)}';
+
+      // Check if adding location would exceed limit
+      final currentText = _textController.text;
+      if (currentText.length + locationText.length > _maxCharacters) {
+        if (!mounted) return;
+        ToastLogger.error(context, 'Adding location would exceed 160 character limit');
+        return;
+      }
+
+      // Insert at cursor position or append
+      final selection = _textController.selection;
+      final newText = currentText.replaceRange(
+        selection.start >= 0 ? selection.start : currentText.length,
+        selection.end >= 0 ? selection.end : currentText.length,
+        locationText,
+      );
+
+      _textController.text = newText;
+
+      // Move cursor to end of inserted text
+      final newCursorPosition = (selection.start >= 0 ? selection.start : currentText.length) + locationText.length;
+      _textController.selection = TextSelection.fromPosition(
+        TextPosition(offset: newCursorPosition),
+      );
+
+      if (!mounted) return;
+      ToastLogger.success(context, 'Location inserted');
+    } catch (e) {
+      if (!mounted) return;
+      ToastLogger.error(context, 'Failed to get location: $e');
+    }
+  }
+
   Future<void> _sendDirectMessage() async {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
@@ -80,7 +141,8 @@ class _DirectMessageSheetState extends State<DirectMessageSheet> {
       );
 
       // Add to messages list with "sending" status
-      messagesProvider.addSentMessage(sentMessage);
+      // Pass contact for retry logic
+      messagesProvider.addSentMessage(sentMessage, contact: widget.contact);
 
       // Send direct message to contact (include contact for path logging)
       final sentSuccessfully = await connectionProvider.sendTextMessage(
@@ -226,36 +288,63 @@ class _DirectMessageSheetState extends State<DirectMessageSheet> {
                       borderSide: BorderSide(color: colorScheme.primary, width: 2),
                     ),
                     contentPadding: const EdgeInsets.all(16),
-                    counterText: _characterCount >= 150
-                        ? '$_characterCount/$_maxCharacters'
-                        : '',
-                    counterStyle: TextStyle(
-                      fontSize: 11,
-                      color: _characterCount > _maxCharacters * 0.9
-                          ? Colors.orange
-                          : colorScheme.onSurfaceVariant,
-                    ),
+                    counterText: '', // Hide default counter
                   ),
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _sendDirectMessage(),
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _textController.text.trim().isEmpty
-                        ? null
-                        : _sendDirectMessage,
-                    icon: const Icon(Icons.send),
-                    label: Text(AppLocalizations.of(context)!.sendDirectMessage),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      disabledBackgroundColor: colorScheme.surfaceContainerHighest,
-                      disabledForegroundColor: colorScheme.onSurfaceVariant,
-                    ),
+                // Always-visible character counter
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '$_characterCount / $_maxCharacters',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _characterCount > 155
+                              ? Colors.red
+                              : (_characterCount > 140
+                                  ? Colors.orange
+                                  : colorScheme.onSurfaceVariant),
+                          fontWeight: _characterCount > 140 ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                const SizedBox(height: 8),
+                // Location and Send buttons
+                Row(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: _insertCurrentLocation,
+                      icon: const Icon(Icons.my_location, size: 18),
+                      label: const Text('Location'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        side: BorderSide(color: colorScheme.outline),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _textController.text.trim().isEmpty
+                            ? null
+                            : _sendDirectMessage,
+                        icon: const Icon(Icons.send),
+                        label: Text(AppLocalizations.of(context)!.sendDirectMessage),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          disabledBackgroundColor: colorScheme.surfaceContainerHighest,
+                          disabledForegroundColor: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

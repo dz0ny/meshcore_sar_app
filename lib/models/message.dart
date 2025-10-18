@@ -64,6 +64,11 @@ class Message {
   final DateTime? deliveredAt; // When delivery was confirmed
   final Uint8List? recipientPublicKey; // Full 32-byte public key of recipient (for retry)
 
+  // Retry tracking (for automatic retry with progressive timeouts)
+  final int retryAttempt; // Current retry attempt (0-3), 0 = first send
+  final DateTime? lastRetryAt; // When last retry was sent
+  final bool usedFloodFallback; // Whether message fell back to flood mode after retries
+
   // Read status tracking
   final bool isRead; // Whether message has been read by user
 
@@ -88,6 +93,9 @@ class Message {
     this.roundTripTimeMs,
     this.deliveredAt,
     this.recipientPublicKey,
+    this.retryAttempt = 0,
+    this.lastRetryAt,
+    this.usedFloodFallback = false,
     this.isRead = false,
   });
 
@@ -172,16 +180,38 @@ class Message {
   String get deliveryStatusText {
     switch (deliveryStatus) {
       case MessageDeliveryStatus.sending:
+        if (retryAttempt > 0) {
+          return 'Retrying ($retryAttempt/3)...';
+        }
         return 'Sending...';
+
       case MessageDeliveryStatus.sent:
+        if (retryAttempt > 0) {
+          return 'Sent (retry $retryAttempt)';
+        }
         return 'Sent';
+
       case MessageDeliveryStatus.delivered:
-        if (roundTripTimeMs != null) {
-          return 'Delivered (${roundTripTimeMs}ms)';
+        final rttText = roundTripTimeMs != null ? '${roundTripTimeMs}ms' : '';
+        if (retryAttempt > 0 && rttText.isNotEmpty) {
+          return 'Delivered ($rttText) [retry $retryAttempt]';
+        } else if (retryAttempt > 0) {
+          return 'Delivered [retry $retryAttempt]';
+        } else if (rttText.isNotEmpty) {
+          return 'Delivered ($rttText)';
         }
         return 'Delivered';
+
       case MessageDeliveryStatus.failed:
+        if (usedFloodFallback) {
+          return 'Failed (tried flood)';
+        }
+        if (retryAttempt > 0) {
+          final retryWord = retryAttempt == 1 ? 'retry' : 'retries';
+          return 'Failed (after $retryAttempt $retryWord)';
+        }
         return 'Failed';
+
       case MessageDeliveryStatus.received:
         return '';
     }
@@ -229,6 +259,9 @@ class Message {
     int? roundTripTimeMs,
     DateTime? deliveredAt,
     Uint8List? recipientPublicKey,
+    int? retryAttempt,
+    DateTime? lastRetryAt,
+    bool? usedFloodFallback,
     bool? isRead,
   }) {
     return Message(
@@ -252,6 +285,9 @@ class Message {
       roundTripTimeMs: roundTripTimeMs ?? this.roundTripTimeMs,
       deliveredAt: deliveredAt ?? this.deliveredAt,
       recipientPublicKey: recipientPublicKey ?? this.recipientPublicKey,
+      retryAttempt: retryAttempt ?? this.retryAttempt,
+      lastRetryAt: lastRetryAt ?? this.lastRetryAt,
+      usedFloodFallback: usedFloodFallback ?? this.usedFloodFallback,
       isRead: isRead ?? this.isRead,
     );
   }

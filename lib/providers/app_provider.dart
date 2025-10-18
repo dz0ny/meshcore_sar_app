@@ -198,6 +198,23 @@ class AppProvider with ChangeNotifier {
       debugPrint('✅ [AppProvider] Message delivered - ACK: $ackCode, RTT: ${roundTripTimeMs}ms');
       messagesProvider.markMessageDelivered(ackCode, roundTripTimeMs);
     };
+
+    // Wire up MessagesProvider's sendMessageCallback for retry logic
+    messagesProvider.sendMessageCallback = ({
+      required contactPublicKey,
+      required text,
+      required messageId,
+      required contact,
+      retryAttempt = 0,
+    }) async {
+      return await connectionProvider.sendTextMessage(
+        contactPublicKey: contactPublicKey,
+        text: text,
+        messageId: messageId,
+        contact: contact,
+        retryAttempt: retryAttempt,
+      );
+    };
   }
 
   /// Initialize the app (load contacts, sync time, etc.)
