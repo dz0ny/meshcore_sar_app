@@ -95,6 +95,9 @@ class ConnectionProvider with ChangeNotifier {
   DateTime? _lastSyncNextRequestedAt;
   static const Duration _minSyncNextInterval = Duration(milliseconds: 150);
 
+  // Completer to wait for response before sending next sync request
+  Completer<bool>? _syncResponseCompleter;
+
   // Lightweight guards for other commands that can be double-tapped
   bool _isLoginInProgress = false;
   DateTime? _lastLoginRequestedAt;
@@ -260,6 +263,11 @@ class ConnectionProvider with ChangeNotifier {
       // Parse SAR markers
       final enhancedMessage = SarMessageParser.enhanceMessage(message);
       onMessageReceived?.call(enhancedMessage);
+
+      // Complete sync response completer (message received = continue syncing)
+      if (_syncResponseCompleter != null && !_syncResponseCompleter!.isCompleted) {
+        _syncResponseCompleter!.complete(true);
+      }
     };
 
     _bleService.onTelemetryReceived = (publicKey, lppData) {
@@ -284,6 +292,11 @@ class ConnectionProvider with ChangeNotifier {
     _bleService.onNoMoreMessages = () {
       debugPrint('📥 [Provider] Received NoMoreMessages signal');
       _noMoreMessages = true;
+
+      // Complete sync response completer (no more messages = stop syncing)
+      if (_syncResponseCompleter != null && !_syncResponseCompleter!.isCompleted) {
+        _syncResponseCompleter!.complete(false);
+      }
     };
 
     _bleService.onMessageWaiting = () {
@@ -1273,6 +1286,9 @@ class ConnectionProvider with ChangeNotifier {
           '📤 [Provider] Sync iteration ${i + 1}: Sending CMD_SYNC_NEXT_MESSAGE',
         );
 
+        // Create new completer for this request
+        _syncResponseCompleter = Completer<bool>();
+
         // Respect the minimum interval between requests
         final now = DateTime.now();
         if (_lastSyncNextRequestedAt != null) {
@@ -1287,10 +1303,22 @@ class ConnectionProvider with ChangeNotifier {
         _lastSyncNextRequestedAt = DateTime.now();
         count++;
 
-        // Small delay to allow response to be processed
-        await Future.delayed(const Duration(milliseconds: 150));
+        // Wait for response (true = message received, false = no more messages)
+        // Timeout after 2 seconds to prevent hanging
+        final hasMore = await _syncResponseCompleter!.future.timeout(
+          const Duration(seconds: 2),
+          onTimeout: () {
+            debugPrint('⚠️ [Provider] Sync timeout - no response after 2s');
+            return false;
+          },
+        );
 
-        debugPrint('  After iteration ${i + 1}: _noMoreMessages=$_noMoreMessages');
+        debugPrint('  After iteration ${i + 1}: hasMore=$hasMore, _noMoreMessages=$_noMoreMessages');
+
+        if (!hasMore) {
+          debugPrint('  ✅ No more messages available, stopping sync');
+          break;
+        }
       }
 
       if (!_noMoreMessages && count >= 100) {
@@ -1310,6 +1338,7 @@ class ConnectionProvider with ChangeNotifier {
       return count;
     } finally {
       _isSyncingMessages = false;
+      _syncResponseCompleter = null;
     }
   }
 

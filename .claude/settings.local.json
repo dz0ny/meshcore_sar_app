@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter analyze lib)"
+      "Bash(flutter analyze lib)",
+      "Read(//Users/dz0ny/meshcore-sar/MeshCore/**)",
+      "Bash(flutter analyze lib/providers/connection_provider.dart)",
+      "Bash(flutter analyze lib/providers/connection_provider.dart --fatal-infos)"
     ],
     "deny": [],
     "ask": []

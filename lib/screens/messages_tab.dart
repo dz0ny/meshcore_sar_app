@@ -113,7 +113,6 @@ class _MessagesTabState extends State<MessagesTab> {
       _focusNode.unfocus();
 
       if (!mounted) return;
-      ToastLogger.success(context, 'Message sent to public channel');
     } catch (e) {
       if (!mounted) return;
       ToastLogger.error(context, 'Failed to send: $e');
@@ -254,7 +253,9 @@ class _MessagesTabState extends State<MessagesTab> {
     }
 
     try {
-      debugPrint('🔄 [MessagesTab] Manual refresh triggered - syncing messages');
+      debugPrint(
+        '🔄 [MessagesTab] Manual refresh triggered - syncing messages',
+      );
       final messageCount = await connectionProvider.syncAllMessages();
       if (!mounted) return;
       if (messageCount > 0) {
@@ -307,14 +308,18 @@ class _MessagesTabState extends State<MessagesTab> {
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
-                                        AppLocalizations.of(context)!.noMessagesYet,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.noMessagesYet,
                                         style: Theme.of(
                                           context,
                                         ).textTheme.titleLarge,
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        AppLocalizations.of(context)!.pullDownToSync,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.pullDownToSync,
                                         style: Theme.of(
                                           context,
                                         ).textTheme.bodyMedium,
@@ -971,7 +976,9 @@ class _MessageBubble extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.5),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceVariant.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
