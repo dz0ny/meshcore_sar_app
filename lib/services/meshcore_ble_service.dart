@@ -89,7 +89,7 @@ class MeshCoreBleService {
       onError?.call(error);
     };
     _connectionManager.onReconnectionAttempt = (attemptNumber, maxAttempts) {
-      print('🔄 [Service] Reconnection attempt $attemptNumber/$maxAttempts');
+      debugPrint('🔄 [Service] Reconnection attempt $attemptNumber/$maxAttempts');
       onReconnectionAttempt?.call(attemptNumber, maxAttempts);
     };
     _connectionManager.onRssiUpdate = (rssi) {
@@ -218,10 +218,10 @@ class MeshCoreBleService {
         // Send initial device query and wait for responses
         await _sendDeviceQuery();
 
-        print('✅ [Service] Device initialization complete');
+        debugPrint('✅ [Service] Device initialization complete');
         return true;
       } catch (e) {
-        print('❌ [Service] Device initialization failed: $e');
+        debugPrint('❌ [Service] Device initialization failed: $e');
         // Disconnect on initialization failure
         await disconnect();
         onError?.call('Device initialization failed: $e');
@@ -240,28 +240,28 @@ class MeshCoreBleService {
   Future<void> _sendDeviceQuery() async {
     // STEP 1: Send device query FIRST to get device capabilities
     // This is the first command to send per protocol documentation
-    print('🔍 [Service] Querying device information (CMD_DEVICE_QUERY)...');
+    debugPrint('🔍 [Service] Querying device information (CMD_DEVICE_QUERY)...');
     final deviceInfo = await _commandSender.writeDataAndWaitForResponse<Map<String, dynamic>>(
       FrameBuilder.buildDeviceQuery(),
       MeshCoreConstants.respDeviceInfo,
     );
-    print('✅ [Service] Device info received: firmware=${deviceInfo['firmwareVersion']}');
+    debugPrint('✅ [Service] Device info received: firmware=${deviceInfo['firmwareVersion']}');
 
     // STEP 2: Send app start to initialize the app session
     // This is the first command after connection per protocol documentation
-    print('🚀 [Service] Sending app start (CMD_APP_START)...');
+    debugPrint('🚀 [Service] Sending app start (CMD_APP_START)...');
     final selfInfo = await _commandSender.writeDataAndWaitForResponse<Map<String, dynamic>>(
       FrameBuilder.buildAppStart(),
       MeshCoreConstants.respSelfInfo,
     );
-    print('✅ [Service] Self info received: node initialized');
+    debugPrint('✅ [Service] Self info received: node initialized');
 
     // STEP 3: Set device clock AFTER initialization
     // This ensures the device has correct timestamps for all subsequent operations
     // Note: This command does not return an ACK, so we use writeData (fire-and-forget)
-    print('⏰ [Service] Setting device clock (CMD_SET_DEVICE_TIME)...');
+    debugPrint('⏰ [Service] Setting device clock (CMD_SET_DEVICE_TIME)...');
     await _commandSender.writeData(FrameBuilder.buildSetDeviceTime());
-    print('✅ [Service] Device clock sent (no ACK expected)');
+    debugPrint('✅ [Service] Device clock sent (no ACK expected)');
   }
 
   /// Refresh device info (public method)
@@ -276,14 +276,14 @@ class MeshCoreBleService {
 
   /// Manually add or update a contact on the companion radio
   Future<void> addOrUpdateContact(Contact contact) async {
-    print('📝 [BLE] Adding/updating contact on companion radio:');
-    print('    Name: ${contact.advName}');
-    print('    Public key prefix: ${contact.publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
-    print('    Type: ${contact.type} (${contact.type.value})');
+    debugPrint('📝 [BLE] Adding/updating contact on companion radio:');
+    debugPrint('    Name: ${contact.advName}');
+    debugPrint('    Public key prefix: ${contact.publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    debugPrint('    Type: ${contact.type} (${contact.type.value})');
 
     await _commandSender.writeData(FrameBuilder.buildAddUpdateContact(contact));
 
-    print('✅ [BLE] CMD_ADD_UPDATE_CONTACT sent');
+    debugPrint('✅ [BLE] CMD_ADD_UPDATE_CONTACT sent');
   }
 
   /// Send text message to contact (DM)
@@ -443,9 +443,9 @@ class MeshCoreBleService {
       throw ArgumentError('Password exceeds 15 character limit');
     }
 
-    print('🔐 [BLE] Preparing login request:');
-    print('    Room public key prefix: ${roomPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
-    print('    Password: ${"*" * password.length} (${password.length} chars)');
+    debugPrint('🔐 [BLE] Preparing login request:');
+    debugPrint('    Room public key prefix: ${roomPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    debugPrint('    Password: ${"*" * password.length} (${password.length} chars)');
 
     await _commandSender.writeData(FrameBuilder.buildSendLogin(
       roomPublicKey: roomPublicKey,
@@ -455,27 +455,27 @@ class MeshCoreBleService {
 
   /// Send status request to repeater or sensor node
   Future<void> sendStatusRequest(Uint8List contactPublicKey) async {
-    print('📊 [BLE] Preparing status request:');
-    print('    Target node public key prefix: ${contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    debugPrint('📊 [BLE] Preparing status request:');
+    debugPrint('    Target node public key prefix: ${contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
 
     await _commandSender.writeData(FrameBuilder.buildSendStatusReq(contactPublicKey));
   }
 
   /// Reset path for a contact - forces next message to flood and re-learn route
   Future<void> resetPath(Uint8List contactPublicKey) async {
-    print('🔄 [BLE] Resetting path for contact:');
-    print('    Contact public key prefix: ${contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    debugPrint('🔄 [BLE] Resetting path for contact:');
+    debugPrint('    Contact public key prefix: ${contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
 
     await _commandSender.writeData(FrameBuilder.buildResetPath(contactPublicKey));
   }
 
   /// Remove a contact from the companion radio
   Future<void> removeContact(Uint8List contactPublicKey) async {
-    print('🗑️ [BLE] Removing contact from companion radio:');
-    print('    Public key prefix: ${contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    debugPrint('🗑️ [BLE] Removing contact from companion radio:');
+    debugPrint('    Public key prefix: ${contactPublicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
 
     await _commandSender.writeData(FrameBuilder.buildRemoveContact(contactPublicKey));
-    print('✅ [BLE] CMD_REMOVE_CONTACT sent');
+    debugPrint('✅ [BLE] CMD_REMOVE_CONTACT sent');
   }
 
   /// Get information for a specific channel
@@ -488,21 +488,21 @@ class MeshCoreBleService {
     required int channelIdx,
     required String channelName,
   }) async {
-    print('📻 [BLE] Setting channel name:');
-    print('    Channel index: $channelIdx');
-    print('    Channel name: $channelName');
+    debugPrint('📻 [BLE] Setting channel name:');
+    debugPrint('    Channel index: $channelIdx');
+    debugPrint('    Channel name: $channelName');
 
     await _commandSender.writeDataAndWaitForAck(FrameBuilder.buildSetChannel(
       channelIdx: channelIdx,
       channelName: channelName,
     ));
-    print('✅ [BLE] CMD_SET_CHANNEL sent');
+    debugPrint('✅ [BLE] CMD_SET_CHANNEL sent');
   }
 
   /// Sync all channels from the device (typically 0-39)
   /// This queries each channel to get its name and metadata
   Future<void> syncAllChannels({int maxChannels = 40}) async {
-    print('📻 [Service] Syncing channels (0-${maxChannels - 1})...');
+    debugPrint('📻 [Service] Syncing channels (0-${maxChannels - 1})...');
 
     for (int i = 0; i < maxChannels; i++) {
       await getChannel(i);
@@ -510,7 +510,7 @@ class MeshCoreBleService {
       await Future.delayed(const Duration(milliseconds: 50));
     }
 
-    print('✅ [Service] Channel sync complete');
+    debugPrint('✅ [Service] Channel sync complete');
   }
 
   /// Clear packet logs

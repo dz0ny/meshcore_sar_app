@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ).timeout(const Duration(seconds: 5));
       } catch (e) {
-        print('❌ Failed to get GPS position: $e');
+        debugPrint('❌ Failed to get GPS position: $e');
         if (context.mounted) {
           ToastLogger.error(
             context,
@@ -206,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen>
         );
       }
     } catch (e) {
-      print('❌ Failed to advertise device: $e');
+      debugPrint('❌ Failed to advertise device: $e');
       if (context.mounted) {
         ToastLogger.error(
           context,
@@ -442,38 +442,38 @@ class _HomeScreenState extends State<HomeScreen>
                             ).colorScheme.onSurfaceVariant,
                           ),
                           onTap: () async {
-                            print(
+                            debugPrint(
                               '🔵 [UI] User tapped device: ${device.platformName}',
                             );
 
                             // Get app provider reference before popping dialog
                             final appProvider = context.read<AppProvider>();
 
-                            print('🔵 [UI] Closing dialog...');
+                            debugPrint('🔵 [UI] Closing dialog...');
                             Navigator.pop(context);
 
-                            print('🔵 [UI] Calling provider.connect()...');
+                            debugPrint('🔵 [UI] Calling provider.connect()...');
                             final success = await provider.connect(device);
-                            print(
+                            debugPrint(
                               success
                                   ? '✅ [UI] provider.connect() returned success'
                                   : '❌ [UI] provider.connect() returned failure',
                             );
 
                             if (success && provider.deviceInfo.isConnected) {
-                              print(
+                              debugPrint(
                                 '✅ [UI] Device is connected, initializing app provider...',
                               );
                               await appProvider.initialize();
-                              print('✅ [UI] App provider initialized');
+                              debugPrint('✅ [UI] App provider initialized');
                             } else {
-                              print(
+                              debugPrint(
                                 '❌ [UI] Device not connected after connect() call',
                               );
-                              print(
+                              debugPrint(
                                 '  Connection state: ${provider.deviceInfo.connectionState}',
                               );
-                              print('  Error: ${provider.error}');
+                              debugPrint('  Error: ${provider.error}');
                             }
                           },
                         ),
@@ -824,7 +824,7 @@ class _HomeScreenState extends State<HomeScreen>
                   }
                 } catch (e) {
                   // Fallback if anything fails
-                  print('Haptic feedback error: $e');
+                  debugPrint('Haptic feedback error: $e');
                   await HapticFeedback.vibrate();
                 }
                 _advertiseDevice(context);

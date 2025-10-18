@@ -128,9 +128,9 @@ class BleCommandSender {
           ? '0x${commandCode.toRadixString(16).padLeft(2, '0').toUpperCase()}'
           : 'N/A';
 
-      print('📤 [TX] Sending command: $opcodeName ($opcodeHex)');
-      print('  Data size: ${data.length} bytes');
-      print('  Hex: ${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+      debugPrint('📤 [TX] Sending command: $opcodeName ($opcodeHex)');
+      debugPrint('  Data size: ${data.length} bytes');
+      debugPrint('  Hex: ${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
 
       // Check if the characteristic supports write without response
       final supportsWriteWithoutResponse = _rxCharacteristic!.properties.writeWithoutResponse;
@@ -151,9 +151,9 @@ class BleCommandSender {
       _txPacketCount++;
       onTxActivity?.call();
 
-      print('✅ [TX] Command sent successfully');
+      debugPrint('✅ [TX] Command sent successfully');
     } catch (e) {
-      print('❌ [TX] Write error: $e');
+      debugPrint('❌ [TX] Write error: $e');
       onError?.call('Write error: $e');
       rethrow;
     }

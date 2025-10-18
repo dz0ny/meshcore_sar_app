@@ -93,7 +93,7 @@ class BleResponseHandler {
     _txSubscription = txCharacteristic.lastValueStream.listen(
       _onDataReceived,
       onError: (error) {
-        print('❌ [BLE] TX notification error: $error');
+        debugPrint('❌ [BLE] TX notification error: $error');
         onError?.call('TX notification error: $error');
       },
     );
@@ -104,7 +104,7 @@ class BleResponseHandler {
     try {
       // Handle empty data
       if (data.isEmpty) {
-        print('⚠️ [RX] Empty data received, ignoring');
+        debugPrint('⚠️ [RX] Empty data received, ignoring');
         return;
       }
 
@@ -121,124 +121,124 @@ class BleResponseHandler {
       final opcodeName = MeshCoreOpcodeNames.getOpcodeName(responseCode, isTx: false);
       final opcodeHex = '0x${responseCode.toRadixString(16).padLeft(2, '0').toUpperCase()}';
 
-      print('📥 [RX] Received: $opcodeName ($opcodeHex)');
-      print('  Data size: ${data.length} bytes');
-      print('  Hex: ${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
-      print('  Payload: ${reader.remainingBytesCount} bytes');
+      debugPrint('📥 [RX] Received: $opcodeName ($opcodeHex)');
+      debugPrint('  Data size: ${data.length} bytes');
+      debugPrint('  Hex: ${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+      debugPrint('  Payload: ${reader.remainingBytesCount} bytes');
 
       // Log RX packet (before processing so we capture everything)
       _logPacket(dataBytes, PacketDirection.rx, responseCode: responseCode);
 
       switch (responseCode) {
         case MeshCoreConstants.respContactsStart:
-          print('  → Handling ContactsStart');
+          debugPrint('  → Handling ContactsStart');
           _handleContactsStart(reader);
           break;
         case MeshCoreConstants.respContact:
-          print('  → Handling Contact');
+          debugPrint('  → Handling Contact');
           _handleContact(reader);
           break;
         case MeshCoreConstants.respEndOfContacts:
-          print('  → Handling EndOfContacts');
+          debugPrint('  → Handling EndOfContacts');
           _handleEndOfContacts(reader);
           break;
         case MeshCoreConstants.respSent:
-          print('  → Handling Sent confirmation');
+          debugPrint('  → Handling Sent confirmation');
           _handleSentConfirmation(reader);
           break;
         case MeshCoreConstants.respContactMsgRecv:
-          print('  → Handling ContactMessage');
+          debugPrint('  → Handling ContactMessage');
           _handleContactMessage(reader);
           break;
         case MeshCoreConstants.respChannelMsgRecv:
-          print('  → Handling ChannelMessage');
+          debugPrint('  → Handling ChannelMessage');
           _handleChannelMessage(reader);
           break;
         case MeshCoreConstants.pushTelemetryResponse:
-          print('  → Handling TelemetryResponse');
+          debugPrint('  → Handling TelemetryResponse');
           _handleTelemetryResponse(reader);
           break;
         case MeshCoreConstants.pushBinaryResponse:
-          print('  → Handling BinaryResponse');
+          debugPrint('  → Handling BinaryResponse');
           _handleBinaryResponse(reader);
           break;
         case MeshCoreConstants.respDeviceInfo:
-          print('  → Handling DeviceInfo');
+          debugPrint('  → Handling DeviceInfo');
           _handleDeviceInfo(reader);
           break;
         case MeshCoreConstants.respSelfInfo:
-          print('  → Handling SelfInfo');
+          debugPrint('  → Handling SelfInfo');
           _handleSelfInfo(reader);
           break;
         case MeshCoreConstants.pushAdvert:
-          print('  → Handling Advert push');
+          debugPrint('  → Handling Advert push');
           _handleAdvert(reader);
           break;
         case MeshCoreConstants.pushPathUpdated:
-          print('  → Handling PathUpdated push');
+          debugPrint('  → Handling PathUpdated push');
           _handlePathUpdated(reader);
           break;
         case MeshCoreConstants.pushLogRxData:
-          print('  → Handling LogRxData push');
+          debugPrint('  → Handling LogRxData push');
           _handleLogRxData(reader);
           break;
         case MeshCoreConstants.pushNewAdvert:
-          print('  → Handling NewAdvert push');
+          debugPrint('  → Handling NewAdvert push');
           _handleNewAdvert(reader);
           break;
         case MeshCoreConstants.pushSendConfirmed:
-          print('  → Handling SendConfirmed push');
+          debugPrint('  → Handling SendConfirmed push');
           _handleSendConfirmed(reader);
           break;
         case MeshCoreConstants.pushMsgWaiting:
-          print('  → Handling MsgWaiting push');
+          debugPrint('  → Handling MsgWaiting push');
           _handleMsgWaiting(reader);
           break;
         case MeshCoreConstants.pushLoginSuccess:
-          print('  → Handling LoginSuccess push');
+          debugPrint('  → Handling LoginSuccess push');
           _handleLoginSuccess(reader);
           break;
         case MeshCoreConstants.pushLoginFail:
-          print('  → Handling LoginFail push');
+          debugPrint('  → Handling LoginFail push');
           _handleLoginFail(reader);
           break;
         case MeshCoreConstants.pushStatusResponse:
-          print('  → Handling StatusResponse push');
+          debugPrint('  → Handling StatusResponse push');
           _handleStatusResponse(reader);
           break;
         case MeshCoreConstants.respCurrTime:
-          print('  → Handling CurrentTime');
+          debugPrint('  → Handling CurrentTime');
           _handleCurrentTime(reader);
           break;
         case MeshCoreConstants.respBatteryVoltage:
-          print('  → Handling BatteryAndStorage');
+          debugPrint('  → Handling BatteryAndStorage');
           _handleBatteryAndStorage(reader);
           break;
         case MeshCoreConstants.respChannelInfo:
-          print('  → Handling ChannelInfo');
+          debugPrint('  → Handling ChannelInfo');
           _handleChannelInfo(reader);
           break;
         case MeshCoreConstants.respNoMoreMessages:
-          print('  → Response: No More Messages');
+          debugPrint('  → Response: No More Messages');
           onNoMoreMessages?.call();
           break;
         case MeshCoreConstants.respOk:
-          print('  → Response: OK');
+          debugPrint('  → Response: OK');
           // Complete any pending ACK command
           _commandQueue?.completeCommand<void>(MeshCoreConstants.respOk, null);
           break;
         case MeshCoreConstants.respErr:
-          print('  → Response: ERROR');
+          debugPrint('  → Response: ERROR');
           _handleError(reader);
           break;
         default:
-          print('  ⚠️ Unknown response code: $responseCode');
+          debugPrint('  ⚠️ Unknown response code: $responseCode');
           break;
       }
-      print('✅ [BLE] Data parsed successfully');
+      debugPrint('✅ [BLE] Data parsed successfully');
     } catch (e, stackTrace) {
-      print('❌ [BLE] Data parsing error: $e');
-      print('  Stack trace: $stackTrace');
+      debugPrint('❌ [BLE] Data parsing error: $e');
+      debugPrint('  Stack trace: $stackTrace');
       onError?.call('Data parsing error: $e');
     }
   }
@@ -253,12 +253,12 @@ class BleResponseHandler {
   void _handleContact(BufferReader reader) {
     try {
       final contact = FrameParser.parseContact(reader);
-      print('  ✅ [Contact] Parsed successfully: ${contact.advName}');
-      print('     outPathLen: ${contact.outPathLen} (${contact.pathDescription})');
+      debugPrint('  ✅ [Contact] Parsed successfully: ${contact.advName}');
+      debugPrint('     outPathLen: ${contact.outPathLen} (${contact.pathDescription})');
       _pendingContacts.add(contact);
       onContactReceived?.call(contact);
     } catch (e) {
-      print('  ❌ [Contact] Parsing error: $e');
+      debugPrint('  ❌ [Contact] Parsing error: $e');
       onError?.call('Contact parsing error: $e');
     }
   }
@@ -274,7 +274,7 @@ class BleResponseHandler {
     try {
       final result = FrameParser.parseSentConfirmation(reader);
       if (result.isNotEmpty) {
-        print('  ✅ [Sent] Message sent successfully');
+        debugPrint('  ✅ [Sent] Message sent successfully');
 
         // Complete any pending command waiting for sent confirmation
         _commandQueue?.completeCommand<Map<String, dynamic>>(
@@ -289,7 +289,7 @@ class BleResponseHandler {
         );
       }
     } catch (e) {
-      print('  ❌ [Sent] Parsing error: $e');
+      debugPrint('  ❌ [Sent] Parsing error: $e');
     }
   }
 
@@ -297,10 +297,10 @@ class BleResponseHandler {
   void _handleContactMessage(BufferReader reader) {
     try {
       final message = FrameParser.parseContactMessage(reader);
-      print('  ✅ [ContactMessage] Parsed successfully');
+      debugPrint('  ✅ [ContactMessage] Parsed successfully');
       onMessageReceived?.call(message);
     } catch (e) {
-      print('  ❌ [ContactMessage] Parsing error: $e');
+      debugPrint('  ❌ [ContactMessage] Parsing error: $e');
       onError?.call('Contact message parsing error: $e');
     }
   }
@@ -309,10 +309,10 @@ class BleResponseHandler {
   void _handleChannelMessage(BufferReader reader) {
     try {
       final message = FrameParser.parseChannelMessage(reader);
-      print('  ✅ [ChannelMessage] Parsed successfully');
+      debugPrint('  ✅ [ChannelMessage] Parsed successfully');
       onMessageReceived?.call(message);
     } catch (e) {
-      print('  ❌ [ChannelMessage] Parsing error: $e');
+      debugPrint('  ❌ [ChannelMessage] Parsing error: $e');
       onError?.call('Channel message parsing error: $e');
     }
   }
@@ -321,13 +321,13 @@ class BleResponseHandler {
   void _handleTelemetryResponse(BufferReader reader) {
     try {
       final result = FrameParser.parseTelemetryResponse(reader);
-      print('  ✅ [Telemetry] Parsed successfully');
+      debugPrint('  ✅ [Telemetry] Parsed successfully');
       onTelemetryReceived?.call(
         result['publicKeyPrefix'] as Uint8List,
         result['lppSensorData'] as Uint8List,
       );
     } catch (e) {
-      print('  ❌ [Telemetry] Parsing error: $e');
+      debugPrint('  ❌ [Telemetry] Parsing error: $e');
       onError?.call('Telemetry parsing error: $e');
     }
   }
@@ -336,14 +336,14 @@ class BleResponseHandler {
   void _handleBinaryResponse(BufferReader reader) {
     try {
       final result = FrameParser.parseBinaryResponse(reader);
-      print('  ✅ [BinaryResponse] Parsed successfully');
+      debugPrint('  ✅ [BinaryResponse] Parsed successfully');
       onBinaryResponse?.call(
         result['publicKeyPrefix'] as Uint8List,
         result['tag'] as int,
         result['responseData'] as Uint8List,
       );
     } catch (e) {
-      print('  ❌ [BinaryResponse] Parsing error: $e');
+      debugPrint('  ❌ [BinaryResponse] Parsing error: $e');
       onError?.call('Binary response parsing error: $e');
     }
   }
@@ -360,9 +360,9 @@ class BleResponseHandler {
       );
 
       onDeviceInfoReceived?.call(info);
-      print('  ✅ [DeviceInfo] Parsed successfully');
+      debugPrint('  ✅ [DeviceInfo] Parsed successfully');
     } catch (e) {
-      print('  ❌ [DeviceInfo] Parsing error: $e');
+      debugPrint('  ❌ [DeviceInfo] Parsing error: $e');
       onError?.call('DeviceInfo parsing error: $e');
     }
   }
@@ -381,9 +381,9 @@ class BleResponseHandler {
         onSelfInfoReceived?.call(info);
       }
 
-      print('  ✅ [SelfInfo] Parsed successfully');
+      debugPrint('  ✅ [SelfInfo] Parsed successfully');
     } catch (e) {
-      print('  ❌ [SelfInfo] Parsing error: $e');
+      debugPrint('  ❌ [SelfInfo] Parsing error: $e');
     }
   }
 
@@ -394,9 +394,9 @@ class BleResponseHandler {
       if (publicKey != null) {
         onAdvertReceived?.call(publicKey);
       }
-      print('  ✅ [Advert] Parsed successfully');
+      debugPrint('  ✅ [Advert] Parsed successfully');
     } catch (e) {
-      print('  ❌ [Advert] Parsing error: $e');
+      debugPrint('  ❌ [Advert] Parsing error: $e');
     }
   }
 
@@ -407,37 +407,37 @@ class BleResponseHandler {
       if (publicKey != null) {
         onPathUpdated?.call(publicKey);
       }
-      print('  ✅ [PathUpdated] Parsed successfully');
+      debugPrint('  ✅ [PathUpdated] Parsed successfully');
     } catch (e) {
-      print('  ❌ [PathUpdated] Parsing error: $e');
+      debugPrint('  ❌ [PathUpdated] Parsing error: $e');
     }
   }
 
   /// Handle LogRxData push - includes extensive decoding logic
   void _handleLogRxData(BufferReader reader) {
     try {
-      print('  [LogRxData] Parsing log rx data from over-the-air packet...');
+      debugPrint('  [LogRxData] Parsing log rx data from over-the-air packet...');
       final data = reader.readRemainingBytes();
 
       if (data.length < 2) {
-        print('  ⚠️ [LogRxData] Insufficient data');
+        debugPrint('  ⚠️ [LogRxData] Insufficient data');
         return;
       }
 
       final snrRaw = data[0];
       final snrDb = (snrRaw.toSigned(8)) / 4.0;
-      print('    SNR: ${snrDb.toStringAsFixed(2)} dB');
+      debugPrint('    SNR: ${snrDb.toStringAsFixed(2)} dB');
 
       final rssiDbm = data[1].toSigned(8);
-      print('    RSSI: $rssiDbm dBm');
+      debugPrint('    RSSI: $rssiDbm dBm');
 
       if (data.length <= 2) {
-        print('  ⚠️ [LogRxData] No raw packet data');
+        debugPrint('  ⚠️ [LogRxData] No raw packet data');
         return;
       }
 
       final rawPacketData = data.sublist(2);
-      print('    Raw packet data: ${rawPacketData.length} bytes');
+      debugPrint('    Raw packet data: ${rawPacketData.length} bytes');
 
       // Decode packet header and path for display
       if (rawPacketData.length >= 2) {
@@ -445,31 +445,31 @@ class BleResponseHandler {
         final payloadType = (header >> 2) & 0x0F;
         final pathLen = rawPacketData[1];
 
-        print('    Packet type: 0x${payloadType.toRadixString(16).padLeft(2, '0')}');
+        debugPrint('    Packet type: 0x${payloadType.toRadixString(16).padLeft(2, '0')}');
 
         if (pathLen > 0 && rawPacketData.length >= 2 + pathLen) {
           final path = rawPacketData.sublist(2, 2 + pathLen);
           final pathStr = path.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' → ');
-          print('    Path ($pathLen hops): $pathStr');
+          debugPrint('    Path ($pathLen hops): $pathStr');
 
           // Highlight multi-hop packets
           if (pathLen > 1) {
-            print('    🔄 MULTI-HOP PACKET! Original sender: 0x${path[0].toRadixString(16).padLeft(2, '0')}');
+            debugPrint('    🔄 MULTI-HOP PACKET! Original sender: 0x${path[0].toRadixString(16).padLeft(2, '0')}');
           }
 
           // Check if our node hash is in the path
           if (_ourNodeHash != null && path.contains(_ourNodeHash!)) {
-            print('    ✅✅✅ ECHO DETECTED! Path contains our hash (0x${_ourNodeHash!.toRadixString(16).padLeft(2, '0')}) ✅✅✅');
+            debugPrint('    ✅✅✅ ECHO DETECTED! Path contains our hash (0x${_ourNodeHash!.toRadixString(16).padLeft(2, '0')}) ✅✅✅');
             if (path[0] == _ourNodeHash) {
-              print('    👉 WE are the original sender!');
+              debugPrint('    👉 WE are the original sender!');
             } else {
-              print('    👉 Original sender: 0x${path[0].toRadixString(16).padLeft(2, '0')}, WE sent it to the network');
+              debugPrint('    👉 Original sender: 0x${path[0].toRadixString(16).padLeft(2, '0')}, WE sent it to the network');
             }
           } else {
-            print('    ℹ️  Does NOT contain our hash (not our message)');
+            debugPrint('    ℹ️  Does NOT contain our hash (not our message)');
           }
         } else {
-          print('    Path length: $pathLen');
+          debugPrint('    Path length: $pathLen');
         }
       }
 
@@ -507,9 +507,9 @@ class BleResponseHandler {
         }
       }
 
-      print('  ✅ [LogRxData] Parsed successfully');
+      debugPrint('  ✅ [LogRxData] Parsed successfully');
     } catch (e) {
-      print('  ❌ [LogRxData] Parsing error: $e');
+      debugPrint('  ❌ [LogRxData] Parsing error: $e');
     }
   }
 
@@ -543,26 +543,26 @@ class BleResponseHandler {
   /// Check if received packet is an echo of a sent message
   void _checkForEcho(Uint8List rawPacket, int snrRaw, int rssiDbm) {
     try {
-      print('  🔍 [Echo] _checkForEcho called, packet size: ${rawPacket.length} bytes');
+      debugPrint('  🔍 [Echo] _checkForEcho called, packet size: ${rawPacket.length} bytes');
 
       // Need at least header + path_len
       if (rawPacket.length < 2) {
-        print('  ⚠️ [Echo] Packet too short');
+        debugPrint('  ⚠️ [Echo] Packet too short');
         return;
       }
 
       final header = rawPacket[0];
       final payloadType = (header >> 2) & 0x0F;
-      print('  🔍 [Echo] Payload type: 0x${payloadType.toRadixString(16).padLeft(2, '0')}');
+      debugPrint('  🔍 [Echo] Payload type: 0x${payloadType.toRadixString(16).padLeft(2, '0')}');
       if (payloadType != 0x05) {
-        print('  ⚠️ [Echo] Not GRP_TXT, ignoring');
+        debugPrint('  ⚠️ [Echo] Not GRP_TXT, ignoring');
         return; // Only track GRP_TXT
       }
 
       final pathLen = rawPacket[1];
-      print('  🔍 [Echo] Path length: $pathLen');
+      debugPrint('  🔍 [Echo] Path length: $pathLen');
       if (pathLen == 0 || rawPacket.length < 2 + pathLen) {
-        print('  ⚠️ [Echo] Invalid path length');
+        debugPrint('  ⚠️ [Echo] Invalid path length');
         return;
       }
 
@@ -592,23 +592,23 @@ class BleResponseHandler {
           tracker.echoCount++;
           tracker.echoTimestamps.add(DateTime.now());
 
-          print('  🔊 [Echo] New echo detected!');
-          print('     Message: ${tracker.messageId}');
-          print('     Path: $pathSignature');
-          print('     Total echoes: ${tracker.echoCount}');
-          print('     Unique paths: ${tracker.uniqueEchoPaths.length}');
+          debugPrint('  🔊 [Echo] New echo detected!');
+          debugPrint('     Message: ${tracker.messageId}');
+          debugPrint('     Path: $pathSignature');
+          debugPrint('     Total echoes: ${tracker.echoCount}');
+          debugPrint('     Unique paths: ${tracker.uniqueEchoPaths.length}');
 
           // Notify callback
           onMessageEchoDetected?.call(tracker.messageId, tracker.echoCount, snrRaw, rssiDbm);
         } else {
-          print('  ♻️ [Echo] Duplicate path (already counted): $pathSignature');
+          debugPrint('  ♻️ [Echo] Duplicate path (already counted): $pathSignature');
         }
       }
 
       // Cleanup expired trackers
       _cleanupExpiredTrackers();
     } catch (e) {
-      print('  ⚠️ [Echo] Error checking for echo: $e');
+      debugPrint('  ⚠️ [Echo] Error checking for echo: $e');
     }
   }
 
@@ -631,15 +631,15 @@ class BleResponseHandler {
 
       // Store by message ID temporarily
       _sentMessageTrackers[messageId] = tracker;
-      print('  📤 [Echo] Tracking message $messageId (will match any GRP_TXT within 10000ms)');
-      print('  📊 [Echo] Total trackers: ${_sentMessageTrackers.length}');
+      debugPrint('  📤 [Echo] Tracking message $messageId (will match any GRP_TXT within 10000ms)');
+      debugPrint('  📊 [Echo] Total trackers: ${_sentMessageTrackers.length}');
 
       // Cleanup if too many trackers
       if (_sentMessageTrackers.length > _maxTrackers) {
         _cleanupOldestTrackers();
       }
     } catch (e) {
-      print('  ⚠️ [Echo] Error tracking sent message: $e');
+      debugPrint('  ⚠️ [Echo] Error tracking sent message: $e');
     }
   }
 
@@ -649,8 +649,8 @@ class BleResponseHandler {
   /// Set our node hash for packet identification
   void setOurNodeHash(int nodeHash) {
     _ourNodeHash = nodeHash;
-    print('  🔑 [Echo] Our node hash set to: 0x${nodeHash.toRadixString(16).padLeft(2, '0')}');
-    print('  ℹ️  [Echo] Will track packets containing our hash in the path');
+    debugPrint('  🔑 [Echo] Our node hash set to: 0x${nodeHash.toRadixString(16).padLeft(2, '0')}');
+    debugPrint('  ℹ️  [Echo] Will track packets containing our hash in the path');
   }
 
   /// Associate a captured packet with a sent message
@@ -666,27 +666,27 @@ class BleResponseHandler {
   /// [3+] = rest of path + encrypted payload
   void _associatePacketWithSentMessage(Uint8List rawPacket) {
     try {
-      print('  🔍 [Echo] _associatePacketWithSentMessage called, packet size: ${rawPacket.length}');
+      debugPrint('  🔍 [Echo] _associatePacketWithSentMessage called, packet size: ${rawPacket.length}');
 
       // Need at least 3 bytes: header + path_len + first path byte
       if (rawPacket.length < 3) {
-        print('  ⚠️ [Echo] Packet too short for association');
+        debugPrint('  ⚠️ [Echo] Packet too short for association');
         return;
       }
 
       // Check if this is a GRP_TXT packet (payload type = 0x05)
       final header = rawPacket[0];
       final payloadType = (header >> 2) & 0x0F;
-      print('  🔍 [Echo] Association check - Payload type: 0x${payloadType.toRadixString(16).padLeft(2, '0')}');
+      debugPrint('  🔍 [Echo] Association check - Payload type: 0x${payloadType.toRadixString(16).padLeft(2, '0')}');
       if (payloadType != 0x05) { // Not a group message
-        print('  ⚠️ [Echo] Not GRP_TXT, skipping association');
+        debugPrint('  ⚠️ [Echo] Not GRP_TXT, skipping association');
         return;
       }
 
       final pathLen = rawPacket[1];
-      print('  🔍 [Echo] Path length for association: $pathLen');
+      debugPrint('  🔍 [Echo] Path length for association: $pathLen');
       if (pathLen == 0) {
-        print('  ⚠️ [Echo] Path length is 0, skipping');
+        debugPrint('  ⚠️ [Echo] Path length is 0, skipping');
         return;
       }
 
@@ -703,7 +703,7 @@ class BleResponseHandler {
         return;
       }
 
-      print('  ✅ [Echo] Packet contains our hash (0x${_ourNodeHash!.toRadixString(16).padLeft(2, '0')}) in path: $pathSignature');
+      debugPrint('  ✅ [Echo] Packet contains our hash (0x${_ourNodeHash!.toRadixString(16).padLeft(2, '0')}) in path: $pathSignature');
 
       // Extract encrypted payload (everything after path)
       final payloadStart = 2 + pathLen;
@@ -736,19 +736,19 @@ class BleResponseHandler {
         );
 
         _sentMessageTrackers[payloadHash] = updatedTracker;
-        print('  📦 [Echo] Captured packet for tracking!');
-        print('     Message ID: ${tracker.messageId}');
-        print('     Path: $pathSignature');
-        print('     Time delta: ${timeSinceSent.inMilliseconds}ms');
-        print('     Payload hash: $payloadHash');
-        print('     Echo count: 1 (first detection)');
+        debugPrint('  📦 [Echo] Captured packet for tracking!');
+        debugPrint('     Message ID: ${tracker.messageId}');
+        debugPrint('     Path: $pathSignature');
+        debugPrint('     Time delta: ${timeSinceSent.inMilliseconds}ms');
+        debugPrint('     Payload hash: $payloadHash');
+        debugPrint('     Echo count: 1 (first detection)');
 
         // Notify immediately that we have 1 echo
         onMessageEchoDetected?.call(tracker.messageId, 1, 0, 0);
         break; // Only associate with first pending tracker
       }
     } catch (e) {
-      print('  ⚠️ [Echo] Error associating packet: $e');
+      debugPrint('  ⚠️ [Echo] Error associating packet: $e');
     }
   }
 
@@ -756,11 +756,11 @@ class BleResponseHandler {
   void _cleanupExpiredTrackers() {
     final expiredCount = _sentMessageTrackers.values.where((t) => t.isExpired).length;
     if (expiredCount > 0) {
-      print('  🧹 [Echo] Cleaning up $expiredCount expired tracker(s)');
+      debugPrint('  🧹 [Echo] Cleaning up $expiredCount expired tracker(s)');
     }
     _sentMessageTrackers.removeWhere((key, tracker) {
       if (tracker.isExpired && tracker.packetHashHex == 'pending') {
-        print('  ⏱️ [Echo] Tracker expired without capturing: ${tracker.messageId}');
+        debugPrint('  ⏱️ [Echo] Tracker expired without capturing: ${tracker.messageId}');
       }
       return tracker.isExpired;
     });
@@ -779,18 +779,18 @@ class BleResponseHandler {
       _sentMessageTrackers.remove(entry.key);
     }
 
-    print('  🧹 [Echo] Cleaned up ${toRemove.length} old trackers');
+    debugPrint('  🧹 [Echo] Cleaned up ${toRemove.length} old trackers');
   }
 
   /// Handle NewAdvert push
   void _handleNewAdvert(BufferReader reader) {
     try {
       final contact = FrameParser.parseContact(reader);
-      print('  ✅ [NewAdvert] Parsed successfully: ${contact.advName}');
-      print('     outPathLen: ${contact.outPathLen} (${contact.pathDescription})');
+      debugPrint('  ✅ [NewAdvert] Parsed successfully: ${contact.advName}');
+      debugPrint('     outPathLen: ${contact.outPathLen} (${contact.pathDescription})');
       onContactReceived?.call(contact);
     } catch (e) {
-      print('  ❌ [NewAdvert] Parsing error: $e');
+      debugPrint('  ❌ [NewAdvert] Parsing error: $e');
       onError?.call('NewAdvert parsing error: $e');
     }
   }
@@ -800,24 +800,24 @@ class BleResponseHandler {
     try {
       final result = FrameParser.parseSendConfirmed(reader);
       if (result.isNotEmpty) {
-        print('  ✅ [SendConfirmed] Message delivery confirmed');
+        debugPrint('  ✅ [SendConfirmed] Message delivery confirmed');
         onMessageDelivered?.call(
           result['ackCode'] as int,
           result['roundTripTime'] as int,
         );
       }
     } catch (e) {
-      print('  ❌ [SendConfirmed] Parsing error: $e');
+      debugPrint('  ❌ [SendConfirmed] Parsing error: $e');
     }
   }
 
   /// Handle MsgWaiting push
   void _handleMsgWaiting(BufferReader reader) {
     try {
-      print('  [MsgWaiting] New message(s) waiting in queue');
+      debugPrint('  [MsgWaiting] New message(s) waiting in queue');
       onMessageWaiting?.call();
     } catch (e) {
-      print('  ❌ [MsgWaiting] Parsing error: $e');
+      debugPrint('  ❌ [MsgWaiting] Parsing error: $e');
     }
   }
 
@@ -826,7 +826,7 @@ class BleResponseHandler {
     try {
       final result = FrameParser.parseLoginSuccess(reader);
       if (result.isNotEmpty) {
-        print('  ✅ [LoginSuccess] Successfully logged into room');
+        debugPrint('  ✅ [LoginSuccess] Successfully logged into room');
         onLoginSuccess?.call(
           result['publicKeyPrefix'] as Uint8List,
           result['permissions'] as int,
@@ -835,7 +835,7 @@ class BleResponseHandler {
         );
       }
     } catch (e) {
-      print('  ❌ [LoginSuccess] Parsing error: $e');
+      debugPrint('  ❌ [LoginSuccess] Parsing error: $e');
       onError?.call('Login success parsing error: $e');
     }
   }
@@ -845,11 +845,11 @@ class BleResponseHandler {
     try {
       final publicKeyPrefix = FrameParser.parseLoginFail(reader);
       if (publicKeyPrefix != null) {
-        print('  ❌ [LoginFail] Failed to login to room');
+        debugPrint('  ❌ [LoginFail] Failed to login to room');
         onLoginFail?.call(publicKeyPrefix);
       }
     } catch (e) {
-      print('  ❌ [LoginFail] Parsing error: $e');
+      debugPrint('  ❌ [LoginFail] Parsing error: $e');
       onError?.call('Login fail parsing error: $e');
     }
   }
@@ -864,20 +864,20 @@ class BleResponseHandler {
           final statusData = result['statusData'] as Uint8List;
           final statusText = utf8.decode(statusData, allowMalformed: true);
           if (statusText.isNotEmpty && _isPrintableAscii(statusText)) {
-            print('    Status data (text): $statusText');
+            debugPrint('    Status data (text): $statusText');
           }
         } catch (e) {
           // Not text data
         }
 
-        print('  ✅ [StatusResponse] Received status response');
+        debugPrint('  ✅ [StatusResponse] Received status response');
         onStatusResponse?.call(
           result['publicKeyPrefix'] as Uint8List,
           result['statusData'] as Uint8List,
         );
       }
     } catch (e) {
-      print('  ❌ [StatusResponse] Parsing error: $e');
+      debugPrint('  ❌ [StatusResponse] Parsing error: $e');
       onError?.call('Status response parsing error: $e');
     }
   }
@@ -902,11 +902,11 @@ class BleResponseHandler {
       if (deviceTime != null) {
         final appTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         final drift = appTime - deviceTime;
-        print('    Clock drift: $drift seconds');
+        debugPrint('    Clock drift: $drift seconds');
       }
-      print('  ✅ [CurrentTime] Parsed successfully');
+      debugPrint('  ✅ [CurrentTime] Parsed successfully');
     } catch (e) {
-      print('  ❌ [CurrentTime] Parsing error: $e');
+      debugPrint('  ❌ [CurrentTime] Parsing error: $e');
       onError?.call('CurrentTime parsing error: $e');
     }
   }
@@ -922,9 +922,9 @@ class BleResponseHandler {
           result['totalKb'] as int?,
         );
       }
-      print('  ✅ [BatteryAndStorage] Parsed successfully');
+      debugPrint('  ✅ [BatteryAndStorage] Parsed successfully');
     } catch (e) {
-      print('  ❌ [BatteryAndStorage] Parsing error: $e');
+      debugPrint('  ❌ [BatteryAndStorage] Parsing error: $e');
       onError?.call('BatteryAndStorage parsing error: $e');
     }
   }
@@ -937,11 +937,11 @@ class BleResponseHandler {
         final channelIdx = info['channelIdx'] as int;
         final channelName = info['channelName'] as String;
 
-        print('  ✅ [ChannelInfo] Channel $channelIdx: "${channelName}"');
+        debugPrint('  ✅ [ChannelInfo] Channel $channelIdx: "${channelName}"');
         onChannelInfoReceived?.call(channelIdx, channelName);
       }
     } catch (e) {
-      print('  ❌ [ChannelInfo] Parsing error: $e');
+      debugPrint('  ❌ [ChannelInfo] Parsing error: $e');
       onError?.call('ChannelInfo parsing error: $e');
     }
   }
@@ -952,7 +952,7 @@ class BleResponseHandler {
       final errorCode = FrameParser.parseError(reader);
       if (errorCode != null) {
         final errorMsg = FrameParser.getErrorMessage(errorCode);
-        print('  ❌ [Error] $errorMsg');
+        debugPrint('  ❌ [Error] $errorMsg');
 
         // Complete any pending ACK command with error
         _commandQueue?.completeCommandWithError(
@@ -963,14 +963,14 @@ class BleResponseHandler {
 
         // Special handling for ERR_CODE_NOT_FOUND (2) - contact not in radio
         if (errorCode == 2) {  // ERR_CODE_NOT_FOUND
-          print('  ⚠️ [Error] Contact not found in radio - attempting auto-recovery');
+          debugPrint('  ⚠️ [Error] Contact not found in radio - attempting auto-recovery');
           onContactNotFound?.call(_lastContactPublicKey);
         }
 
         onError?.call(errorMsg, errorCode: errorCode);
       }
     } catch (e) {
-      print('  ❌ [Error] Parsing error: $e');
+      debugPrint('  ❌ [Error] Parsing error: $e');
     }
   }
 

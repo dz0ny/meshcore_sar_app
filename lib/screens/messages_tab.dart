@@ -254,7 +254,7 @@ class _MessagesTabState extends State<MessagesTab> {
     }
 
     try {
-      print('🔄 [MessagesTab] Manual refresh triggered - syncing messages');
+      debugPrint('🔄 [MessagesTab] Manual refresh triggered - syncing messages');
       final messageCount = await connectionProvider.syncAllMessages();
       if (!mounted) return;
       if (messageCount > 0) {
@@ -263,7 +263,7 @@ class _MessagesTabState extends State<MessagesTab> {
         ToastLogger.info(context, 'No new messages');
       }
     } catch (e) {
-      print('❌ [MessagesTab] Sync error: $e');
+      debugPrint('❌ [MessagesTab] Sync error: $e');
       if (!mounted) return;
       ToastLogger.error(context, 'Sync failed: $e');
     }

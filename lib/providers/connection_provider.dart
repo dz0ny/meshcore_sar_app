@@ -146,7 +146,7 @@ class ConnectionProvider with ChangeNotifier {
 
   void _initializeBleService() {
     _bleService.onConnectionStateChanged = (isConnected) {
-      print('🔔 [Provider] Connection state callback fired: $isConnected');
+      debugPrint('🔔 [Provider] Connection state callback fired: $isConnected');
       _deviceInfo = _deviceInfo.copyWith(
         connectionState: isConnected
             ? ConnectionState.connected
@@ -155,37 +155,37 @@ class ConnectionProvider with ChangeNotifier {
                   : ConnectionState.disconnected),
         lastUpdate: DateTime.now(),
       );
-      print(
+      debugPrint(
         '  Updated deviceInfo.connectionState: ${_deviceInfo.connectionState}',
       );
-      print('  Updated deviceInfo.isConnected: ${_deviceInfo.isConnected}');
-      print('  isReconnecting: ${_bleService.isReconnecting}');
+      debugPrint('  Updated deviceInfo.isConnected: ${_deviceInfo.isConnected}');
+      debugPrint('  isReconnecting: ${_bleService.isReconnecting}');
       notifyListeners();
-      print('  Notified listeners');
+      debugPrint('  Notified listeners');
     };
 
     _bleService.onReconnectionAttempt = (attemptNumber, maxAttempts) {
-      print('🔄 [Provider] Reconnection attempt $attemptNumber/$maxAttempts');
+      debugPrint('🔄 [Provider] Reconnection attempt $attemptNumber/$maxAttempts');
       // Notify UI to update reconnection status display
       notifyListeners();
     };
 
     _bleService.onError = (error, {int? errorCode}) {
-      print('⚠️ [Provider] BLE error received: $error');
-      print('  Error code: ${errorCode ?? "none"}');
-      print('  Current connection state: ${_deviceInfo.connectionState}');
+      debugPrint('⚠️ [Provider] BLE error received: $error');
+      debugPrint('  Error code: ${errorCode ?? "none"}');
+      debugPrint('  Current connection state: ${_deviceInfo.connectionState}');
 
       _error = error;
 
       // Only set connection state to error if we're not already connected
       // Data parsing errors after connection shouldn't disconnect us
       if (_deviceInfo.connectionState != ConnectionState.connected) {
-        print('  Setting connection state to error');
+        debugPrint('  Setting connection state to error');
         _deviceInfo = _deviceInfo.copyWith(
           connectionState: ConnectionState.error,
         );
       } else {
-        print(
+        debugPrint(
           '  Keeping connection state as connected (ignoring data parsing error)',
         );
       }
@@ -194,10 +194,10 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onContactNotFound = (contactPublicKey) async {
-      print('🔧 [Provider] Contact not found error detected - initiating auto-recovery');
+      debugPrint('🔧 [Provider] Contact not found error detected - initiating auto-recovery');
 
       if (contactPublicKey == null) {
-        print('  ⚠️ No contact public key available for recovery');
+        debugPrint('  ⚠️ No contact public key available for recovery');
         return;
       }
 
@@ -206,12 +206,12 @@ class ConnectionProvider with ChangeNotifier {
       final pendingOp = _pendingSendOperations[operationId];
 
       if (pendingOp == null || pendingOp.contact == null) {
-        print('  ⚠️ No pending operation found for recovery: $operationId');
+        debugPrint('  ⚠️ No pending operation found for recovery: $operationId');
         return;
       }
 
-      print('  📋 Found pending operation for: ${pendingOp.contact!.advName}');
-      print('  📤 Step 1: Adding contact to radio...');
+      debugPrint('  📋 Found pending operation for: ${pendingOp.contact!.advName}');
+      debugPrint('  📤 Step 1: Adding contact to radio...');
 
       try {
         // Step 1: Add the contact to the radio
@@ -220,8 +220,8 @@ class ConnectionProvider with ChangeNotifier {
         // Small delay to ensure contact is added before retrying
         await Future.delayed(const Duration(milliseconds: 300));
 
-        print('  ✅ Contact added successfully');
-        print('  🔄 Step 2: Retrying message send...');
+        debugPrint('  ✅ Contact added successfully');
+        debugPrint('  🔄 Step 2: Retrying message send...');
 
         // Step 2: Retry the send operation
         await _bleService.sendTextMessage(
@@ -230,12 +230,12 @@ class ConnectionProvider with ChangeNotifier {
           attempt: pendingOp.retryAttempt,
         );
 
-        print('  ✅ Auto-recovery completed - message resent');
+        debugPrint('  ✅ Auto-recovery completed - message resent');
 
         // Clear pending operation after successful recovery
         _pendingSendOperations.remove(operationId);
       } catch (e) {
-        print('  ❌ Auto-recovery failed: $e');
+        debugPrint('  ❌ Auto-recovery failed: $e');
         _error = 'Auto-recovery failed: $e';
         notifyListeners();
 
@@ -269,12 +269,12 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onBinaryResponse = (publicKeyPrefix, tag, responseData) {
-      print('📥 [Provider] Binary response received');
-      print(
+      debugPrint('📥 [Provider] Binary response received');
+      debugPrint(
         '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
       );
-      print('  Tag: $tag');
-      print('  Response data: ${responseData.length} bytes');
+      debugPrint('  Tag: $tag');
+      debugPrint('  Response data: ${responseData.length} bytes');
       // Mark ping as successful if this was a ping request
       // Binary responses can also be telemetry responses (newer firmware)
       _pingTracker.markPingSuccessful(publicKeyPrefix);
@@ -282,12 +282,12 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onNoMoreMessages = () {
-      print('📥 [Provider] Received NoMoreMessages signal');
+      debugPrint('📥 [Provider] Received NoMoreMessages signal');
       _noMoreMessages = true;
     };
 
     _bleService.onMessageWaiting = () {
-      print(
+      debugPrint(
         '📥 [Provider] PUSH_CODE_MSG_WAITING received - auto-fetching messages via event',
       );
       // Automatically fetch messages when push notification received
@@ -297,11 +297,11 @@ class ConnectionProvider with ChangeNotifier {
 
     _bleService
         .onLoginSuccess = (publicKeyPrefix, permissions, isAdmin, tag) async {
-      print('📥 [Provider] Login successful to room');
-      print(
+      debugPrint('📥 [Provider] Login successful to room');
+      debugPrint(
         '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
       );
-      print('  Permissions: $permissions, Admin: $isAdmin, Tag: $tag');
+      debugPrint('  Permissions: $permissions, Admin: $isAdmin, Tag: $tag');
 
       // Update room login state via helper
       await _roomLoginManager.handleLoginSuccess(
@@ -316,8 +316,8 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onLoginFail = (publicKeyPrefix) {
-      print('📥 [Provider] Login failed to room');
-      print(
+      debugPrint('📥 [Provider] Login failed to room');
+      debugPrint(
         '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
       );
 
@@ -329,11 +329,11 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onAdvertReceived = (publicKey) {
-      print('📥 [Provider] Advert received from node');
-      print(
+      debugPrint('📥 [Provider] Advert received from node');
+      debugPrint(
         '  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
       );
-      print(
+      debugPrint(
         '  Note: Waiting for PUSH_CODE_NEW_ADVERT (0x8A) with full contact details',
       );
       // The companion radio will automatically send PUSH_CODE_NEW_ADVERT if manual_add_contacts=0
@@ -341,11 +341,11 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onPathUpdated = (publicKey) {
-      print('📥 [Provider] Path updated for contact');
-      print(
+      debugPrint('📥 [Provider] Path updated for contact');
+      debugPrint(
         '  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
       );
-      print(
+      debugPrint(
         '  Note: Mesh network discovered a new/better routing path to this contact',
       );
       // Forward the callback to ContactsProvider to trigger contact sync
@@ -354,7 +354,7 @@ class ConnectionProvider with ChangeNotifier {
 
     _bleService
         .onMessageSent = (expectedAckTag, suggestedTimeoutMs, isFloodMode) {
-      print(
+      debugPrint(
         '📥 [Provider] Message sent - ACK tag: $expectedAckTag, timeout: ${suggestedTimeoutMs}ms',
       );
 
@@ -362,7 +362,7 @@ class ConnectionProvider with ChangeNotifier {
       final messageId = _messageDeliveryTracker.popPendingMessageId();
 
       if (messageId != null) {
-        print('  Matched with message ID: $messageId');
+        debugPrint('  Matched with message ID: $messageId');
 
         // Store the ACK tag to message ID mapping for delivery confirmation
         _messageDeliveryTracker.mapAckTagToMessageId(expectedAckTag, messageId);
@@ -370,45 +370,45 @@ class ConnectionProvider with ChangeNotifier {
         // Notify callback with message ID
         onMessageSent?.call(messageId, expectedAckTag, suggestedTimeoutMs);
       } else {
-        print(
+        debugPrint(
           '⚠️ [Provider] SENT response received but no pending message IDs',
         );
       }
     };
 
     _bleService.onMessageDelivered = (ackCode, roundTripTimeMs) {
-      print(
+      debugPrint(
         '📥 [Provider] Message delivered - ACK code: $ackCode, RTT: ${roundTripTimeMs}ms',
       );
       onMessageDelivered?.call(ackCode, roundTripTimeMs);
     };
 
     _bleService.onMessageEchoDetected = (messageId, echoCount, snrRaw, rssiDbm) {
-      print(
+      debugPrint(
         '🔊 [Provider] Echo detected - Message: $messageId, Count: $echoCount',
       );
       onMessageEchoDetected?.call(messageId, echoCount, snrRaw, rssiDbm);
     };
 
     _bleService.onStatusResponse = (publicKeyPrefix, statusData) {
-      print('📥 [Provider] Status response received from node');
-      print(
+      debugPrint('📥 [Provider] Status response received from node');
+      debugPrint(
         '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
       );
-      print('  Status data: ${statusData.length} bytes');
+      debugPrint('  Status data: ${statusData.length} bytes');
       // Forward the callback to whoever needs it (e.g., ContactsProvider)
       onStatusResponse?.call(publicKeyPrefix, statusData);
     };
 
     _bleService.onDeviceInfoReceived = (deviceInfo) {
-      print('📥 [Provider] Received DeviceInfo:');
-      print('  Firmware Version: ${deviceInfo['firmwareVersion']}');
-      print('  Max Contacts: ${deviceInfo['maxContacts']}');
-      print('  Max Channels: ${deviceInfo['maxChannels']}');
-      print('  BLE PIN: ${deviceInfo['blePin']}');
-      print('  Build Date: ${deviceInfo['firmwareBuildDate']}');
-      print('  Model: ${deviceInfo['manufacturerModel']}');
-      print('  Version: ${deviceInfo['semanticVersion']}');
+      debugPrint('📥 [Provider] Received DeviceInfo:');
+      debugPrint('  Firmware Version: ${deviceInfo['firmwareVersion']}');
+      debugPrint('  Max Contacts: ${deviceInfo['maxContacts']}');
+      debugPrint('  Max Channels: ${deviceInfo['maxChannels']}');
+      debugPrint('  BLE PIN: ${deviceInfo['blePin']}');
+      debugPrint('  Build Date: ${deviceInfo['firmwareBuildDate']}');
+      debugPrint('  Model: ${deviceInfo['manufacturerModel']}');
+      debugPrint('  Version: ${deviceInfo['semanticVersion']}');
 
       _deviceInfo = _deviceInfo.copyWith(
         firmwareVersion: deviceInfo['firmwareVersion'] as int?,
@@ -420,21 +420,21 @@ class ConnectionProvider with ChangeNotifier {
         semanticVersion: deviceInfo['semanticVersion'] as String?,
       );
       notifyListeners();
-      print('✅ [Provider] Device info updated with DeviceInfo');
+      debugPrint('✅ [Provider] Device info updated with DeviceInfo');
     };
 
     _bleService.onSelfInfoReceived = (selfInfo) {
-      print('📥 [Provider] Received SelfInfo:');
-      print(
+      debugPrint('📥 [Provider] Received SelfInfo:');
+      debugPrint(
         '  TX Power: ${selfInfo['txPower']} / ${selfInfo['maxTxPower']} dBm',
       );
-      print(
+      debugPrint(
         '  Radio: freq=${selfInfo['radioFreq']}, bw=${selfInfo['radioBw']}, sf=${selfInfo['radioSf']}, cr=${selfInfo['radioCr']}',
       );
-      print(
+      debugPrint(
         '  Position: ${selfInfo['advLat'] / 1000000.0}, ${selfInfo['advLon'] / 1000000.0}',
       );
-      print('  Self Name: ${selfInfo['selfName']}');
+      debugPrint('  Self Name: ${selfInfo['selfName']}');
 
       _deviceInfo = _deviceInfo.copyWith(
         deviceType: selfInfo['deviceType'] as int?,
@@ -451,24 +451,24 @@ class ConnectionProvider with ChangeNotifier {
         selfName: selfInfo['selfName'] as String?,
       );
       notifyListeners();
-      print('✅ [Provider] Device info updated with SelfInfo');
+      debugPrint('✅ [Provider] Device info updated with SelfInfo');
     };
 
     // Activity indicators
 
     _bleService.onBatteryAndStorage = (millivolts, usedKb, totalKb) {
-      print('📥 [Provider] Received BatteryAndStorage:');
-      print(
+      debugPrint('📥 [Provider] Received BatteryAndStorage:');
+      debugPrint(
         '  Battery: ${millivolts}mV (${(millivolts / 1000.0).toStringAsFixed(2)}V)',
       );
       if (usedKb != null) {
-        print('  Storage Used: ${usedKb}KB');
+        debugPrint('  Storage Used: ${usedKb}KB');
       }
       if (totalKb != null) {
-        print('  Storage Total: ${totalKb}KB');
+        debugPrint('  Storage Total: ${totalKb}KB');
         if (totalKb > 0 && usedKb != null) {
           final usedPercent = (usedKb / totalKb) * 100.0;
-          print('  Storage Usage: ${usedPercent.toStringAsFixed(1)}%');
+          debugPrint('  Storage Usage: ${usedPercent.toStringAsFixed(1)}%');
         }
       }
 
@@ -479,7 +479,7 @@ class ConnectionProvider with ChangeNotifier {
         lastUpdate: DateTime.now(),
       );
       notifyListeners();
-      print('✅ [Provider] Device info updated with BatteryAndStorage');
+      debugPrint('✅ [Provider] Device info updated with BatteryAndStorage');
     };
     _bleService.onRxActivity = () {
       _rxActivity = true;
@@ -516,24 +516,24 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Start scanning for MeshCore devices
   Future<void> startScan() async {
-    print('🔍 [Provider] startScan() called');
+    debugPrint('🔍 [Provider] startScan() called');
     _isScanning = true;
     _scannedDevices.clear();
     _error = null;
     notifyListeners();
-    print('✅ [Provider] Scan state initialized, notifying listeners');
+    debugPrint('✅ [Provider] Scan state initialized, notifying listeners');
 
     try {
       await for (final scanResult in _bleService.scanForDevices(
         timeout: const Duration(seconds: 10),
       )) {
-        print('📱 [Provider] Scan result received from scan stream');
+        debugPrint('📱 [Provider] Scan result received from scan stream');
         final device = scanResult.device;
         final rssi = scanResult.rssi;
 
         if (!_scannedDevices.any((d) => d.device.remoteId == device.remoteId)) {
           _scannedDevices.add(ScannedDevice(device: device, rssi: rssi));
-          print(
+          debugPrint(
             '✅ [Provider] Added device to list: ${device.platformName} (RSSI: $rssi dBm), total: ${_scannedDevices.length}',
           );
           notifyListeners();
@@ -544,22 +544,22 @@ class ConnectionProvider with ChangeNotifier {
           );
           if (index != -1 && _scannedDevices[index].rssi != rssi) {
             _scannedDevices[index] = ScannedDevice(device: device, rssi: rssi);
-            print(
+            debugPrint(
               '  🔄 [Provider] Updated RSSI for ${device.platformName}: $rssi dBm',
             );
             notifyListeners();
           } else {
-            print(
+            debugPrint(
               '  ⏭️ [Provider] Device already in list with same RSSI, skipping',
             );
           }
         }
       }
     } catch (e) {
-      print('❌ [Provider] Scan error: $e');
+      debugPrint('❌ [Provider] Scan error: $e');
       _error = 'Scan error: $e';
     } finally {
-      print('🏁 [Provider] Scan completed');
+      debugPrint('🏁 [Provider] Scan completed');
       _isScanning = false;
       notifyListeners();
     }
@@ -574,7 +574,7 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Connect to a device
   Future<bool> connect(BluetoothDevice device) async {
-    print('🔵 [Provider] connect() called for device: ${device.platformName}');
+    debugPrint('🔵 [Provider] connect() called for device: ${device.platformName}');
 
     _deviceInfo = _deviceInfo.copyWith(
       deviceId: device.remoteId.toString(),
@@ -584,16 +584,16 @@ class ConnectionProvider with ChangeNotifier {
       connectionState: ConnectionState.connecting,
     );
     _error = null;
-    print('✅ [Provider] Device info updated to connecting state');
+    debugPrint('✅ [Provider] Device info updated to connecting state');
     notifyListeners();
 
-    print('🔵 [Provider] Calling BLE service connect()...');
+    debugPrint('🔵 [Provider] Calling BLE service connect()...');
     final success = await _bleService.connect(device);
 
     if (success) {
-      print('✅ [Provider] BLE service connect() returned success');
+      debugPrint('✅ [Provider] BLE service connect() returned success');
     } else {
-      print('❌ [Provider] BLE service connect() returned failure');
+      debugPrint('❌ [Provider] BLE service connect() returned failure');
       _deviceInfo = _deviceInfo.copyWith(
         connectionState: ConnectionState.error,
       );
@@ -622,7 +622,7 @@ class ConnectionProvider with ChangeNotifier {
   /// Cancel ongoing reconnection attempts
   /// This is useful when the user wants to manually disconnect during reconnection
   void cancelReconnection() {
-    print('🔴 [Provider] User requested cancellation of reconnection');
+    debugPrint('🔴 [Provider] User requested cancellation of reconnection');
     disconnect();
   }
 
@@ -705,19 +705,19 @@ class ConnectionProvider with ChangeNotifier {
       // Log path status and retry info
       if (contact != null) {
         if (retryAttempt > 0) {
-          print('🔄 [ConnectionProvider] Sending message to ${contact.advName} (retry $retryAttempt/3)');
+          debugPrint('🔄 [ConnectionProvider] Sending message to ${contact.advName} (retry $retryAttempt/3)');
         } else {
-          print('📤 [ConnectionProvider] Sending message to ${contact.advName}');
+          debugPrint('📤 [ConnectionProvider] Sending message to ${contact.advName}');
         }
-        print('   Type: ${contact.type.displayName}');
-        print('   Path status: ${contact.pathDescription}');
+        debugPrint('   Type: ${contact.type.displayName}');
+        debugPrint('   Path status: ${contact.pathDescription}');
         if (contact.hasPath) {
-          print('   ✅ Using learned path (${contact.outPathLen} bytes)');
+          debugPrint('   ✅ Using learned path (${contact.outPathLen} bytes)');
         } else {
-          print('   ⚠️ No path available - will use flood mode');
+          debugPrint('   ⚠️ No path available - will use flood mode');
         }
       } else if (retryAttempt > 0) {
-        print('🔄 [ConnectionProvider] Sending message (retry $retryAttempt/3)');
+        debugPrint('🔄 [ConnectionProvider] Sending message (retry $retryAttempt/3)');
       }
 
       // Track pending operation for auto-recovery (if contact not found in radio)
@@ -730,7 +730,7 @@ class ConnectionProvider with ChangeNotifier {
           contact: contact,
           retryAttempt: retryAttempt,
         );
-        print('  📝 Tracked pending operation for auto-recovery: $operationId');
+        debugPrint('  📝 Tracked pending operation for auto-recovery: $operationId');
       }
 
       // IMPORTANT: Track pending message BEFORE sending to avoid race condition
@@ -738,7 +738,7 @@ class ConnectionProvider with ChangeNotifier {
       // the callback will fire before we add the message ID to the queue.
       if (messageId != null) {
         _messageDeliveryTracker.trackPendingMessage(messageId);
-        print('  Added message ID to pending queue BEFORE sending: $messageId');
+        debugPrint('  Added message ID to pending queue BEFORE sending: $messageId');
       }
 
       // Send the message with retry attempt info
@@ -796,9 +796,9 @@ class ConnectionProvider with ChangeNotifier {
       // Channel messages are ephemeral (not persisted) - mark as "sent" immediately
       // They don't have ACK/TAG mechanism like direct messages
       if (messageId != null) {
-        print('✅ [ConnectionProvider] Channel message sent successfully');
-        print('  Message ID: $messageId');
-        print('  onMessageSent callback exists: ${onMessageSent != null}');
+        debugPrint('✅ [ConnectionProvider] Channel message sent successfully');
+        debugPrint('  Message ID: $messageId');
+        debugPrint('  onMessageSent callback exists: ${onMessageSent != null}');
 
         // Track for echo detection
         // The BLE handler will capture the packet via LOG_RX_DATA and associate it
@@ -812,9 +812,9 @@ class ConnectionProvider with ChangeNotifier {
 
         // Use a dummy ACK tag (0) and timeout (0) for channel messages
         // This will trigger the callback to mark the message as "sent"
-        print('  Calling onMessageSent callback...');
+        debugPrint('  Calling onMessageSent callback...');
         onMessageSent?.call(messageId, 0, 0);
-        print('  onMessageSent callback completed');
+        debugPrint('  onMessageSent callback completed');
       }
     } catch (e) {
       _error = 'Failed to send channel message: $e';
@@ -902,7 +902,7 @@ class ConnectionProvider with ChangeNotifier {
 
       // First attempt timed out - retry with flooding if first was direct
       if (firstAttemptDirect) {
-        print(
+        debugPrint(
           '⚠️ [Provider] Ping timeout on direct attempt, retrying with flooding...',
         );
         onRetryWithFlooding?.call();
@@ -1253,8 +1253,8 @@ class ConnectionProvider with ChangeNotifier {
 
     try {
       _isSyncingMessages = true;
-      print('🔄 [Provider] Starting message sync loop...');
-      print('  Initial _noMoreMessages state: $_noMoreMessages');
+      debugPrint('🔄 [Provider] Starting message sync loop...');
+      debugPrint('  Initial _noMoreMessages state: $_noMoreMessages');
 
       // Keep syncing until we get NoMoreMessages response
       // The device will send ContactMsgRecv or ChannelMsgRecv responses
@@ -1263,13 +1263,13 @@ class ConnectionProvider with ChangeNotifier {
         // Safety limit
         // Check flag BEFORE sending (not after)
         if (_noMoreMessages) {
-          print(
+          debugPrint(
             '✅ [Provider] Message sync complete - NoMoreMessages flag set after $count requests',
           );
           break;
         }
 
-        print(
+        debugPrint(
           '📤 [Provider] Sync iteration ${i + 1}: Sending CMD_SYNC_NEXT_MESSAGE',
         );
 
@@ -1290,21 +1290,21 @@ class ConnectionProvider with ChangeNotifier {
         // Small delay to allow response to be processed
         await Future.delayed(const Duration(milliseconds: 150));
 
-        print('  After iteration ${i + 1}: _noMoreMessages=$_noMoreMessages');
+        debugPrint('  After iteration ${i + 1}: _noMoreMessages=$_noMoreMessages');
       }
 
       if (!_noMoreMessages && count >= 100) {
-        print(
+        debugPrint(
           '⚠️ [Provider] Message sync stopped - reached safety limit of 100 requests without NoMoreMessages',
         );
       }
 
-      print(
+      debugPrint(
         '🏁 [Provider] Message sync finished: sent $count sync requests, _noMoreMessages=$_noMoreMessages',
       );
       return count;
     } catch (e) {
-      print('❌ [Provider] Failed to sync messages: $e');
+      debugPrint('❌ [Provider] Failed to sync messages: $e');
       _error = 'Failed to sync messages: $e';
       notifyListeners();
       return count;
@@ -1321,10 +1321,10 @@ class ConnectionProvider with ChangeNotifier {
   /// Example usage:
   /// ```dart
   /// connectionProvider.onLoginSuccess = (pkPrefix, perms, isAdmin, tag) {
-  ///   print('Successfully logged in to room!');
+  ///   debugPrint('Successfully logged in to room!');
   /// };
   /// connectionProvider.onLoginFail = (pkPrefix) {
-  ///   print('Login failed - incorrect password');
+  ///   debugPrint('Login failed - incorrect password');
   /// };
   /// await connectionProvider.loginToRoom(
   ///   roomPublicKey: contact.publicKey,
@@ -1374,7 +1374,7 @@ class ConnectionProvider with ChangeNotifier {
   /// Example usage:
   /// ```dart
   /// connectionProvider.onStatusResponse = (publicKeyPrefix, statusData) {
-  ///   print('Status from node: ${utf8.decode(statusData)}');
+  ///   debugPrint('Status from node: ${utf8.decode(statusData)}');
   /// };
   /// await connectionProvider.requestStatus(repeaterContact.publicKey);
   /// ```

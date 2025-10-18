@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:flutter_map_tile_caching/custom_backend_api.dart';
@@ -92,7 +93,7 @@ class TileCacheService {
           // Use attemptedTilesCount instead of successfulTilesCount
           // attemptedTilesCount includes successful + buffered + skipped tiles
           final percentage = progress.percentageProgress;
-          print(
+          debugPrint(
             'Download progress: ${progress.attemptedTilesCount}/${progress.maxTilesCount} = ${percentage.toStringAsFixed(1)}% (successful: ${progress.successfulTilesCount}, buffered: ${progress.bufferedTilesCount}, skipped: ${progress.skippedTilesCount})',
           );
           onProgress(percentage);
@@ -167,7 +168,7 @@ class TileCacheService {
         silenceTileNotFound: true,
       );
     } catch (e) {
-      print('Error creating vector tile provider: $e');
+      debugPrint('Error creating vector tile provider: $e');
       return null;
     }
   }

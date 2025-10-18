@@ -86,29 +86,29 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
     });
 
     // 🕐 CLOCK DRIFT CHECK: Get device time to detect synchronization issues
-    print('🕐 [RoomLogin] Checking for clock drift between app and radio...');
+    debugPrint('🕐 [RoomLogin] Checking for clock drift between app and radio...');
     try {
       await connectionProvider.getDeviceTime();
       // Give time for response to be logged
       await Future.delayed(const Duration(milliseconds: 300));
     } catch (e) {
-      print('⚠️ [RoomLogin] Failed to get device time: $e');
+      debugPrint('⚠️ [RoomLogin] Failed to get device time: $e');
       // Don't fail login - this is just a diagnostic check
     }
 
     // 🔍 PRE-LOGIN CHECK: Ensure room contact exists in device
-    print('🔍 [RoomLogin] Checking if room "${widget.contact.advName}" exists in contacts...');
-    print('   Target public key prefix: ${widget.contact.publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    debugPrint('🔍 [RoomLogin] Checking if room "${widget.contact.advName}" exists in contacts...');
+    debugPrint('   Target public key prefix: ${widget.contact.publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
 
     // Check if the room exists in our local contacts
     bool roomExists = contactsProvider.rooms.any(
       (room) => room.publicKeyHex == widget.contact.publicKeyHex,
     );
 
-    print('   Local contact list: ${roomExists ? "✅ Found" : "❌ Not found"}');
+    debugPrint('   Local contact list: ${roomExists ? "✅ Found" : "❌ Not found"}');
 
     if (!roomExists) {
-      print('⚠️ [RoomLogin] Room not in local contacts - syncing with device...');
+      debugPrint('⚠️ [RoomLogin] Room not in local contacts - syncing with device...');
 
       try {
         // Sync contacts from device
@@ -122,26 +122,26 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
           (room) => room.publicKeyHex == widget.contact.publicKeyHex,
         );
 
-        print('   After sync: ${roomExists ? "✅ Found" : "❌ Still not found"}');
+        debugPrint('   After sync: ${roomExists ? "✅ Found" : "❌ Still not found"}');
 
         if (!roomExists) {
           // Room still doesn't exist on the device - try to add it manually
-          print('❌ [RoomLogin] Room still not found after sync');
-          print('🔧 [RoomLogin] Attempting to add room contact to companion radio...');
+          debugPrint('❌ [RoomLogin] Room still not found after sync');
+          debugPrint('🔧 [RoomLogin] Attempting to add room contact to companion radio...');
 
           try {
             // Manually add the room contact to the radio's flash storage
             await connectionProvider.addOrUpdateContact(widget.contact);
 
-            print('✅ [RoomLogin] Room contact added via CMD_ADD_UPDATE_CONTACT');
-            print('   Waiting 500ms for radio to save to flash...');
+            debugPrint('✅ [RoomLogin] Room contact added via CMD_ADD_UPDATE_CONTACT');
+            debugPrint('   Waiting 500ms for radio to save to flash...');
 
             // Give the radio time to save the contact to flash
             await Future.delayed(const Duration(milliseconds: 500));
 
-            print('✅ [RoomLogin] Room contact should now be available - proceeding with login');
+            debugPrint('✅ [RoomLogin] Room contact should now be available - proceeding with login');
           } catch (e) {
-            print('❌ [RoomLogin] Failed to add room contact: $e');
+            debugPrint('❌ [RoomLogin] Failed to add room contact: $e');
 
             if (!mounted) return;
 
@@ -159,18 +159,18 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
 
             // Log available rooms for debugging
             final availableRooms = contactsProvider.rooms;
-            print('📋 [RoomLogin] Available rooms on device (${availableRooms.length}):');
+            debugPrint('📋 [RoomLogin] Available rooms on device (${availableRooms.length}):');
             for (final room in availableRooms) {
-              print('   - ${room.advName} (${room.publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')})');
+              debugPrint('   - ${room.advName} (${room.publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')})');
             }
 
             return;
           }
         }
 
-        print('✅ [RoomLogin] Room contact found after sync - proceeding with login');
+        debugPrint('✅ [RoomLogin] Room contact found after sync - proceeding with login');
       } catch (e) {
-        print('❌ [RoomLogin] Contact sync failed: $e');
+        debugPrint('❌ [RoomLogin] Contact sync failed: $e');
 
         if (!mounted) return;
 
@@ -187,7 +187,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
         return;
       }
     } else {
-      print('✅ [RoomLogin] Room contact found in local contacts - proceeding with login');
+      debugPrint('✅ [RoomLogin] Room contact found in local contacts - proceeding with login');
     }
 
     // Save password before sending
@@ -205,9 +205,9 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
       connectionProvider.onLoginSuccess = originalOnSuccess;
       connectionProvider.onLoginFail = originalOnFail;
 
-      print('✅ [RoomLogin] Login successful! Tag: $tag, Permissions: $permissions, Admin: $isAdmin');
-      print('📡 [RoomLogin] Room server will now push messages automatically via PUSH_CODE_MSG_WAITING');
-      print('   Messages will be fetched when onMessageWaiting callback is triggered');
+      debugPrint('✅ [RoomLogin] Login successful! Tag: $tag, Permissions: $permissions, Admin: $isAdmin');
+      debugPrint('📡 [RoomLogin] Room server will now push messages automatically via PUSH_CODE_MSG_WAITING');
+      debugPrint('   Messages will be fetched when onMessageWaiting callback is triggered');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -225,7 +225,7 @@ class _RoomLoginSheetState extends State<RoomLoginSheet> {
       connectionProvider.onLoginSuccess = originalOnSuccess;
       connectionProvider.onLoginFail = originalOnFail;
 
-      print('❌ [RoomLogin] Login failed - incorrect password');
+      debugPrint('❌ [RoomLogin] Login failed - incorrect password');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

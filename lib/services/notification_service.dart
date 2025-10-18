@@ -32,7 +32,7 @@ class NotificationService {
     if (_isInitialized) return;
 
     try {
-      print('📬 [NotificationService] Initializing...');
+      debugPrint('📬 [NotificationService] Initializing...');
 
       // Initialize timezone data
       tz.initializeTimeZones();
@@ -67,10 +67,10 @@ class NotificationService {
       await _createNotificationChannels();
 
       _isInitialized = true;
-      print('✅ [NotificationService] Initialized successfully');
-      print('   Permission granted: $_permissionGranted');
+      debugPrint('✅ [NotificationService] Initialized successfully');
+      debugPrint('   Permission granted: $_permissionGranted');
     } catch (e) {
-      print('❌ [NotificationService] Initialization error: $e');
+      debugPrint('❌ [NotificationService] Initialization error: $e');
     }
   }
 
@@ -88,7 +88,7 @@ class NotificationService {
           critical: true, // Request critical alert permission for urgent SAR notifications
         );
         _permissionGranted = granted ?? false;
-        print('📱 [NotificationService] iOS permissions granted: $_permissionGranted');
+        debugPrint('📱 [NotificationService] iOS permissions granted: $_permissionGranted');
       }
 
       // Android 13+ permissions
@@ -97,10 +97,10 @@ class NotificationService {
       if (androidPlugin != null) {
         final granted = await androidPlugin.requestNotificationsPermission();
         _permissionGranted = granted ?? false;
-        print('🤖 [NotificationService] Android permissions granted: $_permissionGranted');
+        debugPrint('🤖 [NotificationService] Android permissions granted: $_permissionGranted');
       }
     } catch (e) {
-      print('⚠️ [NotificationService] Error requesting permissions: $e');
+      debugPrint('⚠️ [NotificationService] Error requesting permissions: $e');
     }
   }
 
@@ -126,15 +126,15 @@ class NotificationService {
       );
 
       await androidPlugin.createNotificationChannel(urgentChannel);
-      print('✅ [NotificationService] Created urgent notification channel');
+      debugPrint('✅ [NotificationService] Created urgent notification channel');
     } catch (e) {
-      print('⚠️ [NotificationService] Error creating channels: $e');
+      debugPrint('⚠️ [NotificationService] Error creating channels: $e');
     }
   }
 
   /// Handle notification tap (foreground)
   void _onNotificationResponse(NotificationResponse response) {
-    print('🔔 [NotificationService] Notification tapped: ${response.payload}');
+    debugPrint('🔔 [NotificationService] Notification tapped: ${response.payload}');
     // TODO: Navigate to map tab and show SAR marker
     // This would require a callback to the app layer
   }
@@ -148,12 +148,12 @@ class NotificationService {
     AppLocalizations? localizations,
   }) async {
     if (!_isInitialized) {
-      print('⚠️ [NotificationService] Not initialized, skipping notification');
+      debugPrint('⚠️ [NotificationService] Not initialized, skipping notification');
       return;
     }
 
     if (!_permissionGranted) {
-      print('⚠️ [NotificationService] Permission not granted, skipping notification');
+      debugPrint('⚠️ [NotificationService] Permission not granted, skipping notification');
       return;
     }
 
@@ -222,12 +222,12 @@ class NotificationService {
         payload: 'sar:${type.name}:$coordinates',
       );
 
-      print('✅ [NotificationService] Showed SAR notification: $title');
-      print('   Type: ${type.displayName}');
-      print('   Sender: $senderName');
-      print('   Coordinates: $coordinates');
+      debugPrint('✅ [NotificationService] Showed SAR notification: $title');
+      debugPrint('   Type: ${type.displayName}');
+      debugPrint('   Sender: $senderName');
+      debugPrint('   Coordinates: $coordinates');
     } catch (e) {
-      print('❌ [NotificationService] Error showing notification: $e');
+      debugPrint('❌ [NotificationService] Error showing notification: $e');
     }
   }
 
@@ -307,9 +307,9 @@ class NotificationService {
   Future<void> cancelAll() async {
     try {
       await _notificationsPlugin.cancelAll();
-      print('✅ [NotificationService] Cancelled all notifications');
+      debugPrint('✅ [NotificationService] Cancelled all notifications');
     } catch (e) {
-      print('❌ [NotificationService] Error canceling notifications: $e');
+      debugPrint('❌ [NotificationService] Error canceling notifications: $e');
     }
   }
 
@@ -317,9 +317,9 @@ class NotificationService {
   Future<void> cancel(int id) async {
     try {
       await _notificationsPlugin.cancel(id);
-      print('✅ [NotificationService] Cancelled notification: $id');
+      debugPrint('✅ [NotificationService] Cancelled notification: $id');
     } catch (e) {
-      print('❌ [NotificationService] Error canceling notification: $e');
+      debugPrint('❌ [NotificationService] Error canceling notification: $e');
     }
   }
 
@@ -336,7 +336,7 @@ class NotificationService {
       // For iOS, assume enabled if permission was granted
       return _permissionGranted;
     } catch (e) {
-      print('⚠️ [NotificationService] Error checking notification status: $e');
+      debugPrint('⚠️ [NotificationService] Error checking notification status: $e');
       return false;
     }
   }
@@ -346,7 +346,7 @@ class NotificationService {
     try {
       return await _notificationsPlugin.pendingNotificationRequests();
     } catch (e) {
-      print('⚠️ [NotificationService] Error getting pending notifications: $e');
+      debugPrint('⚠️ [NotificationService] Error getting pending notifications: $e');
       return [];
     }
   }

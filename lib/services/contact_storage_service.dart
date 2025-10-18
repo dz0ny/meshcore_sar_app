@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/contact.dart';
 import '../models/contact_telemetry.dart';
@@ -26,9 +27,9 @@ class ContactStorageService {
       final jsonString = jsonEncode(limitedList);
       await prefs.setString(_contactsKey, jsonString);
 
-      print('✅ [ContactStorage] Saved ${limitedList.length} contacts to storage');
+      debugPrint('✅ [ContactStorage] Saved ${limitedList.length} contacts to storage');
     } catch (e) {
-      print('❌ [ContactStorage] Error saving contacts: $e');
+      debugPrint('❌ [ContactStorage] Error saving contacts: $e');
     }
   }
 
@@ -40,7 +41,7 @@ class ContactStorageService {
       final jsonString = prefs.getString(_contactsKey);
 
       if (jsonString == null || jsonString.isEmpty) {
-        print('ℹ️ [ContactStorage] No stored contacts found');
+        debugPrint('ℹ️ [ContactStorage] No stored contacts found');
         return [];
       }
 
@@ -56,17 +57,17 @@ class ContactStorageService {
           ? contacts.where((contact) {
               final matches = _publicKeysMatch(contact.publicKey, excludePublicKey);
               if (matches) {
-                print('ℹ️ [ContactStorage] Excluding contact with matching public key: ${contact.advName}');
+                debugPrint('ℹ️ [ContactStorage] Excluding contact with matching public key: ${contact.advName}');
               }
               return !matches;
             }).toList()
           : contacts;
 
-      print('✅ [ContactStorage] Loaded ${filteredContacts.length} contacts from storage'
+      debugPrint('✅ [ContactStorage] Loaded ${filteredContacts.length} contacts from storage'
           '${excludePublicKey != null ? ' (${contacts.length - filteredContacts.length} excluded)' : ''}');
       return filteredContacts;
     } catch (e) {
-      print('❌ [ContactStorage] Error loading contacts: $e');
+      debugPrint('❌ [ContactStorage] Error loading contacts: $e');
       return [];
     }
   }
@@ -85,9 +86,9 @@ class ContactStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_contactsKey);
-      print('✅ [ContactStorage] Cleared all stored contacts');
+      debugPrint('✅ [ContactStorage] Cleared all stored contacts');
     } catch (e) {
-      print('❌ [ContactStorage] Error clearing contacts: $e');
+      debugPrint('❌ [ContactStorage] Error clearing contacts: $e');
     }
   }
 
@@ -114,7 +115,7 @@ class ContactStorageService {
         'storageSizeKB': (sizeBytes / 1024).toStringAsFixed(2),
       };
     } catch (e) {
-      print('❌ [ContactStorage] Error getting storage stats: $e');
+      debugPrint('❌ [ContactStorage] Error getting storage stats: $e');
       return {
         'contactCount': 0,
         'storageSizeBytes': 0,
@@ -159,7 +160,7 @@ class ContactStorageService {
             : null,
       );
     } catch (e) {
-      print('❌ [ContactStorage] Error parsing contact from JSON: $e');
+      debugPrint('❌ [ContactStorage] Error parsing contact from JSON: $e');
       return null;
     }
   }
@@ -203,7 +204,7 @@ class ContactStorageService {
         extraSensorData: json['extraSensorData'] as Map<String, dynamic>?,
       );
     } catch (e) {
-      print('❌ [ContactStorage] Error parsing telemetry from JSON: $e');
+      debugPrint('❌ [ContactStorage] Error parsing telemetry from JSON: $e');
       return null;
     }
   }

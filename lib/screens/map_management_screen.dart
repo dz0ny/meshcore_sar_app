@@ -277,7 +277,7 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
         minZoom: _minZoom,
         maxZoom: _maxZoom,
         onProgress: (progress) {
-          print('UI received progress update: $progress%');
+          debugPrint('UI received progress update: $progress%');
           if (!mounted) return;
           setState(() {
             _downloadProgress = progress;

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/message.dart';
 import '../models/sar_marker.dart';
@@ -26,9 +27,9 @@ class MessageStorageService {
       final jsonString = jsonEncode(limitedList);
       await prefs.setString(_messagesKey, jsonString);
 
-      print('✅ [MessageStorage] Saved ${limitedList.length} messages to storage');
+      debugPrint('✅ [MessageStorage] Saved ${limitedList.length} messages to storage');
     } catch (e) {
-      print('❌ [MessageStorage] Error saving messages: $e');
+      debugPrint('❌ [MessageStorage] Error saving messages: $e');
     }
   }
 
@@ -39,7 +40,7 @@ class MessageStorageService {
       final jsonString = prefs.getString(_messagesKey);
 
       if (jsonString == null || jsonString.isEmpty) {
-        print('ℹ️ [MessageStorage] No stored messages found');
+        debugPrint('ℹ️ [MessageStorage] No stored messages found');
         return [];
       }
 
@@ -50,10 +51,10 @@ class MessageStorageService {
           .cast<Message>()
           .toList();
 
-      print('✅ [MessageStorage] Loaded ${messages.length} messages from storage');
+      debugPrint('✅ [MessageStorage] Loaded ${messages.length} messages from storage');
       return messages;
     } catch (e) {
-      print('❌ [MessageStorage] Error loading messages: $e');
+      debugPrint('❌ [MessageStorage] Error loading messages: $e');
       return [];
     }
   }
@@ -63,9 +64,9 @@ class MessageStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_messagesKey);
-      print('✅ [MessageStorage] Cleared all stored messages');
+      debugPrint('✅ [MessageStorage] Cleared all stored messages');
     } catch (e) {
-      print('❌ [MessageStorage] Error clearing messages: $e');
+      debugPrint('❌ [MessageStorage] Error clearing messages: $e');
     }
   }
 
@@ -92,7 +93,7 @@ class MessageStorageService {
         'storageSizeKB': (sizeBytes / 1024).toStringAsFixed(2),
       };
     } catch (e) {
-      print('❌ [MessageStorage] Error getting storage stats: $e');
+      debugPrint('❌ [MessageStorage] Error getting storage stats: $e');
       return {
         'messageCount': 0,
         'storageSizeBytes': 0,
@@ -184,7 +185,7 @@ class MessageStorageService {
         isRead: json['isRead'] as bool? ?? false,
       );
     } catch (e) {
-      print('❌ [MessageStorage] Error parsing message from JSON: $e');
+      debugPrint('❌ [MessageStorage] Error parsing message from JSON: $e');
       return null;
     }
   }

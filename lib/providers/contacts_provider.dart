@@ -23,7 +23,7 @@ class ContactsProvider with ChangeNotifier {
     if (_isInitialized) return;
 
     try {
-      print('📦 [ContactsProvider] Loading persisted contacts...');
+      debugPrint('📦 [ContactsProvider] Loading persisted contacts...');
       final storedContacts = await _storageService.loadContacts(
         excludePublicKey: devicePublicKey,
       );
@@ -39,14 +39,14 @@ class ContactsProvider with ChangeNotifier {
       }
 
       _isInitialized = true;
-      print('✅ [ContactsProvider] Loaded ${storedContacts.length} persisted contacts');
+      debugPrint('✅ [ContactsProvider] Loaded ${storedContacts.length} persisted contacts');
 
       // Ensure public channel exists after loading
       _ensurePublicChannelExists();
 
       notifyListeners();
     } catch (e) {
-      print('❌ [ContactsProvider] Error initializing: $e');
+      debugPrint('❌ [ContactsProvider] Error initializing: $e');
       _isInitialized = true; // Mark as initialized even on error
       _ensurePublicChannelExists();
     }
@@ -84,7 +84,7 @@ class ContactsProvider with ChangeNotifier {
           .toList();
       await _storageService.saveContacts(contactsToSave);
     } catch (e) {
-      print('❌ [ContactsProvider] Error persisting contacts: $e');
+      debugPrint('❌ [ContactsProvider] Error persisting contacts: $e');
     }
   }
 
@@ -129,7 +129,7 @@ class ContactsProvider with ChangeNotifier {
   void addOrUpdateContact(Contact contact, {Uint8List? devicePublicKey}) {
     // Don't add contacts that match our device's public key
     if (devicePublicKey != null && _publicKeysMatch(contact.publicKey, devicePublicKey)) {
-      print('ℹ️ [ContactsProvider] Ignoring contact with device\'s own public key: ${contact.advName}');
+      debugPrint('ℹ️ [ContactsProvider] Ignoring contact with device\'s own public key: ${contact.advName}');
       return;
     }
 
@@ -182,14 +182,14 @@ class ContactsProvider with ChangeNotifier {
     for (final contact in contacts) {
       // Don't add contacts that match our device's public key
       if (devicePublicKey != null && _publicKeysMatch(contact.publicKey, devicePublicKey)) {
-        print('ℹ️ [ContactsProvider] Ignoring contact with device\'s own public key: ${contact.advName}');
+        debugPrint('ℹ️ [ContactsProvider] Ignoring contact with device\'s own public key: ${contact.advName}');
         excluded++;
         continue;
       }
       _contacts[contact.publicKeyHex] = contact;
     }
     if (excluded > 0) {
-      print('ℹ️ [ContactsProvider] Excluded $excluded contact(s) matching device public key');
+      debugPrint('ℹ️ [ContactsProvider] Excluded $excluded contact(s) matching device public key');
     }
     _persistContacts();
     notifyListeners();
@@ -197,38 +197,38 @@ class ContactsProvider with ChangeNotifier {
 
   /// Update contact telemetry
   void updateTelemetry(Uint8List publicKeyPrefix, Uint8List lppData) {
-    print('📊 [ContactsProvider] updateTelemetry() called');
-    print('  Public key prefix (hex): ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
-    print('  LPP data size: ${lppData.length} bytes');
+    debugPrint('📊 [ContactsProvider] updateTelemetry() called');
+    debugPrint('  Public key prefix (hex): ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}');
+    debugPrint('  LPP data size: ${lppData.length} bytes');
 
     // Find contact by public key prefix
     final contact = _findContactByPrefix(publicKeyPrefix);
     if (contact == null) {
-      print('  ❌ Contact not found for this prefix');
+      debugPrint('  ❌ Contact not found for this prefix');
       return;
     }
 
-    print('  ✅ Found contact: ${contact.advName}');
-    print('  Old telemetry timestamp: ${contact.telemetry?.timestamp}');
+    debugPrint('  ✅ Found contact: ${contact.advName}');
+    debugPrint('  Old telemetry timestamp: ${contact.telemetry?.timestamp}');
 
     try {
       // Parse Cayenne LPP data
       final telemetry = CayenneLppParser.parse(lppData);
-      print('  ✅ Parsed new telemetry');
-      print('  New telemetry timestamp: ${telemetry.timestamp}');
+      debugPrint('  ✅ Parsed new telemetry');
+      debugPrint('  New telemetry timestamp: ${telemetry.timestamp}');
 
       // Update contact with new telemetry
       final updatedContact = contact.copyWith(telemetry: telemetry);
       _contacts[contact.publicKeyHex] = updatedContact;
-      print('  ✅ Updated contact in map');
+      debugPrint('  ✅ Updated contact in map');
 
       _persistContacts();
-      print('  ✅ Persisted contacts to storage');
+      debugPrint('  ✅ Persisted contacts to storage');
 
       notifyListeners();
-      print('  ✅ Notified listeners - UI should update');
+      debugPrint('  ✅ Notified listeners - UI should update');
     } catch (e) {
-      print('  ❌ Failed to parse telemetry: $e');
+      debugPrint('  ❌ Failed to parse telemetry: $e');
       debugPrint('Failed to parse telemetry: $e');
     }
   }

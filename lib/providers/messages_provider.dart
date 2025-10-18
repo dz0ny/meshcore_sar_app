@@ -88,7 +88,7 @@ class MessagesProvider with ChangeNotifier {
     if (_isInitialized) return;
 
     try {
-      print('📦 [MessagesProvider] Loading persisted messages...');
+      debugPrint('📦 [MessagesProvider] Loading persisted messages...');
       final storedMessages = await _storageService.loadMessages();
 
       // Add stored messages with enhancement to ensure SAR detection
@@ -108,10 +108,10 @@ class MessagesProvider with ChangeNotifier {
       }
 
       _isInitialized = true;
-      print('✅ [MessagesProvider] Loaded ${storedMessages.length} persisted messages');
+      debugPrint('✅ [MessagesProvider] Loaded ${storedMessages.length} persisted messages');
       notifyListeners();
     } catch (e) {
-      print('❌ [MessagesProvider] Error initializing: $e');
+      debugPrint('❌ [MessagesProvider] Error initializing: $e');
       _isInitialized = true; // Mark as initialized even on error
     }
   }
@@ -149,9 +149,9 @@ class MessagesProvider with ChangeNotifier {
 
     // Debug: Check if message is SAR
     if (message.text.startsWith('S:')) {
-      print('🔍 [MessagesProvider] Processing SAR message: ${message.text}');
-      print('   isSarMarker: ${finalMessage.isSarMarker}');
-      print('   sarMarkerType: ${finalMessage.sarMarkerType}');
+      debugPrint('🔍 [MessagesProvider] Processing SAR message: ${message.text}');
+      debugPrint('   isSarMarker: ${finalMessage.isSarMarker}');
+      debugPrint('   sarMarkerType: ${finalMessage.sarMarkerType}');
     }
 
     // Check for duplicates before adding
@@ -160,8 +160,8 @@ class MessagesProvider with ChangeNotifier {
     // - Multiple paths in the network
     // - Syncing messages from device queue
     if (_isDuplicate(finalMessage)) {
-      print('⚠️ [MessagesProvider] Duplicate message detected, skipping: ${finalMessage.id}');
-      print('   Text: ${finalMessage.text.substring(0, finalMessage.text.length > 50 ? 50 : finalMessage.text.length)}...');
+      debugPrint('⚠️ [MessagesProvider] Duplicate message detected, skipping: ${finalMessage.id}');
+      debugPrint('   Text: ${finalMessage.text.substring(0, finalMessage.text.length > 50 ? 50 : finalMessage.text.length)}...');
       return; // Skip duplicate
     }
 
@@ -263,7 +263,7 @@ class MessagesProvider with ChangeNotifier {
       }
     }
 
-    print('📥 [MessagesProvider] Added $addedCount messages, skipped $duplicateCount duplicates');
+    debugPrint('📥 [MessagesProvider] Added $addedCount messages, skipped $duplicateCount duplicates');
 
     // Persist to storage asynchronously
     _persistMessages();
@@ -280,9 +280,9 @@ class MessagesProvider with ChangeNotifier {
       // Get sender name from message
       final senderName = message.senderName ?? message.senderKeyShort ?? 'Unknown';
 
-      print('🔔 [MessagesProvider] Triggering SAR notification for ${marker.type.displayName}');
-      print('   Sender: $senderName');
-      print('   Coordinates: $coords');
+      debugPrint('🔔 [MessagesProvider] Triggering SAR notification for ${marker.type.displayName}');
+      debugPrint('   Sender: $senderName');
+      debugPrint('   Coordinates: $coords');
 
       await _notificationService.showSarNotification(
         type: marker.type,
@@ -292,7 +292,7 @@ class MessagesProvider with ChangeNotifier {
         localizations: _localizations,
       );
     } catch (e) {
-      print('❌ [MessagesProvider] Error triggering SAR notification: $e');
+      debugPrint('❌ [MessagesProvider] Error triggering SAR notification: $e');
     }
   }
 
@@ -301,7 +301,7 @@ class MessagesProvider with ChangeNotifier {
     try {
       await _storageService.saveMessages(_messages);
     } catch (e) {
-      print('❌ [MessagesProvider] Error persisting messages: $e');
+      debugPrint('❌ [MessagesProvider] Error persisting messages: $e');
     }
   }
 
@@ -409,7 +409,7 @@ class MessagesProvider with ChangeNotifier {
         _pendingSentMessages.remove(message.expectedAckTag);
       }
 
-      print('🗑️ [MessagesProvider] Message $messageId deleted');
+      debugPrint('🗑️ [MessagesProvider] Message $messageId deleted');
 
       _persistMessages();
       notifyListeners();
@@ -495,18 +495,18 @@ class MessagesProvider with ChangeNotifier {
 
   /// Add a sent message with initial status
   void addSentMessage(Message message, {Contact? contact}) {
-    print('📝 [MessagesProvider] addSentMessage called');
-    print('  Message ID: ${message.id}');
-    print('  Message type: ${message.messageType}');
-    print('  Initial status: ${message.deliveryStatus}');
-    print('  Message text preview: ${message.text.substring(0, message.text.length > 30 ? 30 : message.text.length)}...');
+    debugPrint('📝 [MessagesProvider] addSentMessage called');
+    debugPrint('  Message ID: ${message.id}');
+    debugPrint('  Message type: ${message.messageType}');
+    debugPrint('  Initial status: ${message.deliveryStatus}');
+    debugPrint('  Message text preview: ${message.text.substring(0, message.text.length > 30 ? 30 : message.text.length)}...');
 
     // Always enhance message with SAR parser to detect SAR markers
     final enhancedMessage = SarMessageParser.enhanceMessage(message);
 
     // Check for duplicates (shouldn't happen for sent messages, but be safe)
     if (_isDuplicate(enhancedMessage)) {
-      print('⚠️ [MessagesProvider] Duplicate sent message detected, skipping: ${enhancedMessage.id}');
+      debugPrint('⚠️ [MessagesProvider] Duplicate sent message detected, skipping: ${enhancedMessage.id}');
       return;
     }
 
@@ -516,13 +516,13 @@ class MessagesProvider with ChangeNotifier {
       isRead: true, // Sent messages are always marked as read
     );
     _messages.add(sendingMessage);
-    print('  ✅ Message added to list at index ${_messages.length - 1}');
-    print('  Total messages in list: ${_messages.length}');
+    debugPrint('  ✅ Message added to list at index ${_messages.length - 1}');
+    debugPrint('  Total messages in list: ${_messages.length}');
 
     // Store contact mapping for retry logic
     if (contact != null) {
       _messageContactMap[message.id] = contact;
-      print('  ✅ Stored contact mapping for retry logic');
+      debugPrint('  ✅ Stored contact mapping for retry logic');
     }
 
     // If it's a SAR marker message, extract and store the marker
@@ -535,25 +535,25 @@ class MessagesProvider with ChangeNotifier {
 
     _persistMessages();
     notifyListeners();
-    print('  ✅ notifyListeners() called - UI should update');
+    debugPrint('  ✅ notifyListeners() called - UI should update');
   }
 
   /// Update message status to sent with ACK tag
   void markMessageSent(String messageId, int expectedAckTag, int suggestedTimeoutMs) {
-    print('📤 [MessagesProvider] markMessageSent called');
-    print('  Message ID: $messageId');
-    print('  Expected ACK tag: $expectedAckTag (0x${expectedAckTag.toRadixString(16).padLeft(8, '0')})');
-    print('  Timeout: ${suggestedTimeoutMs}ms');
-    print('  Current pending ACKs before adding: ${_pendingSentMessages.keys.toList()}');
+    debugPrint('📤 [MessagesProvider] markMessageSent called');
+    debugPrint('  Message ID: $messageId');
+    debugPrint('  Expected ACK tag: $expectedAckTag (0x${expectedAckTag.toRadixString(16).padLeft(8, '0')})');
+    debugPrint('  Timeout: ${suggestedTimeoutMs}ms');
+    debugPrint('  Current pending ACKs before adding: ${_pendingSentMessages.keys.toList()}');
 
     final index = _messages.indexWhere((m) => m.id == messageId);
-    print('  Message index in list: $index');
+    debugPrint('  Message index in list: $index');
 
     if (index != -1) {
       final message = _messages[index];
-      print('  Current status: ${message.deliveryStatus}');
-      print('  Message type: ${message.messageType}');
-      print('  Message text preview: ${message.text.substring(0, message.text.length > 30 ? 30 : message.text.length)}...');
+      debugPrint('  Current status: ${message.deliveryStatus}');
+      debugPrint('  Message type: ${message.messageType}');
+      debugPrint('  Message text preview: ${message.text.substring(0, message.text.length > 30 ? 30 : message.text.length)}...');
 
       final updatedMessage = message.copyWith(
         deliveryStatus: MessageDeliveryStatus.sent,
@@ -566,55 +566,55 @@ class MessagesProvider with ChangeNotifier {
       if (expectedAckTag > 0 && suggestedTimeoutMs > 0) {
         // Track by ACK tag for matching with delivery confirmation
         _pendingSentMessages[expectedAckTag] = updatedMessage;
-        print('  ✅ Added to pending messages map with ACK: $expectedAckTag');
-        print('  Total pending messages: ${_pendingSentMessages.length}');
-        print('  Pending ACKs after adding: ${_pendingSentMessages.keys.toList()}');
+        debugPrint('  ✅ Added to pending messages map with ACK: $expectedAckTag');
+        debugPrint('  Total pending messages: ${_pendingSentMessages.length}');
+        debugPrint('  Pending ACKs after adding: ${_pendingSentMessages.keys.toList()}');
 
         // Start timeout timer
         _timeoutTimers[expectedAckTag] = Timer(
           Duration(milliseconds: suggestedTimeoutMs),
           () {
-            print('⏱️ [MessagesProvider] Timeout for message $messageId (ACK $expectedAckTag)');
+            debugPrint('⏱️ [MessagesProvider] Timeout for message $messageId (ACK $expectedAckTag)');
             if (_pendingSentMessages.containsKey(expectedAckTag)) {
               markMessageFailed(messageId);
             }
           },
         );
 
-        print('⏱️ [MessagesProvider] Started ${suggestedTimeoutMs}ms timeout timer for message $messageId (ACK $expectedAckTag)');
+        debugPrint('⏱️ [MessagesProvider] Started ${suggestedTimeoutMs}ms timeout timer for message $messageId (ACK $expectedAckTag)');
       } else {
-        print('  ℹ️ Channel message (no ACK tracking) - marked as sent immediately');
+        debugPrint('  ℹ️ Channel message (no ACK tracking) - marked as sent immediately');
       }
 
-      print('  Calling notifyListeners() to update UI with "sent" status');
+      debugPrint('  Calling notifyListeners() to update UI with "sent" status');
 
       _persistMessages();
       notifyListeners();
 
-      print('  ✅ markMessageSent completed successfully');
+      debugPrint('  ✅ markMessageSent completed successfully');
     } else {
-      print('⚠️ [MessagesProvider] Message not found in list: $messageId');
-      print('  Total messages in list: ${_messages.length}');
-      print('  Recent messages:');
+      debugPrint('⚠️ [MessagesProvider] Message not found in list: $messageId');
+      debugPrint('  Total messages in list: ${_messages.length}');
+      debugPrint('  Recent messages:');
       for (final m in _messages.take(5)) {
-        print('     - ID: ${m.id}, Status: ${m.deliveryStatus}');
+        debugPrint('     - ID: ${m.id}, Status: ${m.deliveryStatus}');
       }
     }
   }
 
   /// Handle echo detection for public channel messages
   void handleMessageEcho(String messageId, int echoCount, int snrRaw, int rssiDbm) {
-    print('🔊 [MessagesProvider] handleMessageEcho called');
-    print('  Message ID: $messageId');
-    print('  Echo count: $echoCount');
-    print('  SNR: ${(snrRaw.toSigned(8) / 4.0).toStringAsFixed(2)} dB');
-    print('  RSSI: ${rssiDbm.toSigned(8)} dBm');
+    debugPrint('🔊 [MessagesProvider] handleMessageEcho called');
+    debugPrint('  Message ID: $messageId');
+    debugPrint('  Echo count: $echoCount');
+    debugPrint('  SNR: ${(snrRaw.toSigned(8) / 4.0).toStringAsFixed(2)} dB');
+    debugPrint('  RSSI: ${rssiDbm.toSigned(8)} dBm');
 
     // Find the message
     final index = _messages.indexWhere((m) => m.id == messageId);
     if (index != -1) {
       final message = _messages[index];
-      print('  ✅ Found message: ${message.text.substring(0, message.text.length > 30 ? 30 : message.text.length)}...');
+      debugPrint('  ✅ Found message: ${message.text.substring(0, message.text.length > 30 ? 30 : message.text.length)}...');
 
       // Update echo count
       final updatedMessage = message.copyWith(
@@ -623,28 +623,28 @@ class MessagesProvider with ChangeNotifier {
       );
       _messages[index] = updatedMessage;
 
-      print('  Updated echo count to: $echoCount');
+      debugPrint('  Updated echo count to: $echoCount');
       _persistMessages();
       notifyListeners();
-      print('  ✅ Echo update complete, UI notified');
+      debugPrint('  ✅ Echo update complete, UI notified');
     } else {
-      print('  ⚠️ Message not found in messages list');
+      debugPrint('  ⚠️ Message not found in messages list');
     }
   }
 
   /// Update message status to delivered with RTT
   void markMessageDelivered(int ackCode, int roundTripTimeMs) {
-    print('🔍 [MessagesProvider] markMessageDelivered called with ACK: $ackCode, RTT: ${roundTripTimeMs}ms');
-    print('  Current pending messages: ${_pendingSentMessages.keys.toList()}');
-    print('  Total messages in list: ${_messages.length}');
-    print('  Looking for ACK: $ackCode');
+    debugPrint('🔍 [MessagesProvider] markMessageDelivered called with ACK: $ackCode, RTT: ${roundTripTimeMs}ms');
+    debugPrint('  Current pending messages: ${_pendingSentMessages.keys.toList()}');
+    debugPrint('  Total messages in list: ${_messages.length}');
+    debugPrint('  Looking for ACK: $ackCode');
 
     // Find message by ACK code
     final message = _pendingSentMessages[ackCode];
     if (message != null) {
-      print('  ✅ Found message in pending map: ${message.id}');
+      debugPrint('  ✅ Found message in pending map: ${message.id}');
       final index = _messages.indexWhere((m) => m.id == message.id);
-      print('  Message index in list: $index');
+      debugPrint('  Message index in list: $index');
 
       if (index != -1) {
         final updatedMessage = message.copyWith(
@@ -664,42 +664,42 @@ class MessagesProvider with ChangeNotifier {
         // Clear retry tracking on successful delivery
         _retryManager.clearRetry(message.id);
 
-        print('✅ [MessagesProvider] Message ${message.id} delivered in ${roundTripTimeMs}ms (ACK $ackCode)');
-        print('  Updated status to: ${updatedMessage.deliveryStatus}');
-        print('  Calling notifyListeners() to update UI');
+        debugPrint('✅ [MessagesProvider] Message ${message.id} delivered in ${roundTripTimeMs}ms (ACK $ackCode)');
+        debugPrint('  Updated status to: ${updatedMessage.deliveryStatus}');
+        debugPrint('  Calling notifyListeners() to update UI');
 
         _persistMessages();
         notifyListeners();
 
-        print('  ✅ notifyListeners() called successfully');
+        debugPrint('  ✅ notifyListeners() called successfully');
       } else {
-        print('⚠️ [MessagesProvider] Message not found in messages list (index=-1)');
-        print('  This should never happen - message was in pending map but not in messages list');
+        debugPrint('⚠️ [MessagesProvider] Message not found in messages list (index=-1)');
+        debugPrint('  This should never happen - message was in pending map but not in messages list');
       }
     } else {
-      print('⚠️ [MessagesProvider] No pending message found for ACK code: $ackCode');
-      print('  Pending ACK codes: ${_pendingSentMessages.keys.toList()}');
-      print('  This means either:');
-      print('  1. markMessageSent() was never called for this message (ACK tag not stored)');
-      print('  2. The ACK code from PUSH_CODE_SEND_CONFIRMED doesn\'t match the expected ACK tag from RESP_CODE_SENT');
-      print('  3. The message was already delivered or timed out');
-      print('  Searching all messages for debugging...');
+      debugPrint('⚠️ [MessagesProvider] No pending message found for ACK code: $ackCode');
+      debugPrint('  Pending ACK codes: ${_pendingSentMessages.keys.toList()}');
+      debugPrint('  This means either:');
+      debugPrint('  1. markMessageSent() was never called for this message (ACK tag not stored)');
+      debugPrint('  2. The ACK code from PUSH_CODE_SEND_CONFIRMED doesn\'t match the expected ACK tag from RESP_CODE_SENT');
+      debugPrint('  3. The message was already delivered or timed out');
+      debugPrint('  Searching all messages for debugging...');
 
       // Debug: Search for any message with this ACK tag
       final matchingMessages = _messages.where((m) => m.expectedAckTag == ackCode).toList();
       if (matchingMessages.isNotEmpty) {
-        print('  ⚠️ Found ${matchingMessages.length} message(s) with matching ACK tag but NOT in pending map:');
+        debugPrint('  ⚠️ Found ${matchingMessages.length} message(s) with matching ACK tag but NOT in pending map:');
         for (final m in matchingMessages) {
-          print('     - Message ID: ${m.id}, Status: ${m.deliveryStatus}, ACK: ${m.expectedAckTag}');
+          debugPrint('     - Message ID: ${m.id}, Status: ${m.deliveryStatus}, ACK: ${m.expectedAckTag}');
         }
-        print('  This indicates the message was sent but never added to _pendingSentMessages map');
-        print('  Likely cause: markMessageSent() was not called with correct message ID');
+        debugPrint('  This indicates the message was sent but never added to _pendingSentMessages map');
+        debugPrint('  Likely cause: markMessageSent() was not called with correct message ID');
       } else {
-        print('  No messages found with ACK tag $ackCode');
-        print('  Recent sent messages:');
+        debugPrint('  No messages found with ACK tag $ackCode');
+        debugPrint('  Recent sent messages:');
         final sentMessages = _messages.where((m) => m.isSentMessage).take(5).toList();
         for (final m in sentMessages) {
-          print('     - ID: ${m.id}, Status: ${m.deliveryStatus}, ACK: ${m.expectedAckTag}');
+          debugPrint('     - ID: ${m.id}, Status: ${m.deliveryStatus}, ACK: ${m.expectedAckTag}');
         }
       }
     }
@@ -709,17 +709,17 @@ class MessagesProvider with ChangeNotifier {
   void markMessageFailed(String messageId) {
     final index = _messages.indexWhere((m) => m.id == messageId);
     if (index == -1) {
-      print('⚠️ [MessagesProvider] markMessageFailed: Message not found: $messageId');
+      debugPrint('⚠️ [MessagesProvider] markMessageFailed: Message not found: $messageId');
       return;
     }
 
     final message = _messages[index];
     final contact = _messageContactMap[messageId];
 
-    print('❌ [MessagesProvider] Message $messageId timeout/failed');
-    print('   Retry attempt: ${message.retryAttempt}');
-    print('   Contact has path: ${contact?.hasPath ?? false}');
-    print('   Used flood fallback: ${message.usedFloodFallback}');
+    debugPrint('❌ [MessagesProvider] Message $messageId timeout/failed');
+    debugPrint('   Retry attempt: ${message.retryAttempt}');
+    debugPrint('   Contact has path: ${contact?.hasPath ?? false}');
+    debugPrint('   Used flood fallback: ${message.usedFloodFallback}');
 
     // Decision tree for retry/flood/fail
     if (contact != null && _retryManager.canRetry(message, contact)) {
@@ -739,8 +739,8 @@ class MessagesProvider with ChangeNotifier {
     final nextAttempt = message.retryAttempt + 1;
     final timeout = _retryManager.getTimeoutForAttempt(message.retryAttempt);
 
-    print('🔄 [MessagesProvider] Scheduling retry $nextAttempt/3 for message $messageId');
-    print('   Timeout: ${timeout}ms');
+    debugPrint('🔄 [MessagesProvider] Scheduling retry $nextAttempt/3 for message $messageId');
+    debugPrint('   Timeout: ${timeout}ms');
 
     // Update message with new retry attempt
     final index = _messages.indexWhere((m) => m.id == messageId);
@@ -765,7 +765,7 @@ class MessagesProvider with ChangeNotifier {
 
       // Schedule actual retry after delay
       Timer(Duration(milliseconds: timeout), () async {
-        print('⏰ [MessagesProvider] Executing retry $nextAttempt for message $messageId');
+        debugPrint('⏰ [MessagesProvider] Executing retry $nextAttempt for message $messageId');
         if (sendMessageCallback != null) {
           await sendMessageCallback!(
             contactPublicKey: contact.publicKey,
@@ -775,7 +775,7 @@ class MessagesProvider with ChangeNotifier {
             retryAttempt: nextAttempt,
           );
         } else {
-          print('⚠️ [MessagesProvider] sendMessageCallback not set, cannot retry');
+          debugPrint('⚠️ [MessagesProvider] sendMessageCallback not set, cannot retry');
         }
       });
 
@@ -785,7 +785,7 @@ class MessagesProvider with ChangeNotifier {
 
   /// Send message with flood mode as last resort
   Future<void> _sendWithFloodMode(String messageId, Message message, Contact contact) async {
-    print('🌊 [MessagesProvider] Trying flood mode for message $messageId');
+    debugPrint('🌊 [MessagesProvider] Trying flood mode for message $messageId');
 
     final index = _messages.indexWhere((m) => m.id == messageId);
     if (index != -1) {
@@ -813,7 +813,7 @@ class MessagesProvider with ChangeNotifier {
           retryAttempt: 0, // Reset attempt for flood
         );
       } else {
-        print('⚠️ [MessagesProvider] sendMessageCallback not set, cannot send flood');
+        debugPrint('⚠️ [MessagesProvider] sendMessageCallback not set, cannot send flood');
       }
 
       _persistMessages();
@@ -822,7 +822,7 @@ class MessagesProvider with ChangeNotifier {
 
   /// Mark message as permanently failed
   void _markAsPermanentlyFailed(String messageId, Message message) {
-    print('❌ [MessagesProvider] Message $messageId permanently failed');
+    debugPrint('❌ [MessagesProvider] Message $messageId permanently failed');
 
     final index = _messages.indexWhere((m) => m.id == messageId);
     if (index != -1) {
@@ -849,7 +849,7 @@ class MessagesProvider with ChangeNotifier {
   Future<void> resendMessage(String messageId) async {
     final index = _messages.indexWhere((m) => m.id == messageId);
     if (index == -1) {
-      print('⚠️ [MessagesProvider] resendMessage: Message not found: $messageId');
+      debugPrint('⚠️ [MessagesProvider] resendMessage: Message not found: $messageId');
       return;
     }
 
@@ -857,11 +857,11 @@ class MessagesProvider with ChangeNotifier {
     final contact = _messageContactMap[messageId];
 
     if (contact == null) {
-      print('⚠️ [MessagesProvider] Cannot resend: Contact not found for message $messageId');
+      debugPrint('⚠️ [MessagesProvider] Cannot resend: Contact not found for message $messageId');
       return;
     }
 
-    print('🔁 [MessagesProvider] Resending message $messageId');
+    debugPrint('🔁 [MessagesProvider] Resending message $messageId');
 
     // Reset retry state
     _messages[index] = message.copyWith(
@@ -886,7 +886,7 @@ class MessagesProvider with ChangeNotifier {
         retryAttempt: 0,
       );
     } else {
-      print('⚠️ [MessagesProvider] sendMessageCallback not set, cannot resend');
+      debugPrint('⚠️ [MessagesProvider] sendMessageCallback not set, cannot resend');
     }
 
     _persistMessages();
