@@ -6,6 +6,7 @@ import '../models/contact.dart';
 import '../models/message.dart';
 import '../models/room_login_state.dart';
 import '../services/meshcore_ble_service.dart';
+import '../services/meshcore_constants.dart';
 import '../utils/sar_message_parser.dart';
 import 'helpers/room_login_manager.dart';
 import 'helpers/message_delivery_tracker.dart';
@@ -670,6 +671,39 @@ class ConnectionProvider with ChangeNotifier {
     } catch (e) {
       _error = 'Failed to sync channels: $e';
       notifyListeners();
+    }
+  }
+
+  /// Configure the default public channel (channel 0) with the well-known secret
+  ///
+  /// This MUST be called after connecting to the device and before sending any
+  /// channel messages. Without this configuration, channel messages will fail
+  /// with ERR_CODE_NOT_FOUND.
+  ///
+  /// The public channel uses a well-known pre-shared key that all MeshCore
+  /// devices use for the default public channel.
+  Future<void> configureDefaultPublicChannel() async {
+    if (!_bleService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      debugPrint('📻 [Provider] Configuring default public channel (channel 0)');
+      debugPrint('  Using secret: ${MeshCoreConstants.defaultPublicChannelSecret.map((b) => b.toRadixString(16).padLeft(2, '0')).join('')}');
+      await _bleService.setChannel(
+        channelIdx: 0,
+        channelName: 'Public Channel',
+        secret: MeshCoreConstants.defaultPublicChannelSecret,
+      );
+      debugPrint('✅ [Provider] Public channel configured successfully');
+    } catch (e) {
+      _error = 'Failed to configure public channel: $e';
+      debugPrint('❌ [Provider] Public channel configuration failed: $e');
+      debugPrint('  This may be normal if the channel is pre-configured in firmware');
+      notifyListeners();
+      rethrow; // Re-throw to notify caller of failure
     }
   }
 

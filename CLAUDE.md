@@ -528,7 +528,17 @@ Packet Structure for PAYLOAD_TYPE_GRP_TXT (0x05):
 - Channel 0 = "Public Channel" (default flood-mode broadcast)
 - Channel 1+ = Reserved for future
 - **Ephemeral** - messages NOT persisted
-- Use `CMD_SEND_CHANNEL_TXT_MSG`
+- Use `CMD_SEND_CHANNEL_TXT_MSG` (3)
+- **⚠️ MUST be configured before use** with `CMD_SET_CHANNEL` (32)
+  - Format: `[cmd(1)][channel_idx(1)][name(32)][secret(16)]`
+  - **Default public channel secret (128-bit)**:
+    - Hex: `8b3387e9c5cdea6ac9e5edbaa115cd72`
+    - Base64: `izOH6cXN6mrJ5e26oRXNcg==`
+    - Source: [MeshCore FAQ](https://github.com/meshcore-dev/MeshCore/blob/main/docs/faq.md)
+  - **Configuration**: Most firmware versions have channel 0 pre-configured
+    - App attempts to configure via `CMD_SET_CHANNEL` during init
+    - If command times out, channel is likely pre-configured (this is normal)
+    - If not pre-configured, radio returns `ERR_CODE_NOT_FOUND` (2) on send attempts
 
 **Rooms** (ADV_TYPE_ROOM contacts):
 - Named contacts with public keys

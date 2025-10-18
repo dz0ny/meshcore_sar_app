@@ -117,6 +117,16 @@ class MeshCoreConstants {
   static const int binaryReqGetAccessList = 0x05;
   static const int binaryReqGetNeighbours = 0x06;
 
+  // Default Public Channel Secret (128-bit)
+  // This is the well-known pre-shared key for the public channel (channel 0)
+  // Hex: 8b3387e9c5cdea6ac9e5edbaa115cd72
+  // Base64: izOH6cXN6mrJ5e26oRXNcg==
+  // Source: https://github.com/meshcore-dev/MeshCore/blob/main/docs/faq.md
+  static const List<int> defaultPublicChannelSecret = [
+    0x8b, 0x33, 0x87, 0xe9, 0xc5, 0xcd, 0xea, 0x6a,
+    0xc9, 0xe5, 0xed, 0xba, 0xa1, 0x15, 0xcd, 0x72,
+  ];
+
   // Cayenne LPP Data Types
   static const int lppDigitalInput = 0;
   static const int lppDigitalOutput = 1;

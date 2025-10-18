@@ -252,11 +252,19 @@ class FrameBuilder {
     return writer.toBytes();
   }
 
-  /// Build SetChannel command - sets the name for a specific channel
+  /// Build SetChannel command - sets the name and secret for a specific channel
+  ///
+  /// Format: [cmd(1)][channel_idx(1)][name(32)][secret(16)]
+  /// Secret must be exactly 16 bytes (128-bit key)
   static Uint8List buildSetChannel({
     required int channelIdx,
     required String channelName,
+    required List<int> secret,
   }) {
+    if (secret.length != 16) {
+      throw ArgumentError('Channel secret must be exactly 16 bytes (got ${secret.length})');
+    }
+
     final writer = BufferWriter();
     writer.writeByte(MeshCoreConstants.cmdSetChannel); // 0x20 (32)
     writer.writeByte(channelIdx); // 0-39 typically
@@ -267,6 +275,9 @@ class FrameBuilder {
     final copyLen = encoded.length > 31 ? 31 : encoded.length;
     nameBytes.setRange(0, copyLen, encoded);
     writer.writeBytes(nameBytes);
+
+    // Write 16-byte secret
+    writer.writeBytes(Uint8List.fromList(secret));
 
     return writer.toBytes();
   }

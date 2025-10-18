@@ -315,6 +315,13 @@ class MeshCoreBleService {
     _responseHandler.trackSentMessage(messageId, null);
   }
 
+  /// Send a text message to a channel (flood-mode broadcast)
+  ///
+  /// Channel messages are ephemeral and use flood routing (no ACKs).
+  /// Use channel 0 for the default public channel.
+  ///
+  /// Note: Uses fire-and-forget mode since channel messages don't return
+  /// delivery confirmation (they're broadcast to all nodes).
   Future<void> sendChannelMessage({
     required int channelIdx,
     required String text,
@@ -324,6 +331,8 @@ class MeshCoreBleService {
       throw ArgumentError('Channel message too long (max ~160 characters)');
     }
 
+    // Channel messages use fire-and-forget (no ACK expected)
+    // The firmware responds with RESP_CODE_OK but we don't wait for it
     await _commandSender.writeData(FrameBuilder.buildSendChannelTxtMsg(
       channelIdx: channelIdx,
       text: text,
@@ -483,20 +492,26 @@ class MeshCoreBleService {
     await _commandSender.writeData(FrameBuilder.buildGetChannel(channelIdx));
   }
 
-  /// Set the name for a specific channel
+  /// Set the name and secret for a specific channel
+  ///
+  /// The secret must be exactly 16 bytes (128-bit encryption key).
+  /// For the default public channel (channel 0), use [MeshCoreConstants.defaultPublicChannelSecret].
   Future<void> setChannel({
     required int channelIdx,
     required String channelName,
+    required List<int> secret,
   }) async {
-    debugPrint('📻 [BLE] Setting channel name:');
+    debugPrint('📻 [BLE] Setting channel:');
     debugPrint('    Channel index: $channelIdx');
     debugPrint('    Channel name: $channelName');
+    debugPrint('    Secret length: ${secret.length} bytes');
 
     await _commandSender.writeDataAndWaitForAck(FrameBuilder.buildSetChannel(
       channelIdx: channelIdx,
       channelName: channelName,
+      secret: secret,
     ));
-    debugPrint('✅ [BLE] CMD_SET_CHANNEL sent');
+    debugPrint('✅ [BLE] CMD_SET_CHANNEL sent successfully');
   }
 
   /// Sync all channels from the device (typically 0-39)

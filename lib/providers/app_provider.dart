@@ -262,6 +262,18 @@ class AppProvider with ChangeNotifier {
       await connectionProvider.syncChannels();
       debugPrint('✅ [AppProvider] Channel sync complete');
 
+      // Configure the default public channel (channel 0)
+      // This must be done before sending any channel messages
+      // Note: Some firmware versions may have this pre-configured
+      debugPrint('📻 [AppProvider] Configuring default public channel (channel 0)...');
+      try {
+        await connectionProvider.configureDefaultPublicChannel();
+        debugPrint('✅ [AppProvider] Public channel configured successfully');
+      } catch (e) {
+        debugPrint('⚠️ [AppProvider] Public channel configuration failed (may already be configured): $e');
+        // Continue anyway - channel might already be configured in firmware
+      }
+
       // Automatically login to all saved rooms
       await _autoLoginToRooms();
 
