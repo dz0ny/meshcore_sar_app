@@ -1,22 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter gen-l10n:*)",
-      "Bash(flutter pub run:*)",
-      "Bash(flutter pub run build_runner build:*)",
-      "Bash(flutter packages pub run intl_translation:generate_from_arb:*)",
-      "Bash(dart pub global activate:*)",
-      "Bash(dart pub global run intl_utils:generate:*)",
-      "Bash(dart pub global deactivate:*)",
-      "Bash(flutter precache:*)",
-      "Bash(flutter analyze:*)",
-      "Bash(flutter pub get:*)",
-      "Bash(dart:*)",
-      "Bash(flutter pub:*)",
-      "Bash(flutter clean:*)",
-      "Bash(flutter build:*)",
-      "Bash(xcrun simctl:*)",
-      "WebFetch(domain:github.com)"
+      "Bash(magick Icon-App-1024x1024@1x.png -background white -alpha remove -alpha off Icon-App-1024x1024@1x.png)",
+      "Bash(convert Icon-App-1024x1024@1x.png -background white -alpha remove -alpha off Icon-App-1024x1024@1x-noalpha.png)",
+      "Bash(sips -s format jpeg Icon-App-1024x1024@1x.png --out /tmp/icon_flattened.jpg)",
+      "Bash(sips -s format png /tmp/icon_flattened.jpg --out Icon-App-1024x1024@1x.png)"
     ],
     "deny": [],
     "ask": []
