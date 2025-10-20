@@ -171,14 +171,41 @@ class _MessagesTabState extends State<MessagesTab> {
           : sarMessage;
 
       if (sendToChannel) {
+        // Create message ID
+        final messageId = '${DateTime.now().millisecondsSinceEpoch}_channel_sent';
+        final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+        // Get current device's public key (first 6 bytes)
+        final devicePublicKey = connectionProvider.deviceInfo.publicKey;
+        final senderPublicKeyPrefix = devicePublicKey?.sublist(0, 6);
+
+        // Create sent message object
+        final sentMessage = Message(
+          id: messageId,
+          messageType: MessageType.channel,
+          senderPublicKeyPrefix: senderPublicKeyPrefix,
+          pathLen: 0,
+          textType: MessageTextType.plain,
+          senderTimestamp: timestamp,
+          text: fullMessage,
+          receivedAt: DateTime.now(),
+          deliveryStatus: MessageDeliveryStatus.sending,
+          channelIdx: 0,
+          // SAR marker data is automatically added by SarMessageParser.enhanceMessage in MessagesProvider
+        );
+
+        // Add to messages list with "sending" status
+        messagesProvider.addSentMessage(sentMessage);
+
         // Send to public channel (ephemeral, over-the-air only)
         await connectionProvider.sendChannelMessage(
           channelIdx: 0,
           text: fullMessage,
+          messageId: messageId,
         );
 
         if (!mounted) return;
-        ToastLogger.warning(
+        ToastLogger.success(
           context,
           '${sarType.getLocalizedName(context)} marker broadcast to public channel',
         );
