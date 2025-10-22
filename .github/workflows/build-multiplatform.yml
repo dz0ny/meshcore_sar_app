@@ -456,6 +456,11 @@ jobs:
     if: always() && (needs.build-android.result == 'success' || needs.build-ios.result == 'success' || needs.build-macos.result == 'success' || needs.build-windows.result == 'success')
 
     steps:
+      - name: Checkout code for git log
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 10  # Fetch last 10 commits
+
       - name: Download Android APK
         if: needs.build-android.result == 'success'
         uses: actions/download-artifact@v4
@@ -504,11 +509,6 @@ jobs:
             echo "⚠️  No artifacts downloaded - builds may have been skipped or failed"
             echo "This is expected if no platform builds succeeded"
           fi
-
-      - name: Checkout code for git log
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 10  # Fetch last 10 commits
 
       - name: Generate build metadata
         id: metadata
