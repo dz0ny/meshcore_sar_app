@@ -547,6 +547,9 @@ jobs:
 
       - name: Prepare artifacts for upload
         run: |
+          # Don't exit on error - we want to copy whatever artifacts exist
+          set +e
+
           # Create directories for R2
           mkdir -p r2-upload/unstable/${{ steps.metadata.outputs.build_prefix }}
 
