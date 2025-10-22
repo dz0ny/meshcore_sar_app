@@ -562,10 +562,10 @@ jobs:
             local dest_name="$3"
             local platform="$4"
 
-            # Check if directory exists first
+            # Check if directory exists first; don't fail the whole step if missing.
             if [ ! -d "$search_dir" ]; then
               echo "⚠️  Skipping $platform: Directory $search_dir not found (build may have been skipped)"
-              return 1
+              return 0
             fi
 
             # Find the file matching the pattern
@@ -573,18 +573,18 @@ jobs:
 
             if [ -n "$src_file" ] && [ -f "$src_file" ]; then
               echo "✅ Copying $platform: $src_file"
-              cp "$src_file" \
-                "r2-upload/unstable/${{ steps.metadata.outputs.build_prefix }}/$dest_name"
+              cp "$src_file" "r2-upload/unstable/${{ steps.metadata.outputs.build_prefix }}/$dest_name" || true
 
               if [ "${{ steps.metadata.outputs.branch_name }}" == "main" ]; then
-                local latest_name="${dest_name/${{ steps.metadata.outputs.build_prefix }}-${{ steps.metadata.outputs.timestamp }}/latest}"
-                cp "$src_file" "r2-upload/unstable/latest/$latest_name"
+                # Copy the same dest filename into the 'latest' folder for simplicity
+                cp "$src_file" "r2-upload/unstable/latest/$dest_name" || true
               fi
-              return 0
             else
               echo "⚠️  Skipping $platform: No file matching '$pattern' found in $search_dir"
-              return 1
             fi
+
+            # Always succeed (so missing optional artifacts don't fail the whole job)
+            return 0
           }
 
           # Copy Android APK (search for any .apk file)
@@ -614,6 +614,8 @@ jobs:
             "*.zip" \
             "meshcore-sar-${{ steps.metadata.outputs.build_prefix }}-${{ steps.metadata.outputs.timestamp }}-windows.zip" \
             "Windows ZIP"
+
+          # Note: Each copy_artifact returns 0 even if missing, so partial builds succeed
 
           # Copy commits data
           if [ -f commits.json ]; then
