@@ -8,6 +8,7 @@ import '../../models/map_drawing.dart';
 import '../../models/contact.dart';
 import '../../models/message.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/toast_logger.dart';
 
 /// Toolbar for drawing controls on the map
 class DrawingToolbar extends StatelessWidget {
