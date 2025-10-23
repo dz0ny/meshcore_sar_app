@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:latlong2/latlong.dart';
 import '../models/map_drawing.dart';
 
 /// Minimap preview widget for map drawings
-/// Renders a small 80x80px preview of a drawing on a simple gray background
+/// Renders a small 80x80px preview of a drawing on a map background
 class DrawingMinimapPreview extends StatelessWidget {
   final MapDrawing drawing;
+  final Widget? tileLayer;
 
   const DrawingMinimapPreview({
     super.key,
     required this.drawing,
+    this.tileLayer,
   });
 
   /// Calculate bounds for the drawing to fit in the preview
-  LatLngBounds _calculateBounds() {
+  flutter_map.LatLngBounds _calculateBounds() {
     if (drawing is LineDrawing) {
       final lineDrawing = drawing as LineDrawing;
       if (lineDrawing.points.isEmpty) {
         // Fallback to default bounds if no points
-        return LatLngBounds(
+        return flutter_map.LatLngBounds(
           const LatLng(0, 0),
           const LatLng(0.01, 0.01),
         );
@@ -42,7 +44,7 @@ class DrawingMinimapPreview extends StatelessWidget {
       final latPadding = (maxLat - minLat) * 0.1;
       final lonPadding = (maxLon - minLon) * 0.1;
 
-      return LatLngBounds(
+      return flutter_map.LatLngBounds(
         LatLng(minLat - latPadding, minLon - lonPadding),
         LatLng(maxLat + latPadding, maxLon + lonPadding),
       );
@@ -55,7 +57,7 @@ class DrawingMinimapPreview extends StatelessWidget {
       final latPadding = latDiff * 0.1;
       final lonPadding = lonDiff * 0.1;
 
-      return LatLngBounds(
+      return flutter_map.LatLngBounds(
         LatLng(
           rectDrawing.topLeft.latitude - latPadding,
           rectDrawing.topLeft.longitude - lonPadding,
@@ -68,7 +70,7 @@ class DrawingMinimapPreview extends StatelessWidget {
     }
 
     // Fallback to default bounds
-    return LatLngBounds(
+    return flutter_map.LatLngBounds(
       const LatLng(0, 0),
       const LatLng(0.01, 0.01),
     );
@@ -91,25 +93,28 @@ class DrawingMinimapPreview extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(7),
-        child: FlutterMap(
-          options: MapOptions(
-            initialCameraFit: CameraFit.bounds(
+        child: flutter_map.FlutterMap(
+          options: flutter_map.MapOptions(
+            initialCameraFit: flutter_map.CameraFit.bounds(
               bounds: bounds,
               padding: const EdgeInsets.all(8),
             ),
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.none, // Disable all interactions
+            interactionOptions: const flutter_map.InteractionOptions(
+              flags: flutter_map.InteractiveFlag.none, // Disable all interactions
             ),
           ),
           children: [
-            // Simple gray background (no tiles for performance)
-            Container(color: Colors.grey.shade300),
+            // Use provided tile layer or fallback to gray background
+            if (tileLayer != null)
+              tileLayer!
+            else
+              Container(color: Colors.grey.shade300),
 
             // Render the drawing
             if (drawing is LineDrawing)
-              PolylineLayer(
+              flutter_map.PolylineLayer(
                 polylines: [
-                  Polyline(
+                  flutter_map.Polyline(
                     points: (drawing as LineDrawing).points,
                     strokeWidth: 3.0,
                     color: drawing.color,
@@ -117,9 +122,9 @@ class DrawingMinimapPreview extends StatelessWidget {
                 ],
               )
             else if (drawing is RectangleDrawing)
-              PolygonLayer(
+              flutter_map.PolygonLayer(
                 polygons: [
-                  Polygon(
+                  flutter_map.Polygon(
                     points: (drawing as RectangleDrawing).corners,
                     color: drawing.color.withValues(alpha: 0.3),
                     borderColor: drawing.color,

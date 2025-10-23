@@ -932,5 +932,15 @@
   "drawingHidden": "Risba skrita z zemljevida",
   "alreadyShared": "{count, plural, =1{1 že deljeno} other{{count} že deljeno}}",
   "newDrawingsShared": "Deljeno {count} nov{plural} risb{plural}",
-  "drawingTools": "Orodja za risanje"
+  "drawingTools": "Orodja za risanje",
+  "shareDrawing": "Deli Risbo",
+  "shareWithAllNearbyDevices": "Deli z vsemi bližnjimi napravami",
+  "shareToRoom": "Deli v Sobo",
+  "sendToPersistentStorage": "Pošlji v trajno shrambo sobe",
+  "deleteDrawingConfirm": "Ali ste prepričani, da želite izbrisati to risbo?",
+  "drawingDeleted": "Risba izbrisana",
+  "yourDrawingsCount": "Vaše Risbe ({count})",
+  "shared": "Deljeno",
+  "line": "Črta",
+  "rectangle": "Pravokotnik"
 }

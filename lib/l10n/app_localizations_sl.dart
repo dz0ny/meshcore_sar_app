@@ -1812,4 +1812,37 @@ class AppLocalizationsSl extends AppLocalizations {
   String newDrawingsShared(int count, String plural) {
     return 'Deljeno $count nov$plural risb$plural';
   }
+
+  @override
+  String get shareDrawing => 'Deli Risbo';
+
+  @override
+  String get shareWithAllNearbyDevices => 'Deli z vsemi bližnjimi napravami';
+
+  @override
+  String get shareToRoom => 'Deli v Sobo';
+
+  @override
+  String get sendToPersistentStorage => 'Pošlji v trajno shrambo sobe';
+
+  @override
+  String get deleteDrawingConfirm =>
+      'Ali ste prepričani, da želite izbrisati to risbo?';
+
+  @override
+  String get drawingDeleted => 'Risba izbrisana';
+
+  @override
+  String yourDrawingsCount(int count) {
+    return 'Vaše Risbe ($count)';
+  }
+
+  @override
+  String get shared => 'Deljeno';
+
+  @override
+  String get line => 'Črta';
+
+  @override
+  String get rectangle => 'Pravokotnik';
 }

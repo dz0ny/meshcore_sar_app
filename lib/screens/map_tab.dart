@@ -1417,8 +1417,15 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                 right: 16,
                 child: Column(
                   children: [
-                    // Drawing toolbar
-                    const DrawingToolbar(),
+                    // Drawing toolbar (hidden in simple mode)
+                    Consumer<AppProvider>(
+                      builder: (context, appProvider, _) {
+                        if (appProvider.isSimpleMode) {
+                          return const SizedBox.shrink();
+                        }
+                        return const DrawingToolbar();
+                      },
+                    ),
                     // Hide other buttons when in drawing mode
                     if (!drawingProvider.isDrawing) ...[
                       const SizedBox(height: 8),

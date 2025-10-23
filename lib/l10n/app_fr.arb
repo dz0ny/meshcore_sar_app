@@ -2521,5 +2521,15 @@
   "drawingHidden": "Dessin masqué de la carte",
   "alreadyShared": "{count} déjà partagé",
   "newDrawingsShared": "{count} nouveau(x) dessin(s) partagé(s)",
-  "drawingTools": "Outils de Dessin"
+  "drawingTools": "Outils de Dessin",
+  "shareDrawing": "Partager le Dessin",
+  "shareWithAllNearbyDevices": "Partager avec tous les appareils à proximité",
+  "shareToRoom": "Partager dans la Salle",
+  "sendToPersistentStorage": "Envoyer au stockage persistant de la salle",
+  "deleteDrawingConfirm": "Êtes-vous sûr de vouloir supprimer ce dessin?",
+  "drawingDeleted": "Dessin supprimé",
+  "yourDrawingsCount": "Vos Dessins ({count})",
+  "shared": "Partagé",
+  "line": "Ligne",
+  "rectangle": "Rectangle"
 }

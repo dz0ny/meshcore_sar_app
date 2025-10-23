@@ -1810,4 +1810,38 @@ class AppLocalizationsHr extends AppLocalizations {
   String newDrawingsShared(int count, String plural) {
     return 'Podijeljeno $count novi$plural crtež$plural';
   }
+
+  @override
+  String get shareDrawing => 'Podijeli Crtež';
+
+  @override
+  String get shareWithAllNearbyDevices =>
+      'Podijeli sa svim obližnjim uređajima';
+
+  @override
+  String get shareToRoom => 'Podijeli u Sobu';
+
+  @override
+  String get sendToPersistentStorage => 'Pošalji u trajnu pohranu sobe';
+
+  @override
+  String get deleteDrawingConfirm =>
+      'Jeste li sigurni da želite izbrisati ovaj crtež?';
+
+  @override
+  String get drawingDeleted => 'Crtež izbrisan';
+
+  @override
+  String yourDrawingsCount(int count) {
+    return 'Vaši Crteži ($count)';
+  }
+
+  @override
+  String get shared => 'Podijeljeno';
+
+  @override
+  String get line => 'Linija';
+
+  @override
+  String get rectangle => 'Pravokutnik';
 }

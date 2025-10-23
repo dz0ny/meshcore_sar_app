@@ -2521,5 +2521,15 @@
   "drawingHidden": "Zeichnung von Karte ausgeblendet",
   "alreadyShared": "{count} bereits geteilt",
   "newDrawingsShared": "{count} neue Zeichnung(en) geteilt",
-  "drawingTools": "Zeichenwerkzeuge"
+  "drawingTools": "Zeichenwerkzeuge",
+  "shareDrawing": "Zeichnung teilen",
+  "shareWithAllNearbyDevices": "Mit allen Geräten in der Nähe teilen",
+  "shareToRoom": "In Raum teilen",
+  "sendToPersistentStorage": "An persistenten Raum-Speicher senden",
+  "deleteDrawingConfirm": "Möchten Sie diese Zeichnung wirklich löschen?",
+  "drawingDeleted": "Zeichnung gelöscht",
+  "yourDrawingsCount": "Ihre Zeichnungen ({count})",
+  "shared": "Geteilt",
+  "line": "Linie",
+  "rectangle": "Rechteck"
 }

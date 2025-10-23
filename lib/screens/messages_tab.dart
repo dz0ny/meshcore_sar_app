@@ -1596,15 +1596,16 @@ class _MessageBubble extends StatelessWidget {
             else if (message.isDrawing && message.drawingId != null)
               Consumer<DrawingProvider>(
                 builder: (context, drawingProvider, child) {
-                  // Find the drawing by ID
-                  final drawing = drawingProvider.drawings
-                      .cast<MapDrawing?>()
-                      .firstWhere(
-                        (d) => d?.id == message.drawingId,
-                        orElse: () => null,
-                      );
+                  // Find the drawing by ID (bypasses visibility filters)
+                  final drawing = drawingProvider.getDrawingById(message.drawingId!);
 
                   if (drawing == null) {
+                    debugPrint(
+                      '⚠️ [MessageBubble] Drawing not found: ${message.drawingId}',
+                    );
+                    debugPrint(
+                      '   Total drawings in provider: ${drawingProvider.drawings.length}',
+                    );
                     return Text(
                       message.text,
                       style: Theme.of(context).textTheme.bodyMedium,

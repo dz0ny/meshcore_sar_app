@@ -9,6 +9,7 @@ import '../../models/contact.dart';
 import '../../models/message.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/toast_logger.dart';
+import '../drawing_minimap_preview.dart';
 
 /// Toolbar for drawing controls on the map
 class DrawingToolbar extends StatelessWidget {
@@ -161,9 +162,12 @@ class DrawingToolbar extends StatelessWidget {
 
   /// Show drawing mode selection menu
   void _showDrawingMenu(BuildContext context, DrawingProvider drawingProvider) {
+    // Capture root context for use after modal closes
+    final rootContext = context;
+
     showModalBottomSheet(
       context: context,
-      builder: (context) => SingleChildScrollView(
+      builder: (sheetContext) => SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
@@ -176,8 +180,8 @@ class DrawingToolbar extends StatelessWidget {
                     const Icon(Icons.edit),
                     const SizedBox(width: 12),
                     Text(
-                      AppLocalizations.of(context)!.drawingTools,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      AppLocalizations.of(sheetContext)!.drawingTools,
+                      style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -187,19 +191,19 @@ class DrawingToolbar extends StatelessWidget {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.show_chart),
-                title: Text(AppLocalizations.of(context)!.drawLine),
-                subtitle: Text(AppLocalizations.of(context)!.drawLineDesc),
+                title: Text(AppLocalizations.of(sheetContext)!.drawLine),
+                subtitle: Text(AppLocalizations.of(sheetContext)!.drawLineDesc),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   drawingProvider.setDrawingMode(DrawingMode.line);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.crop_square),
-                title: Text(AppLocalizations.of(context)!.drawRectangle),
-                subtitle: Text(AppLocalizations.of(context)!.drawRectangleDesc),
+                title: Text(AppLocalizations.of(sheetContext)!.drawRectangle),
+                subtitle: Text(AppLocalizations.of(sheetContext)!.drawRectangleDesc),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   drawingProvider.setDrawingMode(DrawingMode.rectangle);
                 },
               ),
@@ -211,11 +215,11 @@ class DrawingToolbar extends StatelessWidget {
                       ? Icons.visibility
                       : Icons.visibility_off,
                 ),
-                title: Text(AppLocalizations.of(context)!.showReceivedDrawings),
+                title: Text(AppLocalizations.of(sheetContext)!.showReceivedDrawings),
                 subtitle: Text(
                   drawingProvider.showReceivedDrawings
-                      ? AppLocalizations.of(context)!.showingAllDrawings
-                      : AppLocalizations.of(context)!.showingOnlyYourDrawings,
+                      ? AppLocalizations.of(sheetContext)!.showingAllDrawings
+                      : AppLocalizations.of(sheetContext)!.showingOnlyYourDrawings,
                 ),
                 value: drawingProvider.showReceivedDrawings,
                 onChanged: (value) {
@@ -229,50 +233,188 @@ class DrawingToolbar extends StatelessWidget {
                       ? Icons.pin_drop
                       : Icons.pin_drop_outlined,
                 ),
-                title: Text(AppLocalizations.of(context)!.showSarMarkers),
+                title: Text(AppLocalizations.of(sheetContext)!.showSarMarkers),
                 subtitle: Text(
                   drawingProvider.showSarMarkers
-                      ? AppLocalizations.of(context)!.showingSarMarkers
-                      : AppLocalizations.of(context)!.hidingSarMarkers,
+                      ? AppLocalizations.of(sheetContext)!.showingSarMarkers
+                      : AppLocalizations.of(sheetContext)!.hidingSarMarkers,
                 ),
                 value: drawingProvider.showSarMarkers,
                 onChanged: (value) {
                   drawingProvider.toggleSarMarkers();
                 },
               ),
+              // Drawings list with individual actions
               if (drawingProvider.drawings.isNotEmpty) ...[
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.layers, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        AppLocalizations.of(sheetContext)!.yourDrawingsCount(drawingProvider.drawings.length),
+                        style: Theme.of(sheetContext).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ...drawingProvider.drawings.map((drawing) {
+                  final isShared = drawing.isShared;
+                  final typeStr = drawing is LineDrawing
+                    ? AppLocalizations.of(sheetContext)!.line
+                    : AppLocalizations.of(sheetContext)!.rectangle;
+                  final colorName = DrawingColors.colorToName(drawing.color);
+
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        // Minimap preview
+                        DrawingMinimapPreview(drawing: drawing),
+                        const SizedBox(width: 12),
+                        // Drawing info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                typeStr,
+                                style: Theme.of(sheetContext).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: drawing.color,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.black26,
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    colorName,
+                                    style: Theme.of(sheetContext).textTheme.labelSmall,
+                                  ),
+                                  if (isShared) ...[
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.check_circle,
+                                      size: 14,
+                                      color: Colors.green.shade700,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      AppLocalizations.of(sheetContext)!.shared,
+                                      style: Theme.of(sheetContext).textTheme.labelSmall?.copyWith(
+                                        color: Colors.green.shade700,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Action buttons
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Share button
+                            if (!isShared)
+                              IconButton(
+                                icon: const Icon(Icons.share, size: 20),
+                                onPressed: () async {
+                                  Navigator.pop(sheetContext);
+                                  await Future.delayed(const Duration(milliseconds: 100));
+                                  if (rootContext.mounted) {
+                                    _showShareSingleDrawingDialog(
+                                      rootContext,
+                                      drawingProvider,
+                                      drawing,
+                                    );
+                                  }
+                                },
+                                tooltip: 'Share',
+                                color: Colors.blue,
+                                padding: const EdgeInsets.all(4),
+                                constraints: const BoxConstraints(),
+                              ),
+                            const SizedBox(width: 4),
+                            // Delete button
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 20),
+                              onPressed: () {
+                                Navigator.pop(sheetContext);
+                                _showDeleteSingleDrawingDialog(
+                                  rootContext,
+                                  drawingProvider,
+                                  drawing,
+                                );
+                              },
+                              tooltip: 'Delete',
+                              color: Colors.red,
+                              padding: const EdgeInsets.all(4),
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.share, color: Colors.blue),
-                  title: Text(AppLocalizations.of(context)!.shareDrawings),
+                  title: Text(AppLocalizations.of(sheetContext)!.shareDrawings),
                   subtitle: Text(
-                    AppLocalizations.of(context)!.broadcastDrawingsToTeam(
+                    AppLocalizations.of(sheetContext)!.broadcastDrawingsToTeam(
                       drawingProvider.drawings.length,
                       drawingProvider.drawings.length > 1 ? 's' : '',
                     ),
                   ),
                   onTap: () async {
-                    Navigator.pop(context);
+                    Navigator.pop(sheetContext);
                     // Small delay to ensure first bottom sheet is fully closed
                     // before opening the second one
                     await Future.delayed(const Duration(milliseconds: 100));
-                    if (context.mounted) {
-                      _showShareDrawingsDialog(context, drawingProvider);
+                    if (rootContext.mounted) {
+                      _showShareDrawingsDialog(rootContext, drawingProvider);
                     }
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.delete_sweep, color: Colors.red),
-                  title: Text(AppLocalizations.of(context)!.clearAllDrawings),
+                  title: Text(AppLocalizations.of(sheetContext)!.clearAllDrawings),
                   subtitle: Text(
-                    AppLocalizations.of(context)!.removeAllDrawings(
+                    AppLocalizations.of(sheetContext)!.removeAllDrawings(
                       drawingProvider.drawings.length,
                       drawingProvider.drawings.length > 1 ? 's' : '',
                     ),
                   ),
                   onTap: () {
-                    Navigator.pop(context);
-                    _showClearAllDialog(context, drawingProvider);
+                    Navigator.pop(sheetContext);
+                    _showClearAllDialog(rootContext, drawingProvider);
                   },
                 ),
               ],
@@ -358,9 +500,6 @@ class DrawingToolbar extends StatelessWidget {
     DrawingProvider drawingProvider,
   ) {
     debugPrint('🎨 [DrawingToolbar] _showShareDrawingsDialog called');
-
-    // Capture the root context BEFORE showing the modal
-    final rootContext = context;
 
     // Read providers BEFORE any async operations or dialogs
     // This ensures we have the correct BuildContext
@@ -685,5 +824,216 @@ class DrawingToolbar extends StatelessWidget {
     }
 
     debugPrint('  Share complete: $successCount/${drawings.length} sent, $alreadyShared already shared');
+  }
+
+  /// Show share dialog for a single drawing
+  void _showShareSingleDrawingDialog(
+    BuildContext context,
+    DrawingProvider drawingProvider,
+    MapDrawing drawing,
+  ) {
+    debugPrint('🎨 [DrawingToolbar] _showShareSingleDrawingDialog called for ${drawing.id}');
+
+    // Read providers BEFORE any async operations or dialogs
+    final connectionProvider = Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    );
+    final contactsProvider = Provider.of<ContactsProvider>(
+      context,
+      listen: false,
+    );
+
+    if (!connectionProvider.deviceInfo.isConnected) {
+      debugPrint('  ❌ Not connected - showing error toast');
+      if (context.mounted) {
+        ToastLogger.error(
+          context,
+          AppLocalizations.of(context)!.notConnectedToDevice,
+        );
+      }
+      return;
+    }
+
+    // Get device name for sender identification
+    final senderName = connectionProvider.deviceInfo.selfName ?? 'Unknown';
+
+    // Get available rooms
+    final rooms = contactsProvider.rooms;
+    debugPrint('  Available rooms: ${rooms.length}');
+
+    // Capture root context for provider access after modal closes
+    final rootContext = context;
+
+    debugPrint('  Showing modal bottom sheet...');
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.share),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(sheetContext)!.shareDrawing,
+                        style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              // Option: Send to Public Channel
+              ListTile(
+                leading: const Icon(Icons.public, color: Colors.blue),
+                title: Text(AppLocalizations.of(sheetContext)!.publicChannel),
+                subtitle: Text(AppLocalizations.of(sheetContext)!.shareWithAllNearbyDevices),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await _shareDrawingsToChannel(
+                    rootContext,
+                    [drawing],
+                    connectionProvider,
+                    senderName,
+                  );
+                },
+              ),
+              // Option: Send to specific room
+              if (rooms.isNotEmpty) ...[
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    AppLocalizations.of(sheetContext)!.shareToRoom,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                ...rooms.map((room) {
+                  return ListTile(
+                    leading: const Icon(Icons.meeting_room, color: Colors.orange),
+                    title: Text(room.advName),
+                    subtitle: Text(AppLocalizations.of(sheetContext)!.sendToPersistentStorage),
+                    onTap: () async {
+                      Navigator.pop(sheetContext);
+                      await _shareDrawingsToRoom(
+                        rootContext,
+                        [drawing],
+                        connectionProvider,
+                        senderName,
+                        room,
+                      );
+                    },
+                  );
+                }),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Show delete confirmation dialog for a single drawing
+  void _showDeleteSingleDrawingDialog(
+    BuildContext context,
+    DrawingProvider drawingProvider,
+    MapDrawing drawing,
+  ) {
+    final typeStr = drawing is LineDrawing
+      ? AppLocalizations.of(context)!.line
+      : AppLocalizations.of(context)!.rectangle;
+    final colorName = DrawingColors.colorToName(drawing.color);
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(AppLocalizations.of(dialogContext)!.deleteDrawing),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(AppLocalizations.of(dialogContext)!.deleteDrawingConfirm),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  DrawingMinimapPreview(drawing: drawing),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          typeStr,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: drawing.color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.black26,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              colorName,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(AppLocalizations.of(dialogContext)!.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              drawingProvider.removeDrawing(drawing.id);
+              ToastLogger.success(context, AppLocalizations.of(context)!.drawingDeleted);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(AppLocalizations.of(dialogContext)!.delete),
+          ),
+        ],
+      ),
+    );
   }
 }

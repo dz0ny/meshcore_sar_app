@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/message.dart';
 import '../models/contact.dart';
 import '../models/sar_marker.dart';
+import '../models/map_drawing.dart';
 import '../services/message_storage_service.dart';
 import '../services/notification_service.dart';
 import '../utils/sar_message_parser.dart';
@@ -109,7 +110,32 @@ class MessagesProvider with ChangeNotifier {
       for (final message in storedMessages) {
         // Re-enhance each message to ensure SAR markers are properly detected
         // This handles cases where messages were stored before enhancement logic
-        final enhancedMessage = SarMessageParser.enhanceMessage(message);
+        var enhancedMessage = SarMessageParser.enhanceMessage(message);
+
+        // Check if it's a drawing message (D:...) and not already marked
+        // This handles cases where messages were stored before drawing detection
+        if (DrawingMessageParser.isDrawingMessage(enhancedMessage.text) &&
+            !enhancedMessage.isDrawing) {
+          debugPrint(
+            '🎨 [MessagesProvider] Detected drawing message during initialization: ${enhancedMessage.id}',
+          );
+          // Parse the drawing to get its ID
+          final drawing = DrawingMessageParser.parseDrawingMessage(
+            enhancedMessage.text,
+            senderName: enhancedMessage.senderName,
+            messageId: enhancedMessage.id,
+          );
+
+          // Mark message as drawing and link to drawing ID
+          enhancedMessage = enhancedMessage.copyWith(
+            isDrawing: true,
+            drawingId: drawing?.id,
+          );
+          debugPrint(
+            '   Drawing ID: ${enhancedMessage.drawingId}, isDrawing: ${enhancedMessage.isDrawing}',
+          );
+        }
+
         _messages.add(enhancedMessage);
 
         // Extract SAR markers
@@ -130,6 +156,78 @@ class MessagesProvider with ChangeNotifier {
       debugPrint('❌ [MessagesProvider] Error initializing: $e');
       _isInitialized = true; // Mark as initialized even on error
     }
+  }
+
+  /// Sync drawing messages with DrawingProvider
+  /// This restores drawings that may be missing from DrawingProvider storage
+  /// Should be called after both providers are initialized
+  void syncDrawingsWithProvider(dynamic drawingProvider) {
+    debugPrint('🔄 [MessagesProvider] Syncing drawings with DrawingProvider...');
+    int restoredCount = 0;
+
+    for (final message in _messages) {
+      if (!message.isDrawing || message.drawingId == null) continue;
+
+      // Check if drawing exists in DrawingProvider
+      final existingDrawing = drawingProvider.getDrawingById(message.drawingId!);
+      if (existingDrawing != null) {
+        continue; // Drawing already exists
+      }
+
+      // Drawing is missing, reconstruct from message text
+      debugPrint('🔧 [MessagesProvider] Restoring missing drawing: ${message.drawingId}');
+      final drawing = DrawingMessageParser.parseDrawingMessage(
+        message.text,
+        senderName: message.senderName,
+        messageId: message.id,
+      );
+
+      if (drawing == null) {
+        debugPrint('⚠️ [MessagesProvider] Failed to parse drawing from message ${message.id}');
+        continue;
+      }
+
+      // The parsed drawing has a new generated ID, but we need to use the original ID
+      // Create a copy with the correct ID from the message
+      final restoredDrawing = _createDrawingWithId(drawing, message.drawingId!);
+
+      if (restoredDrawing != null) {
+        drawingProvider.addReceivedDrawing(restoredDrawing);
+        restoredCount++;
+        debugPrint('✅ [MessagesProvider] Restored drawing ${message.drawingId}');
+      }
+    }
+
+    debugPrint('✅ [MessagesProvider] Sync complete: restored $restoredCount drawings');
+  }
+
+  /// Create a copy of a drawing with a specific ID
+  dynamic _createDrawingWithId(dynamic drawing, String targetId) {
+    if (drawing is LineDrawing) {
+      return LineDrawing(
+        id: targetId,
+        color: drawing.color,
+        createdAt: drawing.createdAt,
+        points: drawing.points,
+        senderName: drawing.senderName,
+        isReceived: drawing.isReceived,
+        messageId: drawing.messageId,
+        isShared: drawing.isShared,
+      );
+    } else if (drawing is RectangleDrawing) {
+      return RectangleDrawing(
+        id: targetId,
+        color: drawing.color,
+        createdAt: drawing.createdAt,
+        topLeft: drawing.topLeft,
+        bottomRight: drawing.bottomRight,
+        senderName: drawing.senderName,
+        isReceived: drawing.isReceived,
+        messageId: drawing.messageId,
+        isShared: drawing.isShared,
+      );
+    }
+    return null;
   }
 
   /// Add a message

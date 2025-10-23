@@ -2521,5 +2521,15 @@
   "drawingHidden": "Disegno nascosto dalla mappa",
   "alreadyShared": "{count} già condiviso",
   "newDrawingsShared": "{count} nuovo(i) disegno(i) condiviso(i)",
-  "drawingTools": "Strumenti di Disegno"
+  "drawingTools": "Strumenti di Disegno",
+  "shareDrawing": "Condividi Disegno",
+  "shareWithAllNearbyDevices": "Condividi con tutti i dispositivi vicini",
+  "shareToRoom": "Condividi nella Stanza",
+  "sendToPersistentStorage": "Invia allo storage persistente della stanza",
+  "deleteDrawingConfirm": "Sei sicuro di voler eliminare questo disegno?",
+  "drawingDeleted": "Disegno eliminato",
+  "yourDrawingsCount": "I Tuoi Disegni ({count})",
+  "shared": "Condiviso",
+  "line": "Linea",
+  "rectangle": "Rettangolo"
 }

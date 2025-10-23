@@ -3058,5 +3058,60 @@
         "type": "String"
       }
     }
+  },
+
+  "shareDrawing": "Share Drawing",
+  "@shareDrawing": {
+    "description": "Title for share single drawing dialog"
+  },
+
+  "shareWithAllNearbyDevices": "Share with all nearby devices",
+  "@shareWithAllNearbyDevices": {
+    "description": "Subtitle for public channel sharing option"
+  },
+
+  "shareToRoom": "Share to Room",
+  "@shareToRoom": {
+    "description": "Header for room sharing section"
+  },
+
+  "sendToPersistentStorage": "Send to persistent room storage",
+  "@sendToPersistentStorage": {
+    "description": "Subtitle for room sharing option"
+  },
+
+  "deleteDrawingConfirm": "Are you sure you want to delete this drawing?",
+  "@deleteDrawingConfirm": {
+    "description": "Confirmation message for deleting a single drawing"
+  },
+
+  "drawingDeleted": "Drawing deleted",
+  "@drawingDeleted": {
+    "description": "Success message after deleting a drawing"
+  },
+
+  "yourDrawingsCount": "Your Drawings ({count})",
+  "@yourDrawingsCount": {
+    "description": "Header showing count of user's drawings",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "shared": "Shared",
+  "@shared": {
+    "description": "Status label for shared drawings"
+  },
+
+  "line": "Line",
+  "@line": {
+    "description": "Line drawing type label"
+  },
+
+  "rectangle": "Rectangle",
+  "@rectangle": {
+    "description": "Rectangle drawing type label"
   }
 }

@@ -932,5 +932,15 @@
   "drawingHidden": "Crtež sakriven s karte",
   "alreadyShared": "{count, plural, =1{1 već podijeljeno} other{{count} već podijeljeno}}",
   "newDrawingsShared": "Podijeljeno {count} novi{plural} crtež{plural}",
-  "drawingTools": "Alati za crtanje"
+  "drawingTools": "Alati za crtanje",
+  "shareDrawing": "Podijeli Crtež",
+  "shareWithAllNearbyDevices": "Podijeli sa svim obližnjim uređajima",
+  "shareToRoom": "Podijeli u Sobu",
+  "sendToPersistentStorage": "Pošalji u trajnu pohranu sobe",
+  "deleteDrawingConfirm": "Jeste li sigurni da želite izbrisati ovaj crtež?",
+  "drawingDeleted": "Crtež izbrisan",
+  "yourDrawingsCount": "Vaši Crteži ({count})",
+  "shared": "Podijeljeno",
+  "line": "Linija",
+  "rectangle": "Pravokutnik"
 }

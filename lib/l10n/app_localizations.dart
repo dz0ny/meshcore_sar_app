@@ -3254,6 +3254,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shared {count} new drawing{plural}'**
   String newDrawingsShared(int count, String plural);
+
+  /// Title for share single drawing dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Share Drawing'**
+  String get shareDrawing;
+
+  /// Subtitle for public channel sharing option
+  ///
+  /// In en, this message translates to:
+  /// **'Share with all nearby devices'**
+  String get shareWithAllNearbyDevices;
+
+  /// Header for room sharing section
+  ///
+  /// In en, this message translates to:
+  /// **'Share to Room'**
+  String get shareToRoom;
+
+  /// Subtitle for room sharing option
+  ///
+  /// In en, this message translates to:
+  /// **'Send to persistent room storage'**
+  String get sendToPersistentStorage;
+
+  /// Confirmation message for deleting a single drawing
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this drawing?'**
+  String get deleteDrawingConfirm;
+
+  /// Success message after deleting a drawing
+  ///
+  /// In en, this message translates to:
+  /// **'Drawing deleted'**
+  String get drawingDeleted;
+
+  /// Header showing count of user's drawings
+  ///
+  /// In en, this message translates to:
+  /// **'Your Drawings ({count})'**
+  String yourDrawingsCount(int count);
+
+  /// Status label for shared drawings
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get shared;
+
+  /// Line drawing type label
+  ///
+  /// In en, this message translates to:
+  /// **'Line'**
+  String get line;
+
+  /// Rectangle drawing type label
+  ///
+  /// In en, this message translates to:
+  /// **'Rectangle'**
+  String get rectangle;
 }
 
 class _AppLocalizationsDelegate

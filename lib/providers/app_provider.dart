@@ -322,6 +322,11 @@ class AppProvider with ChangeNotifier {
       debugPrint('📍 [AppProvider] Starting location tracking after successful initialization');
       await _startLocationTracking();
 
+      // Sync drawing messages with DrawingProvider
+      // This restores any drawings that may be missing from storage
+      debugPrint('🎨 [AppProvider] Syncing drawing messages with DrawingProvider...');
+      messagesProvider.syncDrawingsWithProvider(drawingProvider);
+
       notifyListeners();
     } catch (e) {
       debugPrint('Initialization error: $e');

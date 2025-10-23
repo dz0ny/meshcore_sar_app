@@ -1821,4 +1821,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String newDrawingsShared(int count, String plural) {
     return '$count nuevo(s) dibujo(s) compartido(s)';
   }
+
+  @override
+  String get shareDrawing => 'Compartir Dibujo';
+
+  @override
+  String get shareWithAllNearbyDevices =>
+      'Compartir con todos los dispositivos cercanos';
+
+  @override
+  String get shareToRoom => 'Compartir en Sala';
+
+  @override
+  String get sendToPersistentStorage =>
+      'Enviar a almacenamiento persistente de sala';
+
+  @override
+  String get deleteDrawingConfirm =>
+      '¿Está seguro de que desea eliminar este dibujo?';
+
+  @override
+  String get drawingDeleted => 'Dibujo eliminado';
+
+  @override
+  String yourDrawingsCount(int count) {
+    return 'Sus Dibujos ($count)';
+  }
+
+  @override
+  String get shared => 'Compartido';
+
+  @override
+  String get line => 'Línea';
+
+  @override
+  String get rectangle => 'Rectángulo';
 }
