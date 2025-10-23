@@ -1032,6 +1032,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete this message?';
 
   @override
+  String get shareLocation => 'Share location';
+
+  @override
+  String shareLocationText(
+    String markerInfo,
+    String lat,
+    String lon,
+    String url,
+  ) {
+    return '$markerInfo\n\nCoordinates: $lat, $lon\n\nGoogle Maps: $url';
+  }
+
+  @override
+  String get sarLocationShare => 'SAR Location';
+
+  @override
+  String get locationShared => 'Location shared';
+
+  @override
   String get refreshedContacts => 'Refreshed contacts';
 
   @override
@@ -1545,4 +1564,154 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get channel => 'Channel';
+
+  @override
+  String get samplePoliceLead => 'Police Lead';
+
+  @override
+  String get sampleDroneOperator => 'Drone Operator';
+
+  @override
+  String get sampleFirefighterAlpha => 'Firefighter';
+
+  @override
+  String get sampleMedicCharlie => 'Medic';
+
+  @override
+  String get sampleCommandDelta => 'Command';
+
+  @override
+  String get sampleFireEngine => 'Fire Engine';
+
+  @override
+  String get sampleAirSupport => 'Air Support';
+
+  @override
+  String get sampleBaseCoordinator => 'Base Coordinator';
+
+  @override
+  String get channelEmergency => 'Emergency';
+
+  @override
+  String get channelCoordination => 'Coordination';
+
+  @override
+  String get channelUpdates => 'Updates';
+
+  @override
+  String get sampleTeamMember => 'Sample Team Member';
+
+  @override
+  String get sampleScout => 'Sample Scout';
+
+  @override
+  String get sampleBase => 'Sample Base';
+
+  @override
+  String get sampleSearcher => 'Sample Searcher';
+
+  @override
+  String get sampleObjectBackpack => ' Backpack found - blue color';
+
+  @override
+  String get sampleObjectVehicle => ' Vehicle abandoned - check for owner';
+
+  @override
+  String get sampleObjectCamping => ' Camping equipment discovered';
+
+  @override
+  String get sampleObjectTrailMarker => ' Trail marker found off-path';
+
+  @override
+  String get sampleMsgAllTeamsCheckIn => 'All teams check in';
+
+  @override
+  String get sampleMsgWeatherUpdate => 'Weather update: Clear skies, temp 18°C';
+
+  @override
+  String get sampleMsgBaseCamp => 'Base camp established at staging area';
+
+  @override
+  String get sampleMsgTeamAlpha => 'Team moving to sector 2';
+
+  @override
+  String get sampleMsgRadioCheck => 'Radio check - all stations respond';
+
+  @override
+  String get sampleMsgWaterSupply => 'Water supply available at checkpoint 3';
+
+  @override
+  String get sampleMsgTeamBravo => 'Team reporting: sector 1 clear';
+
+  @override
+  String get sampleMsgEtaRallyPoint => 'ETA to rally point: 15 minutes';
+
+  @override
+  String get sampleMsgSupplyDrop => 'Supply drop confirmed for 14:00';
+
+  @override
+  String get sampleMsgDroneSurvey => 'Drone survey completed - no findings';
+
+  @override
+  String get sampleMsgTeamCharlie => 'Team requesting backup';
+
+  @override
+  String get sampleMsgRadioDiscipline => 'All units: maintain radio discipline';
+
+  @override
+  String get sampleMsgUrgentMedical =>
+      'URGENT: Medical assistance needed at sector 4';
+
+  @override
+  String get sampleMsgAdultMale => ' Adult male, conscious';
+
+  @override
+  String get sampleMsgFireSpotted => 'Fire spotted - coordinates incoming';
+
+  @override
+  String get sampleMsgSpreadingRapidly => ' Spreading rapidly!';
+
+  @override
+  String get sampleMsgPriorityHelicopter => 'PRIORITY: Need helicopter support';
+
+  @override
+  String get sampleMsgMedicalTeamEnRoute =>
+      'Medical team en route to your location';
+
+  @override
+  String get sampleMsgEvacHelicopter => 'Evac helicopter ETA 10 minutes';
+
+  @override
+  String get sampleMsgEmergencyResolved => 'Emergency resolved - all clear';
+
+  @override
+  String get sampleMsgEmergencyStagingArea => ' Emergency staging area';
+
+  @override
+  String get sampleMsgEmergencyServices =>
+      'Emergency services notified and responding';
+
+  @override
+  String get sampleAlphaTeamLead => 'Team Lead';
+
+  @override
+  String get sampleBravoScout => 'Scout';
+
+  @override
+  String get sampleCharlieMedic => 'Medic';
+
+  @override
+  String get sampleDeltaNavigator => 'Navigator';
+
+  @override
+  String get sampleEchoSupport => 'Support';
+
+  @override
+  String get sampleBaseCommand => 'Base Command';
+
+  @override
+  String get sampleFieldCoordinator => 'Field Coordinator';
+
+  @override
+  String get sampleMedicalTeam => 'Medical Team';
 }

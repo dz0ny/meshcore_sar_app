@@ -30,7 +30,8 @@
       "Bash(git --no-pager diff:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add Linux desktop build support to CI/CD workflow\n\nAdd build-linux job to compile Linux x64 desktop application and\nintegrate it into the R2 upload and release workflows.\n\nChanges:\n- New build-linux job: Builds Flutter Linux desktop app with GTK-3\n- Archives Linux build as tar.gz for distribution\n- Added Linux artifact download in upload-to-r2 job\n- Updated artifact preparation to copy Linux archives\n- Added Linux download card (🐧) to generated index.html\n- Included Linux artifacts in GitHub releases\n- Added Linux to download summary in workflow output\n\nThe Linux build produces MeshCore-SAR-Linux.tar.gz containing the\ncompiled application bundle ready for x64 Linux systems.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git --no-pager log -1 --stat)"
+      "Bash(git --no-pager log -1 --stat)",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": []

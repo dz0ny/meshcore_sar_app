@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// SAR Template - Customizable template for SAR (Cursor on Target) messages
 class SarTemplate {
@@ -8,6 +9,19 @@ class SarTemplate {
   final String description;
   final String colorHex;
   final bool isDefault;
+
+  /// Standard color palette for SAR markers (index 0-7)
+  /// This palette is used for transmission to ensure consistent colors across devices
+  static const List<String> colorPalette = [
+    '#F44336', // 0 - Red
+    '#2196F3', // 1 - Blue
+    '#4CAF50', // 2 - Green
+    '#FFC107', // 3 - Yellow
+    '#FF9800', // 4 - Orange
+    '#9C27B0', // 5 - Purple
+    '#E91E63', // 6 - Pink
+    '#00BCD4', // 7 - Cyan
+  ];
 
   SarTemplate({
     required this.id,
@@ -22,6 +36,77 @@ class SarTemplate {
   Color get color {
     final hexCode = colorHex.replaceAll('#', '');
     return Color(int.parse('FF$hexCode', radix: 16));
+  }
+
+  /// Get localized display name for this template
+  /// Returns localized name for default templates, or the stored name for custom templates
+  String getLocalizedName(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return name;
+
+    // Return localized names for default templates
+    switch (id) {
+      case 'default_found_person':
+        return l10n.sarMarkerFoundPerson;
+      case 'default_fire':
+        return l10n.sarMarkerFire;
+      case 'default_staging_area':
+        return l10n.sarMarkerStagingArea;
+      case 'default_object':
+        return l10n.sarMarkerObject;
+      default:
+        // For custom templates, return the stored name
+        return name;
+    }
+  }
+
+  /// Get the closest color index from the standard palette
+  /// Returns 0-7 for standard colors, or the closest match
+  int getColorIndex() {
+    // Normalize both colors to uppercase for comparison
+    final normalizedColorHex = colorHex.toUpperCase();
+
+    // Check for exact match first
+    for (int i = 0; i < colorPalette.length; i++) {
+      if (colorPalette[i].toUpperCase() == normalizedColorHex) {
+        return i;
+      }
+    }
+
+    // If no exact match, find closest color by calculating distance
+    // Parse RGB values
+    final hexCode = colorHex.replaceAll('#', '');
+    final r = int.parse(hexCode.substring(0, 2), radix: 16);
+    final g = int.parse(hexCode.substring(2, 4), radix: 16);
+    final b = int.parse(hexCode.substring(4, 6), radix: 16);
+
+    int closestIndex = 0;
+    double minDistance = double.infinity;
+
+    for (int i = 0; i < colorPalette.length; i++) {
+      final paletteHex = colorPalette[i].replaceAll('#', '');
+      final pr = int.parse(paletteHex.substring(0, 2), radix: 16);
+      final pg = int.parse(paletteHex.substring(2, 4), radix: 16);
+      final pb = int.parse(paletteHex.substring(4, 6), radix: 16);
+
+      // Calculate Euclidean distance in RGB space
+      final distance = ((r - pr) * (r - pr) + (g - pg) * (g - pg) + (b - pb) * (b - pb)).toDouble();
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = i;
+      }
+    }
+
+    return closestIndex;
+  }
+
+  /// Get color hex from palette index
+  static String getColorFromIndex(int index) {
+    if (index < 0 || index >= colorPalette.length) {
+      return '#9E9E9E'; // Gray for invalid index
+    }
+    return colorPalette[index];
   }
 
   /// Create from JSON
@@ -90,37 +175,49 @@ class SarTemplate {
   }
 
   /// Convert to SAR message format with placeholder coordinates
-  /// Example: S:🧑:0,0:Person found
+  /// New format: S:emoji:colorIndex:0,0:description
+  /// Example: S:🧑:2:0,0:Person found (2 = Green)
   String toSarMessage() {
+    final colorIndex = getColorIndex();
     if (description.isNotEmpty) {
-      return 'S:$emoji:0,0:$description';
+      return 'S:$emoji:$colorIndex:0,0:$description';
     }
-    return 'S:$emoji:0,0';
+    return 'S:$emoji:$colorIndex:0,0';
   }
 
-  /// Auto-assign color based on emoji
+  /// Auto-assign color based on emoji (uses standard color palette)
   static String _getColorForEmoji(String emoji) {
-    // Default emoji to color mapping
+    // Default emoji to color mapping using standard palette
     final colorMap = {
-      '🧑': '#4CAF50', // Green - Person
-      '👤': '#4CAF50', // Green - Person
-      '🔥': '#F44336', // Red - Fire
-      '🏕️': '#FF9800', // Orange - Staging
-      '⛺': '#FF9800', // Orange - Staging
-      '📦': '#9C27B0', // Purple - Object
-      '🚁': '#2196F3', // Blue - Helicopter
-      '🚒': '#F44336', // Red - Fire truck
-      '🚑': '#F44336', // Red - Ambulance
-      '⚠️': '#FFC107', // Yellow - Warning
-      '❌': '#F44336', // Red - Hazard
-      '✅': '#4CAF50', // Green - Safe
-      '🏥': '#F44336', // Red - Medical
-      '💧': '#2196F3', // Blue - Water
-      '🌲': '#4CAF50', // Green - Forest
-      '⛰️': '#795548', // Brown - Mountain
+      // Green (index 2) - Person, Safe, Nature
+      '🧑': colorPalette[2],
+      '👤': colorPalette[2],
+      '✅': colorPalette[2],
+      '🌲': colorPalette[2],
+
+      // Red (index 0) - Fire, Hazard, Medical, Emergency
+      '🔥': colorPalette[0],
+      '🚒': colorPalette[0],
+      '🚑': colorPalette[0],
+      '❌': colorPalette[0],
+      '🏥': colorPalette[0],
+
+      // Orange (index 4) - Staging, Assembly
+      '🏕️': colorPalette[4],
+      '⛺': colorPalette[4],
+
+      // Purple (index 5) - Objects
+      '📦': colorPalette[5],
+
+      // Blue (index 1) - Water, Air support
+      '🚁': colorPalette[1],
+      '💧': colorPalette[1],
+
+      // Yellow (index 3) - Warning, Caution
+      '⚠️': colorPalette[3],
     };
 
-    return colorMap[emoji] ?? '#9E9E9E'; // Default gray
+    return colorMap[emoji] ?? '#9E9E9E'; // Default gray for unknown emojis
   }
 
   /// Copy with modifications
@@ -156,7 +253,16 @@ class SarTemplate {
   @override
   int get hashCode => id.hashCode;
 
-  /// Default templates (matches existing SarMarkerType)
+  /// Default templates (uses standard color palette)
+  /// Colors reference:
+  /// - 0 Red (#F44336) - Fire, Hazard, Medical
+  /// - 1 Blue (#2196F3) - Water, Helicopter
+  /// - 2 Green (#4CAF50) - Found Person, Safe
+  /// - 3 Yellow (#FFC107) - Warning
+  /// - 4 Orange (#FF9800) - Staging Area
+  /// - 5 Purple (#9C27B0) - Object
+  /// - 6 Pink (#E91E63) - Reserved
+  /// - 7 Cyan (#00BCD4) - Reserved
   static List<SarTemplate> get defaults {
     return [
       SarTemplate(
@@ -164,7 +270,7 @@ class SarTemplate {
         emoji: '🧑',
         name: 'Found Person',
         description: '',
-        colorHex: '#4CAF50',
+        colorHex: colorPalette[2], // Green
         isDefault: true,
       ),
       SarTemplate(
@@ -172,7 +278,7 @@ class SarTemplate {
         emoji: '🔥',
         name: 'Fire',
         description: '',
-        colorHex: '#F44336',
+        colorHex: colorPalette[0], // Red
         isDefault: true,
       ),
       SarTemplate(
@@ -180,7 +286,7 @@ class SarTemplate {
         emoji: '🏕️',
         name: 'Staging Area',
         description: '',
-        colorHex: '#FF9800',
+        colorHex: colorPalette[4], // Orange
         isDefault: true,
       ),
       SarTemplate(
@@ -188,7 +294,7 @@ class SarTemplate {
         emoji: '📦',
         name: 'Object',
         description: '',
-        colorHex: '#9C27B0',
+        colorHex: colorPalette[5], // Purple
         isDefault: true,
       ),
     ];

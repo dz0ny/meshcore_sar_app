@@ -9,6 +9,7 @@ import '../../models/message.dart';
 import '../../providers/connection_provider.dart';
 import '../../providers/messages_provider.dart';
 import '../../providers/app_provider.dart';
+import '../../services/message_destination_preferences.dart';
 import '../../utils/toast_logger.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -158,6 +159,15 @@ class _DirectMessageSheetState extends State<DirectMessageSheet> {
         // Mark message as failed if sending failed
         messagesProvider.markMessageFailed(messageId);
       }
+
+      // Save the recipient to preferences so messages tab filters to this contact
+      final recipientType = widget.contact.type == ContactType.room
+          ? MessageDestinationPreferences.destinationTypeRoom
+          : MessageDestinationPreferences.destinationTypeContact;
+      await MessageDestinationPreferences.setDestination(
+        recipientType,
+        recipientPublicKey: widget.contact.publicKeyHex,
+      );
 
       _textController.clear();
       _focusNode.unfocus();

@@ -1034,6 +1034,25 @@ class AppLocalizationsHr extends AppLocalizations {
       'Jeste li sigurni da želite izbrisati ovu poruku?';
 
   @override
+  String get shareLocation => 'Podijeli lokaciju';
+
+  @override
+  String shareLocationText(
+    String markerInfo,
+    String lat,
+    String lon,
+    String url,
+  ) {
+    return '$markerInfo\n\nKoordinate: $lat, $lon\n\nGoogle Maps: $url';
+  }
+
+  @override
+  String get sarLocationShare => 'SAR Lokacija';
+
+  @override
+  String get locationShared => 'Lokacija podijeljena';
+
+  @override
   String get refreshedContacts => 'Kontakti osvježeni';
 
   @override
@@ -1367,25 +1386,25 @@ class AppLocalizationsHr extends AppLocalizations {
   }
 
   @override
-  String get sarTemplates => 'SAR Templates';
+  String get sarTemplates => 'SAR predlošci';
 
   @override
-  String get manageSarTemplates => 'Manage cursor on target templates';
+  String get manageSarTemplates => 'Upravljanje SAR predlošcima';
 
   @override
-  String get addTemplate => 'Add Template';
+  String get addTemplate => 'Dodaj predložak';
 
   @override
-  String get editTemplate => 'Edit Template';
+  String get editTemplate => 'Uredi predložak';
 
   @override
-  String get deleteTemplate => 'Delete Template';
+  String get deleteTemplate => 'Izbriši predložak';
 
   @override
-  String get templateName => 'Template Name';
+  String get templateName => 'Naziv predloška';
 
   @override
-  String get templateNameHint => 'e.g. Found Person';
+  String get templateNameHint => 'npr. Pronađena osoba';
 
   @override
   String get templateEmoji => 'Emoji';
@@ -1409,10 +1428,10 @@ class AppLocalizationsHr extends AppLocalizations {
   String get previewFormat => 'Preview (SAR Message Format)';
 
   @override
-  String get importFromClipboard => 'Import';
+  String get importFromClipboard => 'Uvezi';
 
   @override
-  String get exportToClipboard => 'Export';
+  String get exportToClipboard => 'Izvezi';
 
   @override
   String deleteTemplateConfirmation(String name) {
@@ -1452,17 +1471,17 @@ class AppLocalizationsHr extends AppLocalizations {
   }
 
   @override
-  String get resetToDefaults => 'Reset to Defaults';
+  String get resetToDefaults => 'Vrati na zadane';
 
   @override
   String get resetToDefaultsConfirmation =>
-      'This will delete all custom templates and restore the 4 default templates. Continue?';
+      'Ovo će izbrisati sve prilagođene predloške i vratiti 4 zadana predloška. Nastaviti?';
 
   @override
-  String get reset => 'Reset';
+  String get reset => 'Vrati';
 
   @override
-  String get resetComplete => 'Templates reset to defaults';
+  String get resetComplete => 'Predlošci vraćeni na zadane';
 
   @override
   String get noTemplates => 'No templates available';
@@ -1548,4 +1567,159 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get channel => 'Kanal';
+
+  @override
+  String get samplePoliceLead => 'Voditelj Policije';
+
+  @override
+  String get sampleDroneOperator => 'Operater Drona';
+
+  @override
+  String get sampleFirefighterAlpha => 'Vatrogasac';
+
+  @override
+  String get sampleMedicCharlie => 'Medičar';
+
+  @override
+  String get sampleCommandDelta => 'Zapovjedništvo';
+
+  @override
+  String get sampleFireEngine => 'Vatrogasno Vozilo';
+
+  @override
+  String get sampleAirSupport => 'Zračna Podrška';
+
+  @override
+  String get sampleBaseCoordinator => 'Koordinator Baze';
+
+  @override
+  String get channelEmergency => 'Hitno';
+
+  @override
+  String get channelCoordination => 'Koordinacija';
+
+  @override
+  String get channelUpdates => 'Ažuriranja';
+
+  @override
+  String get sampleTeamMember => 'Primjer Člana Tima';
+
+  @override
+  String get sampleScout => 'Primjer Izviđača';
+
+  @override
+  String get sampleBase => 'Primjer Baze';
+
+  @override
+  String get sampleSearcher => 'Primjer Tragača';
+
+  @override
+  String get sampleObjectBackpack => ' Pronađen ruksak - plava boja';
+
+  @override
+  String get sampleObjectVehicle => ' Napušteno vozilo - provjeriti vlasnika';
+
+  @override
+  String get sampleObjectCamping => ' Otkrivena oprema za kampiranje';
+
+  @override
+  String get sampleObjectTrailMarker => ' Oznaka staze pronađena izvan puta';
+
+  @override
+  String get sampleMsgAllTeamsCheckIn => 'Svi timovi se jave';
+
+  @override
+  String get sampleMsgWeatherUpdate =>
+      'Ažuriranje vremena: Vedro nebo, temp 18°C';
+
+  @override
+  String get sampleMsgBaseCamp => 'Bazni kamp uspostavljen na okupljalište';
+
+  @override
+  String get sampleMsgTeamAlpha => 'Tim se kreće prema sektoru 2';
+
+  @override
+  String get sampleMsgRadioCheck => 'Provjera radija - sve stanice odgovorite';
+
+  @override
+  String get sampleMsgWaterSupply =>
+      'Opskrba vodom dostupna na kontrolnoj točki 3';
+
+  @override
+  String get sampleMsgTeamBravo => 'Tim izvještava: sektor 1 čist';
+
+  @override
+  String get sampleMsgEtaRallyPoint => 'ETA do točke okupljanja: 15 minuta';
+
+  @override
+  String get sampleMsgSupplyDrop => 'Isporuka zaliha potvrđena za 14:00';
+
+  @override
+  String get sampleMsgDroneSurvey => 'Nadzor dronom završen - bez nalaza';
+
+  @override
+  String get sampleMsgTeamCharlie => 'Tim traži pojačanje';
+
+  @override
+  String get sampleMsgRadioDiscipline =>
+      'Sve jedinice: održavati radio disciplinu';
+
+  @override
+  String get sampleMsgUrgentMedical =>
+      'HITNO: Potrebna medicinska pomoć u sektoru 4';
+
+  @override
+  String get sampleMsgAdultMale => ' Odrasli muškarac, pri svijesti';
+
+  @override
+  String get sampleMsgFireSpotted => 'Uočen požar - koordinate slijede';
+
+  @override
+  String get sampleMsgSpreadingRapidly => ' Širi se brzo!';
+
+  @override
+  String get sampleMsgPriorityHelicopter =>
+      'PRIORITET: Potrebna podrška helikoptera';
+
+  @override
+  String get sampleMsgMedicalTeamEnRoute =>
+      'Medicinski tim na putu do vaše lokacije';
+
+  @override
+  String get sampleMsgEvacHelicopter =>
+      'Helikopter za evakuaciju ETA 10 minuta';
+
+  @override
+  String get sampleMsgEmergencyResolved => 'Hitnost riješena - sve čisto';
+
+  @override
+  String get sampleMsgEmergencyStagingArea => ' Hitno okupljalište';
+
+  @override
+  String get sampleMsgEmergencyServices =>
+      'Hitne službe obaviještene i odgovaraju';
+
+  @override
+  String get sampleAlphaTeamLead => 'Voditelj Tima';
+
+  @override
+  String get sampleBravoScout => 'Izviđač';
+
+  @override
+  String get sampleCharlieMedic => 'Medičar';
+
+  @override
+  String get sampleDeltaNavigator => 'Navigator';
+
+  @override
+  String get sampleEchoSupport => 'Podrška';
+
+  @override
+  String get sampleBaseCommand => 'Zapovjedništvo Baze';
+
+  @override
+  String get sampleFieldCoordinator => 'Terenski Koordinator';
+
+  @override
+  String get sampleMedicalTeam => 'Medicinski Tim';
 }

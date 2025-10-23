@@ -178,15 +178,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (!mounted) return;
 
+      // Get localization
+      final l10n = AppLocalizations.of(context)!;
+
       // Generate sample data
       final contacts = SampleDataGenerator.generateContacts(
         centerLocation: centerLocation,
+        l10n: l10n,
         teamMemberCount: 5,
         channelCount: 2,
       );
 
       final sarMessages = SampleDataGenerator.generateSarMarkerMessages(
         centerLocation: centerLocation,
+        l10n: l10n,
         foundPersonCount: 2,
         fireCount: 1,
         stagingCount: 1,
@@ -195,6 +200,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final channelMessages = SampleDataGenerator.generateChannelMessages(
         centerLocation: centerLocation,
+        l10n: l10n,
         generalChannelMessages: 8,
         emergencyChannelMessages: 5,
       );

@@ -81,7 +81,7 @@ class _SarTemplateManagementScreenState extends State<SarTemplateManagementScree
       builder: (context) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.deleteTemplate),
         content: Text(
-          AppLocalizations.of(context)!.deleteTemplateConfirmation(template.name),
+          AppLocalizations.of(context)!.deleteTemplateConfirmation(template.getLocalizedName(context)),
         ),
         actions: [
           TextButton(
@@ -351,7 +351,7 @@ class _TemplateListItem extends StatelessWidget {
           builder: (context) => AlertDialog(
             title: Text(AppLocalizations.of(context)!.deleteTemplate),
             content: Text(
-              AppLocalizations.of(context)!.deleteTemplateConfirmation(template.name),
+              AppLocalizations.of(context)!.deleteTemplateConfirmation(template.getLocalizedName(context)),
             ),
             actions: [
               TextButton(
@@ -394,7 +394,7 @@ class _TemplateListItem extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              template.name,
+              template.getLocalizedName(context),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),

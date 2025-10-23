@@ -1907,6 +1907,35 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to delete this message?'**
   String get deleteMessageConfirmation;
 
+  /// Option to share SAR marker location
+  ///
+  /// In en, this message translates to:
+  /// **'Share location'**
+  String get shareLocation;
+
+  /// Formatted text for sharing SAR marker location
+  ///
+  /// In en, this message translates to:
+  /// **'{markerInfo}\n\nCoordinates: {lat}, {lon}\n\nGoogle Maps: {url}'**
+  String shareLocationText(
+    String markerInfo,
+    String lat,
+    String lon,
+    String url,
+  );
+
+  /// Subject line when sharing SAR marker location
+  ///
+  /// In en, this message translates to:
+  /// **'SAR Location'**
+  String get sarLocationShare;
+
+  /// Success message when location is shared
+  ///
+  /// In en, this message translates to:
+  /// **'Location shared'**
+  String get locationShared;
+
   /// Success message when contacts are refreshed
   ///
   /// In en, this message translates to:
@@ -2806,6 +2835,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Channel'**
   String get channel;
+
+  /// Sample team member name
+  ///
+  /// In en, this message translates to:
+  /// **'Police Lead'**
+  String get samplePoliceLead;
+
+  /// Sample team member name
+  ///
+  /// In en, this message translates to:
+  /// **'Drone Operator'**
+  String get sampleDroneOperator;
+
+  /// Sample team member name
+  ///
+  /// In en, this message translates to:
+  /// **'Firefighter'**
+  String get sampleFirefighterAlpha;
+
+  /// Sample team member name
+  ///
+  /// In en, this message translates to:
+  /// **'Medic'**
+  String get sampleMedicCharlie;
+
+  /// Sample team member name
+  ///
+  /// In en, this message translates to:
+  /// **'Command'**
+  String get sampleCommandDelta;
+
+  /// Sample team member name
+  ///
+  /// In en, this message translates to:
+  /// **'Fire Engine'**
+  String get sampleFireEngine;
+
+  /// Sample team member name
+  ///
+  /// In en, this message translates to:
+  /// **'Air Support'**
+  String get sampleAirSupport;
+
+  /// Sample team member name
+  ///
+  /// In en, this message translates to:
+  /// **'Base Coordinator'**
+  String get sampleBaseCoordinator;
+
+  /// Emergency channel name
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get channelEmergency;
+
+  /// Coordination channel name
+  ///
+  /// In en, this message translates to:
+  /// **'Coordination'**
+  String get channelCoordination;
+
+  /// Updates channel name
+  ///
+  /// In en, this message translates to:
+  /// **'Updates'**
+  String get channelUpdates;
+
+  /// Sample sender name
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Team Member'**
+  String get sampleTeamMember;
+
+  /// Sample sender name
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Scout'**
+  String get sampleScout;
+
+  /// Sample sender name
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Base'**
+  String get sampleBase;
+
+  /// Sample sender name
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Searcher'**
+  String get sampleSearcher;
+
+  /// Sample object note
+  ///
+  /// In en, this message translates to:
+  /// **' Backpack found - blue color'**
+  String get sampleObjectBackpack;
+
+  /// Sample object note
+  ///
+  /// In en, this message translates to:
+  /// **' Vehicle abandoned - check for owner'**
+  String get sampleObjectVehicle;
+
+  /// Sample object note
+  ///
+  /// In en, this message translates to:
+  /// **' Camping equipment discovered'**
+  String get sampleObjectCamping;
+
+  /// Sample object note
+  ///
+  /// In en, this message translates to:
+  /// **' Trail marker found off-path'**
+  String get sampleObjectTrailMarker;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'All teams check in'**
+  String get sampleMsgAllTeamsCheckIn;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'Weather update: Clear skies, temp 18°C'**
+  String get sampleMsgWeatherUpdate;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'Base camp established at staging area'**
+  String get sampleMsgBaseCamp;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'Team moving to sector 2'**
+  String get sampleMsgTeamAlpha;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'Radio check - all stations respond'**
+  String get sampleMsgRadioCheck;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'Water supply available at checkpoint 3'**
+  String get sampleMsgWaterSupply;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'Team reporting: sector 1 clear'**
+  String get sampleMsgTeamBravo;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'ETA to rally point: 15 minutes'**
+  String get sampleMsgEtaRallyPoint;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'Supply drop confirmed for 14:00'**
+  String get sampleMsgSupplyDrop;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'Drone survey completed - no findings'**
+  String get sampleMsgDroneSurvey;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'Team requesting backup'**
+  String get sampleMsgTeamCharlie;
+
+  /// Sample channel message
+  ///
+  /// In en, this message translates to:
+  /// **'All units: maintain radio discipline'**
+  String get sampleMsgRadioDiscipline;
+
+  /// Sample emergency message
+  ///
+  /// In en, this message translates to:
+  /// **'URGENT: Medical assistance needed at sector 4'**
+  String get sampleMsgUrgentMedical;
+
+  /// Sample emergency message note
+  ///
+  /// In en, this message translates to:
+  /// **' Adult male, conscious'**
+  String get sampleMsgAdultMale;
+
+  /// Sample emergency message
+  ///
+  /// In en, this message translates to:
+  /// **'Fire spotted - coordinates incoming'**
+  String get sampleMsgFireSpotted;
+
+  /// Sample emergency message note
+  ///
+  /// In en, this message translates to:
+  /// **' Spreading rapidly!'**
+  String get sampleMsgSpreadingRapidly;
+
+  /// Sample emergency message
+  ///
+  /// In en, this message translates to:
+  /// **'PRIORITY: Need helicopter support'**
+  String get sampleMsgPriorityHelicopter;
+
+  /// Sample emergency message
+  ///
+  /// In en, this message translates to:
+  /// **'Medical team en route to your location'**
+  String get sampleMsgMedicalTeamEnRoute;
+
+  /// Sample emergency message
+  ///
+  /// In en, this message translates to:
+  /// **'Evac helicopter ETA 10 minutes'**
+  String get sampleMsgEvacHelicopter;
+
+  /// Sample emergency message
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency resolved - all clear'**
+  String get sampleMsgEmergencyResolved;
+
+  /// Sample emergency message note
+  ///
+  /// In en, this message translates to:
+  /// **' Emergency staging area'**
+  String get sampleMsgEmergencyStagingArea;
+
+  /// Sample emergency message
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency services notified and responding'**
+  String get sampleMsgEmergencyServices;
+
+  /// Sample team name
+  ///
+  /// In en, this message translates to:
+  /// **'Team Lead'**
+  String get sampleAlphaTeamLead;
+
+  /// Sample team name
+  ///
+  /// In en, this message translates to:
+  /// **'Scout'**
+  String get sampleBravoScout;
+
+  /// Sample team name
+  ///
+  /// In en, this message translates to:
+  /// **'Medic'**
+  String get sampleCharlieMedic;
+
+  /// Sample team name
+  ///
+  /// In en, this message translates to:
+  /// **'Navigator'**
+  String get sampleDeltaNavigator;
+
+  /// Sample team name
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get sampleEchoSupport;
+
+  /// Sample team name
+  ///
+  /// In en, this message translates to:
+  /// **'Base Command'**
+  String get sampleBaseCommand;
+
+  /// Sample team name
+  ///
+  /// In en, this message translates to:
+  /// **'Field Coordinator'**
+  String get sampleFieldCoordinator;
+
+  /// Sample team name
+  ///
+  /// In en, this message translates to:
+  /// **'Medical Team'**
+  String get sampleMedicalTeam;
 }
 
 class _AppLocalizationsDelegate

@@ -5,6 +5,7 @@ import '../models/contact.dart';
 import '../models/contact_telemetry.dart';
 import '../models/message.dart';
 import '../models/sar_marker.dart';
+import '../l10n/app_localizations.dart';
 
 /// Generates sample data for testing/demo purposes
 class SampleDataGenerator {
@@ -13,6 +14,7 @@ class SampleDataGenerator {
   /// Generate sample contacts around a center location
   static List<Contact> generateContacts({
     required LatLng centerLocation,
+    required AppLocalizations l10n,
     int teamMemberCount = 5,
     int channelCount = 2,
   }) {
@@ -20,21 +22,21 @@ class SampleDataGenerator {
     final now = DateTime.now();
 
     final teamNames = [
-      '👮Police Lead',
-      '🚁Drone Operator',
-      '🧑🏻‍🚒Firefighter Alpha',
-      '🧑‍⚕️Medic Charlie',
-      '📡Command Delta',
-      '🚒Fire Engine',
-      '👨‍✈️Air Support',
-      '🧑‍💼Base Coordinator',
+      '👮${l10n.samplePoliceLead}',
+      '🚁${l10n.sampleDroneOperator}',
+      '🧑🏻‍🚒${l10n.sampleFirefighterAlpha}',
+      '🧑‍⚕️${l10n.sampleMedicCharlie}',
+      '📡${l10n.sampleCommandDelta}',
+      '🚒${l10n.sampleFireEngine}',
+      '👨‍✈️${l10n.sampleAirSupport}',
+      '🧑‍💼${l10n.sampleBaseCoordinator}',
     ];
 
     final channelNames = [
-      'General',
-      'Emergency',
-      'Coordination',
-      'Updates',
+      l10n.general,
+      l10n.channelEmergency,
+      l10n.channelCoordination,
+      l10n.channelUpdates,
     ];
 
     // Generate team members (chat contacts)
@@ -114,6 +116,7 @@ class SampleDataGenerator {
   /// Generate sample SAR markers around a center location
   static List<Message> generateSarMarkerMessages({
     required LatLng centerLocation,
+    required AppLocalizations l10n,
     int foundPersonCount = 2,
     int fireCount = 1,
     int stagingCount = 1,
@@ -147,7 +150,7 @@ class SampleDataGenerator {
         isSarMarker: true,
         sarMarkerType: SarMarkerType.foundPerson,
         sarGpsCoordinates: LatLng(lat, lon),
-        senderName: 'Sample Team Member',
+        senderName: l10n.sampleTeamMember,
       ));
       messageId++;
     }
@@ -176,7 +179,7 @@ class SampleDataGenerator {
         isSarMarker: true,
         sarMarkerType: SarMarkerType.fire,
         sarGpsCoordinates: LatLng(lat, lon),
-        senderName: 'Sample Scout',
+        senderName: l10n.sampleScout,
       ));
       messageId++;
     }
@@ -205,7 +208,7 @@ class SampleDataGenerator {
         isSarMarker: true,
         sarMarkerType: SarMarkerType.stagingArea,
         sarGpsCoordinates: LatLng(lat, lon),
-        senderName: 'Sample Base',
+        senderName: l10n.sampleBase,
       ));
       messageId++;
     }
@@ -223,10 +226,10 @@ class SampleDataGenerator {
 
       final timestamp = now.subtract(Duration(minutes: 40 + i * 5));
       final notes = [
-        ' Backpack found - blue color',
-        ' Vehicle abandoned - check for owner',
-        ' Camping equipment discovered',
-        ' Trail marker found off-path',
+        l10n.sampleObjectBackpack,
+        l10n.sampleObjectVehicle,
+        l10n.sampleObjectCamping,
+        l10n.sampleObjectTrailMarker,
       ];
 
       messages.add(Message(
@@ -241,7 +244,7 @@ class SampleDataGenerator {
         isSarMarker: true,
         sarMarkerType: SarMarkerType.object,
         sarGpsCoordinates: LatLng(lat, lon),
-        senderName: 'Sample Searcher',
+        senderName: l10n.sampleSearcher,
       ));
       messageId++;
     }
@@ -252,6 +255,7 @@ class SampleDataGenerator {
   /// Generate sample channel messages for public channels
   static List<Message> generateChannelMessages({
     LatLng? centerLocation,
+    required AppLocalizations l10n,
     int generalChannelMessages = 8,
     int emergencyChannelMessages = 5,
   }) {
@@ -263,44 +267,44 @@ class SampleDataGenerator {
 
     // Sample messages for General channel (index 0)
     final generalMessages = [
-      'All teams check in',
-      'Weather update: Clear skies, temp 18°C',
-      'Base camp established at staging area',
-      'Team Alpha moving to sector 2',
-      'Radio check - all stations respond',
-      'Water supply available at checkpoint 3',
-      'Team Bravo reporting: sector 1 clear',
-      'ETA to rally point: 15 minutes',
-      'Supply drop confirmed for 14:00',
-      'Drone survey completed - no findings',
-      'Team Charlie requesting backup',
-      'All units: maintain radio discipline',
+      l10n.sampleMsgAllTeamsCheckIn,
+      l10n.sampleMsgWeatherUpdate,
+      l10n.sampleMsgBaseCamp,
+      l10n.sampleMsgTeamAlpha,
+      l10n.sampleMsgRadioCheck,
+      l10n.sampleMsgWaterSupply,
+      l10n.sampleMsgTeamBravo,
+      l10n.sampleMsgEtaRallyPoint,
+      l10n.sampleMsgSupplyDrop,
+      l10n.sampleMsgDroneSurvey,
+      l10n.sampleMsgTeamCharlie,
+      l10n.sampleMsgRadioDiscipline,
     ];
 
     // Sample messages for Emergency channel (index 1)
     // Mix regular messages and SAR markers
     final emergencyMessages = [
-      'URGENT: Medical assistance needed at sector 4',
-      'S:🧑:${center.latitude.toStringAsFixed(5)},${(center.longitude + 0.005).toStringAsFixed(5)} Adult male, conscious',
-      'Fire spotted - coordinates incoming',
-      'S:🔥:${(center.latitude + 0.008).toStringAsFixed(5)},${(center.longitude + 0.003).toStringAsFixed(5)} Spreading rapidly!',
-      'PRIORITY: Need helicopter support',
-      'Medical team en route to your location',
-      'Evac helicopter ETA 10 minutes',
-      'Emergency resolved - all clear',
-      'S:🏕️:${(center.latitude - 0.002).toStringAsFixed(5)},${(center.longitude - 0.004).toStringAsFixed(5)} Emergency staging area',
-      'Emergency services notified and responding',
+      l10n.sampleMsgUrgentMedical,
+      'S:🧑:${center.latitude.toStringAsFixed(5)},${(center.longitude + 0.005).toStringAsFixed(5)}${l10n.sampleMsgAdultMale}',
+      l10n.sampleMsgFireSpotted,
+      'S:🔥:${(center.latitude + 0.008).toStringAsFixed(5)},${(center.longitude + 0.003).toStringAsFixed(5)}${l10n.sampleMsgSpreadingRapidly}',
+      l10n.sampleMsgPriorityHelicopter,
+      l10n.sampleMsgMedicalTeamEnRoute,
+      l10n.sampleMsgEvacHelicopter,
+      l10n.sampleMsgEmergencyResolved,
+      'S:🏕️:${(center.latitude - 0.002).toStringAsFixed(5)},${(center.longitude - 0.004).toStringAsFixed(5)}${l10n.sampleMsgEmergencyStagingArea}',
+      l10n.sampleMsgEmergencyServices,
     ];
 
     final teamNames = [
-      'Alpha Team Lead',
-      'Bravo Scout',
-      'Charlie Medic',
-      'Delta Navigator',
-      'Echo Support',
-      'Base Command',
-      'Field Coordinator',
-      'Medical Team',
+      l10n.sampleAlphaTeamLead,
+      l10n.sampleBravoScout,
+      l10n.sampleCharlieMedic,
+      l10n.sampleDeltaNavigator,
+      l10n.sampleEchoSupport,
+      l10n.sampleBaseCommand,
+      l10n.sampleFieldCoordinator,
+      l10n.sampleMedicalTeam,
     ];
 
     // Generate General channel messages

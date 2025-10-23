@@ -1768,6 +1768,40 @@
     "description": "Confirmation text for message deletion"
   },
 
+  "shareLocation": "Share location",
+  "@shareLocation": {
+    "description": "Option to share SAR marker location"
+  },
+
+  "shareLocationText": "{markerInfo}\n\nCoordinates: {lat}, {lon}\n\nGoogle Maps: {url}",
+  "@shareLocationText": {
+    "description": "Formatted text for sharing SAR marker location",
+    "placeholders": {
+      "markerInfo": {
+        "type": "String"
+      },
+      "lat": {
+        "type": "String"
+      },
+      "lon": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+
+  "sarLocationShare": "SAR Location",
+  "@sarLocationShare": {
+    "description": "Subject line when sharing SAR marker location"
+  },
+
+  "locationShared": "Location shared",
+  "@locationShared": {
+    "description": "Success message when location is shared"
+  },
+
   "refreshedContacts": "Refreshed contacts",
   "@refreshedContacts": {
     "description": "Success message when contacts are refreshed"
@@ -2639,5 +2673,250 @@
   "channel": "Channel",
   "@channel": {
     "description": "Channel label in notifications"
+  },
+
+  "samplePoliceLead": "Police Lead",
+  "@samplePoliceLead": {
+    "description": "Sample team member name"
+  },
+
+  "sampleDroneOperator": "Drone Operator",
+  "@sampleDroneOperator": {
+    "description": "Sample team member name"
+  },
+
+  "sampleFirefighterAlpha": "Firefighter",
+  "@sampleFirefighterAlpha": {
+    "description": "Sample team member name"
+  },
+
+  "sampleMedicCharlie": "Medic",
+  "@sampleMedicCharlie": {
+    "description": "Sample team member name"
+  },
+
+  "sampleCommandDelta": "Command",
+  "@sampleCommandDelta": {
+    "description": "Sample team member name"
+  },
+
+  "sampleFireEngine": "Fire Engine",
+  "@sampleFireEngine": {
+    "description": "Sample team member name"
+  },
+
+  "sampleAirSupport": "Air Support",
+  "@sampleAirSupport": {
+    "description": "Sample team member name"
+  },
+
+  "sampleBaseCoordinator": "Base Coordinator",
+  "@sampleBaseCoordinator": {
+    "description": "Sample team member name"
+  },
+
+  "channelEmergency": "Emergency",
+  "@channelEmergency": {
+    "description": "Emergency channel name"
+  },
+
+  "channelCoordination": "Coordination",
+  "@channelCoordination": {
+    "description": "Coordination channel name"
+  },
+
+  "channelUpdates": "Updates",
+  "@channelUpdates": {
+    "description": "Updates channel name"
+  },
+
+  "sampleTeamMember": "Sample Team Member",
+  "@sampleTeamMember": {
+    "description": "Sample sender name"
+  },
+
+  "sampleScout": "Sample Scout",
+  "@sampleScout": {
+    "description": "Sample sender name"
+  },
+
+  "sampleBase": "Sample Base",
+  "@sampleBase": {
+    "description": "Sample sender name"
+  },
+
+  "sampleSearcher": "Sample Searcher",
+  "@sampleSearcher": {
+    "description": "Sample sender name"
+  },
+
+  "sampleObjectBackpack": " Backpack found - blue color",
+  "@sampleObjectBackpack": {
+    "description": "Sample object note"
+  },
+
+  "sampleObjectVehicle": " Vehicle abandoned - check for owner",
+  "@sampleObjectVehicle": {
+    "description": "Sample object note"
+  },
+
+  "sampleObjectCamping": " Camping equipment discovered",
+  "@sampleObjectCamping": {
+    "description": "Sample object note"
+  },
+
+  "sampleObjectTrailMarker": " Trail marker found off-path",
+  "@sampleObjectTrailMarker": {
+    "description": "Sample object note"
+  },
+
+  "sampleMsgAllTeamsCheckIn": "All teams check in",
+  "@sampleMsgAllTeamsCheckIn": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgWeatherUpdate": "Weather update: Clear skies, temp 18°C",
+  "@sampleMsgWeatherUpdate": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgBaseCamp": "Base camp established at staging area",
+  "@sampleMsgBaseCamp": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgTeamAlpha": "Team moving to sector 2",
+  "@sampleMsgTeamAlpha": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgRadioCheck": "Radio check - all stations respond",
+  "@sampleMsgRadioCheck": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgWaterSupply": "Water supply available at checkpoint 3",
+  "@sampleMsgWaterSupply": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgTeamBravo": "Team reporting: sector 1 clear",
+  "@sampleMsgTeamBravo": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgEtaRallyPoint": "ETA to rally point: 15 minutes",
+  "@sampleMsgEtaRallyPoint": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgSupplyDrop": "Supply drop confirmed for 14:00",
+  "@sampleMsgSupplyDrop": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgDroneSurvey": "Drone survey completed - no findings",
+  "@sampleMsgDroneSurvey": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgTeamCharlie": "Team requesting backup",
+  "@sampleMsgTeamCharlie": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgRadioDiscipline": "All units: maintain radio discipline",
+  "@sampleMsgRadioDiscipline": {
+    "description": "Sample channel message"
+  },
+
+  "sampleMsgUrgentMedical": "URGENT: Medical assistance needed at sector 4",
+  "@sampleMsgUrgentMedical": {
+    "description": "Sample emergency message"
+  },
+
+  "sampleMsgAdultMale": " Adult male, conscious",
+  "@sampleMsgAdultMale": {
+    "description": "Sample emergency message note"
+  },
+
+  "sampleMsgFireSpotted": "Fire spotted - coordinates incoming",
+  "@sampleMsgFireSpotted": {
+    "description": "Sample emergency message"
+  },
+
+  "sampleMsgSpreadingRapidly": " Spreading rapidly!",
+  "@sampleMsgSpreadingRapidly": {
+    "description": "Sample emergency message note"
+  },
+
+  "sampleMsgPriorityHelicopter": "PRIORITY: Need helicopter support",
+  "@sampleMsgPriorityHelicopter": {
+    "description": "Sample emergency message"
+  },
+
+  "sampleMsgMedicalTeamEnRoute": "Medical team en route to your location",
+  "@sampleMsgMedicalTeamEnRoute": {
+    "description": "Sample emergency message"
+  },
+
+  "sampleMsgEvacHelicopter": "Evac helicopter ETA 10 minutes",
+  "@sampleMsgEvacHelicopter": {
+    "description": "Sample emergency message"
+  },
+
+  "sampleMsgEmergencyResolved": "Emergency resolved - all clear",
+  "@sampleMsgEmergencyResolved": {
+    "description": "Sample emergency message"
+  },
+
+  "sampleMsgEmergencyStagingArea": " Emergency staging area",
+  "@sampleMsgEmergencyStagingArea": {
+    "description": "Sample emergency message note"
+  },
+
+  "sampleMsgEmergencyServices": "Emergency services notified and responding",
+  "@sampleMsgEmergencyServices": {
+    "description": "Sample emergency message"
+  },
+
+  "sampleAlphaTeamLead": "Team Lead",
+  "@sampleAlphaTeamLead": {
+    "description": "Sample team name"
+  },
+
+  "sampleBravoScout": "Scout",
+  "@sampleBravoScout": {
+    "description": "Sample team name"
+  },
+
+  "sampleCharlieMedic": "Medic",
+  "@sampleCharlieMedic": {
+    "description": "Sample team name"
+  },
+
+  "sampleDeltaNavigator": "Navigator",
+  "@sampleDeltaNavigator": {
+    "description": "Sample team name"
+  },
+
+  "sampleEchoSupport": "Support",
+  "@sampleEchoSupport": {
+    "description": "Sample team name"
+  },
+
+  "sampleBaseCommand": "Base Command",
+  "@sampleBaseCommand": {
+    "description": "Sample team name"
+  },
+
+  "sampleFieldCoordinator": "Field Coordinator",
+  "@sampleFieldCoordinator": {
+    "description": "Sample team name"
+  },
+
+  "sampleMedicalTeam": "Medical Team",
+  "@sampleMedicalTeam": {
+    "description": "Sample team name"
   }
 }

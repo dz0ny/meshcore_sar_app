@@ -878,8 +878,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
       builder: (context) => SarUpdateSheet(
         prePopulatedPosition: position,
         allowLocationUpdate: false, // Don't allow changing to current location
-        onSend: (emoji, name, position, roomPublicKey, sendToChannel) async {
-          await _sendSarMessage(emoji, name, position, roomPublicKey, sendToChannel);
+        onSend: (emoji, name, position, roomPublicKey, sendToChannel, colorIndex) async {
+          await _sendSarMessage(emoji, name, position, roomPublicKey, sendToChannel, colorIndex);
         },
       ),
     );
@@ -891,6 +891,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     Position position,
     Uint8List? roomPublicKey,
     bool sendToChannel,
+    int colorIndex,
   ) async {
     final connectionProvider = context.read<ConnectionProvider>();
     final messagesProvider = context.read<MessagesProvider>();
@@ -918,9 +919,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     }
 
     try {
-      // Format: S:<emoji>:<latitude>,<longitude>:<name>
+      // New format: S:<emoji>:<colorIndex>:<latitude>,<longitude>:<name>
       // Round coordinates to 5 decimal places (~1m accuracy) since most GPS is only that accurate
-      final sarMessage = 'S:$emoji:${position.latitude.toStringAsFixed(5)},${position.longitude.toStringAsFixed(5)}:$name';
+      final sarMessage = 'S:$emoji:$colorIndex:${position.latitude.toStringAsFixed(5)},${position.longitude.toStringAsFixed(5)}:$name';
 
       if (sendToChannel) {
         // Create message ID

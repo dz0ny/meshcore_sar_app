@@ -18,6 +18,7 @@ class SarUpdateSheet extends StatefulWidget {
     Position,
     Uint8List?,
     bool,
+    int colorIndex,
   )
   onSend;
   final Position? prePopulatedPosition;
@@ -784,7 +785,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                               displayText = _selectedTemplate!.name;
                             }
 
-                            // Send SAR marker with emoji and display text
+                            // Send SAR marker with emoji, display text, and color index
                             await widget.onSend(
                               _selectedTemplate!.emoji,
                               displayText,
@@ -793,6 +794,7 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                                   ? null
                                   : _selectedContact!.publicKey,
                               _selectedContact!.isChannel,
+                              _selectedTemplate!.getColorIndex(), // Include color index
                             );
                             if (context.mounted) {
                               Navigator.pop(context);
@@ -869,7 +871,7 @@ class TemplateChip extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    template.name,
+                    template.getLocalizedName(context),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

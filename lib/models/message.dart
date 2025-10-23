@@ -53,6 +53,7 @@ class Message {
   final LatLng? sarGpsCoordinates;
   final String? sarNotes; // Optional message/notes for SAR marker
   final String? sarCustomEmoji; // Custom emoji for unknown SAR marker types
+  final int? sarColorIndex; // Color index (0-7) from standard palette
 
   // Display metadata
   final DateTime receivedAt;
@@ -94,6 +95,7 @@ class Message {
     this.sarGpsCoordinates,
     this.sarNotes,
     this.sarCustomEmoji,
+    this.sarColorIndex,
     required this.receivedAt,
     this.senderName,
     this.deliveryStatus = MessageDeliveryStatus.received,
@@ -192,6 +194,7 @@ class Message {
       senderName: senderName,
       notes: sarNotes, // Use dedicated notes field instead of full text
       customEmoji: sarCustomEmoji, // Preserve custom emoji for unknown types
+      colorIndex: sarColorIndex, // Pass through color index
     );
   }
 
@@ -289,6 +292,7 @@ class Message {
     LatLng? sarGpsCoordinates,
     String? sarNotes,
     String? sarCustomEmoji,
+    int? sarColorIndex,
     DateTime? receivedAt,
     String? senderName,
     MessageDeliveryStatus? deliveryStatus,
@@ -319,6 +323,7 @@ class Message {
       sarGpsCoordinates: sarGpsCoordinates ?? this.sarGpsCoordinates,
       sarNotes: sarNotes ?? this.sarNotes,
       sarCustomEmoji: sarCustomEmoji ?? this.sarCustomEmoji,
+      sarColorIndex: sarColorIndex ?? this.sarColorIndex,
       receivedAt: receivedAt ?? this.receivedAt,
       senderName: senderName ?? this.senderName,
       deliveryStatus: deliveryStatus ?? this.deliveryStatus,

@@ -1043,6 +1043,25 @@ class AppLocalizationsFr extends AppLocalizations {
       'Êtes-vous sûr de vouloir supprimer ce message?';
 
   @override
+  String get shareLocation => 'Partager la position';
+
+  @override
+  String shareLocationText(
+    String markerInfo,
+    String lat,
+    String lon,
+    String url,
+  ) {
+    return '$markerInfo\n\nCoordonnées: $lat, $lon\n\nGoogle Maps: $url';
+  }
+
+  @override
+  String get sarLocationShare => 'Position SAR';
+
+  @override
+  String get locationShared => 'Position partagée';
+
+  @override
   String get refreshedContacts => 'Contacts actualisés';
 
   @override
@@ -1382,22 +1401,22 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get sarTemplates => 'SAR Templates';
+  String get sarTemplates => 'Modèles SAR';
 
   @override
-  String get manageSarTemplates => 'Manage cursor on target templates';
+  String get manageSarTemplates => 'Gérer les modèles SAR';
 
   @override
-  String get addTemplate => 'Add Template';
+  String get addTemplate => 'Ajouter un modèle';
 
   @override
-  String get editTemplate => 'Edit Template';
+  String get editTemplate => 'Modifier le modèle';
 
   @override
-  String get deleteTemplate => 'Delete Template';
+  String get deleteTemplate => 'Supprimer le modèle';
 
   @override
-  String get templateName => 'Template Name';
+  String get templateName => 'Nom du modèle';
 
   @override
   String get templateNameHint => 'e.g. Found Person';
@@ -1424,10 +1443,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get previewFormat => 'Preview (SAR Message Format)';
 
   @override
-  String get importFromClipboard => 'Import';
+  String get importFromClipboard => 'Importer';
 
   @override
-  String get exportToClipboard => 'Export';
+  String get exportToClipboard => 'Exporter';
 
   @override
   String deleteTemplateConfirmation(String name) {
@@ -1467,17 +1486,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get resetToDefaults => 'Reset to Defaults';
+  String get resetToDefaults => 'Réinitialiser aux valeurs par défaut';
 
   @override
   String get resetToDefaultsConfirmation =>
-      'This will delete all custom templates and restore the 4 default templates. Continue?';
+      'Cela supprimera tous les modèles personnalisés et restaurera les 4 modèles par défaut. Continuer?';
 
   @override
-  String get reset => 'Reset';
+  String get reset => 'Réinitialiser';
 
   @override
-  String get resetComplete => 'Templates reset to defaults';
+  String get resetComplete => 'Modèles réinitialisés aux valeurs par défaut';
 
   @override
   String get noTemplates => 'No templates available';
@@ -1564,4 +1583,166 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get channel => 'Canal';
+
+  @override
+  String get samplePoliceLead => 'Chef de Police';
+
+  @override
+  String get sampleDroneOperator => 'Opérateur de Drone';
+
+  @override
+  String get sampleFirefighterAlpha => 'Pompier';
+
+  @override
+  String get sampleMedicCharlie => 'Médecin';
+
+  @override
+  String get sampleCommandDelta => 'Commandement';
+
+  @override
+  String get sampleFireEngine => 'Camion de Pompiers';
+
+  @override
+  String get sampleAirSupport => 'Soutien Aérien';
+
+  @override
+  String get sampleBaseCoordinator => 'Coordinateur de Base';
+
+  @override
+  String get channelEmergency => 'Urgence';
+
+  @override
+  String get channelCoordination => 'Coordination';
+
+  @override
+  String get channelUpdates => 'Mises à jour';
+
+  @override
+  String get sampleTeamMember => 'Membre d\'Équipe Exemple';
+
+  @override
+  String get sampleScout => 'Éclaireur Exemple';
+
+  @override
+  String get sampleBase => 'Base Exemple';
+
+  @override
+  String get sampleSearcher => 'Chercheur Exemple';
+
+  @override
+  String get sampleObjectBackpack => ' Sac à dos trouvé - couleur bleue';
+
+  @override
+  String get sampleObjectVehicle =>
+      ' Véhicule abandonné - vérifier le propriétaire';
+
+  @override
+  String get sampleObjectCamping => ' Équipement de camping découvert';
+
+  @override
+  String get sampleObjectTrailMarker => ' Balise de sentier trouvée hors piste';
+
+  @override
+  String get sampleMsgAllTeamsCheckIn => 'Toutes les équipes se signaler';
+
+  @override
+  String get sampleMsgWeatherUpdate =>
+      'Mise à jour météo : Ciel dégagé, temp 18°C';
+
+  @override
+  String get sampleMsgBaseCamp =>
+      'Camp de base établi à la zone de rassemblement';
+
+  @override
+  String get sampleMsgTeamAlpha => 'Équipe se déplaçant vers le secteur 2';
+
+  @override
+  String get sampleMsgRadioCheck =>
+      'Test radio - toutes les stations répondent';
+
+  @override
+  String get sampleMsgWaterSupply =>
+      'Approvisionnement en eau disponible au point de contrôle 3';
+
+  @override
+  String get sampleMsgTeamBravo => 'Équipe signale : secteur 1 dégagé';
+
+  @override
+  String get sampleMsgEtaRallyPoint =>
+      'ETA au point de ralliement : 15 minutes';
+
+  @override
+  String get sampleMsgSupplyDrop =>
+      'Largage de ravitaillement confirmé pour 14h00';
+
+  @override
+  String get sampleMsgDroneSurvey =>
+      'Surveillance par drone terminée - aucune découverte';
+
+  @override
+  String get sampleMsgTeamCharlie => 'Équipe demande du renfort';
+
+  @override
+  String get sampleMsgRadioDiscipline =>
+      'Toutes les unités : maintenir la discipline radio';
+
+  @override
+  String get sampleMsgUrgentMedical =>
+      'URGENT : Assistance médicale nécessaire au secteur 4';
+
+  @override
+  String get sampleMsgAdultMale => ' Homme adulte, conscient';
+
+  @override
+  String get sampleMsgFireSpotted => 'Feu repéré - coordonnées à venir';
+
+  @override
+  String get sampleMsgSpreadingRapidly => ' Se propage rapidement !';
+
+  @override
+  String get sampleMsgPriorityHelicopter =>
+      'PRIORITÉ : Besoin de soutien hélicoptère';
+
+  @override
+  String get sampleMsgMedicalTeamEnRoute =>
+      'Équipe médicale en route vers votre position';
+
+  @override
+  String get sampleMsgEvacHelicopter =>
+      'Hélicoptère d\'évacuation ETA 10 minutes';
+
+  @override
+  String get sampleMsgEmergencyResolved => 'Urgence résolue - tout est clair';
+
+  @override
+  String get sampleMsgEmergencyStagingArea =>
+      ' Zone de rassemblement d\'urgence';
+
+  @override
+  String get sampleMsgEmergencyServices =>
+      'Services d\'urgence notifiés et en réponse';
+
+  @override
+  String get sampleAlphaTeamLead => 'Chef d\'Équipe';
+
+  @override
+  String get sampleBravoScout => 'Éclaireur';
+
+  @override
+  String get sampleCharlieMedic => 'Médecin';
+
+  @override
+  String get sampleDeltaNavigator => 'Navigateur';
+
+  @override
+  String get sampleEchoSupport => 'Soutien';
+
+  @override
+  String get sampleBaseCommand => 'Commandement de Base';
+
+  @override
+  String get sampleFieldCoordinator => 'Coordinateur de Terrain';
+
+  @override
+  String get sampleMedicalTeam => 'Équipe Médicale';
 }

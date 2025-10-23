@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../models/contact.dart';
 import '../models/sar_marker.dart';
+import '../models/sar_template.dart';
 import '../l10n/app_localizations.dart';
 
 class MapMarkers {
@@ -129,7 +130,7 @@ class MapMarkers {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
-                    color: _getSarMarkerColor(marker.type),
+                    color: _getSarMarkerColor(marker),
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
@@ -145,7 +146,7 @@ class MapMarkers {
                 // Marker emoji/icon
                 Container(
                   decoration: BoxDecoration(
-                    color: _getSarMarkerColor(marker.type),
+                    color: _getSarMarkerColor(marker),
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),
                     boxShadow: [
@@ -302,8 +303,16 @@ class MapMarkers {
     return Colors.red; // Stale
   }
 
-  static Color _getSarMarkerColor(SarMarkerType type) {
-    switch (type) {
+  static Color _getSarMarkerColor(SarMarker marker) {
+    // If marker has a color index, use it (new format)
+    if (marker.colorIndex != null && marker.colorIndex! >= 0 && marker.colorIndex! < 8) {
+      final colorHex = SarTemplate.getColorFromIndex(marker.colorIndex!);
+      final hexCode = colorHex.replaceAll('#', '');
+      return Color(int.parse('FF$hexCode', radix: 16));
+    }
+
+    // Otherwise fall back to type-based colors (old format or backward compatibility)
+    switch (marker.type) {
       case SarMarkerType.foundPerson:
         return Colors.green;
       case SarMarkerType.fire:

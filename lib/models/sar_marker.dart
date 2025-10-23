@@ -77,6 +77,7 @@ class SarMarker {
   final String? senderName;
   final String? notes;
   final String? customEmoji; // For custom SAR markers not in predefined types
+  final int? colorIndex; // Color index (0-7) from standard palette
 
   SarMarker({
     required this.id,
@@ -87,6 +88,7 @@ class SarMarker {
     this.senderName,
     this.notes,
     this.customEmoji,
+    this.colorIndex,
   });
 
   /// Get sender public key as hex string (short)
@@ -164,6 +166,7 @@ class SarMarker {
     String? senderName,
     String? notes,
     String? customEmoji,
+    int? colorIndex,
   }) {
     return SarMarker(
       id: id ?? this.id,
@@ -174,6 +177,7 @@ class SarMarker {
       senderName: senderName ?? this.senderName,
       notes: notes ?? this.notes,
       customEmoji: customEmoji ?? this.customEmoji,
+      colorIndex: colorIndex ?? this.colorIndex,
     );
   }
 

@@ -3,16 +3,23 @@ import '../models/sar_marker.dart';
 import '../models/message.dart';
 
 /// Parser for SAR (Search & Rescue) special messages
-/// Format: S:<emoji>:<latitude>,<longitude>:<optional_message>
+/// Old format: S:<emoji>:<latitude>,<longitude>:<optional_message>
+/// New format: S:<emoji>:<colorIndex>:<latitude>,<longitude>:<optional_message>
 /// Examples:
-///   S:🧑:37.7749,-122.4194
-///   S:🔥:40.7128,-74.0060:Large wildfire spreading
-///   S:🏕️:34.0522,-118.2437:Base camp established
+///   S:🧑:37.7749,-122.4194 (old format)
+///   S:🧑:2:37.7749,-122.4194 (new format with green color)
+///   S:🔥:0:40.7128,-74.0060:Large wildfire spreading (new format with red color)
 class SarMessageParser {
-  // Updated regex to capture optional message after coordinates
-  // Captures: emoji (one or more non-colon chars), latitude, longitude, optional message
-  // Note: Emojis are multi-byte characters, so we use [^:]+ instead of .
-  static final RegExp _sarPattern = RegExp(
+  // Regex for new format with color index: S:emoji:colorIndex:lat,lon:notes
+  // Captures: emoji, colorIndex (single digit), latitude, longitude, optional message
+  static final RegExp _sarPatternNew = RegExp(
+    r'^S:([^:]+):(\d):(-?\d+\.?\d*),(-?\d+\.?\d*):?(.*)',
+    multiLine: false,
+  );
+
+  // Regex for old format (backward compatibility): S:emoji:lat,lon:notes
+  // Captures: emoji, latitude, longitude, optional message
+  static final RegExp _sarPatternOld = RegExp(
     r'^S:([^:]+):(-?\d+\.?\d*),(-?\d+\.?\d*):?(.*)',
     multiLine: false,
   );
@@ -21,29 +28,60 @@ class SarMessageParser {
   static bool isSarMessage(String text) {
     // Extract just the first line for matching
     final firstLine = text.trim().split('\n').first;
-    return firstLine.startsWith('S:') && _sarPattern.hasMatch(firstLine);
+    return firstLine.startsWith('S:') && (_sarPatternNew.hasMatch(firstLine) || _sarPatternOld.hasMatch(firstLine));
   }
 
   /// Parse a SAR message and extract marker information
   /// Returns null if the message is not a valid SAR message
+  /// Supports both old format (S:emoji:lat,lon:notes) and new format (S:emoji:colorIndex:lat,lon:notes)
   static SarMarkerInfo? parse(String text) {
     final trimmed = text.trim();
     if (!trimmed.startsWith('S:')) return null;
 
     // Extract first line (actual SAR marker)
     final firstLine = trimmed.split('\n').first;
-    final match = _sarPattern.firstMatch(firstLine);
-    if (match == null) return null;
+
+    // Try new format first (with color index)
+    var match = _sarPatternNew.firstMatch(firstLine);
+    bool isNewFormat = match != null;
+
+    // If new format didn't match, try old format
+    if (match == null) {
+      match = _sarPatternOld.firstMatch(firstLine);
+      if (match == null) return null;
+    }
 
     try {
-      final emoji = match.group(1)!;
-      final latitude = double.parse(match.group(2)!);
-      final longitude = double.parse(match.group(3)!);
-      final inlineMessage = match.group(4)?.trim(); // Optional message after colon
+      String emoji;
+      double latitude;
+      double longitude;
+      String? inlineMessage;
+      int? colorIndex;
+
+      if (isNewFormat) {
+        // New format: S:emoji:colorIndex:lat,lon:notes
+        emoji = match!.group(1)!;
+        colorIndex = int.parse(match.group(2)!);
+        latitude = double.parse(match.group(3)!);
+        longitude = double.parse(match.group(4)!);
+        inlineMessage = match.group(5)?.trim();
+      } else {
+        // Old format: S:emoji:lat,lon:notes
+        emoji = match!.group(1)!;
+        colorIndex = null; // No color index in old format
+        latitude = double.parse(match.group(2)!);
+        longitude = double.parse(match.group(3)!);
+        inlineMessage = match.group(4)?.trim();
+      }
 
       // Validate coordinates
       if (latitude < -90 || latitude > 90) return null;
       if (longitude < -180 || longitude > 180) return null;
+
+      // Validate color index if present
+      if (colorIndex != null && (colorIndex < 0 || colorIndex > 7)) {
+        colorIndex = null; // Invalid index, ignore it
+      }
 
       final markerType = SarMarkerType.fromEmoji(emoji);
       final location = LatLng(latitude, longitude);
@@ -65,6 +103,7 @@ class SarMessageParser {
         location: location,
         emoji: emoji,
         notes: notes,
+        colorIndex: colorIndex,
       );
     } catch (e) {
       return null;
@@ -84,16 +123,20 @@ class SarMessageParser {
       sarCustomEmoji: sarInfo.type == SarMarkerType.unknown
           ? sarInfo.emoji  // Preserve custom emoji for unknown types
           : null,
+      sarColorIndex: sarInfo.colorIndex, // Store color index
     );
   }
 
-  /// Create a SAR marker message text
+  /// Create a SAR marker message text (new format with color index)
   static String createSarMessage({
     required SarMarkerType type,
     required LatLng location,
     String? notes,
+    int? colorIndex,
   }) {
-    final text = 'S:${type.emoji}:${location.latitude},${location.longitude}';
+    // New format: S:emoji:colorIndex:lat,lon:notes
+    final colorIdx = colorIndex ?? 0; // Default to red if not specified
+    final text = 'S:${type.emoji}:$colorIdx:${location.latitude},${location.longitude}';
     if (notes != null && notes.isNotEmpty) {
       // Use colon-separated format for inline message
       return '$text:$notes';
@@ -166,16 +209,18 @@ class SarMarkerInfo {
   final LatLng location;
   final String emoji;
   final String? notes;
+  final int? colorIndex; // Color index from standard palette (0-7), null for backward compatibility
 
   SarMarkerInfo({
     required this.type,
     required this.location,
     required this.emoji,
     this.notes,
+    this.colorIndex,
   });
 
   @override
   String toString() {
-    return 'SarMarkerInfo(type: ${type.displayName}, location: $location, notes: $notes)';
+    return 'SarMarkerInfo(type: ${type.displayName}, location: $location, colorIndex: $colorIndex, notes: $notes)';
   }
 }

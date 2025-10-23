@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import '../providers/messages_provider.dart';
@@ -64,8 +65,9 @@ class _MessagesTabState extends State<MessagesTab> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Check for navigation request whenever dependencies change
+    // Reload saved destination and check for navigation request whenever dependencies change
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSavedDestination();
       _checkForNavigationRequest();
     });
   }
@@ -387,13 +389,14 @@ class _MessagesTabState extends State<MessagesTab> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => SarUpdateSheet(
-        onSend: (emoji, name, position, roomPublicKey, sendToChannel) async {
+        onSend: (emoji, name, position, roomPublicKey, sendToChannel, colorIndex) async {
           await _sendSarMessage(
             emoji,
             name,
             position,
             roomPublicKey,
             sendToChannel,
+            colorIndex,
           );
         },
       ),
@@ -406,6 +409,7 @@ class _MessagesTabState extends State<MessagesTab> {
     Position position,
     Uint8List? roomPublicKey,
     bool sendToChannel,
+    int colorIndex,
   ) async {
     final connectionProvider = context.read<ConnectionProvider>();
     final messagesProvider = context.read<MessagesProvider>();
@@ -423,10 +427,10 @@ class _MessagesTabState extends State<MessagesTab> {
     }
 
     try {
-      // Format: S:<emoji>:<latitude>,<longitude>:<name>
+      // New format: S:<emoji>:<colorIndex>:<latitude>,<longitude>:<name>
       // Round coordinates to 5 decimal places (~1m accuracy) since most GPS is only that accurate
       final sarMessage =
-          'S:$emoji:${position.latitude.toStringAsFixed(5)},${position.longitude.toStringAsFixed(5)}:$name';
+          'S:$emoji:$colorIndex:${position.latitude.toStringAsFixed(5)},${position.longitude.toStringAsFixed(5)}:$name';
 
       if (sendToChannel) {
         // Create message ID
@@ -551,9 +555,51 @@ class _MessagesTabState extends State<MessagesTab> {
   }
 
   List<Message> _getFilteredMessages(MessagesProvider messagesProvider) {
-    // Show ALL messages regardless of recipient selection
-    // The recipient selector only controls where NEW messages are sent
-    return messagesProvider.getRecentMessages(count: 100);
+    // Get all recent messages
+    final allMessages = messagesProvider.getRecentMessages(count: 100);
+
+    // If public channel is selected, show ALL messages
+    if (_destinationType ==
+            MessageDestinationPreferences.destinationTypeChannel &&
+        _selectedRecipient == null) {
+      return allMessages;
+    }
+
+    // If a contact or room is selected, filter by recipient
+    if ((_destinationType == MessageDestinationPreferences.destinationTypeContact ||
+            _destinationType ==
+                MessageDestinationPreferences.destinationTypeRoom) &&
+        _selectedRecipient != null) {
+      return allMessages.where((message) {
+        // Include messages sent TO this recipient
+        if (message.recipientPublicKey != null &&
+            message.recipientPublicKey!.length >= 6 &&
+            _selectedRecipient!.publicKey.length >= 6) {
+          // Compare first 6 bytes (public key prefix)
+          final recipientPrefix = message.recipientPublicKey!.sublist(0, 6);
+          final selectedPrefix = _selectedRecipient!.publicKey.sublist(0, 6);
+          if (_publicKeysMatch(recipientPrefix, selectedPrefix)) {
+            return true;
+          }
+        }
+
+        // Include messages received FROM this recipient
+        if (message.senderPublicKeyPrefix != null &&
+            message.senderPublicKeyPrefix!.length >= 6 &&
+            _selectedRecipient!.publicKey.length >= 6) {
+          final senderPrefix = message.senderPublicKeyPrefix!.sublist(0, 6);
+          final selectedPrefix = _selectedRecipient!.publicKey.sublist(0, 6);
+          if (_publicKeysMatch(senderPrefix, selectedPrefix)) {
+            return true;
+          }
+        }
+
+        return false;
+      }).toList();
+    }
+
+    // Default: show all messages (fallback case)
+    return allMessages;
   }
 
   @override
@@ -831,6 +877,8 @@ class _MessageBubble extends StatelessWidget {
           contact: roomContact, // Include contact for path status logging
         );
 
+        if (!context.mounted) return;
+
         if (!sentSuccessfully) {
           messagesProvider.markMessageFailed(retryMessageId);
           ToastLogger.error(context, 'Failed to resend message');
@@ -845,9 +893,12 @@ class _MessageBubble extends StatelessWidget {
           messageId: retryMessageId,
         );
 
+        if (!context.mounted) return;
+
         ToastLogger.info(context, 'Retrying message...');
       }
     } catch (e) {
+      if (!context.mounted) return;
       ToastLogger.error(context, 'Retry failed: $e');
     }
   }
@@ -899,6 +950,16 @@ class _MessageBubble extends StatelessWidget {
                 );
               },
             ),
+            // Share location option (only for SAR markers with GPS coordinates)
+            if (message.isSarMarker && message.sarGpsCoordinates != null)
+              ListTile(
+                leading: const Icon(Icons.share_location),
+                title: Text(AppLocalizations.of(context)!.shareLocation),
+                onTap: () {
+                  Navigator.pop(context);
+                  _shareLocation(context);
+                },
+              ),
             // Delete message option
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
@@ -980,6 +1041,52 @@ class _MessageBubble extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _shareLocation(BuildContext context) {
+    if (message.sarGpsCoordinates == null) {
+      ToastLogger.error(context, 'No GPS coordinates available');
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    final coords = message.sarGpsCoordinates!;
+
+    // Get SAR marker type emoji/name
+    String markerInfo = '';
+    if (message.sarMarkerType != null) {
+      markerInfo = message.sarMarkerType!.emoji;
+      if (message.sarNotes != null && message.sarNotes!.isNotEmpty) {
+        markerInfo += ' ${message.sarNotes}';
+      }
+    } else if (message.sarCustomEmoji != null) {
+      markerInfo = message.sarCustomEmoji!;
+      if (message.sarNotes != null && message.sarNotes!.isNotEmpty) {
+        markerInfo += ' ${message.sarNotes}';
+      }
+    }
+
+    // Format coordinates with 6 decimal places (≈0.1m precision)
+    final lat = coords.latitude.toStringAsFixed(6);
+    final lon = coords.longitude.toStringAsFixed(6);
+
+    // Build share text
+    final shareText = l10n.shareLocationText(
+      markerInfo,
+      lat,
+      lon,
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lon',
+    );
+
+    // Share the location
+    SharePlus.instance.share(
+      ShareParams(
+        text: shareText,
+        subject: l10n.sarLocationShare,
+      ),
+    );
+
+    ToastLogger.success(context, l10n.locationShared);
   }
 
   @override
