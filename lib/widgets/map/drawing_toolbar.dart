@@ -161,113 +161,115 @@ class DrawingToolbar extends StatelessWidget {
   void _showDrawingMenu(BuildContext context, DrawingProvider drawingProvider) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  const Icon(Icons.edit),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Drawing Tools',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+      builder: (context) => SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.edit),
+                    const SizedBox(width: 12),
+                    Text(
+                      AppLocalizations.of(context)!.drawingTools,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.show_chart),
-              title: Text(AppLocalizations.of(context)!.drawLine),
-              subtitle: Text(AppLocalizations.of(context)!.drawLineDesc),
-              onTap: () {
-                Navigator.pop(context);
-                drawingProvider.setDrawingMode(DrawingMode.line);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.crop_square),
-              title: Text(AppLocalizations.of(context)!.drawRectangle),
-              subtitle: Text(AppLocalizations.of(context)!.drawRectangleDesc),
-              onTap: () {
-                Navigator.pop(context);
-                drawingProvider.setDrawingMode(DrawingMode.rectangle);
-              },
-            ),
-            const Divider(),
-            // Toggle received drawings visibility
-            SwitchListTile(
-              secondary: Icon(
-                drawingProvider.showReceivedDrawings
-                    ? Icons.visibility
-                    : Icons.visibility_off,
-              ),
-              title: Text(AppLocalizations.of(context)!.showReceivedDrawings),
-              subtitle: Text(
-                drawingProvider.showReceivedDrawings
-                    ? AppLocalizations.of(context)!.showingAllDrawings
-                    : AppLocalizations.of(context)!.showingOnlyYourDrawings,
-              ),
-              value: drawingProvider.showReceivedDrawings,
-              onChanged: (value) {
-                drawingProvider.toggleReceivedDrawings();
-              },
-            ),
-            // Toggle SAR markers visibility
-            SwitchListTile(
-              secondary: Icon(
-                drawingProvider.showSarMarkers
-                    ? Icons.pin_drop
-                    : Icons.pin_drop_outlined,
-              ),
-              title: Text(AppLocalizations.of(context)!.showSarMarkers),
-              subtitle: Text(
-                drawingProvider.showSarMarkers
-                    ? AppLocalizations.of(context)!.showingSarMarkers
-                    : AppLocalizations.of(context)!.hidingSarMarkers,
-              ),
-              value: drawingProvider.showSarMarkers,
-              onChanged: (value) {
-                drawingProvider.toggleSarMarkers();
-              },
-            ),
-            if (drawingProvider.drawings.isNotEmpty) ...[
               const Divider(),
               ListTile(
-                leading: const Icon(Icons.share, color: Colors.blue),
-                title: Text(AppLocalizations.of(context)!.shareDrawings),
-                subtitle: Text(
-                  'Broadcast ${drawingProvider.drawings.length} drawings to team',
-                ),
-                onTap: () async {
+                leading: const Icon(Icons.show_chart),
+                title: Text(AppLocalizations.of(context)!.drawLine),
+                subtitle: Text(AppLocalizations.of(context)!.drawLineDesc),
+                onTap: () {
                   Navigator.pop(context);
-                  // Small delay to ensure first bottom sheet is fully closed
-                  // before opening the second one
-                  await Future.delayed(const Duration(milliseconds: 100));
-                  if (context.mounted) {
-                    _showShareDrawingsDialog(context, drawingProvider);
-                  }
+                  drawingProvider.setDrawingMode(DrawingMode.line);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete_sweep, color: Colors.red),
-                title: Text(AppLocalizations.of(context)!.clearAllDrawings),
-                subtitle: Text(
-                  'Remove all ${drawingProvider.drawings.length} drawings',
-                ),
+                leading: const Icon(Icons.crop_square),
+                title: Text(AppLocalizations.of(context)!.drawRectangle),
+                subtitle: Text(AppLocalizations.of(context)!.drawRectangleDesc),
                 onTap: () {
                   Navigator.pop(context);
-                  _showClearAllDialog(context, drawingProvider);
+                  drawingProvider.setDrawingMode(DrawingMode.rectangle);
                 },
               ),
+              const Divider(),
+              // Toggle received drawings visibility
+              SwitchListTile(
+                secondary: Icon(
+                  drawingProvider.showReceivedDrawings
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                ),
+                title: Text(AppLocalizations.of(context)!.showReceivedDrawings),
+                subtitle: Text(
+                  drawingProvider.showReceivedDrawings
+                      ? AppLocalizations.of(context)!.showingAllDrawings
+                      : AppLocalizations.of(context)!.showingOnlyYourDrawings,
+                ),
+                value: drawingProvider.showReceivedDrawings,
+                onChanged: (value) {
+                  drawingProvider.toggleReceivedDrawings();
+                },
+              ),
+              // Toggle SAR markers visibility
+              SwitchListTile(
+                secondary: Icon(
+                  drawingProvider.showSarMarkers
+                      ? Icons.pin_drop
+                      : Icons.pin_drop_outlined,
+                ),
+                title: Text(AppLocalizations.of(context)!.showSarMarkers),
+                subtitle: Text(
+                  drawingProvider.showSarMarkers
+                      ? AppLocalizations.of(context)!.showingSarMarkers
+                      : AppLocalizations.of(context)!.hidingSarMarkers,
+                ),
+                value: drawingProvider.showSarMarkers,
+                onChanged: (value) {
+                  drawingProvider.toggleSarMarkers();
+                },
+              ),
+              if (drawingProvider.drawings.isNotEmpty) ...[
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.share, color: Colors.blue),
+                  title: Text(AppLocalizations.of(context)!.shareDrawings),
+                  subtitle: Text(
+                    'Broadcast ${drawingProvider.drawings.length} drawings to team',
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    // Small delay to ensure first bottom sheet is fully closed
+                    // before opening the second one
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (context.mounted) {
+                      _showShareDrawingsDialog(context, drawingProvider);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_sweep, color: Colors.red),
+                  title: Text(AppLocalizations.of(context)!.clearAllDrawings),
+                  subtitle: Text(
+                    'Remove all ${drawingProvider.drawings.length} drawings',
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showClearAllDialog(context, drawingProvider);
+                  },
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -403,77 +405,79 @@ class DrawingToolbar extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  const Icon(Icons.share),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Share ${localDrawings.length} Drawing${localDrawings.length > 1 ? 's' : ''}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+      builder: (sheetContext) => SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.share),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Share ${localDrawings.length} Drawing${localDrawings.length > 1 ? 's' : ''}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            // Option: Send to Public Channel
-            ListTile(
-              leading: const Icon(Icons.public, color: Colors.blue),
-              title: Text(AppLocalizations.of(context)!.publicChannel),
-              subtitle: Text(AppLocalizations.of(context)!.broadcastToAll),
-              onTap: () async {
-                debugPrint('📤 [DrawingToolbar] Public Channel tapped');
-                // Share BEFORE popping the navigator
-                await _shareDrawingsToChannel(
-                  sheetContext,
-                  localDrawings,
-                  connectionProvider,
-                  senderName,
-                );
-                if (sheetContext.mounted) {
-                  Navigator.pop(sheetContext);
-                }
-              },
-            ),
-            // Option: Send to Room
-            if (rooms.isNotEmpty) ...[
-              ...rooms.map(
-                (room) => ListTile(
-                  leading: const Icon(Icons.meeting_room, color: Colors.green),
-                  title: Text(room.advName),
-                  subtitle: Text(
-                    AppLocalizations.of(context)!.storedPermanently,
-                  ),
-                  onTap: () async {
-                    debugPrint(
-                      '📤 [DrawingToolbar] Room ${room.advName} tapped',
-                    );
-                    // Share BEFORE popping the navigator
-                    await _shareDrawingsToRoom(
-                      sheetContext,
-                      localDrawings,
-                      connectionProvider,
-                      senderName,
-                      room,
-                    );
-                    if (sheetContext.mounted) {
-                      Navigator.pop(sheetContext);
-                    }
-                  },
+                  ],
                 ),
               ),
+              const Divider(),
+              // Option: Send to Public Channel
+              ListTile(
+                leading: const Icon(Icons.public, color: Colors.blue),
+                title: Text(AppLocalizations.of(context)!.publicChannel),
+                subtitle: Text(AppLocalizations.of(context)!.broadcastToAll),
+                onTap: () async {
+                  debugPrint('📤 [DrawingToolbar] Public Channel tapped');
+                  // Share BEFORE popping the navigator
+                  await _shareDrawingsToChannel(
+                    sheetContext,
+                    localDrawings,
+                    connectionProvider,
+                    senderName,
+                  );
+                  if (sheetContext.mounted) {
+                    Navigator.pop(sheetContext);
+                  }
+                },
+              ),
+              // Option: Send to Room
+              if (rooms.isNotEmpty) ...[
+                ...rooms.map(
+                  (room) => ListTile(
+                    leading: const Icon(Icons.meeting_room, color: Colors.green),
+                    title: Text(room.advName),
+                    subtitle: Text(
+                      AppLocalizations.of(context)!.storedPermanently,
+                    ),
+                    onTap: () async {
+                      debugPrint(
+                        '📤 [DrawingToolbar] Room ${room.advName} tapped',
+                      );
+                      // Share BEFORE popping the navigator
+                      await _shareDrawingsToRoom(
+                        sheetContext,
+                        localDrawings,
+                        connectionProvider,
+                        senderName,
+                        room,
+                      );
+                      if (sheetContext.mounted) {
+                        Navigator.pop(sheetContext);
+                      }
+                    },
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
