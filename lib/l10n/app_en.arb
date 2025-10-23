@@ -649,6 +649,73 @@
     "description": "Action to clear all local drawings"
   },
 
+  "completeLine": "Complete Line",
+  "@completeLine": {
+    "description": "Tooltip to complete drawing a line"
+  },
+
+  "broadcastDrawingsToTeam": "Broadcast {count} drawing{plural} to team",
+  "@broadcastDrawingsToTeam": {
+    "description": "Subtitle showing how many drawings will be broadcast",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "removeAllDrawings": "Remove all {count} drawing{plural}",
+  "@removeAllDrawings": {
+    "description": "Subtitle for remove all drawings action",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "deleteAllDrawingsConfirm": "Delete all {count} drawing{plural} from the map?",
+  "@deleteAllDrawingsConfirm": {
+    "description": "Confirmation dialog message for deleting all drawings",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "drawing": "Drawing",
+  "@drawing": {
+    "description": "Generic drawing label"
+  },
+
+  "shareDrawingsCount": "Share {count} Drawing{plural}",
+  "@shareDrawingsCount": {
+    "description": "Title for share drawings dialog",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "sentDrawingsToRoom": "Sent {count} map drawing{plural} to {roomName}",
+  "@sentDrawingsToRoom": {
+    "description": "System message when drawings are sent to room",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"},
+      "roomName": {"type": "String"}
+    }
+  },
+
+  "sharedDrawingsToRoom": "Shared {success}/{total} drawing{plural} to {roomName}",
+  "@sharedDrawingsToRoom": {
+    "description": "Snackbar message showing drawings shared to room",
+    "placeholders": {
+      "success": {"type": "int"},
+      "total": {"type": "int"},
+      "plural": {"type": "String"},
+      "roomName": {"type": "String"}
+    }
+  },
+
   "showReceivedDrawings": "Show Received Drawings",
   "@showReceivedDrawings": {
     "description": "Toggle to show/hide received drawings from other team members"

@@ -227,6 +227,22 @@
 
   "clearAllDrawings": "Počisti vse risbe",
 
+  "completeLine": "Dokonč črto",
+
+  "broadcastDrawingsToTeam": "Oddaj {count} risb{plural} ekipi",
+
+  "removeAllDrawings": "Odstrani vseh {count} risb{plural}",
+
+  "deleteAllDrawingsConfirm": "Izbriši vseh {count} risb{plural} z zemljevida?",
+
+  "drawing": "Risanje",
+
+  "shareDrawingsCount": "Deli {count} risb{plural}",
+
+  "sentDrawingsToRoom": "Poslanih {count} risb{plural} karte v {roomName}",
+
+  "sharedDrawingsToRoom": "Deljeno {success}/{total} risb{plural} v {roomName}",
+
   "showReceivedDrawings": "Prikaži prejete risbe",
 
   "showingAllDrawings": "Prikazujem vse risbe",

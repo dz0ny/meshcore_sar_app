@@ -396,6 +396,47 @@ class AppLocalizationsFr extends AppLocalizations {
   String get clearAllDrawings => 'Effacer tous les dessins';
 
   @override
+  String get completeLine => 'Terminer la ligne';
+
+  @override
+  String broadcastDrawingsToTeam(int count, String plural) {
+    return 'Diffuser $count dessin$plural à l\'équipe';
+  }
+
+  @override
+  String removeAllDrawings(int count, String plural) {
+    return 'Supprimer tous les $count dessin$plural';
+  }
+
+  @override
+  String deleteAllDrawingsConfirm(int count, String plural) {
+    return 'Supprimer tous les $count dessin$plural de la carte ?';
+  }
+
+  @override
+  String get drawing => 'Dessin';
+
+  @override
+  String shareDrawingsCount(int count, String plural) {
+    return 'Partager $count dessin$plural';
+  }
+
+  @override
+  String sentDrawingsToRoom(int count, String plural, String roomName) {
+    return '$count dessin$plural de carte envoyé$plural à $roomName';
+  }
+
+  @override
+  String sharedDrawingsToRoom(
+    int success,
+    int total,
+    String plural,
+    String roomName,
+  ) {
+    return '$success/$total dessin$plural partagé$plural avec $roomName';
+  }
+
+  @override
   String get showReceivedDrawings => 'Afficher les dessins reçus';
 
   @override

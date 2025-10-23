@@ -649,6 +649,73 @@
     "description": "Azione per cancellare tutti i disegni locali"
   },
 
+  "completeLine": "Completa Linea",
+  "@completeLine": {
+    "description": "Tooltip per completare il disegno di una linea"
+  },
+
+  "broadcastDrawingsToTeam": "Trasmetti {count} disegno{plural} alla squadra",
+  "@broadcastDrawingsToTeam": {
+    "description": "Sottotitolo che mostra quanti disegni verranno trasmessi",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "removeAllDrawings": "Rimuovi tutti i {count} disegno{plural}",
+  "@removeAllDrawings": {
+    "description": "Sottotitolo per l'azione di rimozione di tutti i disegni",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "deleteAllDrawingsConfirm": "Eliminare tutti i {count} disegno{plural} dalla mappa?",
+  "@deleteAllDrawingsConfirm": {
+    "description": "Messaggio di conferma per eliminare tutti i disegni",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "drawing": "Disegno",
+  "@drawing": {
+    "description": "Etichetta generica per disegno"
+  },
+
+  "shareDrawingsCount": "Condividi {count} disegno{plural}",
+  "@shareDrawingsCount": {
+    "description": "Titolo per il dialogo di condivisione disegni",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "sentDrawingsToRoom": "Inviati {count} disegno{plural} mappa a {roomName}",
+  "@sentDrawingsToRoom": {
+    "description": "Messaggio di sistema quando i disegni vengono inviati a una stanza",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"},
+      "roomName": {"type": "String"}
+    }
+  },
+
+  "sharedDrawingsToRoom": "Condivisi {success}/{total} disegno{plural} con {roomName}",
+  "@sharedDrawingsToRoom": {
+    "description": "Messaggio snackbar che mostra i disegni condivisi con la stanza",
+    "placeholders": {
+      "success": {"type": "int"},
+      "total": {"type": "int"},
+      "plural": {"type": "String"},
+      "roomName": {"type": "String"}
+    }
+  },
+
   "showReceivedDrawings": "Mostra Disegni Ricevuti",
   "@showReceivedDrawings": {
     "description": "Interruttore per mostrare/nascondere i disegni ricevuti da altri membri del team"

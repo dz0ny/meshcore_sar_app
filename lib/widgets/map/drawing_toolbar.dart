@@ -130,7 +130,7 @@ class DrawingToolbar extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.check),
                       onPressed: () => drawingProvider.completeLine(),
-                      tooltip: 'Complete Line',
+                      tooltip: AppLocalizations.of(context)!.completeLine,
                       color: Colors.green,
                       iconSize: 20,
                       padding: const EdgeInsets.all(4),
@@ -142,7 +142,7 @@ class DrawingToolbar extends StatelessWidget {
                       icon: const Icon(Icons.delete_sweep),
                       onPressed: () =>
                           _showClearAllDialog(context, drawingProvider),
-                      tooltip: 'Clear All',
+                      tooltip: AppLocalizations.of(context)!.clearAll,
                       color: Colors.red,
                       iconSize: 20,
                       padding: const EdgeInsets.all(4),
@@ -244,7 +244,10 @@ class DrawingToolbar extends StatelessWidget {
                   leading: const Icon(Icons.share, color: Colors.blue),
                   title: Text(AppLocalizations.of(context)!.shareDrawings),
                   subtitle: Text(
-                    'Broadcast ${drawingProvider.drawings.length} drawings to team',
+                    AppLocalizations.of(context)!.broadcastDrawingsToTeam(
+                      drawingProvider.drawings.length,
+                      drawingProvider.drawings.length > 1 ? 's' : '',
+                    ),
                   ),
                   onTap: () async {
                     Navigator.pop(context);
@@ -260,7 +263,10 @@ class DrawingToolbar extends StatelessWidget {
                   leading: const Icon(Icons.delete_sweep, color: Colors.red),
                   title: Text(AppLocalizations.of(context)!.clearAllDrawings),
                   subtitle: Text(
-                    'Remove all ${drawingProvider.drawings.length} drawings',
+                    AppLocalizations.of(context)!.removeAllDrawings(
+                      drawingProvider.drawings.length,
+                      drawingProvider.drawings.length > 1 ? 's' : '',
+                    ),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -285,7 +291,10 @@ class DrawingToolbar extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.clearAllDrawings),
         content: Text(
-          'Delete all ${drawingProvider.drawings.length} drawings from the map?',
+          AppLocalizations.of(context)!.deleteAllDrawingsConfirm(
+            drawingProvider.drawings.length,
+            drawingProvider.drawings.length > 1 ? 's' : '',
+          ),
         ),
         actions: [
           TextButton(
@@ -325,7 +334,7 @@ class DrawingToolbar extends StatelessWidget {
       case DrawingMode.rectangle:
         return AppLocalizations.of(context)!.drawRectangle;
       case DrawingMode.none:
-        return 'Drawing';
+        return AppLocalizations.of(context)!.drawing;
     }
   }
 
@@ -419,7 +428,10 @@ class DrawingToolbar extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Share ${localDrawings.length} Drawing${localDrawings.length > 1 ? 's' : ''}',
+                        AppLocalizations.of(context)!.shareDrawingsCount(
+                          localDrawings.length,
+                          localDrawings.length > 1 ? 's' : '',
+                        ),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -624,16 +636,26 @@ class DrawingToolbar extends StatelessWidget {
       context,
       listen: false,
     );
+    final l10nRoom = AppLocalizations.of(context)!;
     messagesProvider.logSystemMessage(
       text:
-          '📤 Sent ${drawings.length} map drawing${drawings.length > 1 ? 's' : ''} to ${room.advName}',
+          '📤 ${l10nRoom.sentDrawingsToRoom(
+            drawings.length,
+            drawings.length > 1 ? 's' : '',
+            room.advName,
+          )}',
       level: 'info',
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Shared $successCount/${drawings.length} drawings to ${room.advName}',
+          l10nRoom.sharedDrawingsToRoom(
+            successCount,
+            drawings.length,
+            drawings.length > 1 ? 's' : '',
+            room.advName,
+          ),
         ),
         backgroundColor: successCount == drawings.length
             ? Colors.green

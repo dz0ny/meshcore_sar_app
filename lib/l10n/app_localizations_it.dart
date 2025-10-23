@@ -395,6 +395,47 @@ class AppLocalizationsIt extends AppLocalizations {
   String get clearAllDrawings => 'Cancella Tutti i Disegni';
 
   @override
+  String get completeLine => 'Completa Linea';
+
+  @override
+  String broadcastDrawingsToTeam(int count, String plural) {
+    return 'Trasmetti $count disegno$plural alla squadra';
+  }
+
+  @override
+  String removeAllDrawings(int count, String plural) {
+    return 'Rimuovi tutti i $count disegno$plural';
+  }
+
+  @override
+  String deleteAllDrawingsConfirm(int count, String plural) {
+    return 'Eliminare tutti i $count disegno$plural dalla mappa?';
+  }
+
+  @override
+  String get drawing => 'Disegno';
+
+  @override
+  String shareDrawingsCount(int count, String plural) {
+    return 'Condividi $count disegno$plural';
+  }
+
+  @override
+  String sentDrawingsToRoom(int count, String plural, String roomName) {
+    return 'Inviati $count disegno$plural mappa a $roomName';
+  }
+
+  @override
+  String sharedDrawingsToRoom(
+    int success,
+    int total,
+    String plural,
+    String roomName,
+  ) {
+    return 'Condivisi $success/$total disegno$plural con $roomName';
+  }
+
+  @override
   String get showReceivedDrawings => 'Mostra Disegni Ricevuti';
 
   @override

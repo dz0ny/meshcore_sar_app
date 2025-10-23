@@ -649,6 +649,73 @@
     "description": "Action pour effacer tous les dessins locaux"
   },
 
+  "completeLine": "Terminer la ligne",
+  "@completeLine": {
+    "description": "Tooltip pour terminer le tracé d'une ligne"
+  },
+
+  "broadcastDrawingsToTeam": "Diffuser {count} dessin{plural} à l'équipe",
+  "@broadcastDrawingsToTeam": {
+    "description": "Sous-titre indiquant combien de dessins seront diffusés",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "removeAllDrawings": "Supprimer tous les {count} dessin{plural}",
+  "@removeAllDrawings": {
+    "description": "Sous-titre pour l'action de suppression de tous les dessins",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "deleteAllDrawingsConfirm": "Supprimer tous les {count} dessin{plural} de la carte ?",
+  "@deleteAllDrawingsConfirm": {
+    "description": "Message de confirmation pour supprimer tous les dessins",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "drawing": "Dessin",
+  "@drawing": {
+    "description": "Étiquette de dessin générique"
+  },
+
+  "shareDrawingsCount": "Partager {count} dessin{plural}",
+  "@shareDrawingsCount": {
+    "description": "Titre pour le dialogue de partage de dessins",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "sentDrawingsToRoom": "{count} dessin{plural} de carte envoyé{plural} à {roomName}",
+  "@sentDrawingsToRoom": {
+    "description": "Message système lorsque des dessins sont envoyés à une salle",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"},
+      "roomName": {"type": "String"}
+    }
+  },
+
+  "sharedDrawingsToRoom": "{success}/{total} dessin{plural} partagé{plural} avec {roomName}",
+  "@sharedDrawingsToRoom": {
+    "description": "Message snackbar montrant les dessins partagés avec la salle",
+    "placeholders": {
+      "success": {"type": "int"},
+      "total": {"type": "int"},
+      "plural": {"type": "String"},
+      "roomName": {"type": "String"}
+    }
+  },
+
   "showReceivedDrawings": "Afficher les dessins reçus",
   "@showReceivedDrawings": {
     "description": "Basculer pour afficher/masquer les dessins reçus des autres membres de l'équipe"

@@ -227,6 +227,22 @@
 
   "clearAllDrawings": "Očisti sve crteže",
 
+  "completeLine": "Završi liniju",
+
+  "broadcastDrawingsToTeam": "Objavi {count} crtež{plural} timu",
+
+  "removeAllDrawings": "Ukloni svih {count} crtež{plural}",
+
+  "deleteAllDrawingsConfirm": "Izbrisati sve {count} crtež{plural} s karte?",
+
+  "drawing": "Crtanje",
+
+  "shareDrawingsCount": "Podijeli {count} crtež{plural}",
+
+  "sentDrawingsToRoom": "Poslano {count} crtež{plural} karte u {roomName}",
+
+  "sharedDrawingsToRoom": "Podijeljeno {success}/{total} crtež{plural} u {roomName}",
+
   "showReceivedDrawings": "Prikaži primljene crteže",
 
   "showingAllDrawings": "Prikazujem sve crteže",

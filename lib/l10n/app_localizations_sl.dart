@@ -393,6 +393,47 @@ class AppLocalizationsSl extends AppLocalizations {
   String get clearAllDrawings => 'Počisti vse risbe';
 
   @override
+  String get completeLine => 'Dokonč črto';
+
+  @override
+  String broadcastDrawingsToTeam(int count, String plural) {
+    return 'Oddaj $count risb$plural ekipi';
+  }
+
+  @override
+  String removeAllDrawings(int count, String plural) {
+    return 'Odstrani vseh $count risb$plural';
+  }
+
+  @override
+  String deleteAllDrawingsConfirm(int count, String plural) {
+    return 'Izbriši vseh $count risb$plural z zemljevida?';
+  }
+
+  @override
+  String get drawing => 'Risanje';
+
+  @override
+  String shareDrawingsCount(int count, String plural) {
+    return 'Deli $count risb$plural';
+  }
+
+  @override
+  String sentDrawingsToRoom(int count, String plural, String roomName) {
+    return 'Poslanih $count risb$plural karte v $roomName';
+  }
+
+  @override
+  String sharedDrawingsToRoom(
+    int success,
+    int total,
+    String plural,
+    String roomName,
+  ) {
+    return 'Deljeno $success/$total risb$plural v $roomName';
+  }
+
+  @override
   String get showReceivedDrawings => 'Prikaži prejete risbe';
 
   @override

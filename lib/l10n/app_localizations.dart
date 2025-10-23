@@ -791,6 +791,59 @@ abstract class AppLocalizations {
   /// **'Clear All Drawings'**
   String get clearAllDrawings;
 
+  /// Tooltip to complete drawing a line
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Line'**
+  String get completeLine;
+
+  /// Subtitle showing how many drawings will be broadcast
+  ///
+  /// In en, this message translates to:
+  /// **'Broadcast {count} drawing{plural} to team'**
+  String broadcastDrawingsToTeam(int count, String plural);
+
+  /// Subtitle for remove all drawings action
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all {count} drawing{plural}'**
+  String removeAllDrawings(int count, String plural);
+
+  /// Confirmation dialog message for deleting all drawings
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all {count} drawing{plural} from the map?'**
+  String deleteAllDrawingsConfirm(int count, String plural);
+
+  /// Generic drawing label
+  ///
+  /// In en, this message translates to:
+  /// **'Drawing'**
+  String get drawing;
+
+  /// Title for share drawings dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Share {count} Drawing{plural}'**
+  String shareDrawingsCount(int count, String plural);
+
+  /// System message when drawings are sent to room
+  ///
+  /// In en, this message translates to:
+  /// **'Sent {count} map drawing{plural} to {roomName}'**
+  String sentDrawingsToRoom(int count, String plural, String roomName);
+
+  /// Snackbar message showing drawings shared to room
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {success}/{total} drawing{plural} to {roomName}'**
+  String sharedDrawingsToRoom(
+    int success,
+    int total,
+    String plural,
+    String roomName,
+  );
+
   /// Toggle to show/hide received drawings from other team members
   ///
   /// In en, this message translates to:

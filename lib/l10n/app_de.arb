@@ -649,6 +649,73 @@
     "description": "Aktion zum Löschen aller lokalen Zeichnungen"
   },
 
+  "completeLine": "Linie fertigstellen",
+  "@completeLine": {
+    "description": "Tooltip zum Abschließen einer Linie"
+  },
+
+  "broadcastDrawingsToTeam": "{count} Zeichnung{plural} an Team senden",
+  "@broadcastDrawingsToTeam": {
+    "description": "Untertitel zeigt, wie viele Zeichnungen gesendet werden",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "removeAllDrawings": "Alle {count} Zeichnung{plural} entfernen",
+  "@removeAllDrawings": {
+    "description": "Untertitel für Aktion alle Zeichnungen entfernen",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "deleteAllDrawingsConfirm": "Alle {count} Zeichnung{plural} von der Karte löschen?",
+  "@deleteAllDrawingsConfirm": {
+    "description": "Bestätigungsdialog zum Löschen aller Zeichnungen",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "drawing": "Zeichnung",
+  "@drawing": {
+    "description": "Allgemeine Zeichnungsbezeichnung"
+  },
+
+  "shareDrawingsCount": "{count} Zeichnung{plural} teilen",
+  "@shareDrawingsCount": {
+    "description": "Titel für Dialog Zeichnungen teilen",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"}
+    }
+  },
+
+  "sentDrawingsToRoom": "{count} Kartenzeichnung{plural} an {roomName} gesendet",
+  "@sentDrawingsToRoom": {
+    "description": "Systemmeldung wenn Zeichnungen an Raum gesendet wurden",
+    "placeholders": {
+      "count": {"type": "int"},
+      "plural": {"type": "String"},
+      "roomName": {"type": "String"}
+    }
+  },
+
+  "sharedDrawingsToRoom": "{success}/{total} Zeichnung{plural} mit {roomName} geteilt",
+  "@sharedDrawingsToRoom": {
+    "description": "Snackbar-Meldung für geteilte Zeichnungen an Raum",
+    "placeholders": {
+      "success": {"type": "int"},
+      "total": {"type": "int"},
+      "plural": {"type": "String"},
+      "roomName": {"type": "String"}
+    }
+  },
+
   "showReceivedDrawings": "Empfangene Zeichnungen anzeigen",
   "@showReceivedDrawings": {
     "description": "Umschalter zum Ein-/Ausblenden empfangener Zeichnungen von anderen Teammitgliedern"
