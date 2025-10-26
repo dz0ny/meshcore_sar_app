@@ -11,13 +11,16 @@ import '../providers/drawing_provider.dart';
 import '../models/message.dart';
 import '../models/contact.dart';
 import '../models/sar_marker.dart';
+import '../models/sar_template.dart';
 import '../models/map_drawing.dart';
 import '../widgets/messages/sar_update_sheet.dart';
 import '../widgets/messages/recipient_selector_sheet.dart';
 import '../widgets/contacts/direct_message_sheet.dart';
 import '../widgets/drawing_minimap_preview.dart';
 import '../services/message_destination_preferences.dart';
+import '../services/sar_template_service.dart';
 import '../utils/toast_logger.dart';
+import '../utils/sar_message_parser.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/message_extensions.dart';
 
@@ -966,6 +969,35 @@ class _MessageBubble extends StatelessWidget {
                 );
               },
             ),
+            // Save as Template option (only for SAR markers without existing template)
+            if (message.isSarMarker)
+              Builder(
+                builder: (context) {
+                  // Extract emoji from SAR message
+                  final sarInfo = SarMessageParser.parse(message.text);
+                  if (sarInfo == null || sarInfo.emoji.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  // Check if template with this emoji already exists
+                  final sarTemplateService = SarTemplateService();
+                  final templateExists = sarTemplateService.templates
+                      .any((t) => t.emoji == sarInfo.emoji);
+
+                  if (templateExists) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return ListTile(
+                    leading: const Icon(Icons.bookmark_add),
+                    title: Text(AppLocalizations.of(context)!.saveAsTemplate),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _saveAsTemplate(context);
+                    },
+                  );
+                },
+              ),
             // Share location option (only for SAR markers with GPS coordinates)
             if (message.isSarMarker && message.sarGpsCoordinates != null)
               ListTile(
@@ -1213,6 +1245,48 @@ class _MessageBubble extends StatelessWidget {
     SharePlus.instance.share(
       ShareParams(text: shareText, subject: l10n.sarLocationShare),
     );
+  }
+
+  Future<void> _saveAsTemplate(BuildContext context) async {
+    if (!message.isSarMarker) {
+      ToastLogger.error(context, 'Not a SAR marker');
+      return;
+    }
+
+    try {
+      // Parse the SAR message to create a template
+      final template = SarTemplate.fromSarMessage(message.text);
+
+      // Get SAR template service
+      final sarTemplateService = SarTemplateService();
+
+      // Check if template with this emoji already exists
+      final existingTemplates = sarTemplateService.templates
+          .where((t) => t.emoji == template.emoji)
+          .toList();
+
+      if (existingTemplates.isNotEmpty) {
+        if (!context.mounted) return;
+        ToastLogger.warning(
+          context,
+          AppLocalizations.of(context)!.templateAlreadyExists,
+        );
+        return;
+      }
+
+      // Save the template
+      await sarTemplateService.addTemplate(template);
+
+      if (!context.mounted) return;
+      ToastLogger.success(
+        context,
+        AppLocalizations.of(context)!.templateSaved,
+      );
+    } catch (e) {
+      debugPrint('Error saving template: $e');
+      if (!context.mounted) return;
+      ToastLogger.error(context, 'Failed to save template: $e');
+    }
   }
 
   @override

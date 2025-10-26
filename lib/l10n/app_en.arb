@@ -1830,6 +1830,21 @@
     "description": "Success message when text is copied"
   },
 
+  "saveAsTemplate": "Save as Template",
+  "@saveAsTemplate": {
+    "description": "Option to save SAR message as a reusable template"
+  },
+
+  "templateSaved": "Template saved successfully",
+  "@templateSaved": {
+    "description": "Success message when SAR template is saved"
+  },
+
+  "templateAlreadyExists": "Template with this emoji already exists",
+  "@templateAlreadyExists": {
+    "description": "Error message when trying to save duplicate template"
+  },
+
   "deleteMessage": "Delete message",
   "@deleteMessage": {
     "description": "Dialog title for deleting a message"

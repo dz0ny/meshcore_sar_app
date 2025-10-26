@@ -1079,6 +1079,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get copyText => 'Text kopieren';
 
   @override
+  String get saveAsTemplate => 'Save as Template';
+
+  @override
+  String get templateSaved => 'Template saved successfully';
+
+  @override
+  String get templateAlreadyExists => 'Template with this emoji already exists';
+
+  @override
   String get deleteMessage => 'Nachricht löschen';
 
   @override

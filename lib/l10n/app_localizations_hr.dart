@@ -1071,6 +1071,15 @@ class AppLocalizationsHr extends AppLocalizations {
   String get copyText => 'Kopiraj tekst';
 
   @override
+  String get saveAsTemplate => 'Spremi kao predložak';
+
+  @override
+  String get templateSaved => 'Predložak uspješno spremljen';
+
+  @override
+  String get templateAlreadyExists => 'Predložak s ovim emojijem već postoji';
+
+  @override
   String get deleteMessage => 'Izbriši poruku';
 
   @override

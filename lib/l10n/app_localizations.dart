@@ -1954,6 +1954,24 @@ abstract class AppLocalizations {
   /// **'Copy text'**
   String get copyText;
 
+  /// Option to save SAR message as a reusable template
+  ///
+  /// In en, this message translates to:
+  /// **'Save as Template'**
+  String get saveAsTemplate;
+
+  /// Success message when SAR template is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Template saved successfully'**
+  String get templateSaved;
+
+  /// Error message when trying to save duplicate template
+  ///
+  /// In en, this message translates to:
+  /// **'Template with this emoji already exists'**
+  String get templateAlreadyExists;
+
   /// Dialog title for deleting a message
   ///
   /// In en, this message translates to:
