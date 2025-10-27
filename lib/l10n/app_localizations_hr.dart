@@ -393,6 +393,29 @@ class AppLocalizationsHr extends AppLocalizations {
   String get drawRectangleDesc => 'Nacrtaj pravokutno područje na karti';
 
   @override
+  String get measureDistance => 'Izmjeri udaljenost';
+
+  @override
+  String get measureDistanceDesc => 'Dugi pritisak na dvije točke za mjerenje';
+
+  @override
+  String get clearMeasurement => 'Očisti mjerenje';
+
+  @override
+  String distanceLabel(String distance) {
+    return 'Udaljenost: $distance';
+  }
+
+  @override
+  String get longPressForSecondPoint => 'Dugi pritisak za drugu točku';
+
+  @override
+  String get longPressToStartMeasurement => 'Dugi pritisak za prvu točku';
+
+  @override
+  String get longPressToStartNewMeasurement => 'Dugi pritisak za novo mjerenje';
+
+  @override
   String get shareDrawings => 'Podijeli crteže';
 
   @override
@@ -1874,4 +1897,19 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get updateLater => 'Kasnije';
+
+  @override
+  String get cadastralParcels => 'Katastarske čestice';
+
+  @override
+  String get forestRoads => 'Šumske ceste';
+
+  @override
+  String get showCadastralParcels => 'Prikaži katastarske čestice';
+
+  @override
+  String get showForestRoads => 'Prikaži šumske ceste';
+
+  @override
+  String get wmsOverlays => 'WMS Prekrivanja';
 }

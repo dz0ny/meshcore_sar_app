@@ -6,7 +6,7 @@ import '../models/map_drawing.dart';
 import '../utils/drawing_message_parser.dart';
 
 /// Drawing mode state
-enum DrawingMode { none, line, rectangle }
+enum DrawingMode { none, line, rectangle, measure }
 
 /// Provider for managing map drawings
 class DrawingProvider with ChangeNotifier {
@@ -25,6 +25,11 @@ class DrawingProvider with ChangeNotifier {
   MapDrawing? _currentDrawing;
   List<LatLng> _currentLinePoints = [];
   LatLng? _rectangleStartPoint;
+
+  // Distance measurement state
+  LatLng? _measurementPoint1;
+  LatLng? _measurementPoint2;
+  double? _measuredDistance; // in meters
 
   // Getters
   DrawingMode get drawingMode => _drawingMode;
@@ -46,6 +51,9 @@ class DrawingProvider with ChangeNotifier {
   List<LatLng> get currentLinePoints => List.unmodifiable(_currentLinePoints);
   LatLng? get rectangleStartPoint => _rectangleStartPoint;
   bool get isDrawing => _drawingMode != DrawingMode.none;
+  LatLng? get measurementPoint1 => _measurementPoint1;
+  LatLng? get measurementPoint2 => _measurementPoint2;
+  double? get measuredDistance => _measuredDistance;
 
   /// Initialize and load saved drawings
   Future<void> initialize() async {
@@ -126,8 +134,9 @@ class DrawingProvider with ChangeNotifier {
 
   /// Update rectangle end point (for preview)
   void updateRectangleEndPoint(LatLng endPoint) {
-    if (_drawingMode != DrawingMode.rectangle || _rectangleStartPoint == null)
+    if (_drawingMode != DrawingMode.rectangle || _rectangleStartPoint == null) {
       return;
+    }
 
     // Create preview rectangle
     _currentDrawing = RectangleDrawing(
@@ -195,11 +204,47 @@ class DrawingProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Set first measurement point
+  void setMeasurementPoint1(LatLng point) {
+    if (_drawingMode != DrawingMode.measure) return;
+
+    _measurementPoint1 = point;
+    _measurementPoint2 = null;
+    _measuredDistance = null;
+    notifyListeners();
+  }
+
+  /// Set second measurement point and calculate distance
+  void setMeasurementPoint2(LatLng point) {
+    if (_drawingMode != DrawingMode.measure || _measurementPoint1 == null) return;
+
+    _measurementPoint2 = point;
+    _measuredDistance = _calculateDistance(_measurementPoint1!, point);
+    notifyListeners();
+  }
+
+  /// Calculate distance between two points using Haversine formula
+  double _calculateDistance(LatLng point1, LatLng point2) {
+    const Distance distance = Distance();
+    return distance.as(LengthUnit.Meter, point1, point2);
+  }
+
+  /// Clear measurement points
+  void clearMeasurement() {
+    _measurementPoint1 = null;
+    _measurementPoint2 = null;
+    _measuredDistance = null;
+    notifyListeners();
+  }
+
   /// Cancel current drawing in progress
   void _cancelCurrentDrawing() {
     _currentLinePoints = [];
     _rectangleStartPoint = null;
     _currentDrawing = null;
+    _measurementPoint1 = null;
+    _measurementPoint2 = null;
+    _measuredDistance = null;
   }
 
   /// Clear current drawing (public method)

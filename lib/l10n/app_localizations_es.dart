@@ -394,6 +394,33 @@ class AppLocalizationsEs extends AppLocalizations {
   String get drawRectangleDesc => 'Dibujar un área rectangular en el mapa';
 
   @override
+  String get measureDistance => 'Medir distancia';
+
+  @override
+  String get measureDistanceDesc =>
+      'Presión prolongada en dos puntos para medir';
+
+  @override
+  String get clearMeasurement => 'Borrar medición';
+
+  @override
+  String distanceLabel(String distance) {
+    return 'Distancia: $distance';
+  }
+
+  @override
+  String get longPressForSecondPoint =>
+      'Presión prolongada para el segundo punto';
+
+  @override
+  String get longPressToStartMeasurement =>
+      'Presión prolongada para establecer el primer punto';
+
+  @override
+  String get longPressToStartNewMeasurement =>
+      'Presión prolongada para nueva medición';
+
+  @override
   String get shareDrawings => 'Compartir dibujos';
 
   @override
@@ -1886,4 +1913,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get updateLater => 'Más Tarde';
+
+  @override
+  String get cadastralParcels => 'Parcelas Catastrales';
+
+  @override
+  String get forestRoads => 'Caminos Forestales';
+
+  @override
+  String get showCadastralParcels => 'Mostrar parcelas catastrales';
+
+  @override
+  String get showForestRoads => 'Mostrar caminos forestales';
+
+  @override
+  String get wmsOverlays => 'Superposiciones WMS';
 }

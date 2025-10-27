@@ -57,6 +57,26 @@ class TileCacheService {
     );
   }
 
+  /// Get tile provider for WMS layers with caching support
+  /// WMS layers require special handling because they use WMSTileLayerOptions
+  FMTCTileProvider getTileProviderForWms(MapLayer layer) {
+    if (!_isInitialized) {
+      throw StateError(
+        'TileCacheService not initialized. Call initialize() first.',
+      );
+    }
+    if (!layer.isWms) {
+      throw ArgumentError('Layer must be a WMS layer');
+    }
+
+    // Return the same cached tile provider
+    // The WMS URL construction is handled by flutter_map's WMSTileLayerOptions
+    return _store.getTileProvider(
+      loadingStrategy: BrowseLoadingStrategy.cacheFirst,
+      cachedValidDuration: const Duration(days: 30),
+    );
+  }
+
   Future<void> downloadRegion({
     required MapLayer layer,
     required LatLngBounds bounds,

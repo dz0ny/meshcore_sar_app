@@ -127,6 +127,18 @@ class DrawingToolbar extends StatelessWidget {
                       padding: const EdgeInsets.all(4),
                       constraints: const BoxConstraints(),
                     ),
+                  // Clear measurement
+                  if (drawingProvider.drawingMode == DrawingMode.measure &&
+                      drawingProvider.measurementPoint1 != null)
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => drawingProvider.clearMeasurement(),
+                      tooltip: AppLocalizations.of(context)!.clearMeasurement,
+                      color: Colors.orange,
+                      iconSize: 20,
+                      padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(),
+                    ),
                   // Complete line drawing
                   if (drawingProvider.drawingMode == DrawingMode.line &&
                       drawingProvider.currentLinePoints.length >= 2)
@@ -205,6 +217,15 @@ class DrawingToolbar extends StatelessWidget {
                 onTap: () {
                   Navigator.pop(sheetContext);
                   drawingProvider.setDrawingMode(DrawingMode.rectangle);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.straighten),
+                title: Text(AppLocalizations.of(sheetContext)!.measureDistance),
+                subtitle: Text(AppLocalizations.of(sheetContext)!.measureDistanceDesc),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  drawingProvider.setDrawingMode(DrawingMode.measure);
                 },
               ),
               const Divider(),
@@ -465,6 +486,8 @@ class DrawingToolbar extends StatelessWidget {
         return Icons.show_chart;
       case DrawingMode.rectangle:
         return Icons.crop_square;
+      case DrawingMode.measure:
+        return Icons.straighten;
       case DrawingMode.none:
         return Icons.edit;
     }
@@ -477,6 +500,8 @@ class DrawingToolbar extends StatelessWidget {
         return AppLocalizations.of(context)!.drawLine;
       case DrawingMode.rectangle:
         return AppLocalizations.of(context)!.drawRectangle;
+      case DrawingMode.measure:
+        return AppLocalizations.of(context)!.measureDistance;
       case DrawingMode.none:
         return AppLocalizations.of(context)!.drawing;
     }
@@ -489,6 +514,8 @@ class DrawingToolbar extends StatelessWidget {
         return 'Tap map to add points\nTap ✓ to finish';
       case DrawingMode.rectangle:
         return 'Tap start point, then end point';
+      case DrawingMode.measure:
+        return 'Long press two points to measure';
       case DrawingMode.none:
         return '';
     }

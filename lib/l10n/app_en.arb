@@ -649,6 +649,44 @@
     "description": "Description for rectangle drawing mode"
   },
 
+  "measureDistance": "Measure Distance",
+  "@measureDistance": {
+    "description": "Map drawing mode: measure distance"
+  },
+
+  "measureDistanceDesc": "Long press two points to measure",
+  "@measureDistanceDesc": {
+    "description": "Description for distance measurement mode"
+  },
+
+  "clearMeasurement": "Clear Measurement",
+  "@clearMeasurement": {
+    "description": "Tooltip to clear measurement"
+  },
+
+  "distanceLabel": "Distance: {distance}",
+  "@distanceLabel": {
+    "description": "Label showing measured distance",
+    "placeholders": {
+      "distance": {"type": "String"}
+    }
+  },
+
+  "longPressForSecondPoint": "Long press for second point",
+  "@longPressForSecondPoint": {
+    "description": "Instruction when first measurement point is set"
+  },
+
+  "longPressToStartMeasurement": "Long press to set first point",
+  "@longPressToStartMeasurement": {
+    "description": "Instruction to start measurement"
+  },
+
+  "longPressToStartNewMeasurement": "Long press to start new measurement",
+  "@longPressToStartNewMeasurement": {
+    "description": "Instruction to restart measurement after completion"
+  },
+
   "shareDrawings": "Share Drawings",
   "@shareDrawings": {
     "description": "Action to share drawings to network"
@@ -3163,5 +3201,30 @@
   "updateLater": "Later",
   "@updateLater": {
     "description": "Button to dismiss update dialog"
+  },
+
+  "cadastralParcels": "Cadastral Parcels",
+  "@cadastralParcels": {
+    "description": "Label for cadastral parcels WMS overlay layer"
+  },
+
+  "forestRoads": "Forest Roads",
+  "@forestRoads": {
+    "description": "Label for forest roads WMS overlay layer"
+  },
+
+  "showCadastralParcels": "Show Cadastral Parcels",
+  "@showCadastralParcels": {
+    "description": "Tooltip for cadastral parcels overlay toggle button"
+  },
+
+  "showForestRoads": "Show Forest Roads",
+  "@showForestRoads": {
+    "description": "Tooltip for forest roads overlay toggle button"
+  },
+
+  "wmsOverlays": "WMS Overlays",
+  "@wmsOverlays": {
+    "description": "Section header for WMS overlay layers in layer selector"
   }
 }

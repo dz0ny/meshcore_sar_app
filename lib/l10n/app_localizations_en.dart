@@ -393,6 +393,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawRectangleDesc => 'Draw a rectangular area on the map';
 
   @override
+  String get measureDistance => 'Measure Distance';
+
+  @override
+  String get measureDistanceDesc => 'Long press two points to measure';
+
+  @override
+  String get clearMeasurement => 'Clear Measurement';
+
+  @override
+  String distanceLabel(String distance) {
+    return 'Distance: $distance';
+  }
+
+  @override
+  String get longPressForSecondPoint => 'Long press for second point';
+
+  @override
+  String get longPressToStartMeasurement => 'Long press to set first point';
+
+  @override
+  String get longPressToStartNewMeasurement =>
+      'Long press to start new measurement';
+
+  @override
   String get shareDrawings => 'Share Drawings';
 
   @override
@@ -1864,4 +1888,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateLater => 'Later';
+
+  @override
+  String get cadastralParcels => 'Cadastral Parcels';
+
+  @override
+  String get forestRoads => 'Forest Roads';
+
+  @override
+  String get showCadastralParcels => 'Show Cadastral Parcels';
+
+  @override
+  String get showForestRoads => 'Show Forest Roads';
+
+  @override
+  String get wmsOverlays => 'WMS Overlays';
 }

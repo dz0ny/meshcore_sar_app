@@ -63,6 +63,9 @@ dependencies:
   mbtiles: ^0.4.0
   http: ^1.2.0
 
+  # Coordinate system projections for WMS (EPSG:3794)
+  proj4dart: ^2.1.0
+
   # Permissions
   permission_handler: ^12.0.1
 

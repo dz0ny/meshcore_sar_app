@@ -649,6 +649,44 @@
     "description": "Beschreibung für Rechteckzeichnungsmodus"
   },
 
+  "measureDistance": "Entfernung messen",
+  "@measureDistance": {
+    "description": "Kartenzeichnungsmodus: Entfernung messen"
+  },
+
+  "measureDistanceDesc": "Zwei Punkte lang drücken zum Messen",
+  "@measureDistanceDesc": {
+    "description": "Beschreibung für Entfernungsmessungsmodus"
+  },
+
+  "clearMeasurement": "Messung löschen",
+  "@clearMeasurement": {
+    "description": "Tooltip zum Löschen der Messung"
+  },
+
+  "distanceLabel": "Entfernung: {distance}",
+  "@distanceLabel": {
+    "description": "Beschriftung mit gemessener Entfernung",
+    "placeholders": {
+      "distance": {"type": "String"}
+    }
+  },
+
+  "longPressForSecondPoint": "Langer Druck für zweiten Punkt",
+  "@longPressForSecondPoint": {
+    "description": "Anweisung wenn erster Messpunkt gesetzt ist"
+  },
+
+  "longPressToStartMeasurement": "Langer Druck für ersten Punkt",
+  "@longPressToStartMeasurement": {
+    "description": "Anweisung zum Starten der Messung"
+  },
+
+  "longPressToStartNewMeasurement": "Langer Druck für neue Messung",
+  "@longPressToStartNewMeasurement": {
+    "description": "Anweisung zum Neustarten der Messung nach Abschluss"
+  },
+
   "shareDrawings": "Zeichnungen teilen",
   "@shareDrawings": {
     "description": "Aktion zum Teilen von Zeichnungen im Netzwerk"
@@ -2551,5 +2589,11 @@
   "currentVersion": "Aktuell",
   "latestVersion": "Neueste",
   "downloadUpdate": "Herunterladen",
-  "updateLater": "Später"
+  "updateLater": "Später",
+
+  "cadastralParcels": "Katasterparzellen",
+  "forestRoads": "Waldwege",
+  "showCadastralParcels": "Katasterparzellen anzeigen",
+  "showForestRoads": "Waldwege anzeigen",
+  "wmsOverlays": "WMS Überlagerungen"
 }

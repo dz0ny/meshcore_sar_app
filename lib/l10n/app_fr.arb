@@ -649,6 +649,44 @@
     "description": "Description du mode de dessin de rectangle"
   },
 
+  "measureDistance": "Mesurer la distance",
+  "@measureDistance": {
+    "description": "Mode de dessin de carte : mesurer la distance"
+  },
+
+  "measureDistanceDesc": "Appui long sur deux points pour mesurer",
+  "@measureDistanceDesc": {
+    "description": "Description du mode de mesure de distance"
+  },
+
+  "clearMeasurement": "Effacer la mesure",
+  "@clearMeasurement": {
+    "description": "Infobulle pour effacer la mesure"
+  },
+
+  "distanceLabel": "Distance : {distance}",
+  "@distanceLabel": {
+    "description": "Étiquette affichant la distance mesurée",
+    "placeholders": {
+      "distance": {"type": "String"}
+    }
+  },
+
+  "longPressForSecondPoint": "Appui long pour le deuxième point",
+  "@longPressForSecondPoint": {
+    "description": "Instruction lorsque le premier point de mesure est défini"
+  },
+
+  "longPressToStartMeasurement": "Appui long pour définir le premier point",
+  "@longPressToStartMeasurement": {
+    "description": "Instruction pour commencer la mesure"
+  },
+
+  "longPressToStartNewMeasurement": "Appui long pour nouvelle mesure",
+  "@longPressToStartNewMeasurement": {
+    "description": "Instruction pour redémarrer la mesure après achèvement"
+  },
+
   "shareDrawings": "Partager les dessins",
   "@shareDrawings": {
     "description": "Action pour partager les dessins sur le réseau"
@@ -2551,5 +2589,11 @@
   "currentVersion": "Actuelle",
   "latestVersion": "Dernière",
   "downloadUpdate": "Télécharger",
-  "updateLater": "Plus Tard"
+  "updateLater": "Plus Tard",
+
+  "cadastralParcels": "Parcelles Cadastrales",
+  "forestRoads": "Chemins Forestiers",
+  "showCadastralParcels": "Afficher les parcelles cadastrales",
+  "showForestRoads": "Afficher les chemins forestiers",
+  "wmsOverlays": "Superpositions WMS"
 }

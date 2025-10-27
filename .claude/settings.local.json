@@ -36,7 +36,12 @@
       "Bash(git log:*)",
       "WebFetch(domain:meshcore-sar.dz0ny.dev)",
       "Bash(flutter pub get:*)",
-      "Read(//Users/dz0ny/meshcore-sar/**)"
+      "Read(//Users/dz0ny/meshcore-sar/**)",
+      "WebFetch(domain:docs.fleaflet.dev)",
+      "WebFetch(domain:github.com)",
+      "Bash(find:*)",
+      "WebFetch(domain:prostor.zgs.gov.si)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

@@ -396,6 +396,29 @@ class AppLocalizationsDe extends AppLocalizations {
   String get drawRectangleDesc => 'Rechteckigen Bereich auf der Karte zeichnen';
 
   @override
+  String get measureDistance => 'Entfernung messen';
+
+  @override
+  String get measureDistanceDesc => 'Zwei Punkte lang drücken zum Messen';
+
+  @override
+  String get clearMeasurement => 'Messung löschen';
+
+  @override
+  String distanceLabel(String distance) {
+    return 'Entfernung: $distance';
+  }
+
+  @override
+  String get longPressForSecondPoint => 'Langer Druck für zweiten Punkt';
+
+  @override
+  String get longPressToStartMeasurement => 'Langer Druck für ersten Punkt';
+
+  @override
+  String get longPressToStartNewMeasurement => 'Langer Druck für neue Messung';
+
+  @override
   String get shareDrawings => 'Zeichnungen teilen';
 
   @override
@@ -1885,4 +1908,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get updateLater => 'Später';
+
+  @override
+  String get cadastralParcels => 'Katasterparzellen';
+
+  @override
+  String get forestRoads => 'Waldwege';
+
+  @override
+  String get showCadastralParcels => 'Katasterparzellen anzeigen';
+
+  @override
+  String get showForestRoads => 'Waldwege anzeigen';
+
+  @override
+  String get wmsOverlays => 'WMS Überlagerungen';
 }

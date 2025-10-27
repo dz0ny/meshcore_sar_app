@@ -47,9 +47,11 @@ TX (notify): 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
 ### Key Dependencies
 ```yaml
 flutter_blue_plus: ^2.0.0  # BLE communication
-flutter_map: ^8.2.2         # Mapping
+flutter_map: ^8.2.2         # Mapping + WMS support
 provider: ^6.1.0            # State management
 geolocator: ^14.0.2         # GPS tracking
+proj4dart: ^2.1.0           # Coordinate transformations (EPSG:3794)
+flutter_map_tile_caching: ^10.1.1  # Offline tile caching
 ```
 
 ---
@@ -71,6 +73,7 @@ lib/
 │   ├── ble/                   # Connection, commands, responses
 │   ├── location_tracking_service.dart  # GPS + broadcast
 │   ├── map_marker_service.dart    # Marker generation
+│   ├── tile_cache_service.dart    # Offline tile caching (WMS + standard)
 │   └── validation_service.dart    # Form validation
 ├── providers/              # State management
 │   ├── connection_provider.dart   # BLE state
@@ -86,7 +89,8 @@ lib/
 │   └── map/                   # Map-specific widgets
 └── utils/                  # Utilities
     ├── sar_message_parser.dart
-    └── drawing_message_parser.dart
+    ├── drawing_message_parser.dart
+    └── slovenian_crs.dart         # EPSG:3794 CRS for WMS
 ```
 
 ---
@@ -571,6 +575,226 @@ org.gradle.jvmargs=-Xmx4096m
 2. **OpenTopoMap** - Max zoom 17, topographic
 3. **ESRI World Imagery** - Max zoom 19, satellite
 
+### WMS Support
+**Purpose**: Integration with Web Map Service (WMS) providers for specialized mapping data
+
+**Slovenian CRS (EPSG:3794)**:
+- Projection: Transverse Mercator (Slovenia 1996 / Slovene National Grid)
+- Ellipsoid: GRS80
+- Usage: Slovenian government WMS/WMTS services (prostor.zgs.gov.si)
+- Zoom levels: 0-15 (GeoWebCache tile matrix)
+- Bounds: X: 373217.65-695777.65m, Y: 31118.30-246158.30m
+- Origin: Top-left (373217.65, 246158.30)
+- Resolutions: Calculated from scale denominators (420m/px at zoom 0 to 0.028m/px at zoom 15)
+
+**Tile Caching**:
+- All WMS layers (base + overlays) use `flutter_map_tile_caching`
+- Cache strategy: `cacheFirst` (offline-first with 30-day validity)
+- Same caching infrastructure as standard tile layers
+
+**Files**:
+- `lib/utils/slovenian_crs.dart` - EPSG:3794 CRS definition
+- `lib/services/tile_cache_service.dart` - getTileProviderForWms() method
+
+**Example**:
+```dart
+import 'package:meshcore_sar_app/utils/slovenian_crs.dart';
+
+// All WMS layers automatically use the cached tile provider
+TileLayer(
+  wmsOptions: WMSTileLayerOptions(
+    baseUrl: 'https://prostor.zgs.gov.si/geowebcache/service/wms?',
+    layers: ['pregledovalnik:DOF_2024'],
+    format: 'image/jpeg',
+    crs: slovenianCrs,
+  ),
+  tileProvider: tileCacheService.getTileProviderForWms(layer),
+)
+```
+
+### WMS Implementation Details
+
+#### Overview
+The app integrates Slovenian government WMS (Web Map Service) layers using a custom EPSG:3794 coordinate reference system. This enables high-resolution aerial imagery and specialized overlays (cadastral parcels, forest roads) for SAR operations in Slovenia.
+
+#### Architecture
+
+**Layer Types**:
+1. **Base Layer**: Slovenian Aerial Imagery 2024 (DOF_2024)
+   - Source: `https://prostor.zgs.gov.si/geowebcache/service/wms`
+   - Format: JPEG (better compression for aerial photos)
+   - Transparency: False (opaque base layer)
+   - Max zoom: 15 (GeoWebCache limit)
+
+2. **Overlay Layers**: Cadastral Parcels, Forest Roads
+   - Format: PNG (supports transparency)
+   - Transparency: True (overlays on base layer)
+   - Max zoom: 19
+
+**Coordinate System (EPSG:3794)**:
+- Official name: Slovenia 1996 / Slovene National Grid
+- Projection: Transverse Mercator
+- Parameters: `+proj=tmerc +lat_0=0 +lon_0=15 +k=0.9999 +x_0=500000 +y_0=-5000000 +ellps=GRS80`
+- Why needed: Slovenian government services use this instead of standard Web Mercator (EPSG:3857)
+
+**Tile Grid Alignment**:
+The critical challenge with WMS layers is aligning the client-side tile grid with the server's GeoWebCache configuration. Misalignment causes 400 Bad Request errors.
+
+**Correct Configuration** (`lib/utils/slovenian_crs.dart`):
+```dart
+// Origin MUST match WMTS TileMatrixSet TopLeftCorner
+final origin = Point<double>(373217.6542445397, 246158.298050262);
+
+// Bounds MUST match WMS capabilities extent
+final bounds = Rect.fromLTRB(
+  373217.65,  // min X (west)
+  31118.30,   // min Y (south)
+  695777.65,  // max X (east)
+  246158.30,  // max Y (north)
+);
+
+// Resolutions MUST be calculated from scale denominators
+// Formula: resolution = scaleDenominator * 0.00028 (OGC standard)
+final resolutions = [
+  420.0,  // Zoom 0: 1,500,000 * 0.00028
+  280.0,  // Zoom 1: 1,000,000 * 0.00028
+  // ... through zoom 15
+];
+```
+
+**How to Get Correct Values**:
+1. Query WMTS GetCapabilities:
+   ```bash
+   curl "https://prostor.zgs.gov.si/geowebcache/service/wmts?REQUEST=GetCapabilities&SERVICE=WMTS"
+   ```
+2. Find `<TileMatrixSet>` for EPSG:3794
+3. Extract `<TopLeftCorner>` (origin)
+4. Extract `<ScaleDenominator>` for each `<TileMatrix>` (convert to resolutions)
+5. Query WMS GetCapabilities for bounds:
+   ```bash
+   curl "https://prostor.zgs.gov.si/geowebcache/service/wms?REQUEST=GetCapabilities&SERVICE=WMS"
+   ```
+
+#### Caching Strategy
+
+**Implementation** (`lib/services/tile_cache_service.dart`):
+```dart
+FMTCTileProvider getTileProviderForWms(MapLayer layer) {
+  return _store.getTileProvider(
+    loadingStrategy: BrowseLoadingStrategy.cacheFirst,
+    cachedValidDuration: const Duration(days: 30),
+  );
+}
+```
+
+**Behavior**:
+1. **Cache First**: Check local cache before network request
+2. **30-Day Validity**: Tiles expire after 30 days (suitable for aerial imagery that updates infrequently)
+3. **Automatic Caching**: All viewed tiles automatically saved to ObjectBox database
+4. **Offline Support**: Cached tiles available when device offline
+
+**Storage Location**:
+- Backend: ObjectBox (embedded database)
+- Store name: 'meshcore_tiles' (shared with standard tile layers)
+- Format: Binary tile data + metadata (URL, timestamp, headers)
+
+#### Usage in Map
+
+**Base Layer** (`lib/screens/map_tab.dart`):
+```dart
+if (_currentLayer.isWms && _currentLayer.crs != null) {
+  TileLayer(
+    wmsOptions: WMSTileLayerOptions(
+      baseUrl: _currentLayer.wmsBaseUrl!,
+      layers: _currentLayer.wmsLayers ?? [],
+      format: _currentLayer.wmsFormat ?? 'image/jpeg',
+      crs: _currentLayer.crs!,  // EPSG:3794
+    ),
+    tileProvider: _tileCache.getTileProviderForWms(_currentLayer),
+    maxZoom: _currentLayer.maxZoom,  // 15 for Slovenian layers
+  );
+}
+```
+
+**Map Options**:
+```dart
+MapOptions(
+  // CRITICAL: Use layer's CRS, not default EPSG:3857
+  crs: _currentLayer.crs ?? const Epsg3857(),
+  // ... other options
+)
+```
+
+#### Troubleshooting
+
+**400 Bad Request Errors**:
+- **Cause**: Tile grid misalignment (wrong origin, bounds, or resolutions)
+- **Fix**: Verify values match WMTS GetCapabilities exactly
+- **Debug**: Check WMS URL in error logs for out-of-bounds coordinates
+
+**Tiles Not Caching**:
+- **Cause**: Using wrong tile provider (e.g., NetworkTileProvider instead of FMTC)
+- **Fix**: Ensure `getTileProviderForWms()` is used, not `NetworkTileProvider()` or custom providers
+- **Verify**: Check `tile_cache_service.dart:75` is being called
+
+**Layer Not Appearing**:
+- **Cause 1**: Layer name mismatch (e.g., `DOF_2024` vs `pregledovalnik:DOF_2024`)
+- **Cause 2**: Wrong CRS in MapOptions (using EPSG:3857 instead of EPSG:3794)
+- **Fix**: Verify layer name in WMS GetCapabilities, ensure `crs: _currentLayer.crs` in MapOptions
+
+**Performance Issues**:
+- **Issue**: Slow tile loading on first view
+- **Expected**: WMS tile generation is slower than pre-rendered tiles (100-500ms per tile)
+- **Mitigation**: Pre-download regions using Map Management screen
+
+#### Adding New WMS Layers
+
+1. **Find Layer in GetCapabilities**:
+   ```bash
+   curl "https://prostor.zgs.gov.si/geowebcache/service/wms?REQUEST=GetCapabilities" | grep "<Name>"
+   ```
+
+2. **Add to MapLayer** (`lib/models/map_layer.dart`):
+   ```dart
+   static MapLayer getMyNewLayer(Crs slovenianCrs) {
+     return MapLayer(
+       type: MapLayerType.wmsBase,  // or create new enum value
+       name: 'My New Layer',
+       urlTemplate: '',  // Not used for WMS
+       attribution: '© Data Provider',
+       maxZoom: 15,  // Match GeoWebCache capability
+       isWms: true,
+       wmsBaseUrl: 'https://prostor.zgs.gov.si/geowebcache/service/wms?',
+       wmsLayers: const ['workspace:layername'],
+       wmsFormat: 'image/png',  // or 'image/jpeg'
+       wmsTransparent: true,  // true for overlays, false for base
+       crs: slovenianCrs,
+     );
+   }
+   ```
+
+3. **Verify CRS Support**: Ensure layer supports EPSG:3794 in GetCapabilities
+
+4. **Test**: Check for 400 errors, verify tiles load correctly
+
+#### Technical Notes
+
+**Why Not Use WMTS Instead of WMS?**
+- `flutter_map` has excellent WMS support via `WMSTileLayerOptions`
+- WMS and WMTS use same GeoWebCache backend (identical tiles)
+- WMS is simpler to configure (no manual tile URL template)
+- Caching abstracts the protocol difference
+
+**Proj4dart Integration**:
+- Handles coordinate transformation from EPSG:4326 (GPS) to EPSG:3794 (map)
+- Projection registered once at app startup: `proj4.Projection.add('EPSG:3794', ...)`
+- Flutter Map uses it automatically when `crs: slovenianCrs` is set
+
+**Memory Considerations**:
+- Each CRS instance stores transformation matrices and bounds
+- Use singleton pattern: `final Crs slovenianCrs = getSlovenianCrs();`
+- Shared across all WMS layers
+
 ### Offline Caching
 - Backend: `flutter_map_tile_caching` + ObjectBox
 - Behavior: `CacheBehavior.cacheFirst`, 30-day validity
@@ -604,6 +828,9 @@ MapProvider.clearNavigation()
 - [MeshCore FAQ](https://github.com/meshcore-dev/MeshCore/blob/main/docs/faq.md)
 - [Cayenne LPP Specification](https://developers.mydevices.com/cayenne/docs/lora/#lora-cayenne-low-power-payload)
 - [Provider Package](https://pub.dev/packages/provider)
+- [EPSG:3794 Reference](https://epsg.io/3794) - Slovenian CRS definition
+- [Proj4dart Package](https://pub.dev/packages/proj4dart) - Coordinate transformation library
+- [OGC WMS Specification](https://www.ogc.org/standards/wms) - Web Map Service standard
 
 ---
 

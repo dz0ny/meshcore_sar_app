@@ -649,6 +649,44 @@
     "description": "Descrizione per la modalità disegno rettangolo"
   },
 
+  "measureDistance": "Misura Distanza",
+  "@measureDistance": {
+    "description": "Modalità disegno mappa: misura distanza"
+  },
+
+  "measureDistanceDesc": "Premi a lungo su due punti per misurare",
+  "@measureDistanceDesc": {
+    "description": "Descrizione per la modalità misurazione distanza"
+  },
+
+  "clearMeasurement": "Cancella Misurazione",
+  "@clearMeasurement": {
+    "description": "Tooltip per cancellare la misurazione"
+  },
+
+  "distanceLabel": "Distanza: {distance}",
+  "@distanceLabel": {
+    "description": "Etichetta che mostra la distanza misurata",
+    "placeholders": {
+      "distance": {"type": "String"}
+    }
+  },
+
+  "longPressForSecondPoint": "Premi a lungo per il secondo punto",
+  "@longPressForSecondPoint": {
+    "description": "Istruzione quando è impostato il primo punto di misurazione"
+  },
+
+  "longPressToStartMeasurement": "Premi a lungo per impostare il primo punto",
+  "@longPressToStartMeasurement": {
+    "description": "Istruzione per avviare la misurazione"
+  },
+
+  "longPressToStartNewMeasurement": "Premi a lungo per nuova misurazione",
+  "@longPressToStartNewMeasurement": {
+    "description": "Istruzione per riavviare la misurazione dopo il completamento"
+  },
+
   "shareDrawings": "Condividi Disegni",
   "@shareDrawings": {
     "description": "Azione per condividere disegni sulla rete"
@@ -2551,5 +2589,11 @@
   "currentVersion": "Attuale",
   "latestVersion": "Ultima",
   "downloadUpdate": "Scarica",
-  "updateLater": "Più Tardi"
+  "updateLater": "Più Tardi",
+
+  "cadastralParcels": "Particelle Catastali",
+  "forestRoads": "Strade Forestali",
+  "showCadastralParcels": "Mostra particelle catastali",
+  "showForestRoads": "Mostra strade forestali",
+  "wmsOverlays": "Sovrapposizioni WMS"
 }

@@ -227,6 +227,20 @@
 
   "drawRectangleDesc": "Nariši pravokotno področje na zemljevidu",
 
+  "measureDistance": "Meri razdaljo",
+
+  "measureDistanceDesc": "Dolg pritisk na dve točki za merjenje",
+
+  "clearMeasurement": "Počisti meritev",
+
+  "distanceLabel": "Razdalja: {distance}",
+
+  "longPressForSecondPoint": "Dolg pritisk za drugo točko",
+
+  "longPressToStartMeasurement": "Dolg pritisk za prvo točko",
+
+  "longPressToStartNewMeasurement": "Dolg pritisk za novo meritev",
+
   "shareDrawings": "Deli risbe",
 
   "clearAllDrawings": "Počisti vse risbe",
@@ -955,5 +969,11 @@
   "currentVersion": "Trenutna",
   "latestVersion": "Najnovejša",
   "downloadUpdate": "Prenesi",
-  "updateLater": "Kasneje"
+  "updateLater": "Kasneje",
+
+  "cadastralParcels": "Katastrske parcele",
+  "forestRoads": "Gozdne ceste",
+  "showCadastralParcels": "Prikaži katastrske parcele",
+  "showForestRoads": "Prikaži gozdne ceste",
+  "wmsOverlays": "WMS Prekrivanja"
 }

@@ -791,6 +791,48 @@ abstract class AppLocalizations {
   /// **'Draw a rectangular area on the map'**
   String get drawRectangleDesc;
 
+  /// Map drawing mode: measure distance
+  ///
+  /// In en, this message translates to:
+  /// **'Measure Distance'**
+  String get measureDistance;
+
+  /// Description for distance measurement mode
+  ///
+  /// In en, this message translates to:
+  /// **'Long press two points to measure'**
+  String get measureDistanceDesc;
+
+  /// Tooltip to clear measurement
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Measurement'**
+  String get clearMeasurement;
+
+  /// Label showing measured distance
+  ///
+  /// In en, this message translates to:
+  /// **'Distance: {distance}'**
+  String distanceLabel(String distance);
+
+  /// Instruction when first measurement point is set
+  ///
+  /// In en, this message translates to:
+  /// **'Long press for second point'**
+  String get longPressForSecondPoint;
+
+  /// Instruction to start measurement
+  ///
+  /// In en, this message translates to:
+  /// **'Long press to set first point'**
+  String get longPressToStartMeasurement;
+
+  /// Instruction to restart measurement after completion
+  ///
+  /// In en, this message translates to:
+  /// **'Long press to start new measurement'**
+  String get longPressToStartNewMeasurement;
+
   /// Action to share drawings to network
   ///
   /// In en, this message translates to:
@@ -3374,6 +3416,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Later'**
   String get updateLater;
+
+  /// Label for cadastral parcels WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Cadastral Parcels'**
+  String get cadastralParcels;
+
+  /// Label for forest roads WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Forest Roads'**
+  String get forestRoads;
+
+  /// Tooltip for cadastral parcels overlay toggle button
+  ///
+  /// In en, this message translates to:
+  /// **'Show Cadastral Parcels'**
+  String get showCadastralParcels;
+
+  /// Tooltip for forest roads overlay toggle button
+  ///
+  /// In en, this message translates to:
+  /// **'Show Forest Roads'**
+  String get showForestRoads;
+
+  /// Section header for WMS overlay layers in layer selector
+  ///
+  /// In en, this message translates to:
+  /// **'WMS Overlays'**
+  String get wmsOverlays;
 }
 
 class _AppLocalizationsDelegate

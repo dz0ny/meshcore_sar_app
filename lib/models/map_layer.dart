@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import '../l10n/app_localizations.dart';
 
 enum MapLayerType {
@@ -10,6 +11,7 @@ enum MapLayerType {
   googleRoadmap,
   googleTerrain,
   vectorMbtiles,
+  wmsBase,
 }
 
 class MapLayer {
@@ -26,6 +28,15 @@ class MapLayer {
   final String? sourceName;
   final bool? isGzipped;
 
+  // WMS specific properties
+  final bool isWms;
+  final String? wmsBaseUrl;
+  final List<String>? wmsLayers;
+  final String? wmsFormat;
+  final bool? wmsTransparent;
+  final List<String>? wmsStyles;
+  final Crs? crs;
+
   const MapLayer({
     required this.type,
     required this.name,
@@ -37,6 +48,13 @@ class MapLayer {
     this.styleUrl,
     this.sourceName,
     this.isGzipped,
+    this.isWms = false,
+    this.wmsBaseUrl,
+    this.wmsLayers,
+    this.wmsFormat,
+    this.wmsTransparent,
+    this.wmsStyles,
+    this.crs,
   });
 
   /// Get localized name for the layer
@@ -57,6 +75,9 @@ class MapLayer {
         return localizations.googleTerrain;
       case MapLayerType.vectorMbtiles:
         // For vector tiles, use the name from metadata
+        return name;
+      case MapLayerType.wmsBase:
+        // For WMS layers, use the name (will be localized separately)
         return name;
     }
   }
@@ -110,6 +131,25 @@ class MapLayer {
     maxZoom: 20, // Google Maps maximum
   );
 
+  /// Slovenian Aerial Imagery 2024 (Ortofoto) - WMS Base Layer
+  /// Uses EPSG:3794 coordinate system (GeoWebCache tile matrix zoom 0-15)
+  /// Note: CRS is initialized at runtime in getSlovenianAerial2024()
+  static MapLayer getSlovenianAerial2024(Crs slovenianCrs) {
+    return MapLayer(
+      type: MapLayerType.wmsBase,
+      name: 'Ortofoto 2024 (Slovenija)',
+      urlTemplate: '', // Not used for WMS
+      attribution: '© GURS (Geodetska uprava Republike Slovenije)',
+      maxZoom: 15, // GeoWebCache tile matrix maximum
+      isWms: true,
+      wmsBaseUrl: 'https://prostor.zgs.gov.si/geowebcache/service/wms?',
+      wmsLayers: const ['pregledovalnik:DOF_2024'],
+      wmsFormat: 'image/jpeg',
+      wmsTransparent: false,
+      crs: slovenianCrs,
+    );
+  }
+
   static const List<MapLayer> allLayers = [
     openStreetMap,
     openTopoMap,
@@ -117,6 +157,7 @@ class MapLayer {
     googleHybrid,
     googleRoadmap,
     googleTerrain,
+    // Note: Slovenian aerial layer is added dynamically via getSlovenianAerial2024()
   ];
 
   static MapLayer fromType(MapLayerType type) {

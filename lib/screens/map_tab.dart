@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_tile_renderer/vector_tile_renderer.dart' as vtr;
 import 'package:http/http.dart' as http;
+import '../utils/slovenian_crs.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/messages_provider.dart';
 import '../providers/map_provider.dart';
@@ -75,6 +76,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   // MBTiles layers
   List<MapLayer> _mbtilesLayers = [];
 
+  // WMS layers (Slovenian)
+  late final MapLayer _slovenianAerialLayer;
+
   // Vector tile theme
   vtr.Theme? _vectorTheme;
   bool _isLoadingTheme = false;
@@ -110,6 +114,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
+    // Initialize Slovenian aerial layer with CRS
+    _slovenianAerialLayer = MapLayer.getSlovenianAerial2024(slovenianCrs);
     _loadSettings();
     _loadMbtilesLayers();
     _initializeTileCache();
@@ -120,6 +126,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mapProvider = context.read<MapProvider>();
       mapProvider.addListener(_handleMapNavigation);
+      // Load WMS overlay state
+      mapProvider.loadOverlayState();
 
       // Initialize background location service with BLE service
       final appProvider = context.read<AppProvider>();
@@ -239,8 +247,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     }
   }
 
-  /// Get all available layers (default + MBTiles)
-  List<MapLayer> get _allLayers => [...MapLayer.allLayers, ..._mbtilesLayers];
+  /// Get all available layers (default + WMS + MBTiles)
+  List<MapLayer> get _allLayers => [...MapLayer.allLayers, _slovenianAerialLayer, ..._mbtilesLayers];
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -537,6 +545,21 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           Navigator.pop(context);
                         },
                       )),
+                  // Slovenian WMS base layer
+                  ListTile(
+                    leading: _currentLayer == _slovenianAerialLayer
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : const Icon(Icons.radio_button_unchecked),
+                    title: Text(_slovenianAerialLayer.name),
+                    subtitle: Text(_slovenianAerialLayer.attribution),
+                    onTap: () async {
+                      setState(() {
+                        _currentLayer = _slovenianAerialLayer;
+                      });
+                      _saveSettings();
+                      Navigator.pop(context);
+                    },
+                  ),
                   // Offline MBTiles layers section
                   if (_mbtilesLayers.isNotEmpty) ...[
                     const Divider(),
@@ -576,6 +599,43 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           },
                         )),
                   ],
+                  // WMS Overlays section
+                  const Divider(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(
+                      AppLocalizations.of(context)!.wmsOverlays,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                    ),
+                  ),
+                  Consumer<MapProvider>(
+                    builder: (context, mapProvider, _) {
+                      return Column(
+                        children: [
+                          CheckboxListTile(
+                            secondary: const Icon(Icons.grid_on, color: Colors.blue),
+                            title: Text(AppLocalizations.of(context)!.cadastralParcels),
+                            subtitle: const Text('© GURS'),
+                            value: mapProvider.showCadastralOverlay,
+                            onChanged: (value) {
+                              mapProvider.toggleCadastralOverlay();
+                            },
+                          ),
+                          CheckboxListTile(
+                            secondary: const Icon(Icons.route, color: Colors.green),
+                            title: Text(AppLocalizations.of(context)!.forestRoads),
+                            subtitle: const Text('© GURS'),
+                            value: mapProvider.showForestRoadsOverlay,
+                            onChanged: (value) {
+                              mapProvider.toggleForestRoadsOverlay();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -855,6 +915,15 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  /// Format distance for display
+  String _formatDistance(double meters) {
+    if (meters < 1000) {
+      return '${meters.toStringAsFixed(1)} m';
+    } else {
+      return '${(meters / 1000).toStringAsFixed(2)} km';
+    }
+  }
+
   /// Show SAR dialog with pre-populated location from map long press
   void _showSarDialogWithLocation(LatLng location) {
     // Create a Position object from the LatLng coordinates
@@ -1065,6 +1134,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     child: FlutterMap(
                     mapController: _mapController,
                     options: MapOptions(
+                      // Use the layer's CRS if it has one (for WMS layers), otherwise default to EPSG:3857
+                      crs: _currentLayer.crs ?? const Epsg3857(),
                       // Use saved position if available, otherwise use calculated center
                       initialCenter: _savedMapCenter ?? center,
                       initialZoom: _savedMapZoom ?? _defaultZoom,
@@ -1082,11 +1153,29 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         }
                       },
                       onLongPress: (tapPosition, point) {
-                        // Skip if in drawing mode
-                        if (drawingProvider.isDrawing) return;
+                        // Handle measurement mode - set measurement points
+                        if (drawingProvider.drawingMode == DrawingMode.measure) {
+                          if (drawingProvider.measurementPoint1 == null) {
+                            // Set first measurement point
+                            drawingProvider.setMeasurementPoint1(point);
+                          } else if (drawingProvider.measurementPoint2 == null) {
+                            // Set second measurement point
+                            drawingProvider.setMeasurementPoint2(point);
+                          } else {
+                            // Clear and start new measurement
+                            drawingProvider.clearMeasurement();
+                            drawingProvider.setMeasurementPoint1(point);
+                          }
+                          // Continue to also drop SAR marker pin
+                        }
 
-                        // Drop a pin at long press location (if no pin exists)
-                        if (_droppedPinLocation == null) {
+                        // Skip if in other drawing modes (but not measure mode)
+                        if (drawingProvider.isDrawing && drawingProvider.drawingMode != DrawingMode.measure) return;
+
+                        // Drop a pin at long press location
+                        // In measurement mode, this allows creating SAR markers at measurement points
+                        // The pin moves to the latest long press location
+                        if (_droppedPinLocation == null || drawingProvider.drawingMode == DrawingMode.measure) {
                           setState(() {
                             _droppedPinLocation = point;
                           });
@@ -1183,13 +1272,116 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           }),
                           maximumZoom: _currentLayer.maxZoom,
                         )
-                      else if (!_currentLayer.isVector)
+                      else if (_currentLayer.isWms && _currentLayer.wmsBaseUrl != null && _currentLayer.crs != null)
+                        // WMS Base Layer (e.g., Slovenian Aerial Imagery)
+                        flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl: _currentLayer.wmsBaseUrl!,
+                            layers: _currentLayer.wmsLayers ?? [],
+                            styles: _currentLayer.wmsStyles ?? [],
+                            format: _currentLayer.wmsFormat ?? 'image/jpeg',
+                            transparent: _currentLayer.wmsTransparent ?? false,
+                            crs: _currentLayer.crs!,
+                          ),
+                          // Use cached tile provider for offline support
+                          tileProvider: _tileCache.getTileProviderForWms(_currentLayer),
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: _currentLayer.maxZoom,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint('🔴 WMS Base Layer tile error at ${tile.coordinates}: $error');
+                          },
+                        )
+                      else if (!_currentLayer.isVector && !_currentLayer.isWms)
                         flutter_map.TileLayer(
                           urlTemplate: _currentLayer.urlTemplate,
                           tileProvider: _tileCache.getTileProvider(_currentLayer),
                           userAgentPackageName: 'com.meshcore.sar',
                           maxZoom: _currentLayer.maxZoom,
                         ),
+                      // WMS Overlays (rendered after base layer, before polylines)
+                      // Note: These overlays only work with EPSG:3794 CRS (Slovenian coordinate system)
+                      // Cadastral parcels overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          // Only show if enabled and map is using Slovenian CRS
+                          if (!mapProvider.showCadastralOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geowebcache/service/wms?',
+                              layers: const ['pregledovalnik:kn_parcele'],
+                              styles: const ['parcele'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Cadastral Parcels',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geowebcache/service/wms?',
+                                wmsLayers: const ['pregledovalnik:kn_parcele'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Cadastral overlay tile error at ${tile.coordinates}: $error');
+                              if (stackTrace != null) {
+                                debugPrint('   StackTrace: $stackTrace');
+                              }
+                            },
+                          );
+                        },
+                      ),
+                      // Forest roads overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          // Only show if enabled and map is using Slovenian CRS
+                          if (!mapProvider.showForestRoadsOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:gozdne_ceste'],
+                              styles: const ['gozdne_ceste'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Forest Roads',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:gozdne_ceste'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Forest roads overlay tile error at ${tile.coordinates}: $error');
+                              if (stackTrace != null) {
+                                debugPrint('   StackTrace: $stackTrace');
+                              }
+                            },
+                          );
+                        },
+                      ),
                       // Advertisement path polylines (rendered before markers)
                       Consumer<MapProvider>(
                         builder: (context, mapProvider, _) {
@@ -1214,6 +1406,23 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                       ),
                       // Location trail layer (rendered after paths, before drawings)
                       const LocationTrailLayer(),
+                      // Measurement line layer (rendered before drawings)
+                      if (drawingProvider.measurementPoint1 != null && drawingProvider.measurementPoint2 != null)
+                        PolylineLayer(
+                          polylines: [
+                            Polyline(
+                              points: [
+                                drawingProvider.measurementPoint1!,
+                                drawingProvider.measurementPoint2!,
+                              ],
+                              color: Colors.yellow.withValues(alpha: 0.8),
+                              strokeWidth: 3.0,
+                              borderColor: Colors.black.withValues(alpha: 0.5),
+                              borderStrokeWidth: 1.0,
+                              pattern: StrokePattern.dashed(segments: [10, 5]),
+                            ),
+                          ],
+                        ),
                       // Drawing layer (rendered after paths, before markers)
                       DrawingLayer(
                         drawings: drawingProvider.drawings,
@@ -1257,6 +1466,104 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                               position: _locationService.currentPosition,
                               context: context,
                             )!,
+                          // Measurement point 1 marker
+                          if (drawingProvider.measurementPoint1 != null)
+                            Marker(
+                              point: drawingProvider.measurementPoint1!,
+                              width: 60,
+                              height: 80,
+                              rotate: false,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.yellow.shade700,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'Start',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.yellow,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 2),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.all(6),
+                                    child: const Icon(
+                                      Icons.location_on,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          // Measurement point 2 marker
+                          if (drawingProvider.measurementPoint2 != null)
+                            Marker(
+                              point: drawingProvider.measurementPoint2!,
+                              width: 60,
+                              height: 80,
+                              rotate: false,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.yellow.shade700,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'End',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.yellow,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 2),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.all(6),
+                                    child: const Icon(
+                                      Icons.location_on,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           // Dropped pin marker with label
                           if (_droppedPinLocation != null)
                             Marker(
@@ -1408,6 +1715,90 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   fireCount: messagesProvider.fireMarkers.length,
                   stagingAreaCount: messagesProvider.stagingAreaMarkers.length,
                   objectCount: messagesProvider.objectMarkers.length,
+                ),
+              ),
+            // Measurement distance overlay
+            if (drawingProvider.drawingMode == DrawingMode.measure)
+              Positioned(
+                top: 16,
+                left: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.yellow.shade700.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.straighten,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            AppLocalizations.of(context)!.measureDistance,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      if (drawingProvider.measuredDistance != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.distanceLabel(_formatDistance(drawingProvider.measuredDistance!)),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppLocalizations.of(context)!.longPressToStartNewMeasurement,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        )
+                      else if (drawingProvider.measurementPoint1 != null)
+                        Text(
+                          AppLocalizations.of(context)!.longPressForSecondPoint,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        )
+                      else
+                        Text(
+                          AppLocalizations.of(context)!.longPressToStartMeasurement,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             // Map controls - right side (hidden in fullscreen mode)

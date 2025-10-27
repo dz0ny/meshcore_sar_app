@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/location_trail.dart';
 import '../models/map_drawing.dart';
 
@@ -16,6 +17,10 @@ class MapProvider with ChangeNotifier {
   bool _isTrailVisible = true;
   final List<LocationTrail> _trailHistory = [];
 
+  // WMS overlay toggles
+  bool _showCadastralOverlay = false;
+  bool _showForestRoadsOverlay = false;
+
   LatLng? get targetLocation => _targetLocation;
   double? get targetZoom => _targetZoom;
   bool get shouldAnimate => _shouldAnimate;
@@ -26,6 +31,10 @@ class MapProvider with ChangeNotifier {
   bool get isTrailVisible => _isTrailVisible;
   List<LocationTrail> get trailHistory => List.unmodifiable(_trailHistory);
   bool get isTrailActive => _currentTrail?.isActive ?? false;
+
+  // WMS overlay getters
+  bool get showCadastralOverlay => _showCadastralOverlay;
+  bool get showForestRoadsOverlay => _showForestRoadsOverlay;
 
   void navigateToLocation({
     required LatLng location,
@@ -206,5 +215,34 @@ class MapProvider with ChangeNotifier {
   Duration get trailDuration {
     if (_currentTrail == null) return Duration.zero;
     return _currentTrail!.duration;
+  }
+
+  /// Toggle cadastral parcels overlay
+  Future<void> toggleCadastralOverlay() async {
+    _showCadastralOverlay = !_showCadastralOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Toggle forest roads overlay
+  Future<void> toggleForestRoadsOverlay() async {
+    _showForestRoadsOverlay = !_showForestRoadsOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Load overlay state from SharedPreferences
+  Future<void> loadOverlayState() async {
+    final prefs = await SharedPreferences.getInstance();
+    _showCadastralOverlay = prefs.getBool('map_show_cadastral_overlay') ?? false;
+    _showForestRoadsOverlay = prefs.getBool('map_show_forest_roads_overlay') ?? false;
+    notifyListeners();
+  }
+
+  /// Save overlay state to SharedPreferences
+  Future<void> _saveOverlayState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('map_show_cadastral_overlay', _showCadastralOverlay);
+    await prefs.setBool('map_show_forest_roads_overlay', _showForestRoadsOverlay);
   }
 }
