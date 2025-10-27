@@ -122,15 +122,19 @@ class MeshCoreBleService {
 
     // Response handler callbacks
     _responseHandler.onContactReceived = (contact) {
+      debugPrint('🔔 [BleService] onContactReceived - "${contact.advName}" - forwarding to ConnectionProvider');
       onContactReceived?.call(contact);
     };
     _responseHandler.onContactsComplete = (contacts) {
+      debugPrint('🔔 [BleService] onContactsComplete - ${contacts.length} contacts - forwarding to ConnectionProvider');
       onContactsComplete?.call(contacts);
     };
     _responseHandler.onMessageReceived = (message) {
+      debugPrint('🔔 [BleService] onMessageReceived - forwarding to ConnectionProvider');
       onMessageReceived?.call(message);
     };
     _responseHandler.onTelemetryReceived = (publicKey, lppData) {
+      debugPrint('🔔 [BleService] onTelemetryReceived - ${lppData.length} bytes - forwarding to ConnectionProvider');
       onTelemetryReceived?.call(publicKey, lppData);
     };
     _responseHandler.onSelfInfoReceived = (selfInfo) {
@@ -160,9 +164,11 @@ class MeshCoreBleService {
       onLoginFail?.call(publicKeyPrefix);
     };
     _responseHandler.onAdvertReceived = (publicKey) {
+      debugPrint('🔔 [BleService] onAdvertReceived - forwarding to ConnectionProvider');
       onAdvertReceived?.call(publicKey);
     };
     _responseHandler.onPathUpdated = (publicKey) {
+      debugPrint('🔔 [BleService] onPathUpdated - forwarding to ConnectionProvider');
       onPathUpdated?.call(publicKey);
     };
     _responseHandler.onMessageSent =

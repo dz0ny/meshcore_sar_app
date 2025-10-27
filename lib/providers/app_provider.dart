@@ -245,6 +245,25 @@ class AppProvider with ChangeNotifier {
       });
     };
 
+    // When an advertisement is received (PUSH_CODE_ADVERT 0x80)
+    // This may be sent by the radio for existing contacts instead of PUSH_CODE_NEW_ADVERT (0x8A)
+    connectionProvider.onAdvertReceived = (publicKey) {
+      debugPrint('📡 [AppProvider] Advertisement received: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...');
+      // Check if this is an existing contact that might have updated location
+      final contact = contactsProvider.findContactByKey(publicKey);
+      if (contact != null) {
+        debugPrint('   Existing contact "${contact.advName}" - triggering contact sync for updates');
+        // Trigger a contact sync to get the updated contact information
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (connectionProvider.deviceInfo.isConnected) {
+            connectionProvider.getContacts();
+          }
+        });
+      } else {
+        debugPrint('   New contact - waiting for PUSH_CODE_NEW_ADVERT (0x8A) with full details');
+      }
+    };
+
     // When a message is sent (RESP_CODE_SENT received)
     connectionProvider.onMessageSent = (messageId, expectedAckTag, suggestedTimeoutMs) {
       debugPrint('📤 [AppProvider] Message sent - Message ID: $messageId, ACK tag: $expectedAckTag');

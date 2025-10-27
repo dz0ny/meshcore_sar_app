@@ -409,11 +409,13 @@ class BleResponseHandler {
     }
   }
 
-  /// Handle Advert push
+  /// Handle Advert push (0x80) - basic advertisement with public key only
   void _handleAdvert(BufferReader reader) {
     try {
       final publicKey = FrameParser.parseAdvert(reader);
       if (publicKey != null) {
+        final shortKey = publicKey.sublist(0, 8).map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
+        debugPrint('  ✅ [Advert 0x80] From node: $shortKey... (public key only, no location data)');
         onAdvertReceived?.call(publicKey);
       }
       debugPrint('  ✅ [Advert] Parsed successfully');
@@ -856,14 +858,20 @@ class BleResponseHandler {
     debugPrint('  🧹 [Echo] Cleaned up ${toRemove.length} old trackers');
   }
 
-  /// Handle NewAdvert push
+  /// Handle NewAdvert push (0x8A) - full contact info with location
   void _handleNewAdvert(BufferReader reader) {
     try {
       final contact = FrameParser.parseContact(reader);
-      debugPrint('  ✅ [NewAdvert] Parsed successfully: ${contact.advName}');
+      debugPrint('  ✅ [NewAdvert 0x8A] Parsed successfully: ${contact.advName}');
       debugPrint(
         '     outPathLen: ${contact.outPathLen} (${contact.pathDescription})',
       );
+      if (contact.advLat != 0 || contact.advLon != 0) {
+        final location = contact.advertLocation;
+        if (location != null) {
+          debugPrint('     📍 Location: ${location.latitude}, ${location.longitude}');
+        }
+      }
       onContactReceived?.call(contact);
     } catch (e) {
       debugPrint('  ❌ [NewAdvert] Parsing error: $e');

@@ -130,6 +130,7 @@ class ConnectionProvider with ChangeNotifier {
   Function(int channelIdx, String channelName)? onChannelInfoReceived;
   Function(Uint8List publicKeyPrefix, int tag, Uint8List responseData)?
   onBinaryResponse;
+  Function(Uint8List publicKey)? onAdvertReceived;
   Function(Uint8List publicKey)? onPathUpdated;
   Function(Uint8List publicKeyPrefix, int permissions, bool isAdmin, int tag)?
   onLoginSuccess;
@@ -262,10 +263,14 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onContactReceived = (contact) {
+      debugPrint('📥 [Provider] Contact received (0x8A): "${contact.advName}"');
+      debugPrint('  Forwarding to AppProvider via onContactReceived callback');
       onContactReceived?.call(contact);
     };
 
     _bleService.onContactsComplete = (contacts) {
+      debugPrint('📥 [Provider] Contacts sync complete: ${contacts.length} contacts');
+      debugPrint('  Forwarding to AppProvider via onContactsComplete callback');
       onContactsComplete?.call(contacts);
     };
 
@@ -286,8 +291,14 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     _bleService.onTelemetryReceived = (publicKey, lppData) {
+      debugPrint('📥 [Provider] Telemetry response (0x8B) received');
+      debugPrint(
+        '  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
+      );
+      debugPrint('  LPP data: ${lppData.length} bytes');
       // Mark ping as successful if this was a ping request
       _pingTracker.markPingSuccessful(publicKey);
+      debugPrint('  Forwarding to AppProvider via onTelemetryReceived callback');
       onTelemetryReceived?.call(publicKey, lppData);
     };
 
@@ -362,11 +373,10 @@ class ConnectionProvider with ChangeNotifier {
       debugPrint(
         '  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
       );
-      debugPrint(
-        '  Note: Waiting for PUSH_CODE_NEW_ADVERT (0x8A) with full contact details',
-      );
-      // The companion radio will automatically send PUSH_CODE_NEW_ADVERT if manual_add_contacts=0
-      // which will trigger onContactReceived callback and add/update the contact
+      // Forward to AppProvider to trigger contact update
+      // The radio may send only PUSH_CODE_ADVERT (0x80) for existing contacts
+      // instead of PUSH_CODE_NEW_ADVERT (0x8A), so we need to handle this
+      onAdvertReceived?.call(publicKey);
     };
 
     _bleService.onPathUpdated = (publicKey) {
