@@ -1909,4 +1909,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wmsOverlays => 'WMS Overlays';
+
+  @override
+  String get recentMessages => 'Recent Messages';
 }

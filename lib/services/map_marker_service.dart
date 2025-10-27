@@ -88,11 +88,16 @@ class MapMarkerService {
                     ],
                   ),
                   padding: const EdgeInsets.all(6),
-                  child: Icon(
-                    getContactMarkerIcon(contact),
-                    color: Colors.white,
-                    size: 18,
-                  ),
+                  child: contact.roleEmoji != null
+                      ? Text(
+                          contact.roleEmoji!,
+                          style: const TextStyle(fontSize: 18),
+                        )
+                      : Icon(
+                          getContactMarkerIcon(contact),
+                          color: Colors.white,
+                          size: 18,
+                        ),
                 ),
                 const SizedBox(height: 2),
                 // Name label (without emoji)

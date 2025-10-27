@@ -1934,4 +1934,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get wmsOverlays => 'Superposiciones WMS';
+
+  @override
+  String get recentMessages => 'Mensajes Recientes';
 }

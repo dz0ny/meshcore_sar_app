@@ -3236,5 +3236,10 @@
   "wmsOverlays": "WMS Overlays",
   "@wmsOverlays": {
     "description": "Section header for WMS overlay layers in layer selector"
+  },
+
+  "recentMessages": "Recent Messages",
+  "@recentMessages": {
+    "description": "Header for recent messages overlay on map in fullscreen mode"
   }
 }

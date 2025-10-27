@@ -3458,6 +3458,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'WMS Overlays'**
   String get wmsOverlays;
+
+  /// Header for recent messages overlay on map in fullscreen mode
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Messages'**
+  String get recentMessages;
 }
 
 class _AppLocalizationsDelegate

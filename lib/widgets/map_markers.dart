@@ -51,7 +51,7 @@ class MapMarkers {
                   ),
                 ),
                 const SizedBox(height: 2),
-                // Marker icon
+                // Marker icon or emoji
                 Container(
                   decoration: BoxDecoration(
                     color: _getContactTypeColor(contact, context),
@@ -66,11 +66,16 @@ class MapMarkers {
                     ],
                   ),
                   padding: const EdgeInsets.all(6),
-                  child: Icon(
-                    _getContactTypeIcon(contact),
-                    color: Colors.white,
-                    size: 18,
-                  ),
+                  child: contact.roleEmoji != null
+                      ? Text(
+                          contact.roleEmoji!,
+                          style: const TextStyle(fontSize: 18),
+                        )
+                      : Icon(
+                          _getContactTypeIcon(contact),
+                          color: Colors.white,
+                          size: 18,
+                        ),
                 ),
                 const SizedBox(height: 2),
                 // Name label (without emoji)
@@ -214,7 +219,10 @@ class MapMarkers {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
+            if (contact.roleEmoji != null)
+              Text(contact.roleEmoji!, style: const TextStyle(fontSize: 24))
+            else
+              Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 8),
             Expanded(child: Text(contact.displayName)),
           ],

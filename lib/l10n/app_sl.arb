@@ -979,5 +979,7 @@
   "forestRoads": "Gozdne ceste",
   "showCadastralParcels": "Prikaži katastrske parcele",
   "showForestRoads": "Prikaži gozdne ceste",
-  "wmsOverlays": "WMS Prekrivanja"
+  "wmsOverlays": "WMS Prekrivanja",
+
+  "recentMessages": "Nedavna sporočila"
 }

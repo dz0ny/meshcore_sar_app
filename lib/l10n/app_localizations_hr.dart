@@ -1918,4 +1918,7 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get wmsOverlays => 'WMS Prekrivanja';
+
+  @override
+  String get recentMessages => 'Nedavne poruke';
 }

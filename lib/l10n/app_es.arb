@@ -2600,5 +2600,7 @@
   "forestRoads": "Caminos Forestales",
   "showCadastralParcels": "Mostrar parcelas catastrales",
   "showForestRoads": "Mostrar caminos forestales",
-  "wmsOverlays": "Superposiciones WMS"
+  "wmsOverlays": "Superposiciones WMS",
+
+  "recentMessages": "Mensajes Recientes"
 }

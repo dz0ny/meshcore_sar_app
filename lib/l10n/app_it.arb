@@ -2605,5 +2605,10 @@
   "forestRoads": "Strade Forestali",
   "showCadastralParcels": "Mostra particelle catastali",
   "showForestRoads": "Mostra strade forestali",
-  "wmsOverlays": "Sovrapposizioni WMS"
+  "wmsOverlays": "Sovrapposizioni WMS",
+
+  "recentMessages": "Messaggi Recenti",
+  "@recentMessages": {
+    "description": "Header for recent messages overlay on map in fullscreen mode"
+  }
 }

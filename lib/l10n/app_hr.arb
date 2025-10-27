@@ -979,5 +979,7 @@
   "forestRoads": "Šumske ceste",
   "showCadastralParcels": "Prikaži katastarske čestice",
   "showForestRoads": "Prikaži šumske ceste",
-  "wmsOverlays": "WMS Prekrivanja"
+  "wmsOverlays": "WMS Prekrivanja",
+
+  "recentMessages": "Nedavne poruke"
 }

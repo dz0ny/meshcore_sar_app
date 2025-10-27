@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import '../../models/contact.dart';
 import '../../models/message.dart';
@@ -248,7 +249,7 @@ class FrameParser {
     String? selfName;
     if (reader.hasRemaining) {
       final nameBytes = reader.readRemainingBytes();
-      selfName = String.fromCharCodes(nameBytes.takeWhile((b) => b != 0));
+      selfName = utf8.decode(nameBytes.takeWhile((b) => b != 0).toList());
     }
 
     return {

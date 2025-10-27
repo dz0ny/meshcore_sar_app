@@ -36,6 +36,7 @@ import '../widgets/map/drawing_layer.dart';
 import '../widgets/map/drawing_toolbar.dart';
 import '../widgets/map/location_trail_layer.dart';
 import '../widgets/map/trail_controls.dart';
+import '../widgets/map/map_message_overlay.dart';
 import '../widgets/messages/sar_update_sheet.dart';
 import '../l10n/app_localizations.dart';
 import 'map_management_screen.dart';
@@ -1737,6 +1738,35 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   },
                   backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
                   child: const Icon(Icons.fullscreen_exit),
+                ),
+              ),
+            // Message overlay - right side (only shown in fullscreen mode on large screens)
+            if (_isFullscreen && MediaQuery.of(context).size.width >= 800)
+              Positioned(
+                top: 60,
+                bottom: 60,
+                right: 16,
+                width: 300,
+                child: Consumer<MessagesProvider>(
+                  builder: (context, messagesProvider, _) {
+                    // Get last 20 non-system messages, sorted chronologically
+                    final recentMessages = messagesProvider.messages
+                        .where((m) => !m.isSystemMessage)
+                        .toList()
+                      ..sort((a, b) => a.sentAt.compareTo(b.sentAt));
+                    final displayMessages = recentMessages.length > 20
+                        ? recentMessages.sublist(recentMessages.length - 20)
+                        : recentMessages;
+
+                    return MapMessageOverlay(
+                      messages: displayMessages,
+                      onNavigateToMessages: widget.onNavigateToMessages,
+                      onMessageTap: (messageId) {
+                        messagesProvider.navigateToMessage(messageId);
+                        widget.onNavigateToMessages?.call();
+                      },
+                    );
+                  },
                 ),
               ),
             // Compass widget - top right (hidden in fullscreen mode)

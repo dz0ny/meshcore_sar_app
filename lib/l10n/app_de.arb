@@ -2605,5 +2605,7 @@
   "forestRoads": "Waldwege",
   "showCadastralParcels": "Katasterparzellen anzeigen",
   "showForestRoads": "Waldwege anzeigen",
-  "wmsOverlays": "WMS Überlagerungen"
+  "wmsOverlays": "WMS Überlagerungen",
+
+  "recentMessages": "Aktuelle Nachrichten"
 }

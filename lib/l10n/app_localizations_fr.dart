@@ -1938,4 +1938,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get wmsOverlays => 'Superpositions WMS';
+
+  @override
+  String get recentMessages => 'Messages Récents';
 }

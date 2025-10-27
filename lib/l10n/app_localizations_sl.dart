@@ -1919,4 +1919,7 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get wmsOverlays => 'WMS Prekrivanja';
+
+  @override
+  String get recentMessages => 'Nedavna sporočila';
 }
