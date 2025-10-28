@@ -39,6 +39,7 @@ class MeshCoreConstants {
   static const int cmdSendRawData = 25;
   static const int cmdSendLogin = 26;
   static const int cmdSendStatusReq = 27;
+  static const int cmdGetContactByKey = 30;
   static const int cmdGetChannel = 31;
   static const int cmdSetChannel = 32;
   static const int cmdSignStart = 33;

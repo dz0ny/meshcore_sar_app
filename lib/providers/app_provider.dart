@@ -236,11 +236,12 @@ class AppProvider with ChangeNotifier {
     // When a contact's routing path is updated in the mesh network
     connectionProvider.onPathUpdated = (publicKey) {
       debugPrint('🔄 [AppProvider] Path updated for contact: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...');
-      // Trigger a contact sync to get the updated path information
+      // Trigger a single contact fetch to get the updated path information
+      // This is much more efficient than fetching all contacts
       // This happens asynchronously to avoid blocking the event handler
       Future.delayed(const Duration(milliseconds: 100), () {
         if (connectionProvider.deviceInfo.isConnected) {
-          connectionProvider.getContacts();
+          connectionProvider.getContact(publicKey);
         }
       });
     };
@@ -252,11 +253,12 @@ class AppProvider with ChangeNotifier {
       // Check if this is an existing contact that might have updated location
       final contact = contactsProvider.findContactByKey(publicKey);
       if (contact != null) {
-        debugPrint('   Existing contact "${contact.advName}" - triggering contact sync for updates');
-        // Trigger a contact sync to get the updated contact information
+        debugPrint('   Existing contact "${contact.advName}" - fetching updated contact info (optimized)');
+        // Trigger a single contact fetch to get the updated contact information
+        // This is much more efficient than fetching all contacts
         Future.delayed(const Duration(milliseconds: 100), () {
           if (connectionProvider.deviceInfo.isConnected) {
-            connectionProvider.getContacts();
+            connectionProvider.getContact(publicKey);
           }
         });
       } else {

@@ -311,6 +311,20 @@ class MeshCoreBleService {
     await _commandSender.writeData(FrameBuilder.buildGetContacts());
   }
 
+  /// Get a single contact by public key from device
+  ///
+  /// This is more efficient than getContacts() when you only need to refresh
+  /// one specific contact (e.g., after receiving an advertisement).
+  ///
+  /// The contact will be delivered via the onContactReceived callback.
+  Future<void> getContactByKey(Uint8List publicKey) async {
+    debugPrint('🔍 [BLE] Requesting single contact by key:');
+    debugPrint(
+      '    Public key prefix: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
+    );
+    await _commandSender.writeData(FrameBuilder.buildGetContactByKey(publicKey));
+  }
+
   /// Manually add or update a contact on the companion radio
   Future<void> addOrUpdateContact(Contact contact) async {
     debugPrint('📝 [BLE] Adding/updating contact on companion radio:');

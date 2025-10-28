@@ -59,6 +59,8 @@ class MeshCoreOpcodeNames {
         return 'SEND_LOGIN';
       case MeshCoreConstants.cmdSendStatusReq:
         return 'SEND_STATUS_REQ';
+      case MeshCoreConstants.cmdGetContactByKey:
+        return 'GET_CONTACT_BY_KEY';
       case MeshCoreConstants.cmdGetChannel:
         return 'GET_CHANNEL';
       case MeshCoreConstants.cmdSetChannel:

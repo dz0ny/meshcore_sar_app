@@ -31,6 +31,14 @@ class FrameBuilder {
     return writer.toBytes();
   }
 
+  /// Build GetContactByKey command - retrieves a single contact by public key
+  static Uint8List buildGetContactByKey(Uint8List publicKey) {
+    final writer = BufferWriter();
+    writer.writeByte(MeshCoreConstants.cmdGetContactByKey); // 0x1E (30)
+    writer.writeBytes(publicKey); // 32 bytes
+    return writer.toBytes();
+  }
+
   /// Build AddUpdateContact command
   static Uint8List buildAddUpdateContact(Contact contact) {
     final writer = BufferWriter();

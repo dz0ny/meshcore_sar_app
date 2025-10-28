@@ -686,6 +686,30 @@ class ConnectionProvider with ChangeNotifier {
     }
   }
 
+  /// Get a single contact by public key from device
+  ///
+  /// This is more efficient than getContacts() when you only need to refresh
+  /// one specific contact (e.g., after receiving an advertisement or path update).
+  ///
+  /// The contact will be delivered via the onContactReceived callback.
+  Future<void> getContact(Uint8List publicKey) async {
+    if (!_bleService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await _bleService.getContactByKey(publicKey);
+    } catch (e) {
+      _error = 'Failed to get contact: $e';
+      debugPrint('⚠️ [Provider] Failed to get contact by key, falling back to full contact sync');
+      // Fallback to full contact sync if command not supported
+      await _bleService.getContacts();
+      notifyListeners();
+    }
+  }
+
   /// Sync all channels from device
   Future<void> syncChannels({int? maxChannels}) async {
     if (!_bleService.isConnected) {
