@@ -267,18 +267,23 @@ class Contact {
     return 0; // 5+ hops
   }
 
-  /// Add a new advertisement location to history (maintains max 100 points)
+  /// Add a new advertisement location to history (maintains max 1000 points)
+  ///
+  /// Implements location dithering to avoid storing redundant points:
+  /// - Only stores points that are ≥1 meter apart (max meter accuracy)
+  /// - Prevents trail clutter when contact is stationary or moving slowly
+  /// - Maintains chronological order (most recent first)
   Contact addAdvertLocation(LatLng location, DateTime timestamp) {
     final newPoint = AdvertLocation(location: location, timestamp: timestamp);
 
-    // Check if this location is significantly different from the last one
-    // (avoid duplicate points for stationary contacts)
+    // Dithering: Skip points within 1 meter of the last recorded position
+    // This provides max meter accuracy while avoiding redundant data
     if (advertHistory.isNotEmpty) {
       final lastPoint = advertHistory.first;
       final distance = _calculateDistance(lastPoint.location, location);
 
-      // If less than 5 meters apart and within 1 minute, skip
-      if (distance < 5 && timestamp.difference(lastPoint.timestamp).inSeconds < 60) {
+      // If less than 1 meter apart, skip this point (location dithering)
+      if (distance < 1.0) {
         return this;
       }
     }
@@ -286,9 +291,9 @@ class Contact {
     // Add new point at the beginning (most recent first)
     final updatedHistory = [newPoint, ...advertHistory];
 
-    // Keep only the most recent 100 points
-    final trimmedHistory = updatedHistory.length > 100
-        ? updatedHistory.sublist(0, 100)
+    // Keep only the most recent 1000 points to limit memory usage
+    final trimmedHistory = updatedHistory.length > 1000
+        ? updatedHistory.sublist(0, 1000)
         : updatedHistory;
 
     return copyWith(advertHistory: trimmedHistory);
