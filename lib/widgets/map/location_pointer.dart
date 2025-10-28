@@ -38,12 +38,12 @@ class LocationPointer extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Outer accuracy circle (very subtle, light blue)
+          // Outer accuracy circle (very subtle, uses theme color)
           Container(
             width: size * 0.6,
             height: size * 0.6,
             decoration: BoxDecoration(
-              color: const Color(0xFF4285F4).withValues(alpha: 0.2),
+              color: color.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
           ),
@@ -112,7 +112,7 @@ class _NavigationPointerPainter extends CustomPainter {
       canvas.drawPath(arrowPath, shadowPaint);
       canvas.restore();
 
-      // Left side (lighter cyan) - #75D5F0
+      // Left side (lighter - 70% opacity of theme color)
       final leftSidePath = Path();
       leftSidePath.moveTo(center.dx, height * 0.08);
       leftSidePath.lineTo(center.dx - width * 0.42, height * 0.92);
@@ -120,11 +120,11 @@ class _NavigationPointerPainter extends CustomPainter {
       leftSidePath.close();
 
       final leftPaint = Paint()
-        ..color = const Color(0xFF75D5F0)
+        ..color = color.withValues(alpha: 0.7)
         ..style = PaintingStyle.fill;
       canvas.drawPath(leftSidePath, leftPaint);
 
-      // Right side (darker cyan) - #00B8E6
+      // Right side (darker - full theme color)
       final rightSidePath = Path();
       rightSidePath.moveTo(center.dx, height * 0.08);
       rightSidePath.lineTo(center.dx, height * 0.70);
@@ -132,7 +132,7 @@ class _NavigationPointerPainter extends CustomPainter {
       rightSidePath.close();
 
       final rightPaint = Paint()
-        ..color = const Color(0xFF00B8E6)
+        ..color = color
         ..style = PaintingStyle.fill;
       canvas.drawPath(rightSidePath, rightPaint);
 
@@ -145,9 +145,9 @@ class _NavigationPointerPainter extends CustomPainter {
       canvas.drawPath(arrowPath, borderPaint);
 
     } else {
-      // No heading available - draw a blue circle with white border
+      // No heading available - draw a circle with white border (uses theme color)
       final circlePaint = Paint()
-        ..color = const Color(0xFF4285F4)
+        ..color = color
         ..style = PaintingStyle.fill;
 
       canvas.drawCircle(center, width * 0.4, circlePaint);
