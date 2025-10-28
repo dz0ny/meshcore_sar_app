@@ -1867,9 +1867,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                 width: 300,
                 child: Consumer<MessagesProvider>(
                   builder: (context, messagesProvider, _) {
-                    // Get last 20 non-system messages, sorted chronologically
+                    // Get last 20 non-system and non-drawing messages, sorted chronologically
                     final recentMessages = messagesProvider.messages
-                        .where((m) => !m.isSystemMessage)
+                        .where((m) => !m.isSystemMessage && !m.isDrawing)
                         .toList()
                       ..sort((a, b) => a.sentAt.compareTo(b.sentAt));
                     final displayMessages = recentMessages.length > 20

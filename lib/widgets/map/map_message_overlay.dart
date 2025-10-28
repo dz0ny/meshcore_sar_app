@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/message.dart';
 import '../../l10n/app_localizations.dart';
+import '../messages/message_bubble.dart';
 
 /// Message overlay widget for displaying recent messages on the map
 /// Only shown in fullscreen mode on large screens (>= 800px width)
@@ -61,33 +62,6 @@ class _MapMessageOverlayState extends State<MapMessageOverlay> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  Color _getMessageAccentColor(Message message) {
-    if (message.isSarMarker) {
-      return Colors.red;
-    } else if (message.isChannelMessage) {
-      return Colors.green;
-    } else if (message.isContactMessage) {
-      return Colors.blue;
-    }
-    return Colors.grey;
-  }
-
-  IconData _getMessageIcon(Message message) {
-    if (message.isSarMarker) {
-      return Icons.emergency;
-    } else if (message.isChannelMessage) {
-      return Icons.campaign;
-    } else if (message.isContactMessage) {
-      return Icons.person;
-    }
-    return Icons.message;
-  }
-
-  String _truncateText(String text, int maxLength) {
-    if (text.length <= maxLength) return text;
-    return '${text.substring(0, maxLength)}...';
   }
 
   @override
@@ -154,94 +128,13 @@ class _MapMessageOverlayState extends State<MapMessageOverlay> {
               separatorBuilder: (context, index) => const SizedBox(height: 4),
               itemBuilder: (context, index) {
                 final message = widget.messages[index];
-                final accentColor = _getMessageAccentColor(message);
-                final icon = _getMessageIcon(message);
 
-                return GestureDetector(
+                return MessageBubble(
+                  message: message,
+                  isCompact: true,
                   onTap: () {
                     widget.onMessageTap?.call(message.id);
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: accentColor.withValues(alpha: 0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Sender and time
-                        Row(
-                          children: [
-                            Icon(
-                              icon,
-                              color: accentColor,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                message.displaySender,
-                                style: TextStyle(
-                                  color: accentColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Text(
-                              message.timeAgo,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.5),
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        // Message preview
-                        Text(
-                          _truncateText(message.text, 60),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        // SAR marker indicator
-                        if (message.isSarMarker)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  color: Colors.red.shade300,
-                                  size: 12,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  message.sarMarkerType?.displayName ?? 'SAR Marker',
-                                  style: TextStyle(
-                                    color: Colors.red.shade300,
-                                    fontSize: 10,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
                 );
               },
             ),
