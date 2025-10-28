@@ -2310,6 +2310,111 @@
     "description": "Tooltip de controles del rastro"
   },
 
+  "exportTrailToGpx": "Exportar rastro a GPX",
+  "@exportTrailToGpx": {
+    "description": "Etiqueta del botón para exportar el rastro a archivo GPX"
+  },
+
+  "importTrailFromGpx": "Importar rastro desde GPX",
+  "@importTrailFromGpx": {
+    "description": "Etiqueta del botón para importar el rastro desde archivo GPX"
+  },
+
+  "trailExportedSuccessfully": "¡Rastro exportado exitosamente!",
+  "@trailExportedSuccessfully": {
+    "description": "Mensaje de éxito cuando se exporta el rastro"
+  },
+
+  "failedToExportTrail": "Error al exportar el rastro",
+  "@failedToExportTrail": {
+    "description": "Mensaje de error cuando falla la exportación del rastro"
+  },
+
+  "failedToImportTrail": "Error al importar el rastro: {error}",
+  "@failedToImportTrail": {
+    "description": "Mensaje de error cuando falla la importación del rastro",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "importTrail": "Importar rastro",
+  "@importTrail": {
+    "description": "Título del diálogo de importación de rastro"
+  },
+
+  "importTrailQuestion": "¿Importar rastro con {pointCount} puntos?\n\nPuede reemplazar su rastro actual o verlo junto a él.",
+  "@importTrailQuestion": {
+    "description": "Contenido del diálogo de confirmación de importación de rastro",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "viewAlongside": "Ver junto",
+  "@viewAlongside": {
+    "description": "Botón para importar el rastro junto al rastro actual"
+  },
+
+  "replaceCurrent": "Reemplazar actual",
+  "@replaceCurrent": {
+    "description": "Botón para reemplazar el rastro actual con el rastro importado"
+  },
+
+  "trailImported": "¡Rastro importado! ({pointCount} puntos)",
+  "@trailImported": {
+    "description": "Mensaje de éxito cuando se importa el rastro",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "trailReplaced": "¡Rastro reemplazado! ({pointCount} puntos)",
+  "@trailReplaced": {
+    "description": "Mensaje de éxito cuando se reemplaza el rastro",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "contactTrails": "Rastros de contactos",
+  "@contactTrails": {
+    "description": "Encabezado de la sección de rastros de contactos"
+  },
+
+  "showAllContactTrails": "Mostrar todos los rastros de contactos",
+  "@showAllContactTrails": {
+    "description": "Etiqueta del interruptor para mostrar todos los rastros de contactos"
+  },
+
+  "noContactsWithLocationHistory": "No hay contactos con historial de ubicación",
+  "@noContactsWithLocationHistory": {
+    "description": "Subtítulo cuando no hay contactos con rastros"
+  },
+
+  "showingTrailsForContacts": "Mostrando rastros para {count} contactos",
+  "@showingTrailsForContacts": {
+    "description": "Subtítulo que muestra el número de contactos con rastros",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "individualContactTrails": "Rastros individuales de contactos",
+  "@individualContactTrails": {
+    "description": "Título del elemento expandible para rastros individuales de contactos"
+  },
+
   "deviceInformation": "Información del dispositivo",
   "@deviceInformation": {
     "description": "Encabezado de la sección de información del dispositivo"

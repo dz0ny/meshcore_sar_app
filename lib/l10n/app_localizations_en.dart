@@ -1391,6 +1391,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trailControls => 'Trail Controls';
 
   @override
+  String get exportTrailToGpx => 'Export Trail to GPX';
+
+  @override
+  String get importTrailFromGpx => 'Import Trail from GPX';
+
+  @override
+  String get trailExportedSuccessfully => 'Trail exported successfully!';
+
+  @override
+  String get failedToExportTrail => 'Failed to export trail';
+
+  @override
+  String failedToImportTrail(String error) {
+    return 'Failed to import trail: $error';
+  }
+
+  @override
+  String get importTrail => 'Import Trail';
+
+  @override
+  String importTrailQuestion(int pointCount) {
+    return 'Import trail with $pointCount points?\n\nYou can replace your current trail or view it alongside.';
+  }
+
+  @override
+  String get viewAlongside => 'View Alongside';
+
+  @override
+  String get replaceCurrent => 'Replace Current';
+
+  @override
+  String trailImported(int pointCount) {
+    return 'Trail imported! ($pointCount points)';
+  }
+
+  @override
+  String trailReplaced(int pointCount) {
+    return 'Trail replaced! ($pointCount points)';
+  }
+
+  @override
+  String get contactTrails => 'Contact Trails';
+
+  @override
+  String get showAllContactTrails => 'Show All Contact Trails';
+
+  @override
+  String get noContactsWithLocationHistory =>
+      'No contacts with location history';
+
+  @override
+  String showingTrailsForContacts(int count) {
+    return 'Showing trails for $count contacts';
+  }
+
+  @override
+  String get individualContactTrails => 'Individual Contact Trails';
+
+  @override
   String get deviceInformation => 'Device Information';
 
   @override

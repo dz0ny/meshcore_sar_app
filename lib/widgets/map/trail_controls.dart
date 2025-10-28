@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/map_provider.dart';
+import '../../providers/contacts_provider.dart';
+import '../../providers/app_provider.dart';
+import '../../services/gpx_service.dart';
+import '../../services/trail_color_service.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Trail management controls widget
@@ -9,18 +13,27 @@ class TrailControls extends StatelessWidget {
 
   void _showTrailMenu(BuildContext context) {
     final mapProvider = Provider.of<MapProvider>(context, listen: false);
+    final contactsProvider = Provider.of<ContactsProvider>(context, listen: false);
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
     final l10n = AppLocalizations.of(context)!;
+    final isSimpleMode = appProvider.isSimpleMode;
+
+    // Get contacts with trails (advertHistory >= 2 points)
+    final contactsWithTrails = contactsProvider.contactsWithLocation
+        .where((c) => c.advertHistory.length >= 2)
+        .toList();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+        builder: (context, setModalState) => SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               Row(
                 children: [
                   const Icon(Icons.timeline, size: 24),
@@ -89,6 +102,60 @@ class TrailControls extends StatelessWidget {
 
             const SizedBox(height: 16),
 
+            // GPX Export/Import buttons (hidden in simple mode)
+            if (!isSimpleMode) ...[
+              if (mapProvider.currentTrail != null && mapProvider.currentTrail!.points.isNotEmpty)
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final success = await GpxService.exportTrailToFile(mapProvider.currentTrail!);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(success
+                            ? l10n.trailExportedSuccessfully
+                            : l10n.failedToExportTrail),
+                          backgroundColor: success ? Colors.green : Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.upload),
+                  label: Text(l10n.exportTrailToGpx),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(16),
+                  ),
+                ),
+
+              const SizedBox(height: 8),
+
+              ElevatedButton.icon(
+                onPressed: () async {
+                  try {
+                    final trail = await GpxService.importTrailFromFile();
+                    if (trail != null && context.mounted) {
+                      _showImportDialog(context, mapProvider, trail, l10n);
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.failedToImportTrail(e.toString())),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.download),
+                label: Text(l10n.importTrailFromGpx),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+            ],
+
             // Clear trail button
             if (mapProvider.currentTrail != null && mapProvider.currentTrail!.points.isNotEmpty)
               ElevatedButton.icon(
@@ -135,6 +202,81 @@ class TrailControls extends StatelessWidget {
               ),
 
             const SizedBox(height: 8),
+            const Divider(),
+            const SizedBox(height: 8),
+
+            // Contact Trails Section
+            Row(
+              children: [
+                const Icon(Icons.people, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.contactTrails,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Show All Contact Trails toggle
+            SwitchListTile(
+              secondary: const Icon(Icons.route),
+              title: Text(l10n.showAllContactTrails),
+              subtitle: Text(contactsWithTrails.isEmpty
+                  ? l10n.noContactsWithLocationHistory
+                  : l10n.showingTrailsForContacts(contactsWithTrails.length)),
+              value: mapProvider.showAllContactTrails,
+              onChanged: contactsWithTrails.isNotEmpty
+                  ? (value) {
+                      mapProvider.toggleAllContactTrails();
+                      setModalState(() {}); // Update modal UI
+                    }
+                  : null, // Disable if no contacts with trails
+            ),
+
+            // Individual contact trails (when "show all" is OFF)
+            if (!mapProvider.showAllContactTrails && contactsWithTrails.isNotEmpty)
+              ExpansionTile(
+                title: Text(l10n.individualContactTrails),
+                initiallyExpanded: false,
+                children: contactsWithTrails.map((contact) {
+                  final trailColor = TrailColorService.getTrailColor(contact);
+                  final isVisible = mapProvider.isContactPathVisible(contact.publicKeyHex);
+
+                  return SwitchListTile(
+                    // Color indicator with emoji
+                    secondary: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (contact.roleEmoji != null)
+                          Text(contact.roleEmoji!, style: const TextStyle(fontSize: 18)),
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: trailColor,
+                            border: Border.all(color: Colors.white, width: 2),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ],
+                    ),
+                    title: Text(contact.displayName),
+                    subtitle: Text('${contact.advertHistory.length} points'),
+                    value: isVisible,
+                    onChanged: (value) {
+                      mapProvider.toggleContactPath(contact.publicKeyHex);
+                      setModalState(() {}); // Update modal UI
+                    },
+                  );
+                }).toList(),
+              ),
+
+            const SizedBox(height: 8),
 
             // Close button
               TextButton(
@@ -142,6 +284,7 @@ class TrailControls extends StatelessWidget {
                 child: Text(l10n.close),
               ),
             ],
+            ),
           ),
         ),
       ),
@@ -167,6 +310,50 @@ class TrailControls extends StatelessWidget {
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text(l10n.clearTrail),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImportDialog(BuildContext context, MapProvider mapProvider, trail, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.importTrail),
+        content: Text(l10n.importTrailQuestion(trail.points.length)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              mapProvider.setImportedTrail(trail);
+              Navigator.pop(context); // Close dialog
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.trailImported(trail.points.length)),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            child: Text(l10n.viewAlongside),
+          ),
+          TextButton(
+            onPressed: () {
+              mapProvider.replaceCurrentTrailWithImport(trail);
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Close bottom sheet
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.trailReplaced(trail.points.length)),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.blue),
+            child: Text(l10n.replaceCurrent),
           ),
         ],
       ),

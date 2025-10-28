@@ -2315,6 +2315,111 @@
     "description": "Tooltip controlli traccia"
   },
 
+  "exportTrailToGpx": "Esporta traccia in GPX",
+  "@exportTrailToGpx": {
+    "description": "Etichetta del pulsante per esportare la traccia in file GPX"
+  },
+
+  "importTrailFromGpx": "Importa traccia da GPX",
+  "@importTrailFromGpx": {
+    "description": "Etichetta del pulsante per importare la traccia da file GPX"
+  },
+
+  "trailExportedSuccessfully": "Traccia esportata con successo!",
+  "@trailExportedSuccessfully": {
+    "description": "Messaggio di successo quando la traccia viene esportata"
+  },
+
+  "failedToExportTrail": "Esportazione traccia fallita",
+  "@failedToExportTrail": {
+    "description": "Messaggio di errore quando l'esportazione della traccia fallisce"
+  },
+
+  "failedToImportTrail": "Importazione traccia fallita: {error}",
+  "@failedToImportTrail": {
+    "description": "Messaggio di errore quando l'importazione della traccia fallisce",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "importTrail": "Importa traccia",
+  "@importTrail": {
+    "description": "Titolo del dialogo di importazione traccia"
+  },
+
+  "importTrailQuestion": "Importare traccia con {pointCount} punti?\n\nPuoi sostituire la tua traccia attuale o visualizzarla affiancata.",
+  "@importTrailQuestion": {
+    "description": "Contenuto del dialogo di conferma importazione traccia",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "viewAlongside": "Visualizza affiancata",
+  "@viewAlongside": {
+    "description": "Pulsante per importare la traccia affiancata alla traccia attuale"
+  },
+
+  "replaceCurrent": "Sostituisci attuale",
+  "@replaceCurrent": {
+    "description": "Pulsante per sostituire la traccia attuale con la traccia importata"
+  },
+
+  "trailImported": "Traccia importata! ({pointCount} punti)",
+  "@trailImported": {
+    "description": "Messaggio di successo quando la traccia viene importata",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "trailReplaced": "Traccia sostituita! ({pointCount} punti)",
+  "@trailReplaced": {
+    "description": "Messaggio di successo quando la traccia viene sostituita",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "contactTrails": "Tracce contatti",
+  "@contactTrails": {
+    "description": "Intestazione sezione tracce contatti"
+  },
+
+  "showAllContactTrails": "Mostra tutte le tracce dei contatti",
+  "@showAllContactTrails": {
+    "description": "Etichetta dell'interruttore per mostrare tutte le tracce dei contatti"
+  },
+
+  "noContactsWithLocationHistory": "Nessun contatto con cronologia posizione",
+  "@noContactsWithLocationHistory": {
+    "description": "Sottotitolo quando non ci sono contatti con tracce"
+  },
+
+  "showingTrailsForContacts": "Visualizzazione tracce per {count} contatti",
+  "@showingTrailsForContacts": {
+    "description": "Sottotitolo che mostra il numero di contatti con tracce",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "individualContactTrails": "Tracce individuali dei contatti",
+  "@individualContactTrails": {
+    "description": "Titolo dell'elemento espandibile per le tracce individuali dei contatti"
+  },
+
   "deviceInformation": "Informazioni Dispositivo",
   "@deviceInformation": {
     "description": "Intestazione sezione informazioni dispositivo"

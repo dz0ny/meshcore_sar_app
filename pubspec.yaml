@@ -99,6 +99,9 @@ dependencies:
   # Cryptographic functions (for channel secret hashing)
   crypto: ^3.0.3
 
+  # XML parsing for GPX import/export
+  xml: ^6.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

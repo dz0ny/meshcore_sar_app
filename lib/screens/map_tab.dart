@@ -28,6 +28,7 @@ import '../services/background_location_service.dart';
 import '../services/location_tracking_service.dart';
 import '../services/map_marker_service.dart';
 import '../services/mbtiles_service.dart';
+import '../services/trail_color_service.dart';
 import '../widgets/map_debug_info.dart';
 import '../widgets/map/map_legend.dart';
 import '../widgets/map/compass_widget.dart';
@@ -1441,22 +1442,55 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           );
                         },
                       ),
-                      // Advertisement path polylines (rendered before markers)
+                      // Imported trail layer (rendered at bottom for reference)
                       Consumer<MapProvider>(
                         builder: (context, mapProvider, _) {
+                          if (mapProvider.importedTrail == null ||
+                              mapProvider.importedTrail!.points.length < 2) {
+                            return const SizedBox.shrink();
+                          }
+
                           return PolylineLayer(
-                            polylines: contactsWithLocation
-                                .where((contact) => mapProvider.isContactPathVisible(contact.publicKeyHex))
+                            polylines: [
+                              Polyline(
+                                points: mapProvider.importedTrail!.latLngPoints,
+                                color: Colors.green.withValues(alpha: 0.7),
+                                strokeWidth: 3.0,
+                                borderColor: Colors.white.withValues(alpha: 0.4),
+                                borderStrokeWidth: 1.0,
+                                // DOTTED pattern to distinguish from other trails
+                                pattern: StrokePattern.dotted(spacingFactor: 2),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      // Contact trail polylines (rendered before user trail and markers)
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          // Determine which contacts to show trails for
+                          final contactsToShow = mapProvider.showAllContactTrails
+                              ? contactsWithLocation // Show all when master toggle is ON
+                              : contactsWithLocation.where((contact) =>
+                                  mapProvider.isContactPathVisible(contact.publicKeyHex)); // Individual toggles
+
+                          return PolylineLayer(
+                            polylines: contactsToShow
                                 .where((contact) => contact.advertHistory.length >= 2)
                                 .map((contact) {
+                                  // Use TrailColorService for consistent, emoji-based colors
+                                  final color = TrailColorService.getTrailColor(contact);
+
                                   return Polyline(
                                     points: contact.advertHistory
                                         .map((advert) => advert.location)
                                         .toList(),
-                                    color: Colors.blue.withValues(alpha: 0.7),
-                                    strokeWidth: 3.0,
-                                    borderColor: Colors.white.withValues(alpha: 0.5),
+                                    color: color,
+                                    strokeWidth: 2.5, // Thinner than user trail
+                                    borderColor: Colors.white.withValues(alpha: 0.3),
                                     borderStrokeWidth: 1.0,
+                                    // DASHED pattern to distinguish from solid user trail
+                                    pattern: StrokePattern.dashed(segments: [8, 4]),
                                   );
                                 })
                                 .toList(),

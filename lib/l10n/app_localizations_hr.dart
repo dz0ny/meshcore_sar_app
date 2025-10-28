@@ -1391,6 +1391,65 @@ class AppLocalizationsHr extends AppLocalizations {
   String get trailControls => 'Upravljanje putanjom';
 
   @override
+  String get exportTrailToGpx => 'Izvezi putanju u GPX';
+
+  @override
+  String get importTrailFromGpx => 'Uvezi putanju iz GPX';
+
+  @override
+  String get trailExportedSuccessfully => 'Putanja uspješno izvezena!';
+
+  @override
+  String get failedToExportTrail => 'Izvoz putanje nije uspio';
+
+  @override
+  String failedToImportTrail(String error) {
+    return 'Uvoz putanje nije uspio: $error';
+  }
+
+  @override
+  String get importTrail => 'Uvezi putanju';
+
+  @override
+  String importTrailQuestion(int pointCount) {
+    return 'Uvezi putanju s $pointCount točaka?\n\nMožete zamijeniti trenutnu putanju ili je prikazati zajedno.';
+  }
+
+  @override
+  String get viewAlongside => 'Prikaži zajedno';
+
+  @override
+  String get replaceCurrent => 'Zamijeni trenutnu';
+
+  @override
+  String trailImported(int pointCount) {
+    return 'Putanja uvezena! ($pointCount točaka)';
+  }
+
+  @override
+  String trailReplaced(int pointCount) {
+    return 'Putanja zamijenjena! ($pointCount točaka)';
+  }
+
+  @override
+  String get contactTrails => 'Putanje kontakata';
+
+  @override
+  String get showAllContactTrails => 'Prikaži sve putanje kontakata';
+
+  @override
+  String get noContactsWithLocationHistory =>
+      'Nema kontakata s poviješću lokacije';
+
+  @override
+  String showingTrailsForContacts(int count) {
+    return 'Prikazujem putanje za $count kontakata';
+  }
+
+  @override
+  String get individualContactTrails => 'Pojedinačne putanje kontakata';
+
+  @override
   String get deviceInformation => 'Informacije o uređaju';
 
   @override

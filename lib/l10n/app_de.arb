@@ -2315,6 +2315,111 @@
     "description": "Tooltip für Verlaufssteuerung"
   },
 
+  "exportTrailToGpx": "Verlauf als GPX exportieren",
+  "@exportTrailToGpx": {
+    "description": "Beschriftung der Schaltfläche zum Exportieren des Verlaufs in eine GPX-Datei"
+  },
+
+  "importTrailFromGpx": "Verlauf aus GPX importieren",
+  "@importTrailFromGpx": {
+    "description": "Beschriftung der Schaltfläche zum Importieren des Verlaufs aus einer GPX-Datei"
+  },
+
+  "trailExportedSuccessfully": "Verlauf erfolgreich exportiert!",
+  "@trailExportedSuccessfully": {
+    "description": "Erfolgsmeldung beim Exportieren des Verlaufs"
+  },
+
+  "failedToExportTrail": "Exportieren des Verlaufs fehlgeschlagen",
+  "@failedToExportTrail": {
+    "description": "Fehlermeldung beim Exportieren des Verlaufs"
+  },
+
+  "failedToImportTrail": "Importieren des Verlaufs fehlgeschlagen: {error}",
+  "@failedToImportTrail": {
+    "description": "Fehlermeldung beim Importieren des Verlaufs",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "importTrail": "Verlauf importieren",
+  "@importTrail": {
+    "description": "Titel des Dialogs zum Importieren des Verlaufs"
+  },
+
+  "importTrailQuestion": "Verlauf mit {pointCount} Punkten importieren?\n\nSie können Ihren aktuellen Verlauf ersetzen oder daneben anzeigen.",
+  "@importTrailQuestion": {
+    "description": "Inhalt des Bestätigungsdialogs zum Importieren des Verlaufs",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "viewAlongside": "Daneben anzeigen",
+  "@viewAlongside": {
+    "description": "Schaltfläche zum Importieren des Verlaufs neben dem aktuellen Verlauf"
+  },
+
+  "replaceCurrent": "Aktuellen ersetzen",
+  "@replaceCurrent": {
+    "description": "Schaltfläche zum Ersetzen des aktuellen Verlaufs durch importierten Verlauf"
+  },
+
+  "trailImported": "Verlauf importiert! ({pointCount} Punkte)",
+  "@trailImported": {
+    "description": "Erfolgsmeldung beim Importieren des Verlaufs",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "trailReplaced": "Verlauf ersetzt! ({pointCount} Punkte)",
+  "@trailReplaced": {
+    "description": "Erfolgsmeldung beim Ersetzen des Verlaufs",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "contactTrails": "Kontaktverläufe",
+  "@contactTrails": {
+    "description": "Überschrift des Bereichs für Kontaktverläufe"
+  },
+
+  "showAllContactTrails": "Alle Kontaktverläufe anzeigen",
+  "@showAllContactTrails": {
+    "description": "Beschriftung zum Umschalten der Anzeige aller Kontaktverläufe"
+  },
+
+  "noContactsWithLocationHistory": "Keine Kontakte mit Standortverlauf",
+  "@noContactsWithLocationHistory": {
+    "description": "Untertitel, wenn keine Kontakte mit Verläufen vorhanden sind"
+  },
+
+  "showingTrailsForContacts": "Verläufe für {count} Kontakte anzeigen",
+  "@showingTrailsForContacts": {
+    "description": "Untertitel mit Anzahl der Kontakte mit Verläufen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "individualContactTrails": "Einzelne Kontaktverläufe",
+  "@individualContactTrails": {
+    "description": "Titel des Erweiterungselements für einzelne Kontaktverläufe"
+  },
+
   "deviceInformation": "Geräteinformationen",
   "@deviceInformation": {
     "description": "Überschrift des Geräteinformationen-Bereichs"

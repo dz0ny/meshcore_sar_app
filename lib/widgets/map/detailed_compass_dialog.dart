@@ -621,26 +621,7 @@ class _DetailedCompassDialogState extends State<DetailedCompassDialog> {
                     ],
                   ),
                 ),
-                // Show path toggle button for contacts with history
-                if (_selectedContact != null && _selectedContact!.advertHistory.length >= 2)
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      final isPathVisible = mapProvider.isContactPathVisible(_selectedContact!.publicKeyHex);
-                      return IconButton(
-                        icon: Icon(
-                          isPathVisible ? Icons.route : Icons.route_outlined,
-                          size: 20,
-                          color: isPathVisible ? Theme.of(context).colorScheme.primary : null,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        tooltip: isPathVisible ? 'Hide path' : 'Show path (${_selectedContact!.advertHistory.length} points)',
-                        onPressed: () {
-                          mapProvider.toggleContactPath(_selectedContact!.publicKeyHex);
-                        },
-                      );
-                    },
-                  ),
+                // Close button to deselect contact
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
                   padding: EdgeInsets.zero,

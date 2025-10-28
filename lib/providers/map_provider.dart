@@ -21,6 +21,12 @@ class MapProvider with ChangeNotifier {
   bool _showCadastralOverlay = false;
   bool _showForestRoadsOverlay = false;
 
+  // Contact trail toggles
+  bool _showAllContactTrails = false;
+
+  // Imported trail (from GPX)
+  LocationTrail? _importedTrail;
+
   LatLng? get targetLocation => _targetLocation;
   double? get targetZoom => _targetZoom;
   bool get shouldAnimate => _shouldAnimate;
@@ -35,6 +41,12 @@ class MapProvider with ChangeNotifier {
   // WMS overlay getters
   bool get showCadastralOverlay => _showCadastralOverlay;
   bool get showForestRoadsOverlay => _showForestRoadsOverlay;
+
+  // Contact trail getters
+  bool get showAllContactTrails => _showAllContactTrails;
+
+  // Imported trail getters
+  LocationTrail? get importedTrail => _importedTrail;
 
   void navigateToLocation({
     required LatLng location,
@@ -244,5 +256,50 @@ class MapProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('map_show_cadastral_overlay', _showCadastralOverlay);
     await prefs.setBool('map_show_forest_roads_overlay', _showForestRoadsOverlay);
+  }
+
+  /// Toggle all contact trails on/off
+  Future<void> toggleAllContactTrails() async {
+    _showAllContactTrails = !_showAllContactTrails;
+    notifyListeners();
+    await _saveTrailSettings();
+  }
+
+  /// Load trail settings from SharedPreferences
+  Future<void> loadTrailSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    _showAllContactTrails = prefs.getBool('map_show_all_contact_trails') ?? false;
+    notifyListeners();
+  }
+
+  /// Save trail settings to SharedPreferences
+  Future<void> _saveTrailSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('map_show_all_contact_trails', _showAllContactTrails);
+  }
+
+  /// Set imported trail (from GPX import)
+  void setImportedTrail(LocationTrail trail) {
+    _importedTrail = trail;
+    notifyListeners();
+  }
+
+  /// Clear imported trail
+  void clearImportedTrail() {
+    _importedTrail = null;
+    notifyListeners();
+  }
+
+  /// Replace current trail with imported trail
+  void replaceCurrentTrailWithImport(LocationTrail importedTrail) {
+    // End current trail if active
+    if (_currentTrail != null && _currentTrail!.isActive) {
+      endTrail();
+    }
+
+    // Set imported trail as current trail
+    _currentTrail = importedTrail;
+    _isTrailVisible = true;
+    notifyListeners();
   }
 }

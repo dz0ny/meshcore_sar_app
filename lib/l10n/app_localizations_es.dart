@@ -1402,6 +1402,65 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trailControls => 'Controles del rastro';
 
   @override
+  String get exportTrailToGpx => 'Exportar rastro a GPX';
+
+  @override
+  String get importTrailFromGpx => 'Importar rastro desde GPX';
+
+  @override
+  String get trailExportedSuccessfully => '¡Rastro exportado exitosamente!';
+
+  @override
+  String get failedToExportTrail => 'Error al exportar el rastro';
+
+  @override
+  String failedToImportTrail(String error) {
+    return 'Error al importar el rastro: $error';
+  }
+
+  @override
+  String get importTrail => 'Importar rastro';
+
+  @override
+  String importTrailQuestion(int pointCount) {
+    return '¿Importar rastro con $pointCount puntos?\n\nPuede reemplazar su rastro actual o verlo junto a él.';
+  }
+
+  @override
+  String get viewAlongside => 'Ver junto';
+
+  @override
+  String get replaceCurrent => 'Reemplazar actual';
+
+  @override
+  String trailImported(int pointCount) {
+    return '¡Rastro importado! ($pointCount puntos)';
+  }
+
+  @override
+  String trailReplaced(int pointCount) {
+    return '¡Rastro reemplazado! ($pointCount puntos)';
+  }
+
+  @override
+  String get contactTrails => 'Rastros de contactos';
+
+  @override
+  String get showAllContactTrails => 'Mostrar todos los rastros de contactos';
+
+  @override
+  String get noContactsWithLocationHistory =>
+      'No hay contactos con historial de ubicación';
+
+  @override
+  String showingTrailsForContacts(int count) {
+    return 'Mostrando rastros para $count contactos';
+  }
+
+  @override
+  String get individualContactTrails => 'Rastros individuales de contactos';
+
+  @override
   String get deviceInformation => 'Información del dispositivo';
 
   @override

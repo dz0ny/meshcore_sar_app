@@ -1394,6 +1394,64 @@ class AppLocalizationsSl extends AppLocalizations {
   String get trailControls => 'Nadzor poti';
 
   @override
+  String get exportTrailToGpx => 'Izvozi pot v GPX';
+
+  @override
+  String get importTrailFromGpx => 'Uvozi pot iz GPX';
+
+  @override
+  String get trailExportedSuccessfully => 'Pot uspešno izvožena!';
+
+  @override
+  String get failedToExportTrail => 'Izvoz poti ni uspel';
+
+  @override
+  String failedToImportTrail(String error) {
+    return 'Uvoz poti ni uspel: $error';
+  }
+
+  @override
+  String get importTrail => 'Uvozi pot';
+
+  @override
+  String importTrailQuestion(int pointCount) {
+    return 'Uvozi pot s $pointCount točkami?\n\nLahko zamenjate trenutno pot ali jo prikažete skupaj.';
+  }
+
+  @override
+  String get viewAlongside => 'Prikaži skupaj';
+
+  @override
+  String get replaceCurrent => 'Zamenjaj trenutno';
+
+  @override
+  String trailImported(int pointCount) {
+    return 'Pot uvožena! ($pointCount točk)';
+  }
+
+  @override
+  String trailReplaced(int pointCount) {
+    return 'Pot zamenjana! ($pointCount točk)';
+  }
+
+  @override
+  String get contactTrails => 'Poti stikov';
+
+  @override
+  String get showAllContactTrails => 'Prikaži vse poti stikov';
+
+  @override
+  String get noContactsWithLocationHistory => 'Ni stikov z zgodovino lokacije';
+
+  @override
+  String showingTrailsForContacts(int count) {
+    return 'Prikazujem poti za $count stikov';
+  }
+
+  @override
+  String get individualContactTrails => 'Posamezne poti stikov';
+
+  @override
   String get deviceInformation => 'Informacije o napravi';
 
   @override

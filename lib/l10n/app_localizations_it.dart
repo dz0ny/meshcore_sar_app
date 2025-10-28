@@ -1402,6 +1402,65 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trailControls => 'Controlli Traccia';
 
   @override
+  String get exportTrailToGpx => 'Esporta traccia in GPX';
+
+  @override
+  String get importTrailFromGpx => 'Importa traccia da GPX';
+
+  @override
+  String get trailExportedSuccessfully => 'Traccia esportata con successo!';
+
+  @override
+  String get failedToExportTrail => 'Esportazione traccia fallita';
+
+  @override
+  String failedToImportTrail(String error) {
+    return 'Importazione traccia fallita: $error';
+  }
+
+  @override
+  String get importTrail => 'Importa traccia';
+
+  @override
+  String importTrailQuestion(int pointCount) {
+    return 'Importare traccia con $pointCount punti?\n\nPuoi sostituire la tua traccia attuale o visualizzarla affiancata.';
+  }
+
+  @override
+  String get viewAlongside => 'Visualizza affiancata';
+
+  @override
+  String get replaceCurrent => 'Sostituisci attuale';
+
+  @override
+  String trailImported(int pointCount) {
+    return 'Traccia importata! ($pointCount punti)';
+  }
+
+  @override
+  String trailReplaced(int pointCount) {
+    return 'Traccia sostituita! ($pointCount punti)';
+  }
+
+  @override
+  String get contactTrails => 'Tracce contatti';
+
+  @override
+  String get showAllContactTrails => 'Mostra tutte le tracce dei contatti';
+
+  @override
+  String get noContactsWithLocationHistory =>
+      'Nessun contatto con cronologia posizione';
+
+  @override
+  String showingTrailsForContacts(int count) {
+    return 'Visualizzazione tracce per $count contatti';
+  }
+
+  @override
+  String get individualContactTrails => 'Tracce individuali dei contatti';
+
+  @override
   String get deviceInformation => 'Informazioni Dispositivo';
 
   @override

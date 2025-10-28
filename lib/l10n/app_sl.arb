@@ -787,6 +787,38 @@
 
   "trailControls": "Nadzor poti",
 
+  "exportTrailToGpx": "Izvozi pot v GPX",
+
+  "importTrailFromGpx": "Uvozi pot iz GPX",
+
+  "trailExportedSuccessfully": "Pot uspešno izvožena!",
+
+  "failedToExportTrail": "Izvoz poti ni uspel",
+
+  "failedToImportTrail": "Uvoz poti ni uspel: {error}",
+
+  "importTrail": "Uvozi pot",
+
+  "importTrailQuestion": "Uvozi pot s {pointCount} točkami?\n\nLahko zamenjate trenutno pot ali jo prikažete skupaj.",
+
+  "viewAlongside": "Prikaži skupaj",
+
+  "replaceCurrent": "Zamenjaj trenutno",
+
+  "trailImported": "Pot uvožena! ({pointCount} točk)",
+
+  "trailReplaced": "Pot zamenjana! ({pointCount} točk)",
+
+  "contactTrails": "Poti stikov",
+
+  "showAllContactTrails": "Prikaži vse poti stikov",
+
+  "noContactsWithLocationHistory": "Ni stikov z zgodovino lokacije",
+
+  "showingTrailsForContacts": "Prikazujem poti za {count} stikov",
+
+  "individualContactTrails": "Posamezne poti stikov",
+
   "deviceInformation": "Informacije o napravi",
 
   "bleName": "BLE ime",

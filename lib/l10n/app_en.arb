@@ -2375,6 +2375,111 @@
     "description": "Trail controls tooltip"
   },
 
+  "exportTrailToGpx": "Export Trail to GPX",
+  "@exportTrailToGpx": {
+    "description": "Button label to export trail to GPX file"
+  },
+
+  "importTrailFromGpx": "Import Trail from GPX",
+  "@importTrailFromGpx": {
+    "description": "Button label to import trail from GPX file"
+  },
+
+  "trailExportedSuccessfully": "Trail exported successfully!",
+  "@trailExportedSuccessfully": {
+    "description": "Success message when trail is exported"
+  },
+
+  "failedToExportTrail": "Failed to export trail",
+  "@failedToExportTrail": {
+    "description": "Error message when trail export fails"
+  },
+
+  "failedToImportTrail": "Failed to import trail: {error}",
+  "@failedToImportTrail": {
+    "description": "Error message when trail import fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "importTrail": "Import Trail",
+  "@importTrail": {
+    "description": "Import trail dialog title"
+  },
+
+  "importTrailQuestion": "Import trail with {pointCount} points?\n\nYou can replace your current trail or view it alongside.",
+  "@importTrailQuestion": {
+    "description": "Import trail confirmation dialog content",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "viewAlongside": "View Alongside",
+  "@viewAlongside": {
+    "description": "Button to import trail alongside current trail"
+  },
+
+  "replaceCurrent": "Replace Current",
+  "@replaceCurrent": {
+    "description": "Button to replace current trail with imported trail"
+  },
+
+  "trailImported": "Trail imported! ({pointCount} points)",
+  "@trailImported": {
+    "description": "Success message when trail is imported",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "trailReplaced": "Trail replaced! ({pointCount} points)",
+  "@trailReplaced": {
+    "description": "Success message when trail is replaced",
+    "placeholders": {
+      "pointCount": {
+        "type": "int"
+      }
+    }
+  },
+
+  "contactTrails": "Contact Trails",
+  "@contactTrails": {
+    "description": "Contact trails section header"
+  },
+
+  "showAllContactTrails": "Show All Contact Trails",
+  "@showAllContactTrails": {
+    "description": "Toggle label to show all contact trails"
+  },
+
+  "noContactsWithLocationHistory": "No contacts with location history",
+  "@noContactsWithLocationHistory": {
+    "description": "Subtitle when no contacts have trails"
+  },
+
+  "showingTrailsForContacts": "Showing trails for {count} contacts",
+  "@showingTrailsForContacts": {
+    "description": "Subtitle showing number of contacts with trails",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "individualContactTrails": "Individual Contact Trails",
+  "@individualContactTrails": {
+    "description": "Expansion tile title for individual contact trails"
+  },
+
   "deviceInformation": "Device Information",
   "@deviceInformation": {
     "description": "Device information section header"

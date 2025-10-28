@@ -2517,6 +2517,102 @@ abstract class AppLocalizations {
   /// **'Trail Controls'**
   String get trailControls;
 
+  /// Button label to export trail to GPX file
+  ///
+  /// In en, this message translates to:
+  /// **'Export Trail to GPX'**
+  String get exportTrailToGpx;
+
+  /// Button label to import trail from GPX file
+  ///
+  /// In en, this message translates to:
+  /// **'Import Trail from GPX'**
+  String get importTrailFromGpx;
+
+  /// Success message when trail is exported
+  ///
+  /// In en, this message translates to:
+  /// **'Trail exported successfully!'**
+  String get trailExportedSuccessfully;
+
+  /// Error message when trail export fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to export trail'**
+  String get failedToExportTrail;
+
+  /// Error message when trail import fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to import trail: {error}'**
+  String failedToImportTrail(String error);
+
+  /// Import trail dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Import Trail'**
+  String get importTrail;
+
+  /// Import trail confirmation dialog content
+  ///
+  /// In en, this message translates to:
+  /// **'Import trail with {pointCount} points?\n\nYou can replace your current trail or view it alongside.'**
+  String importTrailQuestion(int pointCount);
+
+  /// Button to import trail alongside current trail
+  ///
+  /// In en, this message translates to:
+  /// **'View Alongside'**
+  String get viewAlongside;
+
+  /// Button to replace current trail with imported trail
+  ///
+  /// In en, this message translates to:
+  /// **'Replace Current'**
+  String get replaceCurrent;
+
+  /// Success message when trail is imported
+  ///
+  /// In en, this message translates to:
+  /// **'Trail imported! ({pointCount} points)'**
+  String trailImported(int pointCount);
+
+  /// Success message when trail is replaced
+  ///
+  /// In en, this message translates to:
+  /// **'Trail replaced! ({pointCount} points)'**
+  String trailReplaced(int pointCount);
+
+  /// Contact trails section header
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Trails'**
+  String get contactTrails;
+
+  /// Toggle label to show all contact trails
+  ///
+  /// In en, this message translates to:
+  /// **'Show All Contact Trails'**
+  String get showAllContactTrails;
+
+  /// Subtitle when no contacts have trails
+  ///
+  /// In en, this message translates to:
+  /// **'No contacts with location history'**
+  String get noContactsWithLocationHistory;
+
+  /// Subtitle showing number of contacts with trails
+  ///
+  /// In en, this message translates to:
+  /// **'Showing trails for {count} contacts'**
+  String showingTrailsForContacts(int count);
+
+  /// Expansion tile title for individual contact trails
+  ///
+  /// In en, this message translates to:
+  /// **'Individual Contact Trails'**
+  String get individualContactTrails;
+
   /// Device information section header
   ///
   /// In en, this message translates to:

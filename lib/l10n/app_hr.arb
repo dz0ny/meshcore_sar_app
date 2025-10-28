@@ -787,6 +787,38 @@
 
   "trailControls": "Upravljanje putanjom",
 
+  "exportTrailToGpx": "Izvezi putanju u GPX",
+
+  "importTrailFromGpx": "Uvezi putanju iz GPX",
+
+  "trailExportedSuccessfully": "Putanja uspješno izvezena!",
+
+  "failedToExportTrail": "Izvoz putanje nije uspio",
+
+  "failedToImportTrail": "Uvoz putanje nije uspio: {error}",
+
+  "importTrail": "Uvezi putanju",
+
+  "importTrailQuestion": "Uvezi putanju s {pointCount} točaka?\n\nMožete zamijeniti trenutnu putanju ili je prikazati zajedno.",
+
+  "viewAlongside": "Prikaži zajedno",
+
+  "replaceCurrent": "Zamijeni trenutnu",
+
+  "trailImported": "Putanja uvezena! ({pointCount} točaka)",
+
+  "trailReplaced": "Putanja zamijenjena! ({pointCount} točaka)",
+
+  "contactTrails": "Putanje kontakata",
+
+  "showAllContactTrails": "Prikaži sve putanje kontakata",
+
+  "noContactsWithLocationHistory": "Nema kontakata s poviješću lokacije",
+
+  "showingTrailsForContacts": "Prikazujem putanje za {count} kontakata",
+
+  "individualContactTrails": "Pojedinačne putanje kontakata",
+
   "deviceInformation": "Informacije o uređaju",
 
   "bleName": "BLE naziv",

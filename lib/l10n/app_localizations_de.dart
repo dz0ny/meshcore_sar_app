@@ -1403,6 +1403,65 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trailControls => 'Verlaufssteuerung';
 
   @override
+  String get exportTrailToGpx => 'Verlauf als GPX exportieren';
+
+  @override
+  String get importTrailFromGpx => 'Verlauf aus GPX importieren';
+
+  @override
+  String get trailExportedSuccessfully => 'Verlauf erfolgreich exportiert!';
+
+  @override
+  String get failedToExportTrail => 'Exportieren des Verlaufs fehlgeschlagen';
+
+  @override
+  String failedToImportTrail(String error) {
+    return 'Importieren des Verlaufs fehlgeschlagen: $error';
+  }
+
+  @override
+  String get importTrail => 'Verlauf importieren';
+
+  @override
+  String importTrailQuestion(int pointCount) {
+    return 'Verlauf mit $pointCount Punkten importieren?\n\nSie können Ihren aktuellen Verlauf ersetzen oder daneben anzeigen.';
+  }
+
+  @override
+  String get viewAlongside => 'Daneben anzeigen';
+
+  @override
+  String get replaceCurrent => 'Aktuellen ersetzen';
+
+  @override
+  String trailImported(int pointCount) {
+    return 'Verlauf importiert! ($pointCount Punkte)';
+  }
+
+  @override
+  String trailReplaced(int pointCount) {
+    return 'Verlauf ersetzt! ($pointCount Punkte)';
+  }
+
+  @override
+  String get contactTrails => 'Kontaktverläufe';
+
+  @override
+  String get showAllContactTrails => 'Alle Kontaktverläufe anzeigen';
+
+  @override
+  String get noContactsWithLocationHistory =>
+      'Keine Kontakte mit Standortverlauf';
+
+  @override
+  String showingTrailsForContacts(int count) {
+    return 'Verläufe für $count Kontakte anzeigen';
+  }
+
+  @override
+  String get individualContactTrails => 'Einzelne Kontaktverläufe';
+
+  @override
   String get deviceInformation => 'Geräteinformationen';
 
   @override
