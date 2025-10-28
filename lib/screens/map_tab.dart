@@ -193,7 +193,10 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     // Start listening to compass events
     _compassStreamSubscription = compassStream.listen(
       (CompassEvent event) {
-        if (mounted && event.heading != null) {
+        // Double-check mounted status to prevent setState on disposed widget
+        if (!mounted || event.heading == null) return;
+
+        try {
           setState(() {
             _compassHeading = event.heading;
           });
@@ -213,6 +216,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
               // Map not ready yet, ignore
             }
           }
+        } catch (e) {
+          // Widget disposed during setState, ignore
+          debugPrint('Compass tracking error: $e');
         }
       },
     );
