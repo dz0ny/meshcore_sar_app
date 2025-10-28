@@ -3241,5 +3241,85 @@
   "recentMessages": "Recent Messages",
   "@recentMessages": {
     "description": "Header for recent messages overlay on map in fullscreen mode"
+  },
+
+  "addChannel": "Add Channel",
+  "@addChannel": {
+    "description": "Button to add a new channel"
+  },
+
+  "channelName": "Channel Name",
+  "@channelName": {
+    "description": "Label for channel name field"
+  },
+
+  "channelNameHint": "e.g., Rescue Team Alpha",
+  "@channelNameHint": {
+    "description": "Hint for channel name field"
+  },
+
+  "channelSecret": "Channel Secret",
+  "@channelSecret": {
+    "description": "Label for channel secret field"
+  },
+
+  "channelSecretHint": "Shared password for this channel",
+  "@channelSecretHint": {
+    "description": "Hint for channel secret field"
+  },
+
+  "channelSecretHelp": "This secret must be shared with all team members who need access to this channel",
+  "@channelSecretHelp": {
+    "description": "Help text explaining channel secret"
+  },
+
+  "channelNameRequired": "Channel name is required",
+  "@channelNameRequired": {
+    "description": "Validation error for empty channel name"
+  },
+
+  "channelNameTooLong": "Channel name must be 31 characters or less",
+  "@channelNameTooLong": {
+    "description": "Validation error for channel name too long"
+  },
+
+  "channelSecretRequired": "Channel secret is required",
+  "@channelSecretRequired": {
+    "description": "Validation error for empty channel secret"
+  },
+
+  "channelSecretTooLong": "Channel secret must be 32 characters or less",
+  "@channelSecretTooLong": {
+    "description": "Validation error for channel secret too long"
+  },
+
+  "invalidAsciiCharacters": "Only ASCII characters are allowed",
+  "@invalidAsciiCharacters": {
+    "description": "Validation error for non-ASCII characters"
+  },
+
+  "channelCreatedSuccessfully": "Channel created successfully",
+  "@channelCreatedSuccessfully": {
+    "description": "Success message after creating channel"
+  },
+
+  "channelCreationFailed": "Failed to create channel: {error}",
+  "@channelCreationFailed": {
+    "description": "Error message when channel creation fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "allChannelSlotsInUse": "All channel slots are in use (maximum 39 custom channels)",
+  "@allChannelSlotsInUse": {
+    "description": "Error when no channel slots available"
+  },
+
+  "createChannel": "Create Channel",
+  "@createChannel": {
+    "description": "Button text for creating a channel"
   }
 }

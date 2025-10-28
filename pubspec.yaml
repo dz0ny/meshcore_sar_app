@@ -96,6 +96,9 @@ dependencies:
   # URL launching
   url_launcher: ^6.3.0
 
+  # Cryptographic functions (for channel secret hashing)
+  crypto: ^3.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

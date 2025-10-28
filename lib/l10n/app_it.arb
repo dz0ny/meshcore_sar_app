@@ -2610,5 +2610,21 @@
   "recentMessages": "Messaggi Recenti",
   "@recentMessages": {
     "description": "Header for recent messages overlay on map in fullscreen mode"
-  }
+  },
+
+  "addChannel": "Aggiungi Canale",
+  "channelName": "Nome del Canale",
+  "channelNameHint": "es. Squadra di Soccorso Alfa",
+  "channelSecret": "Password del Canale",
+  "channelSecretHint": "Password condivisa per questo canale",
+  "channelSecretHelp": "Questa password deve essere condivisa con tutti i membri del team che necessitano di accesso a questo canale",
+  "channelNameRequired": "Il nome del canale è obbligatorio",
+  "channelNameTooLong": "Il nome del canale deve contenere al massimo 31 caratteri",
+  "channelSecretRequired": "La password del canale è obbligatoria",
+  "channelSecretTooLong": "La password del canale deve contenere al massimo 32 caratteri",
+  "invalidAsciiCharacters": "Sono consentiti solo caratteri ASCII",
+  "channelCreatedSuccessfully": "Canale creato con successo",
+  "channelCreationFailed": "Creazione del canale fallita: {error}",
+  "allChannelSlotsInUse": "Tutti gli slot dei canali sono in uso (massimo 39 canali personalizzati)",
+  "createChannel": "Crea Canale"
 }

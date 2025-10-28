@@ -3464,6 +3464,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recent Messages'**
   String get recentMessages;
+
+  /// Button to add a new channel
+  ///
+  /// In en, this message translates to:
+  /// **'Add Channel'**
+  String get addChannel;
+
+  /// Label for channel name field
+  ///
+  /// In en, this message translates to:
+  /// **'Channel Name'**
+  String get channelName;
+
+  /// Hint for channel name field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Rescue Team Alpha'**
+  String get channelNameHint;
+
+  /// Label for channel secret field
+  ///
+  /// In en, this message translates to:
+  /// **'Channel Secret'**
+  String get channelSecret;
+
+  /// Hint for channel secret field
+  ///
+  /// In en, this message translates to:
+  /// **'Shared password for this channel'**
+  String get channelSecretHint;
+
+  /// Help text explaining channel secret
+  ///
+  /// In en, this message translates to:
+  /// **'This secret must be shared with all team members who need access to this channel'**
+  String get channelSecretHelp;
+
+  /// Validation error for empty channel name
+  ///
+  /// In en, this message translates to:
+  /// **'Channel name is required'**
+  String get channelNameRequired;
+
+  /// Validation error for channel name too long
+  ///
+  /// In en, this message translates to:
+  /// **'Channel name must be 31 characters or less'**
+  String get channelNameTooLong;
+
+  /// Validation error for empty channel secret
+  ///
+  /// In en, this message translates to:
+  /// **'Channel secret is required'**
+  String get channelSecretRequired;
+
+  /// Validation error for channel secret too long
+  ///
+  /// In en, this message translates to:
+  /// **'Channel secret must be 32 characters or less'**
+  String get channelSecretTooLong;
+
+  /// Validation error for non-ASCII characters
+  ///
+  /// In en, this message translates to:
+  /// **'Only ASCII characters are allowed'**
+  String get invalidAsciiCharacters;
+
+  /// Success message after creating channel
+  ///
+  /// In en, this message translates to:
+  /// **'Channel created successfully'**
+  String get channelCreatedSuccessfully;
+
+  /// Error message when channel creation fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create channel: {error}'**
+  String channelCreationFailed(String error);
+
+  /// Error when no channel slots available
+  ///
+  /// In en, this message translates to:
+  /// **'All channel slots are in use (maximum 39 custom channels)'**
+  String get allChannelSlotsInUse;
+
+  /// Button text for creating a channel
+  ///
+  /// In en, this message translates to:
+  /// **'Create Channel'**
+  String get createChannel;
 }
 
 class _AppLocalizationsDelegate

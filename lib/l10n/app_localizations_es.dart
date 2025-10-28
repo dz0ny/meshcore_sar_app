@@ -1937,4 +1937,55 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get recentMessages => 'Mensajes Recientes';
+
+  @override
+  String get addChannel => 'Agregar Canal';
+
+  @override
+  String get channelName => 'Nombre del Canal';
+
+  @override
+  String get channelNameHint => 'ej. Equipo de Rescate Alfa';
+
+  @override
+  String get channelSecret => 'Contraseña del Canal';
+
+  @override
+  String get channelSecretHint => 'Contraseña compartida para este canal';
+
+  @override
+  String get channelSecretHelp =>
+      'Esta contraseña debe compartirse con todos los miembros del equipo que necesiten acceso a este canal';
+
+  @override
+  String get channelNameRequired => 'El nombre del canal es obligatorio';
+
+  @override
+  String get channelNameTooLong =>
+      'El nombre del canal debe tener 31 caracteres o menos';
+
+  @override
+  String get channelSecretRequired => 'La contraseña del canal es obligatoria';
+
+  @override
+  String get channelSecretTooLong =>
+      'La contraseña del canal debe tener 32 caracteres o menos';
+
+  @override
+  String get invalidAsciiCharacters => 'Solo se permiten caracteres ASCII';
+
+  @override
+  String get channelCreatedSuccessfully => 'Canal creado exitosamente';
+
+  @override
+  String channelCreationFailed(String error) {
+    return 'Error al crear el canal: $error';
+  }
+
+  @override
+  String get allChannelSlotsInUse =>
+      'Todos los espacios de canales están en uso (máximo 39 canales personalizados)';
+
+  @override
+  String get createChannel => 'Crear Canal';
 }

@@ -5,7 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/app_provider.dart';
+import '../providers/connection_provider.dart';
 import '../widgets/contacts/contact_tile.dart';
+import '../widgets/contacts/add_channel_dialog.dart';
 
 class ContactsTab extends StatefulWidget {
   final VoidCallback? onNavigateToMap;
@@ -86,133 +88,196 @@ class _ContactsTabState extends State<ContactsTab> {
     }
   }
 
+  /// Show the add channel dialog
+  Future<void> _showAddChannelDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    await showDialog(
+      context: context,
+      builder: (context) => AddChannelDialog(
+        onCreateChannel: (name, secret) async {
+          final connectionProvider = context.read<ConnectionProvider>();
+          try {
+            await connectionProvider.createChannel(
+              channelName: name,
+              channelSecret: secret,
+            );
+
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.channelCreatedSuccessfully),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.channelCreationFailed(e.toString())),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+            rethrow; // Re-throw to let dialog handle the error state
+          }
+        },
+      ),
+    );
+  }
+
+  /// Build the FAB for adding channels
+  Widget? _buildAddChannelFAB(BuildContext context) {
+    final appProvider = context.watch<AppProvider>();
+    final connectionProvider = context.watch<ConnectionProvider>();
+    final l10n = AppLocalizations.of(context)!;
+
+    // Only show when:
+    // - NOT in simple mode
+    // - Device is connected
+    if (appProvider.isSimpleMode ||
+        !connectionProvider.deviceInfo.isConnected) {
+      return null;
+    }
+
+    return FloatingActionButton.extended(
+      onPressed: () => _showAddChannelDialog(context),
+      icon: const Icon(Icons.add_circle_outline),
+      label: Text(l10n.addChannel),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final appProvider = context.watch<AppProvider>();
     final isSimpleMode = appProvider.isSimpleMode;
 
-    return Consumer<ContactsProvider>(
-      builder: (context, contactsProvider, child) {
-        final chatContacts = contactsProvider.chatContacts;
-        final repeaters = contactsProvider.repeaters;
-        final rooms = contactsProvider.rooms;
-        final channels = contactsProvider.channels;
+    return Scaffold(
+      body: Consumer<ContactsProvider>(
+        builder: (context, contactsProvider, child) {
+          final chatContacts = contactsProvider.chatContacts;
+          final repeaters = contactsProvider.repeaters;
+          final rooms = contactsProvider.rooms;
+          final channels = contactsProvider.channels;
 
-        // Check if there are any displayable contacts (excluding channels)
-        final hasDisplayableContacts = chatContacts.isNotEmpty ||
-                                      repeaters.isNotEmpty ||
-                                      rooms.isNotEmpty;
+          // Check if there are any displayable contacts (excluding channels)
+          final hasDisplayableContacts = chatContacts.isNotEmpty ||
+              repeaters.isNotEmpty ||
+              rooms.isNotEmpty;
 
-        if (!hasDisplayableContacts) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          if (!hasDisplayableContacts) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.contacts_outlined,
+                    size: 64,
+                    color: Theme.of(context).disabledColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.noContactsYet,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.connectToDeviceToLoadContacts,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: _handleRefresh,
+            child: ListView(
+              padding: const EdgeInsets.all(8),
               children: [
-                Icon(
-                  Icons.contacts_outlined,
-                  size: 64,
-                  color: Theme.of(context).disabledColor,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.noContactsYet,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.connectToDeviceToLoadContacts,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
+                // Team Members (Chat contacts)
+                if (chatContacts.isNotEmpty) ...[
+                  _SectionHeader(
+                    title: l10n.teamMembers,
+                    count: chatContacts.length,
+                    icon: Icons.people,
+                  ),
+                  ...chatContacts.map(
+                    (contact) => ContactTile(
+                      contact: contact,
+                      currentPosition: _currentPosition,
+                      calculateDistance: _calculateDistanceInMeters,
+                      formatDistance: _formatDistance,
+                      onNavigateToMap: widget.onNavigateToMap,
+                    ),
+                  ),
+                  const Divider(height: 32),
+                ],
+
+                // Repeaters
+                if (repeaters.isNotEmpty) ...[
+                  _SectionHeader(
+                    title: l10n.repeaters,
+                    count: repeaters.length,
+                    icon: Icons.router,
+                  ),
+                  ...repeaters.map(
+                    (contact) => ContactTile(
+                      contact: contact,
+                      currentPosition: _currentPosition,
+                      calculateDistance: _calculateDistanceInMeters,
+                      formatDistance: _formatDistance,
+                      onNavigateToMap: widget.onNavigateToMap,
+                    ),
+                  ),
+                  const Divider(height: 32),
+                ],
+
+                // Rooms
+                if (rooms.isNotEmpty) ...[
+                  _SectionHeader(
+                    title: l10n.rooms,
+                    count: rooms.length,
+                    icon: Icons.tag,
+                  ),
+                  ...rooms.map(
+                    (contact) => ContactTile(
+                      contact: contact,
+                      currentPosition: _currentPosition,
+                      calculateDistance: _calculateDistanceInMeters,
+                      formatDistance: _formatDistance,
+                      onNavigateToMap: widget.onNavigateToMap,
+                    ),
+                  ),
+                  const Divider(height: 32),
+                ],
+
+                // Channels (hidden in simple mode)
+                if (!isSimpleMode && channels.isNotEmpty) ...[
+                  _SectionHeader(
+                    title: l10n.channels,
+                    count: channels.length,
+                    icon: Icons.broadcast_on_personal,
+                  ),
+                  ...channels.map(
+                    (contact) => ContactTile(
+                      contact: contact,
+                      currentPosition: _currentPosition,
+                      calculateDistance: _calculateDistanceInMeters,
+                      formatDistance: _formatDistance,
+                      onNavigateToMap: widget.onNavigateToMap,
+                    ),
+                  ),
+                ],
               ],
             ),
           );
-        }
-
-        return RefreshIndicator(
-          onRefresh: _handleRefresh,
-          child: ListView(
-            padding: const EdgeInsets.all(8),
-            children: [
-              // Team Members (Chat contacts)
-              if (chatContacts.isNotEmpty) ...[
-                _SectionHeader(
-                  title: l10n.teamMembers,
-                  count: chatContacts.length,
-                  icon: Icons.people,
-                ),
-                ...chatContacts.map(
-                  (contact) => ContactTile(
-                    contact: contact,
-                    currentPosition: _currentPosition,
-                    calculateDistance: _calculateDistanceInMeters,
-                    formatDistance: _formatDistance,
-                    onNavigateToMap: widget.onNavigateToMap,
-                  ),
-                ),
-                const Divider(height: 32),
-              ],
-
-              // Repeaters
-              if (repeaters.isNotEmpty) ...[
-                _SectionHeader(
-                  title: l10n.repeaters,
-                  count: repeaters.length,
-                  icon: Icons.router,
-                ),
-                ...repeaters.map(
-                  (contact) => ContactTile(
-                    contact: contact,
-                    currentPosition: _currentPosition,
-                    calculateDistance: _calculateDistanceInMeters,
-                    formatDistance: _formatDistance,
-                    onNavigateToMap: widget.onNavigateToMap,
-                  ),
-                ),
-                const Divider(height: 32),
-              ],
-
-              // Rooms
-              if (rooms.isNotEmpty) ...[
-                _SectionHeader(
-                  title: l10n.rooms,
-                  count: rooms.length,
-                  icon: Icons.tag,
-                ),
-                ...rooms.map(
-                  (contact) => ContactTile(
-                    contact: contact,
-                    currentPosition: _currentPosition,
-                    calculateDistance: _calculateDistanceInMeters,
-                    formatDistance: _formatDistance,
-                    onNavigateToMap: widget.onNavigateToMap,
-                  ),
-                ),
-                const Divider(height: 32),
-              ],
-
-              // Channels (hidden in simple mode)
-              if (!isSimpleMode && channels.isNotEmpty) ...[
-                _SectionHeader(
-                  title: l10n.channels,
-                  count: channels.length,
-                  icon: Icons.broadcast_on_personal,
-                ),
-                ...channels.map(
-                  (contact) => ContactTile(
-                    contact: contact,
-                    currentPosition: _currentPosition,
-                    calculateDistance: _calculateDistanceInMeters,
-                    formatDistance: _formatDistance,
-                    onNavigateToMap: widget.onNavigateToMap,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        );
-      },
+        },
+      ),
+      floatingActionButton: _buildAddChannelFAB(context),
     );
   }
 }

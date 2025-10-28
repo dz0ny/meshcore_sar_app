@@ -1922,4 +1922,53 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get recentMessages => 'Nedavna sporočila';
+
+  @override
+  String get addChannel => 'Dodaj kanal';
+
+  @override
+  String get channelName => 'Ime kanala';
+
+  @override
+  String get channelNameHint => 'npr. Reševalna ekipa Alfa';
+
+  @override
+  String get channelSecret => 'Geslo kanala';
+
+  @override
+  String get channelSecretHint => 'Skupno geslo za ta kanal';
+
+  @override
+  String get channelSecretHelp =>
+      'To geslo mora biti deljeno z vsemi člani ekipe, ki potrebujejo dostop do tega kanala';
+
+  @override
+  String get channelNameRequired => 'Ime kanala je obvezno';
+
+  @override
+  String get channelNameTooLong => 'Ime kanala mora imeti največ 31 znakov';
+
+  @override
+  String get channelSecretRequired => 'Geslo kanala je obvezno';
+
+  @override
+  String get channelSecretTooLong => 'Geslo kanala mora imeti največ 32 znakov';
+
+  @override
+  String get invalidAsciiCharacters => 'Dovoljeni so samo ASCII znaki';
+
+  @override
+  String get channelCreatedSuccessfully => 'Kanal uspešno ustvarjen';
+
+  @override
+  String channelCreationFailed(String error) {
+    return 'Neuspešno ustvarjanje kanala: $error';
+  }
+
+  @override
+  String get allChannelSlotsInUse =>
+      'Vsa mesta za kanale so zasedena (maksimalno 39 prilagojenih kanalov)';
+
+  @override
+  String get createChannel => 'Ustvari kanal';
 }

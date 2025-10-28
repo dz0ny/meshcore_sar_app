@@ -2602,5 +2602,21 @@
   "showForestRoads": "Mostrar caminos forestales",
   "wmsOverlays": "Superposiciones WMS",
 
-  "recentMessages": "Mensajes Recientes"
+  "recentMessages": "Mensajes Recientes",
+
+  "addChannel": "Agregar Canal",
+  "channelName": "Nombre del Canal",
+  "channelNameHint": "ej. Equipo de Rescate Alfa",
+  "channelSecret": "Contraseña del Canal",
+  "channelSecretHint": "Contraseña compartida para este canal",
+  "channelSecretHelp": "Esta contraseña debe compartirse con todos los miembros del equipo que necesiten acceso a este canal",
+  "channelNameRequired": "El nombre del canal es obligatorio",
+  "channelNameTooLong": "El nombre del canal debe tener 31 caracteres o menos",
+  "channelSecretRequired": "La contraseña del canal es obligatoria",
+  "channelSecretTooLong": "La contraseña del canal debe tener 32 caracteres o menos",
+  "invalidAsciiCharacters": "Solo se permiten caracteres ASCII",
+  "channelCreatedSuccessfully": "Canal creado exitosamente",
+  "channelCreationFailed": "Error al crear el canal: {error}",
+  "allChannelSlotsInUse": "Todos los espacios de canales están en uso (máximo 39 canales personalizados)",
+  "createChannel": "Crear Canal"
 }

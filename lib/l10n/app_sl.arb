@@ -981,5 +981,21 @@
   "showForestRoads": "Prikaži gozdne ceste",
   "wmsOverlays": "WMS Prekrivanja",
 
-  "recentMessages": "Nedavna sporočila"
+  "recentMessages": "Nedavna sporočila",
+
+  "addChannel": "Dodaj kanal",
+  "channelName": "Ime kanala",
+  "channelNameHint": "npr. Reševalna ekipa Alfa",
+  "channelSecret": "Geslo kanala",
+  "channelSecretHint": "Skupno geslo za ta kanal",
+  "channelSecretHelp": "To geslo mora biti deljeno z vsemi člani ekipe, ki potrebujejo dostop do tega kanala",
+  "channelNameRequired": "Ime kanala je obvezno",
+  "channelNameTooLong": "Ime kanala mora imeti največ 31 znakov",
+  "channelSecretRequired": "Geslo kanala je obvezno",
+  "channelSecretTooLong": "Geslo kanala mora imeti največ 32 znakov",
+  "invalidAsciiCharacters": "Dovoljeni so samo ASCII znaki",
+  "channelCreatedSuccessfully": "Kanal uspešno ustvarjen",
+  "channelCreationFailed": "Neuspešno ustvarjanje kanala: {error}",
+  "allChannelSlotsInUse": "Vsa mesta za kanale so zasedena (maksimalno 39 prilagojenih kanalov)",
+  "createChannel": "Ustvari kanal"
 }

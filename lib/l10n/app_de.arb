@@ -2607,5 +2607,21 @@
   "showForestRoads": "Waldwege anzeigen",
   "wmsOverlays": "WMS Überlagerungen",
 
-  "recentMessages": "Aktuelle Nachrichten"
+  "recentMessages": "Aktuelle Nachrichten",
+
+  "addChannel": "Kanal hinzufügen",
+  "channelName": "Kanalname",
+  "channelNameHint": "z.B. Rettungsteam Alpha",
+  "channelSecret": "Kanal-Passwort",
+  "channelSecretHint": "Gemeinsames Passwort für diesen Kanal",
+  "channelSecretHelp": "Dieses Passwort muss mit allen Teammitgliedern geteilt werden, die Zugriff auf diesen Kanal benötigen",
+  "channelNameRequired": "Kanalname ist erforderlich",
+  "channelNameTooLong": "Kanalname darf maximal 31 Zeichen lang sein",
+  "channelSecretRequired": "Kanal-Passwort ist erforderlich",
+  "channelSecretTooLong": "Kanal-Passwort darf maximal 32 Zeichen lang sein",
+  "invalidAsciiCharacters": "Nur ASCII-Zeichen sind erlaubt",
+  "channelCreatedSuccessfully": "Kanal erfolgreich erstellt",
+  "channelCreationFailed": "Kanal konnte nicht erstellt werden: {error}",
+  "allChannelSlotsInUse": "Alle Kanalplätze sind belegt (maximal 39 benutzerdefinierte Kanäle)",
+  "createChannel": "Kanal erstellen"
 }
