@@ -887,7 +887,44 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
     );
   }
 
+  /// Convert zoom level to user-friendly description
+  String _getZoomDescription(int zoom) {
+    if (zoom <= 5) {
+      return 'Continental view (very low detail)';
+    } else if (zoom <= 8) {
+      return 'Country view (low detail)';
+    } else if (zoom <= 10) {
+      return 'Regional view (basic detail)';
+    } else if (zoom <= 12) {
+      return 'City view (moderate detail)';
+    } else if (zoom <= 15) {
+      return 'Neighborhood view (good detail)';
+    } else if (zoom <= 17) {
+      return 'Street view (high detail)';
+    } else {
+      return 'Building view (very high detail)';
+    }
+  }
+
   Widget _buildDownloadCard() {
+    // Calculate current bounds for preview
+    LatLngBounds? previewBounds;
+    try {
+      final north = double.tryParse(_northController.text);
+      final south = double.tryParse(_southController.text);
+      final east = double.tryParse(_eastController.text);
+      final west = double.tryParse(_westController.text);
+
+      if (north != null && south != null && east != null && west != null) {
+        previewBounds = LatLngBounds(
+          LatLng(south, west),
+          LatLng(north, east),
+        );
+      }
+    } catch (e) {
+      // Invalid bounds, preview will be null
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -899,6 +936,80 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
+
+            // Preview map (if bounds are valid)
+            if (previewBounds != null) ...[
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Stack(
+                    children: [
+                      FlutterMap(
+                        options: MapOptions(
+                          initialCenter: previewBounds.center,
+                          initialZoom: 12.0,
+                          minZoom: 1,
+                          maxZoom: 19,
+                          interactionOptions: const InteractionOptions(
+                            flags: InteractiveFlag.none, // Static preview
+                          ),
+                          onMapReady: () {
+                            // Fit bounds after map is ready would require MapController
+                            // For now, center on bounds center
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: _selectedLayer.urlTemplate,
+                            userAgentPackageName: 'com.meshcore.sar',
+                          ),
+                          // Blue rectangle showing download area
+                          PolygonLayer(
+                            polygons: [
+                              Polygon(
+                                points: [
+                                  LatLng(previewBounds.north, previewBounds.west),
+                                  LatLng(previewBounds.north, previewBounds.east),
+                                  LatLng(previewBounds.south, previewBounds.east),
+                                  LatLng(previewBounds.south, previewBounds.west),
+                                ],
+                                color: Colors.blue.withValues(alpha: 0.2),
+                                borderColor: Colors.blue,
+                                borderStrokeWidth: 3.0,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      // Label overlay
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Download Area Preview',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // Map Layer Selection
             DropdownButtonFormField<MapLayer>(
@@ -1010,13 +1121,22 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(AppLocalizations.of(context)!.minZoom(_minZoom)),
+                      Text(
+                        AppLocalizations.of(context)!.minZoom(_minZoom),
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        _getZoomDescription(_minZoom),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
                       Slider(
                         value: _minZoom.toDouble(),
                         min: 1,
                         max: 19,
                         divisions: 18,
-                        label: '$_minZoom',
+                        label: '$_minZoom - ${_getZoomDescription(_minZoom)}',
                         onChanged: _isDownloading
                             ? null
                             : (value) {
@@ -1036,13 +1156,22 @@ class _MapManagementScreenState extends State<MapManagementScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(AppLocalizations.of(context)!.maxZoom(_maxZoom)),
+                      Text(
+                        AppLocalizations.of(context)!.maxZoom(_maxZoom),
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        _getZoomDescription(_maxZoom),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
                       Slider(
                         value: _maxZoom.toDouble(),
                         min: 1,
                         max: 19,
                         divisions: 18,
-                        label: '$_maxZoom',
+                        label: '$_maxZoom - ${_getZoomDescription(_maxZoom)}',
                         onChanged: _isDownloading
                             ? null
                             : (value) {

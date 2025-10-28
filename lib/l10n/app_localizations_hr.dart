@@ -120,7 +120,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get autoSystem => 'Automatski (Sustav)';
 
   @override
-  String get followSystemTheme => 'Slijedi sistemsku temu';
+  String get followSystemTheme => 'Slijedi temu sustava';
 
   @override
   String get showRxTxIndicators => 'Prikaži RX/TX indikatore';
@@ -240,13 +240,13 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get technologiesList =>
-      '• Flutter za višeplatformski razvoj\n• BLE (Bluetooth Low Energy) za mesh mrežu\n• OpenStreetMap za kartografiju\n• Provider za upravljanje stanjem\n• SharedPreferences za lokalno pohranu';
+      '• Flutter za višeplatformski razvoj\n• BLE (Bluetooth Low Energy) za mesh mrežu\n• OpenStreetMap za kartografiju\n• Provider za upravljanje stanjem\n• SharedPreferences za lokalnu pohranu';
 
   @override
   String get moreInfo => 'Više informacija';
 
   @override
-  String get learnMoreAbout => 'Saznajte više o MeshCore SAR';
+  String get learnMoreAbout => 'Saznajte više o MeshCore SAR-u';
 
   @override
   String get developer => 'Programer';
@@ -306,7 +306,7 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get defaultPinInfo =>
-      'Zadani PIN za uređaje bez zaslona je 123456. Problemi s uparivanjem? Zaboravite bluetooth uređaj u postavkama sustava.';
+      'Zadani PIN za uređaje bez zaslona je 123456. Problemi s uparivanjem? Zaboravite Bluetooth uređaj u postavkama sustava.';
 
   @override
   String get noMessagesYet => 'Još nema poruka';
@@ -318,7 +318,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get deleteContact => 'Izbriši kontakt';
 
   @override
-  String get delete => 'Obriši';
+  String get delete => 'Izbriši';
 
   @override
   String get viewOnMap => 'Prikaži na karti';
@@ -815,7 +815,7 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String latLonFormat(String latitude, String longitude) {
-    return 'Ššir: $latitude Dužina: $longitude';
+    return 'Šir: $latitude Duž: $longitude';
   }
 
   @override
@@ -847,7 +847,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get cacheSize => 'Veličina predmemorije';
 
   @override
-  String get storeName => 'Ime pohrane';
+  String get storeName => 'Naziv spremišta';
 
   @override
   String get noCacheStatistics => 'Statistika predmemorije nije dostupna';
@@ -992,7 +992,8 @@ class AppLocalizationsHr extends AppLocalizations {
   String get resetMapRotationTooltip => 'Vrati kartu na sjever';
 
   @override
-  String get showMapDebugInfo => 'Prikaži debug informacije karte';
+  String get showMapDebugInfo =>
+      'Prikaži informacije za otklanjanje pogrešaka karte';
 
   @override
   String get displayZoomLevelBounds => 'Prikaži razinu zumiranja i granice';
@@ -1014,7 +1015,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get esriSatellite => 'ESRI satelit';
 
   @override
-  String get googleHybrid => 'Google hibridno';
+  String get googleHybrid => 'Google hibridna karta';
 
   @override
   String get googleRoadmap => 'Google cestovna karta';
@@ -1310,12 +1311,12 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String exportFailed(String error) {
-    return 'Export failed: $error';
+    return 'Izvoz nije uspio: $error';
   }
 
   @override
   String importFailed(String error) {
-    return 'Import failed: $error';
+    return 'Uvoz nije uspio: $error';
   }
 
   @override
@@ -1495,7 +1496,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get lat => 'Šir';
 
   @override
-  String get lon => 'Dug';
+  String get lon => 'Duž';
 
   @override
   String get useCurrentLocation => 'Koristi trenutnu lokaciju';
@@ -1563,16 +1564,16 @@ class AppLocalizationsHr extends AppLocalizations {
   String get nameRequired => 'Ime je obavezno';
 
   @override
-  String get templateDescription => 'Description (Optional)';
+  String get templateDescription => 'Opis (neobavezno)';
 
   @override
-  String get templateDescriptionHint => 'Add additional context...';
+  String get templateDescriptionHint => 'Dodajte dodatni kontekst...';
 
   @override
-  String get templateColor => 'Color';
+  String get templateColor => 'Boja';
 
   @override
-  String get previewFormat => 'Preview (SAR Message Format)';
+  String get previewFormat => 'Pregled (format SAR poruke)';
 
   @override
   String get importFromClipboard => 'Uvezi';
@@ -1582,26 +1583,26 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String deleteTemplateConfirmation(String name) {
-    return 'Delete template \'$name\'?';
+    return 'Izbrisati predložak \'$name\'?';
   }
 
   @override
-  String get templateAdded => 'Template added';
+  String get templateAdded => 'Predložak dodan';
 
   @override
-  String get templateUpdated => 'Template updated';
+  String get templateUpdated => 'Predložak ažuriran';
 
   @override
-  String get templateDeleted => 'Template deleted';
+  String get templateDeleted => 'Predložak izbrisan';
 
   @override
   String templatesImported(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Imported $count templates',
-      one: 'Imported 1 template',
-      zero: 'No templates imported',
+      other: 'Uvezeno $count predložaka',
+      one: 'Uvezen 1 predložak',
+      zero: 'Nema uvezenih predložaka',
     );
     return '$_temp0';
   }
@@ -1611,8 +1612,8 @@ class AppLocalizationsHr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Exported $count templates to clipboard',
-      one: 'Exported 1 template to clipboard',
+      other: 'Izvezeno $count predložaka u međuspremnik',
+      one: 'Izvezen 1 predložak u međuspremnik',
     );
     return '$_temp0';
   }
@@ -1631,10 +1632,10 @@ class AppLocalizationsHr extends AppLocalizations {
   String get resetComplete => 'Predlošci vraćeni na zadane';
 
   @override
-  String get noTemplates => 'No templates available';
+  String get noTemplates => 'Nema dostupnih predložaka';
 
   @override
-  String get tapAddToCreate => 'Tap + to create your first template';
+  String get tapAddToCreate => 'Dodirnite + za izradu prvog predloška';
 
   @override
   String get ok => 'OK';
@@ -1691,7 +1692,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get selectRecipient => 'Odaberi primatelja';
 
   @override
-  String get broadcastToAllNearby => 'Emituj svima u blizini';
+  String get broadcastToAllNearby => 'Emitiraj svima u blizini';
 
   @override
   String get searchRecipients => 'Pretraži primatelje...';
@@ -1773,14 +1774,14 @@ class AppLocalizationsHr extends AppLocalizations {
   String get sampleObjectTrailMarker => ' Oznaka staze pronađena izvan puta';
 
   @override
-  String get sampleMsgAllTeamsCheckIn => 'Svi timovi se jave';
+  String get sampleMsgAllTeamsCheckIn => 'Svi timovi, javite se';
 
   @override
   String get sampleMsgWeatherUpdate =>
       'Ažuriranje vremena: Vedro nebo, temp 18°C';
 
   @override
-  String get sampleMsgBaseCamp => 'Bazni kamp uspostavljen na okupljalište';
+  String get sampleMsgBaseCamp => 'Bazni kamp uspostavljen na okupljalištu';
 
   @override
   String get sampleMsgTeamAlpha => 'Tim se kreće prema sektoru 2';
@@ -1893,7 +1894,7 @@ class AppLocalizationsHr extends AppLocalizations {
       'Koordinate kopirane u međuspremnik';
 
   @override
-  String get drawingShared => 'Crtež karte';
+  String get drawingShared => 'Crtež podijeljen';
 
   @override
   String get drawingHidden => 'Crtež sakriven s karte';
@@ -1915,7 +1916,7 @@ class AppLocalizationsHr extends AppLocalizations {
   }
 
   @override
-  String get shareDrawing => 'Podijeli Crtež';
+  String get shareDrawing => 'Podijeli crtež';
 
   @override
   String get shareWithAllNearbyDevices =>
@@ -1936,7 +1937,7 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String yourDrawingsCount(int count) {
-    return 'Vaši Crteži ($count)';
+    return 'Vaši crteži ($count)';
   }
 
   @override
@@ -1949,16 +1950,16 @@ class AppLocalizationsHr extends AppLocalizations {
   String get rectangle => 'Pravokutnik';
 
   @override
-  String get updateAvailable => 'Dostupno Ažuriranje';
+  String get updateAvailable => 'Dostupno ažuriranje';
 
   @override
-  String get currentVersion => 'Trenutna';
+  String get currentVersion => 'Trenutna verzija';
 
   @override
-  String get latestVersion => 'Najnovija';
+  String get latestVersion => 'Najnovija verzija';
 
   @override
-  String get downloadUpdate => 'Preuzmi';
+  String get downloadUpdate => 'Preuzmi ažuriranje';
 
   @override
   String get updateLater => 'Kasnije';
@@ -1976,7 +1977,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get showForestRoads => 'Prikaži šumske ceste';
 
   @override
-  String get wmsOverlays => 'WMS Prekrivanja';
+  String get wmsOverlays => 'WMS prekrivanja';
 
   @override
   String get recentMessages => 'Nedavne poruke';
@@ -2048,47 +2049,47 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get wizardWelcomeDescription =>
-      'Moćan alat za komunikaciju bez mreže za spasilačke operacije. Povežite se sa svojim timom koristeći mesh radio tehnologiju kada tradicionalne mreže nisu dostupne.';
+      'Moćan alat za komunikaciju izvan mreže za spasilačke operacije. Povežite se s timom uz mesh radijsku tehnologiju kada tradicionalne mreže nisu dostupne.';
 
   @override
-  String get wizardConnectingTitle => 'Povezivanje s Radiom';
+  String get wizardConnectingTitle => 'Povezivanje s radiom';
 
   @override
   String get wizardConnectingDescription =>
-      'Povežite svoj pametni telefon s MeshCore radio uređajem putem Bluetootha kako biste započeli komunikaciju bez mreže.';
+      'Povežite telefon s MeshCore radijskim uređajem putem Bluetootha i započnite komunikaciju izvan mreže.';
 
   @override
-  String get wizardConnectingFeature1 => 'Skeniraj obližnje MeshCore uređaje';
+  String get wizardConnectingFeature1 => 'Skenira obližnje MeshCore uređaje';
 
   @override
   String get wizardConnectingFeature2 =>
-      'Uparite se s vašim radiom putem Bluetootha';
+      'Uparivanje s radijem putem Bluetootha';
 
   @override
   String get wizardConnectingFeature3 =>
-      'Radi potpuno offline - internet nije potreban';
+      'Radi potpuno izvan mreže — internet nije potreban';
 
   @override
-  String get wizardSimpleModeTitle => 'Jednostavan Način';
+  String get wizardSimpleModeTitle => 'Jednostavan način';
 
   @override
   String get wizardSimpleModeDescription =>
-      'Novi u mesh umrežavanju? Omogućite jednostavan način za pojednostavljeno sučelje samo s bitnim funkcijama.';
+      'Prvi put koristite mesh mrežu? Uključite jednostavan način za pojednostavljeno sučelje s osnovnim funkcijama.';
 
   @override
   String get wizardSimpleModeFeature1 =>
-      'Sučelje prijateljsko početnicima s osnovnim funkcijama';
+      'Sučelje prilagođeno početnicima s osnovnim funkcijama';
 
   @override
   String get wizardSimpleModeFeature2 =>
-      'Prebacite na Napredni način bilo kada u Postavkama';
+      'U svakom trenutku prebacite na napredni način u Postavkama';
 
   @override
   String get wizardChannelTitle => 'Kanali';
 
   @override
   String get wizardChannelDescription =>
-      'Emitirajte poruke svima na kanalu, savršeno za objave i koordinaciju cijele ekipe.';
+      'Šaljite poruke svima na kanalu — idealno za obavijesti i koordinaciju tima.';
 
   @override
   String get wizardChannelFeature1 => 'Javni kanal za opću komunikaciju ekipe';
@@ -2106,7 +2107,7 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get wizardContactsDescription =>
-      'Vaši članovi tima se automatski pojavljuju kada se pridruže mesh mreži. Pošaljite im direktne poruke ili pogledajte njihovu lokaciju.';
+      'Članovi tima se prikazuju automatski kada se pridruže mesh mreži. Šaljite im izravne poruke ili pogledajte njihovu lokaciju.';
 
   @override
   String get wizardContactsFeature1 => 'Kontakti se automatski otkrivaju';
@@ -2116,26 +2117,25 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get wizardContactsFeature3 =>
-      'Pogledajte razinu baterije i vrijeme zadnjeg viđenja';
+      'Prikažite stanje baterije i vrijeme zadnje aktivnosti';
 
   @override
-  String get wizardMapTitle => 'Karta & Lokacija';
+  String get wizardMapTitle => 'Karta i lokacija';
 
   @override
   String get wizardMapDescription =>
-      'Pratite svoj tim u stvarnom vremenu i označite važne lokacije za spasilačke operacije.';
+      'Pratite tim u stvarnom vremenu i označavajte ključne lokacije za spasilačke operacije.';
 
   @override
   String get wizardMapFeature1 =>
-      'SAR oznake za pronađene osobe, požare i područja postavljanja';
+      'SAR oznake za pronađene osobe, požare i točke okupljanja';
 
   @override
   String get wizardMapFeature2 =>
       'GPS praćenje članova tima u stvarnom vremenu';
 
   @override
-  String get wizardMapFeature3 =>
-      'Preuzmite offline karte za udaljena područja';
+  String get wizardMapFeature3 => 'Preuzmite karte za rad izvan mreže';
 
   @override
   String get wizardMapFeature4 =>

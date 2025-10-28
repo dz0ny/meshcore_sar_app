@@ -69,7 +69,7 @@
 
   "autoSystem": "Automatski (Sustav)",
 
-  "followSystemTheme": "Slijedi sistemsku temu",
+  "followSystemTheme": "Slijedi temu sustava",
 
   "showRxTxIndicators": "Prikaži RX/TX indikatore",
 
@@ -141,11 +141,11 @@
 
   "technologiesUsed": "Korištene tehnologije:",
 
-  "technologiesList": "• Flutter za višeplatformski razvoj\n• BLE (Bluetooth Low Energy) za mesh mrežu\n• OpenStreetMap za kartografiju\n• Provider za upravljanje stanjem\n• SharedPreferences za lokalno pohranu",
+  "technologiesList": "• Flutter za višeplatformski razvoj\n• BLE (Bluetooth Low Energy) za mesh mrežu\n• OpenStreetMap za kartografiju\n• Provider za upravljanje stanjem\n• SharedPreferences za lokalnu pohranu",
 
   "moreInfo": "Više informacija",
 
-  "learnMoreAbout": "Saznajte više o MeshCore SAR",
+  "learnMoreAbout": "Saznajte više o MeshCore SAR-u",
 
   "developer": "Programer",
 
@@ -175,7 +175,7 @@
 
   "locationBroadcast": "Emitiranje lokacije: {latitude}, {longitude}",
 
-  "defaultPinInfo": "Zadani PIN za uređaje bez zaslona je 123456. Problemi s uparivanjem? Zaboravite bluetooth uređaj u postavkama sustava.",
+  "defaultPinInfo": "Zadani PIN za uređaje bez zaslona je 123456. Problemi s uparivanjem? Zaboravite Bluetooth uređaj u postavkama sustava.",
 
   "noMessagesYet": "Još nema poruka",
 
@@ -217,7 +217,7 @@
 
   "deleteDrawing": "Izbriši crtež",
 
-  "drawingTools": "Alati za crtanje",
+  
 
   "drawLine": "Nacrtaj liniju",
 
@@ -433,7 +433,7 @@
 
   "accuracy": "Točnost",
 
-  "distance": "Udaljenost",
+  
 
   "bearing": "Azimut",
 
@@ -467,7 +467,7 @@
 
   "degreesLeft": "{degrees}° lijevo",
 
-  "latLonFormat": "Ššir: {latitude} Dužina: {longitude}",
+  "latLonFormat": "Šir: {latitude} Duž: {longitude}",
 
   "noContactsYet": "Još nema kontakata",
 
@@ -487,7 +487,7 @@
 
   "cacheSize": "Veličina predmemorije",
 
-  "storeName": "Ime pohrane",
+  "storeName": "Naziv spremišta",
 
   "noCacheStatistics": "Statistika predmemorije nije dostupna",
 
@@ -571,7 +571,7 @@
 
   "resetMapRotationTooltip": "Vrati kartu na sjever",
 
-  "showMapDebugInfo": "Prikaži debug informacije karte",
+  "showMapDebugInfo": "Prikaži informacije za otklanjanje pogrešaka karte",
 
   "displayZoomLevelBounds": "Prikaži razinu zumiranja i granice",
 
@@ -585,7 +585,7 @@
 
   "esriSatellite": "ESRI satelit",
 
-  "googleHybrid": "Google hibridno",
+  "googleHybrid": "Google hibridna karta",
 
   "googleRoadmap": "Google cestovna karta",
 
@@ -769,8 +769,6 @@
 
   "trailHiddenRecording": "Putanja je skrivena (još se snima)",
 
-  "distance": "Udaljenost",
-
   "duration": "Trajanje",
 
   "points": "Točke",
@@ -849,7 +847,7 @@
 
   "lat": "Šir",
 
-  "lon": "Dug",
+  "lon": "Duž",
 
   "useCurrentLocation": "Koristi trenutnu lokaciju",
 
@@ -879,28 +877,27 @@
   "templateEmoji": "Emoji",
   "emojiRequired": "Emoji je obavezan",
   "nameRequired": "Ime je obavezno",
-  "templateDescription": "Description (Optional)",
-  "templateDescriptionHint": "Add additional context...",
-  "templateColor": "Color",
-  "previewFormat": "Preview (SAR Message Format)",
+  "templateDescription": "Opis (neobavezno)",
+  "templateDescriptionHint": "Dodajte dodatni kontekst...",
+  "templateColor": "Boja",
+  "previewFormat": "Pregled (format SAR poruke)",
   "importFromClipboard": "Uvezi",
   "exportToClipboard": "Izvezi",
-  "deleteTemplateConfirmation": "Delete template '{name}'?",
-  "templateAdded": "Template added",
-  "templateUpdated": "Template updated",
-  "templateDeleted": "Template deleted",
-  "templatesImported": "{count, plural, =0{No templates imported} =1{Imported 1 template} other{Imported {count} templates}}",
-  "templatesExported": "{count, plural, =1{Exported 1 template to clipboard} other{Exported {count} templates to clipboard}}",
-  "importFailed": "Import failed: {error}",
-  "exportFailed": "Export failed: {error}",
+  "deleteTemplateConfirmation": "Izbrisati predložak '{name}'?",
+  "templateAdded": "Predložak dodan",
+  "templateUpdated": "Predložak ažuriran",
+  "templateDeleted": "Predložak izbrisan",
+  "templatesImported": "{count, plural, =0{Nema uvezenih predložaka} =1{Uvezen 1 predložak} other{Uvezeno {count} predložaka}}",
+  "templatesExported": "{count, plural, =1{Izvezen 1 predložak u međuspremnik} other{Izvezeno {count} predložaka u međuspremnik}}",
+  "importFailed": "Uvoz nije uspio: {error}",
+  "exportFailed": "Izvoz nije uspio: {error}",
   "resetToDefaults": "Vrati na zadane",
   "resetToDefaultsConfirmation": "Ovo će izbrisati sve prilagođene predloške i vratiti 4 zadana predloška. Nastaviti?",
   "reset": "Vrati",
   "resetComplete": "Predlošci vraćeni na zadane",
-  "noTemplates": "No templates available",
-  "tapAddToCreate": "Tap + to create your first template",
+  "noTemplates": "Nema dostupnih predložaka",
+  "tapAddToCreate": "Dodirnite + za izradu prvog predloška",
   "ok": "OK",
-  "delete": "Obriši",
 
   "permissionsSection": "Dozvole",
   "locationPermission": "Dozvola za lokaciju",
@@ -918,7 +915,7 @@
   "sarNavyBlueDescription": "Profesionalni/Operativni Način",
 
   "selectRecipient": "Odaberi primatelja",
-  "broadcastToAllNearby": "Emituj svima u blizini",
+  "broadcastToAllNearby": "Emitiraj svima u blizini",
   "searchRecipients": "Pretraži primatelje...",
   "noContactsFound": "Nema kontakata",
   "noRoomsFound": "Nema soba",
@@ -946,9 +943,9 @@
   "sampleObjectVehicle": " Napušteno vozilo - provjeriti vlasnika",
   "sampleObjectCamping": " Otkrivena oprema za kampiranje",
   "sampleObjectTrailMarker": " Oznaka staze pronađena izvan puta",
-  "sampleMsgAllTeamsCheckIn": "Svi timovi se jave",
+  "sampleMsgAllTeamsCheckIn": "Svi timovi, javite se",
   "sampleMsgWeatherUpdate": "Ažuriranje vremena: Vedro nebo, temp 18°C",
-  "sampleMsgBaseCamp": "Bazni kamp uspostavljen na okupljalište",
+  "sampleMsgBaseCamp": "Bazni kamp uspostavljen na okupljalištu",
   "sampleMsgTeamAlpha": "Tim se kreće prema sektoru 2",
   "sampleMsgRadioCheck": "Provjera radija - sve stanice odgovorite",
   "sampleMsgWaterSupply": "Opskrba vodom dostupna na kontrolnoj točki 3",
@@ -985,33 +982,33 @@
   "rectangleDrawing": "Pravokutni crtež",
   "coordinatesCopiedToClipboard": "Koordinate kopirane u međuspremnik",
 
-  "drawingShared": "Crtež karte",
+  "drawingShared": "Crtež podijeljen",
   "drawingHidden": "Crtež sakriven s karte",
   "alreadyShared": "{count, plural, =1{1 već podijeljeno} other{{count} već podijeljeno}}",
   "newDrawingsShared": "Podijeljeno {count} novi{plural} crtež{plural}",
   "drawingTools": "Alati za crtanje",
-  "shareDrawing": "Podijeli Crtež",
+  "shareDrawing": "Podijeli crtež",
   "shareWithAllNearbyDevices": "Podijeli sa svim obližnjim uređajima",
   "shareToRoom": "Podijeli u Sobu",
   "sendToPersistentStorage": "Pošalji u trajnu pohranu sobe",
   "deleteDrawingConfirm": "Jeste li sigurni da želite izbrisati ovaj crtež?",
   "drawingDeleted": "Crtež izbrisan",
-  "yourDrawingsCount": "Vaši Crteži ({count})",
+  "yourDrawingsCount": "Vaši crteži ({count})",
   "shared": "Podijeljeno",
   "line": "Linija",
   "rectangle": "Pravokutnik",
 
-  "updateAvailable": "Dostupno Ažuriranje",
-  "currentVersion": "Trenutna",
-  "latestVersion": "Najnovija",
-  "downloadUpdate": "Preuzmi",
+  "updateAvailable": "Dostupno ažuriranje",
+  "currentVersion": "Trenutna verzija",
+  "latestVersion": "Najnovija verzija",
+  "downloadUpdate": "Preuzmi ažuriranje",
   "updateLater": "Kasnije",
 
   "cadastralParcels": "Katastarske čestice",
   "forestRoads": "Šumske ceste",
   "showCadastralParcels": "Prikaži katastarske čestice",
   "showForestRoads": "Prikaži šumske ceste",
-  "wmsOverlays": "WMS Prekrivanja",
+  "wmsOverlays": "WMS prekrivanja",
 
   "recentMessages": "Nedavne poruke",
 
@@ -1036,31 +1033,31 @@
   "wizardNext": "Dalje",
   "wizardGetStarted": "Započni",
   "wizardWelcomeTitle": "Dobrodošli u MeshCore SAR",
-  "wizardWelcomeDescription": "Moćan alat za komunikaciju bez mreže za spasilačke operacije. Povežite se sa svojim timom koristeći mesh radio tehnologiju kada tradicionalne mreže nisu dostupne.",
-  "wizardConnectingTitle": "Povezivanje s Radiom",
-  "wizardConnectingDescription": "Povežite svoj pametni telefon s MeshCore radio uređajem putem Bluetootha kako biste započeli komunikaciju bez mreže.",
-  "wizardConnectingFeature1": "Skeniraj obližnje MeshCore uređaje",
-  "wizardConnectingFeature2": "Uparite se s vašim radiom putem Bluetootha",
-  "wizardConnectingFeature3": "Radi potpuno offline - internet nije potreban",
-  "wizardSimpleModeTitle": "Jednostavan Način",
-  "wizardSimpleModeDescription": "Novi u mesh umrežavanju? Omogućite jednostavan način za pojednostavljeno sučelje samo s bitnim funkcijama.",
-  "wizardSimpleModeFeature1": "Sučelje prijateljsko početnicima s osnovnim funkcijama",
-  "wizardSimpleModeFeature2": "Prebacite na Napredni način bilo kada u Postavkama",
+  "wizardWelcomeDescription": "Moćan alat za komunikaciju izvan mreže za spasilačke operacije. Povežite se s timom uz mesh radijsku tehnologiju kada tradicionalne mreže nisu dostupne.",
+  "wizardConnectingTitle": "Povezivanje s radiom",
+  "wizardConnectingDescription": "Povežite telefon s MeshCore radijskim uređajem putem Bluetootha i započnite komunikaciju izvan mreže.",
+  "wizardConnectingFeature1": "Skenira obližnje MeshCore uređaje",
+  "wizardConnectingFeature2": "Uparivanje s radijem putem Bluetootha",
+  "wizardConnectingFeature3": "Radi potpuno izvan mreže — internet nije potreban",
+  "wizardSimpleModeTitle": "Jednostavan način",
+  "wizardSimpleModeDescription": "Prvi put koristite mesh mrežu? Uključite jednostavan način za pojednostavljeno sučelje s osnovnim funkcijama.",
+  "wizardSimpleModeFeature1": "Sučelje prilagođeno početnicima s osnovnim funkcijama",
+  "wizardSimpleModeFeature2": "U svakom trenutku prebacite na napredni način u Postavkama",
   "wizardChannelTitle": "Kanali",
-  "wizardChannelDescription": "Emitirajte poruke svima na kanalu, savršeno za objave i koordinaciju cijele ekipe.",
+  "wizardChannelDescription": "Šaljite poruke svima na kanalu — idealno za obavijesti i koordinaciju tima.",
   "wizardChannelFeature1": "Javni kanal za opću komunikaciju ekipe",
   "wizardChannelFeature2": "Stvorite prilagođene kanale za specifične grupe",
   "wizardChannelFeature3": "Poruke se automatski prosljeđuju putem mreže",
   "wizardContactsTitle": "Kontakti",
-  "wizardContactsDescription": "Vaši članovi tima se automatski pojavljuju kada se pridruže mesh mreži. Pošaljite im direktne poruke ili pogledajte njihovu lokaciju.",
+  "wizardContactsDescription": "Članovi tima se prikazuju automatski kada se pridruže mesh mreži. Šaljite im izravne poruke ili pogledajte njihovu lokaciju.",
   "wizardContactsFeature1": "Kontakti se automatski otkrivaju",
   "wizardContactsFeature2": "Šaljite privatne direktne poruke",
-  "wizardContactsFeature3": "Pogledajte razinu baterije i vrijeme zadnjeg viđenja",
-  "wizardMapTitle": "Karta & Lokacija",
-  "wizardMapDescription": "Pratite svoj tim u stvarnom vremenu i označite važne lokacije za spasilačke operacije.",
-  "wizardMapFeature1": "SAR oznake za pronađene osobe, požare i područja postavljanja",
+  "wizardContactsFeature3": "Prikažite stanje baterije i vrijeme zadnje aktivnosti",
+  "wizardMapTitle": "Karta i lokacija",
+  "wizardMapDescription": "Pratite tim u stvarnom vremenu i označavajte ključne lokacije za spasilačke operacije.",
+  "wizardMapFeature1": "SAR oznake za pronađene osobe, požare i točke okupljanja",
   "wizardMapFeature2": "GPS praćenje članova tima u stvarnom vremenu",
-  "wizardMapFeature3": "Preuzmite offline karte za udaljena područja",
+  "wizardMapFeature3": "Preuzmite karte za rad izvan mreže",
   "wizardMapFeature4": "Crtajte oblike i dijelite taktičke informacije",
   "viewWelcomeTutorial": "Pogledaj uputu dobrodošlice"
 }

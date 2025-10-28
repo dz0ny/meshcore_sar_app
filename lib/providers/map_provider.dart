@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/location_trail.dart';
@@ -27,6 +28,10 @@ class MapProvider with ChangeNotifier {
   // Imported trail (from GPX)
   LocationTrail? _importedTrail;
 
+  // Download area selection
+  bool _isSelectingDownloadArea = false;
+  LatLngBounds? _downloadAreaBounds;
+
   LatLng? get targetLocation => _targetLocation;
   double? get targetZoom => _targetZoom;
   bool get shouldAnimate => _shouldAnimate;
@@ -47,6 +52,10 @@ class MapProvider with ChangeNotifier {
 
   // Imported trail getters
   LocationTrail? get importedTrail => _importedTrail;
+
+  // Download area getters
+  bool get isSelectingDownloadArea => _isSelectingDownloadArea;
+  LatLngBounds? get downloadAreaBounds => _downloadAreaBounds;
 
   void navigateToLocation({
     required LatLng location,
@@ -300,6 +309,26 @@ class MapProvider with ChangeNotifier {
     // Set imported trail as current trail
     _currentTrail = importedTrail;
     _isTrailVisible = true;
+    notifyListeners();
+  }
+
+  /// Enter download area selection mode with initial bounds
+  void enterDownloadAreaMode(LatLngBounds initialBounds) {
+    _isSelectingDownloadArea = true;
+    _downloadAreaBounds = initialBounds;
+    notifyListeners();
+  }
+
+  /// Exit download area selection mode
+  void exitDownloadAreaMode() {
+    _isSelectingDownloadArea = false;
+    _downloadAreaBounds = null;
+    notifyListeners();
+  }
+
+  /// Update the download area bounds (while dragging/resizing)
+  void updateDownloadAreaBounds(LatLngBounds bounds) {
+    _downloadAreaBounds = bounds;
     notifyListeners();
   }
 }

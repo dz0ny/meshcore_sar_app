@@ -175,7 +175,7 @@
 
   "locationBroadcast": "Oddajanje lokacije: {latitude}, {longitude}",
 
-  "defaultPinInfo": "Privzeta PIN koda za naprave brez zaslona je 123456. Težave s seznanitvijo? Pozabite napravo bluetooth v sistemskih nastavitvah.",
+  "defaultPinInfo": "Privzeta PIN koda za naprave brez zaslona je 123456. Težave s seznanitvijo? Pozabite napravo Bluetooth v sistemskih nastavitvah.",
 
   "noMessagesYet": "Še ni sporočil",
 
@@ -184,6 +184,8 @@
   "deleteContact": "Izbriši stik",
 
   "delete": "Izbriši",
+
+  
 
   "viewOnMap": "Poglej na zemljevidu",
 
@@ -359,7 +361,7 @@
 
   "noGpsData": "Ni GPS podatkov",
 
-  "distance": "Razdalja",
+  
 
   "pingingDirect": "Pinganje {name} (neposredno preko poti)...",
 
@@ -435,6 +437,8 @@
 
   "distance": "Razdalja",
 
+  
+
   "bearing": "Azimut",
 
   "direction": "Smer",
@@ -475,7 +479,7 @@
 
   "teamMembers": "Člani ekipe",
 
-  "repeaters": "Repetitorji",
+  "repeaters": "Ponavljalniki",
 
   "rooms": "Sobe",
 
@@ -571,7 +575,7 @@
 
   "resetMapRotationTooltip": "Ponastavi zemljevid na sever",
 
-  "showMapDebugInfo": "Prikaži debug informacije zemljevida",
+  "showMapDebugInfo": "Prikaži informacije za razhroščevanje zemljevida",
 
   "displayZoomLevelBounds": "Prikaži nivo povečave in meje",
 
@@ -585,7 +589,7 @@
 
   "esriSatellite": "ESRI satelit",
 
-  "googleHybrid": "Google hibridno",
+  "googleHybrid": "Google hibridni zemljevid",
 
   "googleRoadmap": "Google cestni zemljevid",
 
@@ -769,8 +773,6 @@
 
   "trailHiddenRecording": "Pot je skrita (še se snema)",
 
-  "distance": "Razdalja",
-
   "duration": "Trajanje",
 
   "points": "Točke",
@@ -849,7 +851,7 @@
 
   "lat": "Šir",
 
-  "lon": "Dol",
+  "lon": "Dolž",
 
   "useCurrentLocation": "Uporabi trenutno lokacijo",
 
@@ -857,7 +859,7 @@
 
   "chatNode": "Vozlišče za klepet",
 
-  "repeater": "Ojačevalnik",
+  "repeater": "Ponavljalnik",
 
   "roomChannel": "Soba/Kanal",
 
@@ -879,28 +881,27 @@
   "templateEmoji": "Emoji",
   "emojiRequired": "Emoji je obvezen",
   "nameRequired": "Ime je obvezno",
-  "templateDescription": "Description (Optional)",
-  "templateDescriptionHint": "Add additional context...",
-  "templateColor": "Color",
-  "previewFormat": "Preview (SAR Message Format)",
+  "templateDescription": "Opis (neobvezno)",
+  "templateDescriptionHint": "Dodajte dodatni kontekst...",
+  "templateColor": "Barva",
+  "previewFormat": "Predogled (oblika SAR sporočila)",
   "importFromClipboard": "Uvozi",
   "exportToClipboard": "Izvozi",
-  "deleteTemplateConfirmation": "Delete template '{name}'?",
-  "templateAdded": "Template added",
-  "templateUpdated": "Template updated",
-  "templateDeleted": "Template deleted",
-  "templatesImported": "{count, plural, =0{No templates imported} =1{Imported 1 template} other{Imported {count} templates}}",
-  "templatesExported": "{count, plural, =1{Exported 1 template to clipboard} other{Exported {count} templates to clipboard}}",
-  "importFailed": "Import failed: {error}",
-  "exportFailed": "Export failed: {error}",
+  "deleteTemplateConfirmation": "Izbrišem predlogo '{name}'?",
+  "templateAdded": "Predloga dodana",
+  "templateUpdated": "Predloga posodobljena",
+  "templateDeleted": "Predloga izbrisana",
+  "templatesImported": "{count, plural, =0{Ni uvoženih predlog} =1{Uvožena 1 predloga} other{Uvoženih {count} predlog}}",
+  "templatesExported": "{count, plural, =1{Izvožena 1 predloga v odložišče} other{Izvoženih {count} predlog v odložišče}}",
+  "importFailed": "Uvoz ni uspel: {error}",
+  "exportFailed": "Izvoz ni uspel: {error}",
   "resetToDefaults": "Ponastavi na privzeto",
   "resetToDefaultsConfirmation": "To bo izbrisalo vse prilagojene predloge in obnovilo 4 privzete predloge. Nadaljevati?",
   "reset": "Ponastavi",
   "resetComplete": "Predloge ponastavljene na privzeto",
-  "noTemplates": "No templates available",
-  "tapAddToCreate": "Tap + to create your first template",
+  "noTemplates": "Ni razpoložljivih predlog",
+  "tapAddToCreate": "Tapnite + za ustvarjanje prve predloge",
   "ok": "OK",
-  "delete": "Izbriši",
 
   "permissionsSection": "Dovoljenja",
   "locationPermission": "Dovoljenje za lokacijo",
@@ -965,7 +966,7 @@
   "sampleMsgPriorityHelicopter": "PRIORITETA: Potrebna podpora helikopterja",
   "sampleMsgMedicalTeamEnRoute": "Medicinska ekipa na poti do vaše lokacije",
   "sampleMsgEvacHelicopter": "Helikopter za evakuacijo prihod 10 minut",
-  "sampleMsgEmergencyResolved": "Nujnost rešena - vse čisto",
+  "sampleMsgEmergencyResolved": "Nujna situacija rešena – vse čisto",
   "sampleMsgEmergencyStagingArea": " Nujno zbirališče",
   "sampleMsgEmergencyServices": "Nujne službe obveščene in se odzivajo",
   "sampleAlphaTeamLead": "Vodja Ekipe",
@@ -985,33 +986,33 @@
   "rectangleDrawing": "Pravokotna risba",
   "coordinatesCopiedToClipboard": "Koordinate kopirane v odložišče",
 
-  "drawingShared": "Risba zemljevida",
+  "drawingShared": "Risba deljena",
   "drawingHidden": "Risba skrita z zemljevida",
   "alreadyShared": "{count, plural, =1{1 že deljeno} other{{count} že deljeno}}",
   "newDrawingsShared": "Deljeno {count} nov{plural} risb{plural}",
-  "drawingTools": "Orodja za risanje",
-  "shareDrawing": "Deli Risbo",
+  
+  "shareDrawing": "Deli risbo",
   "shareWithAllNearbyDevices": "Deli z vsemi bližnjimi napravami",
   "shareToRoom": "Deli v Sobo",
   "sendToPersistentStorage": "Pošlji v trajno shrambo sobe",
   "deleteDrawingConfirm": "Ali ste prepričani, da želite izbrisati to risbo?",
   "drawingDeleted": "Risba izbrisana",
-  "yourDrawingsCount": "Vaše Risbe ({count})",
+  "yourDrawingsCount": "Vaše risbe ({count})",
   "shared": "Deljeno",
   "line": "Črta",
   "rectangle": "Pravokotnik",
 
-  "updateAvailable": "Na Voljo Posodobitev",
-  "currentVersion": "Trenutna",
-  "latestVersion": "Najnovejša",
-  "downloadUpdate": "Prenesi",
+  "updateAvailable": "Na voljo je posodobitev",
+  "currentVersion": "Trenutna različica",
+  "latestVersion": "Najnovejša različica",
+  "downloadUpdate": "Prenesi posodobitev",
   "updateLater": "Kasneje",
 
   "cadastralParcels": "Katastrske parcele",
   "forestRoads": "Gozdne ceste",
   "showCadastralParcels": "Prikaži katastrske parcele",
   "showForestRoads": "Prikaži gozdne ceste",
-  "wmsOverlays": "WMS Prekrivanja",
+  "wmsOverlays": "WMS prekrivanja",
 
   "recentMessages": "Nedavna sporočila",
 
@@ -1036,31 +1037,31 @@
   "wizardNext": "Naprej",
   "wizardGetStarted": "Začni",
   "wizardWelcomeTitle": "Dobrodošli v MeshCore SAR",
-  "wizardWelcomeDescription": "Močno orodje za komunikacijo brez omrežja za reševalne operacije. Povežite se s svojo ekipo z uporabo mrežne radijske tehnologije, ko tradicionalna omrežja niso na voljo.",
-  "wizardConnectingTitle": "Povezava z Radijem",
-  "wizardConnectingDescription": "Povežite svoj pametni telefon z napravo MeshCore radio preko Bluetootha za začetek komunikacije brez omrežja.",
-  "wizardConnectingFeature1": "Iskanje bližnjih naprav MeshCore",
-  "wizardConnectingFeature2": "Združite s svojim radijem preko Bluetootha",
-  "wizardConnectingFeature3": "Deluje popolnoma brez povezave - internet ni potreben",
-  "wizardSimpleModeTitle": "Preprost Način",
-  "wizardSimpleModeDescription": "Novi v mrežnem omrežju? Omogočite preprost način za poenostavljen vmesnik z le bistvenimi funkcijami.",
-  "wizardSimpleModeFeature1": "Vmesnik prijazen za začetnike z osnovnimi funkcijami",
-  "wizardSimpleModeFeature2": "Kadarkoli preklopite na napredni način v nastavitvah",
+  "wizardWelcomeDescription": "Zmogljivo orodje za komunikacijo brez omrežja za reševalne operacije. S svojo ekipo se povežite z mesh radijsko tehnologijo, ko tradicionalna omrežja niso na voljo.",
+  "wizardConnectingTitle": "Povezava z radijem",
+  "wizardConnectingDescription": "Svoj telefon povežite z radijsko napravo MeshCore prek Bluetootha in začnite komunicirati brez omrežja.",
+  "wizardConnectingFeature1": "Poišče bližnje naprave MeshCore",
+  "wizardConnectingFeature2": "Seznanitev z radijsko napravo prek Bluetootha",
+  "wizardConnectingFeature3": "Deluje povsem brez povezave — internet ni potreben",
+  "wizardSimpleModeTitle": "Preprost način",
+  "wizardSimpleModeDescription": "Ste novi v mesh omrežju? Vključite preprost način za poenostavljen vmesnik z osnovnimi funkcijami.",
+  "wizardSimpleModeFeature1": "Vmesnik, prilagojen začetnikom, z osnovnimi funkcijami",
+  "wizardSimpleModeFeature2": "Na napredni način lahko kadarkoli preklopite v nastavitvah",
   "wizardChannelTitle": "Kanali",
-  "wizardChannelDescription": "Oddajajte sporočila vsem na kanalu, popolno za objave in usklajevanje cele ekipe.",
+  "wizardChannelDescription": "Pošiljajte sporočila vsem na kanalu — idealno za obvestila in koordinacijo ekipe.",
   "wizardChannelFeature1": "Javni kanal za splošno komunikacijo ekipe",
   "wizardChannelFeature2": "Ustvarite kanale po meri za določene skupine",
-  "wizardChannelFeature3": "Sporočila so samodejno posredovana preko mreže",
+  "wizardChannelFeature3": "Sporočila se samodejno posredujejo prek mreže",
   "wizardContactsTitle": "Stiki",
-  "wizardContactsDescription": "Vaši člani ekipe se samodejno prikažejo, ko se pridružijo mrežnemu omrežju. Pošljite jim neposredna sporočila ali si oglejte njihovo lokacijo.",
-  "wizardContactsFeature1": "Stiki se odkrijejo samodejno",
-  "wizardContactsFeature2": "Pošiljajte zasebna neposredna sporočila",
-  "wizardContactsFeature3": "Oglejte si raven baterije in čas zadnjega ogleda",
-  "wizardMapTitle": "Zemljevid & Lokacija",
-  "wizardMapDescription": "Sledite svoji ekipi v realnem času in označite pomembne lokacije za reševalne operacije.",
-  "wizardMapFeature1": "SAR označevalci za najdene osebe, požare in območja postavitve",
-  "wizardMapFeature2": "Sledenje GPS članov ekipe v realnem času",
-  "wizardMapFeature3": "Prenesite zemljevide brez povezave za oddaljene kraje",
-  "wizardMapFeature4": "Narišite oblike in delite taktične informacije",
+  "wizardContactsDescription": "Člani ekipe se prikažejo samodejno, ko se pridružijo mesh omrežju. Pošiljajte jim neposredna sporočila ali si oglejte njihovo lokacijo.",
+  "wizardContactsFeature1": "Samodejno odkrivanje stikov",
+  "wizardContactsFeature2": "Pošiljanje zasebnih neposrednih sporočil",
+  "wizardContactsFeature3": "Prikaz stanja baterije in časa zadnje aktivnosti",
+  "wizardMapTitle": "Zemljevid in lokacija",
+  "wizardMapDescription": "Spremljajte svojo ekipo v realnem času in označujte ključne lokacije za reševalne operacije.",
+  "wizardMapFeature1": "SAR označevalci za najdene osebe, požare in zbirna mesta",
+  "wizardMapFeature2": "Sledenje članom ekipe z GPS v realnem času",
+  "wizardMapFeature3": "Prenesite zemljevide za uporabo brez povezave",
+  "wizardMapFeature4": "Rišite oblike in delite taktične informacije",
   "viewWelcomeTutorial": "Ogled vadnice dobrodošlice"
 }

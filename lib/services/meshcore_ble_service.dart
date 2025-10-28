@@ -468,8 +468,9 @@ class MeshCoreBleService {
     required double latitude,
     required double longitude,
   }) async {
-    // This command returns OK (0x00) response, so wait for acknowledgment
-    await _commandSender.writeDataAndWaitForAck(
+    // This command updates device's advertised location
+    // Fire-and-forget - no ACK needed since actual broadcast happens via sendSelfAdvert
+    await _commandSender.writeData(
       FrameBuilder.buildSetAdvertLatLon(
         latitude: latitude,
         longitude: longitude,

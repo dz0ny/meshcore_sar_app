@@ -38,6 +38,7 @@ import '../widgets/map/drawing_toolbar.dart';
 import '../widgets/map/location_trail_layer.dart';
 import '../widgets/map/trail_controls.dart';
 import '../widgets/map/map_message_overlay.dart';
+import '../widgets/map/download_area_overlay.dart';
 import '../widgets/messages/sar_update_sheet.dart';
 import '../l10n/app_localizations.dart';
 import 'map_management_screen.dart';
@@ -708,21 +709,10 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     try {
       // Get current map bounds
       final bounds = _mapController.camera.visibleBounds;
-      final currentZoom = _mapController.camera.zoom.round();
 
-      // Navigate to Map Management screen with pre-populated data
-      final appProvider = context.read<AppProvider>();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MapManagementScreen(
-            tileCacheService: appProvider.tileCacheService,
-            initialLayer: _currentLayer,
-            initialBounds: bounds,
-            initialZoom: currentZoom,
-          ),
-        ),
-      );
+      // Enter download area selection mode (show preview overlay)
+      final mapProvider = context.read<MapProvider>();
+      mapProvider.enterDownloadAreaMode(bounds);
     } catch (e) {
       debugPrint('Error accessing map camera: $e');
     }
@@ -1550,13 +1540,15 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                               widget.onNavigateToMessages?.call();
                             },
                           ),
-                          // User location marker
+                          // User location marker with directional pointer
                           if (_markerService.generateUserLocationMarker(
                             position: _locationService.currentPosition,
+                            heading: _currentHeading,
                             context: context,
                           ) != null)
                             _markerService.generateUserLocationMarker(
                               position: _locationService.currentPosition,
+                              heading: _currentHeading,
                               context: context,
                             )!,
                           // Measurement point 1 marker
@@ -1745,6 +1737,36 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           }
                         },
                       ),
+                      // Download area selection polygon (rendered on top when in selection mode)
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.isSelectingDownloadArea || mapProvider.downloadAreaBounds == null) {
+                            return const SizedBox.shrink();
+                          }
+                          final bounds = mapProvider.downloadAreaBounds!;
+
+                          // Add padding to the bounds so the rectangle is visible within the screen
+                          // Calculate 5% padding on each side
+                          final latPadding = (bounds.north - bounds.south) * 0.05;
+                          final lonPadding = (bounds.east - bounds.west) * 0.05;
+
+                          return PolygonLayer(
+                            polygons: [
+                              Polygon(
+                                points: [
+                                  LatLng(bounds.north - latPadding, bounds.west + lonPadding), // Top-left
+                                  LatLng(bounds.north - latPadding, bounds.east - lonPadding), // Top-right
+                                  LatLng(bounds.south + latPadding, bounds.east - lonPadding), // Bottom-right
+                                  LatLng(bounds.south + latPadding, bounds.west + lonPadding), // Bottom-left
+                                ],
+                                color: Colors.blue.withValues(alpha: 0.2),
+                                borderColor: Colors.blue,
+                                borderStrokeWidth: 3.0,
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ],
                   ),
                 )
@@ -1761,6 +1783,52 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                       ],
                     ),
                   ),
+            // Download area overlay (shown when in download area selection mode)
+            Consumer<MapProvider>(
+              builder: (context, mapProvider, _) {
+                if (!mapProvider.isSelectingDownloadArea || mapProvider.downloadAreaBounds == null) {
+                  return const SizedBox.shrink();
+                }
+                return DownloadAreaOverlay(
+                  bounds: mapProvider.downloadAreaBounds!,
+                  onConfirm: () {
+                    // Navigate to map management screen with selected bounds
+                    final bounds = mapProvider.downloadAreaBounds!;
+                    final zoom = _mapController.camera.zoom.round();
+
+                    // Find matching layer from MapLayer.allLayers to avoid instance mismatch
+                    // Only pass initialLayer if it's in allLayers (standard layers only)
+                    MapLayer? initialLayer;
+                    try {
+                      initialLayer = MapLayer.allLayers.firstWhere(
+                        (layer) => layer.type == _currentLayer.type,
+                      );
+                    } catch (e) {
+                      // Current layer not in allLayers (WMS/vector), don't pass it
+                      initialLayer = null;
+                    }
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => MapManagementScreen(
+                          tileCacheService: _tileCache,
+                          initialBounds: bounds,
+                          initialLayer: initialLayer,
+                          initialZoom: zoom,
+                        ),
+                      ),
+                    );
+
+                    // Exit download area selection mode
+                    mapProvider.exitDownloadAreaMode();
+                  },
+                  onCancel: () {
+                    // Exit download area selection mode
+                    mapProvider.exitDownloadAreaMode();
+                  },
+                );
+              },
+            ),
             // Exit fullscreen button - top left (only shown in fullscreen mode)
             if (_isFullscreen)
               Positioned(

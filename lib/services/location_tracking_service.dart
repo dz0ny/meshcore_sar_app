@@ -412,9 +412,10 @@ class LocationTrackingService {
       debugPrint('✅ [LocationTracking] Initial position set without broadcast');
       debugPrint('   Next broadcast allowed in ${minTimeIntervalSeconds}s');
     } catch (e) {
-      debugPrint('❌ [LocationTracking] Failed to set initial position: $e');
-      onError?.call('Failed to set initial position: $e');
+      debugPrint('⚠️ [LocationTracking] Failed to set initial position: $e');
+      debugPrint('   Will retry on next GPS update');
       // Don't mark as set on failure, so it will retry on next update
+      // Don't call onError - this is not critical since it will retry automatically
     }
   }
 

@@ -306,7 +306,7 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get defaultPinInfo =>
-      'Privzeta PIN koda za naprave brez zaslona je 123456. Težave s seznanitvijo? Pozabite napravo bluetooth v sistemskih nastavitvah.';
+      'Privzeta PIN koda za naprave brez zaslona je 123456. Težave s seznanitvijo? Pozabite napravo Bluetooth v sistemskih nastavitvah.';
 
   @override
   String get noMessagesYet => 'Še ni sporočil';
@@ -829,7 +829,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get teamMembers => 'Člani ekipe';
 
   @override
-  String get repeaters => 'Repetitorji';
+  String get repeaters => 'Ponavljalniki';
 
   @override
   String get rooms => 'Sobe';
@@ -992,7 +992,8 @@ class AppLocalizationsSl extends AppLocalizations {
   String get resetMapRotationTooltip => 'Ponastavi zemljevid na sever';
 
   @override
-  String get showMapDebugInfo => 'Prikaži debug informacije zemljevida';
+  String get showMapDebugInfo =>
+      'Prikaži informacije za razhroščevanje zemljevida';
 
   @override
   String get displayZoomLevelBounds => 'Prikaži nivo povečave in meje';
@@ -1014,7 +1015,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get esriSatellite => 'ESRI satelit';
 
   @override
-  String get googleHybrid => 'Google hibridno';
+  String get googleHybrid => 'Google hibridni zemljevid';
 
   @override
   String get googleRoadmap => 'Google cestni zemljevid';
@@ -1313,12 +1314,12 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String exportFailed(String error) {
-    return 'Export failed: $error';
+    return 'Izvoz ni uspel: $error';
   }
 
   @override
   String importFailed(String error) {
-    return 'Import failed: $error';
+    return 'Uvoz ni uspel: $error';
   }
 
   @override
@@ -1497,7 +1498,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get lat => 'Šir';
 
   @override
-  String get lon => 'Dol';
+  String get lon => 'Dolž';
 
   @override
   String get useCurrentLocation => 'Uporabi trenutno lokacijo';
@@ -1509,7 +1510,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get chatNode => 'Vozlišče za klepet';
 
   @override
-  String get repeater => 'Ojačevalnik';
+  String get repeater => 'Ponavljalnik';
 
   @override
   String get roomChannel => 'Soba/Kanal';
@@ -1565,16 +1566,16 @@ class AppLocalizationsSl extends AppLocalizations {
   String get nameRequired => 'Ime je obvezno';
 
   @override
-  String get templateDescription => 'Description (Optional)';
+  String get templateDescription => 'Opis (neobvezno)';
 
   @override
-  String get templateDescriptionHint => 'Add additional context...';
+  String get templateDescriptionHint => 'Dodajte dodatni kontekst...';
 
   @override
-  String get templateColor => 'Color';
+  String get templateColor => 'Barva';
 
   @override
-  String get previewFormat => 'Preview (SAR Message Format)';
+  String get previewFormat => 'Predogled (oblika SAR sporočila)';
 
   @override
   String get importFromClipboard => 'Uvozi';
@@ -1584,26 +1585,26 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String deleteTemplateConfirmation(String name) {
-    return 'Delete template \'$name\'?';
+    return 'Izbrišem predlogo \'$name\'?';
   }
 
   @override
-  String get templateAdded => 'Template added';
+  String get templateAdded => 'Predloga dodana';
 
   @override
-  String get templateUpdated => 'Template updated';
+  String get templateUpdated => 'Predloga posodobljena';
 
   @override
-  String get templateDeleted => 'Template deleted';
+  String get templateDeleted => 'Predloga izbrisana';
 
   @override
   String templatesImported(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Imported $count templates',
-      one: 'Imported 1 template',
-      zero: 'No templates imported',
+      other: 'Uvoženih $count predlog',
+      one: 'Uvožena 1 predloga',
+      zero: 'Ni uvoženih predlog',
     );
     return '$_temp0';
   }
@@ -1613,8 +1614,8 @@ class AppLocalizationsSl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Exported $count templates to clipboard',
-      one: 'Exported 1 template to clipboard',
+      other: 'Izvoženih $count predlog v odložišče',
+      one: 'Izvožena 1 predloga v odložišče',
     );
     return '$_temp0';
   }
@@ -1633,10 +1634,10 @@ class AppLocalizationsSl extends AppLocalizations {
   String get resetComplete => 'Predloge ponastavljene na privzeto';
 
   @override
-  String get noTemplates => 'No templates available';
+  String get noTemplates => 'Ni razpoložljivih predlog';
 
   @override
-  String get tapAddToCreate => 'Tap + to create your first template';
+  String get tapAddToCreate => 'Tapnite + za ustvarjanje prve predloge';
 
   @override
   String get ok => 'OK';
@@ -1839,7 +1840,7 @@ class AppLocalizationsSl extends AppLocalizations {
       'Helikopter za evakuacijo prihod 10 minut';
 
   @override
-  String get sampleMsgEmergencyResolved => 'Nujnost rešena - vse čisto';
+  String get sampleMsgEmergencyResolved => 'Nujna situacija rešena – vse čisto';
 
   @override
   String get sampleMsgEmergencyStagingArea => ' Nujno zbirališče';
@@ -1894,7 +1895,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get coordinatesCopiedToClipboard => 'Koordinate kopirane v odložišče';
 
   @override
-  String get drawingShared => 'Risba zemljevida';
+  String get drawingShared => 'Risba deljena';
 
   @override
   String get drawingHidden => 'Risba skrita z zemljevida';
@@ -1916,7 +1917,7 @@ class AppLocalizationsSl extends AppLocalizations {
   }
 
   @override
-  String get shareDrawing => 'Deli Risbo';
+  String get shareDrawing => 'Deli risbo';
 
   @override
   String get shareWithAllNearbyDevices => 'Deli z vsemi bližnjimi napravami';
@@ -1936,7 +1937,7 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String yourDrawingsCount(int count) {
-    return 'Vaše Risbe ($count)';
+    return 'Vaše risbe ($count)';
   }
 
   @override
@@ -1949,16 +1950,16 @@ class AppLocalizationsSl extends AppLocalizations {
   String get rectangle => 'Pravokotnik';
 
   @override
-  String get updateAvailable => 'Na Voljo Posodobitev';
+  String get updateAvailable => 'Na voljo je posodobitev';
 
   @override
-  String get currentVersion => 'Trenutna';
+  String get currentVersion => 'Trenutna različica';
 
   @override
-  String get latestVersion => 'Najnovejša';
+  String get latestVersion => 'Najnovejša različica';
 
   @override
-  String get downloadUpdate => 'Prenesi';
+  String get downloadUpdate => 'Prenesi posodobitev';
 
   @override
   String get updateLater => 'Kasneje';
@@ -1976,7 +1977,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get showForestRoads => 'Prikaži gozdne ceste';
 
   @override
-  String get wmsOverlays => 'WMS Prekrivanja';
+  String get wmsOverlays => 'WMS prekrivanja';
 
   @override
   String get recentMessages => 'Nedavna sporočila';
@@ -2047,47 +2048,47 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get wizardWelcomeDescription =>
-      'Močno orodje za komunikacijo brez omrežja za reševalne operacije. Povežite se s svojo ekipo z uporabo mrežne radijske tehnologije, ko tradicionalna omrežja niso na voljo.';
+      'Zmogljivo orodje za komunikacijo brez omrežja za reševalne operacije. S svojo ekipo se povežite z mesh radijsko tehnologijo, ko tradicionalna omrežja niso na voljo.';
 
   @override
-  String get wizardConnectingTitle => 'Povezava z Radijem';
+  String get wizardConnectingTitle => 'Povezava z radijem';
 
   @override
   String get wizardConnectingDescription =>
-      'Povežite svoj pametni telefon z napravo MeshCore radio preko Bluetootha za začetek komunikacije brez omrežja.';
+      'Svoj telefon povežite z radijsko napravo MeshCore prek Bluetootha in začnite komunicirati brez omrežja.';
 
   @override
-  String get wizardConnectingFeature1 => 'Iskanje bližnjih naprav MeshCore';
+  String get wizardConnectingFeature1 => 'Poišče bližnje naprave MeshCore';
 
   @override
   String get wizardConnectingFeature2 =>
-      'Združite s svojim radijem preko Bluetootha';
+      'Seznanitev z radijsko napravo prek Bluetootha';
 
   @override
   String get wizardConnectingFeature3 =>
-      'Deluje popolnoma brez povezave - internet ni potreben';
+      'Deluje povsem brez povezave — internet ni potreben';
 
   @override
-  String get wizardSimpleModeTitle => 'Preprost Način';
+  String get wizardSimpleModeTitle => 'Preprost način';
 
   @override
   String get wizardSimpleModeDescription =>
-      'Novi v mrežnem omrežju? Omogočite preprost način za poenostavljen vmesnik z le bistvenimi funkcijami.';
+      'Ste novi v mesh omrežju? Vključite preprost način za poenostavljen vmesnik z osnovnimi funkcijami.';
 
   @override
   String get wizardSimpleModeFeature1 =>
-      'Vmesnik prijazen za začetnike z osnovnimi funkcijami';
+      'Vmesnik, prilagojen začetnikom, z osnovnimi funkcijami';
 
   @override
   String get wizardSimpleModeFeature2 =>
-      'Kadarkoli preklopite na napredni način v nastavitvah';
+      'Na napredni način lahko kadarkoli preklopite v nastavitvah';
 
   @override
   String get wizardChannelTitle => 'Kanali';
 
   @override
   String get wizardChannelDescription =>
-      'Oddajajte sporočila vsem na kanalu, popolno za objave in usklajevanje cele ekipe.';
+      'Pošiljajte sporočila vsem na kanalu — idealno za obvestila in koordinacijo ekipe.';
 
   @override
   String get wizardChannelFeature1 =>
@@ -2099,47 +2100,47 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get wizardChannelFeature3 =>
-      'Sporočila so samodejno posredovana preko mreže';
+      'Sporočila se samodejno posredujejo prek mreže';
 
   @override
   String get wizardContactsTitle => 'Stiki';
 
   @override
   String get wizardContactsDescription =>
-      'Vaši člani ekipe se samodejno prikažejo, ko se pridružijo mrežnemu omrežju. Pošljite jim neposredna sporočila ali si oglejte njihovo lokacijo.';
+      'Člani ekipe se prikažejo samodejno, ko se pridružijo mesh omrežju. Pošiljajte jim neposredna sporočila ali si oglejte njihovo lokacijo.';
 
   @override
-  String get wizardContactsFeature1 => 'Stiki se odkrijejo samodejno';
+  String get wizardContactsFeature1 => 'Samodejno odkrivanje stikov';
 
   @override
   String get wizardContactsFeature2 =>
-      'Pošiljajte zasebna neposredna sporočila';
+      'Pošiljanje zasebnih neposrednih sporočil';
 
   @override
   String get wizardContactsFeature3 =>
-      'Oglejte si raven baterije in čas zadnjega ogleda';
+      'Prikaz stanja baterije in časa zadnje aktivnosti';
 
   @override
-  String get wizardMapTitle => 'Zemljevid & Lokacija';
+  String get wizardMapTitle => 'Zemljevid in lokacija';
 
   @override
   String get wizardMapDescription =>
-      'Sledite svoji ekipi v realnem času in označite pomembne lokacije za reševalne operacije.';
+      'Spremljajte svojo ekipo v realnem času in označujte ključne lokacije za reševalne operacije.';
 
   @override
   String get wizardMapFeature1 =>
-      'SAR označevalci za najdene osebe, požare in območja postavitve';
+      'SAR označevalci za najdene osebe, požare in zbirna mesta';
 
   @override
-  String get wizardMapFeature2 => 'Sledenje GPS članov ekipe v realnem času';
+  String get wizardMapFeature2 => 'Sledenje članom ekipe z GPS v realnem času';
 
   @override
   String get wizardMapFeature3 =>
-      'Prenesite zemljevide brez povezave za oddaljene kraje';
+      'Prenesite zemljevide za uporabo brez povezave';
 
   @override
   String get wizardMapFeature4 =>
-      'Narišite oblike in delite taktične informacije';
+      'Rišite oblike in delite taktične informacije';
 
   @override
   String get viewWelcomeTutorial => 'Ogled vadnice dobrodošlice';

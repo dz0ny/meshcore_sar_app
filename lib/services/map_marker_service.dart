@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/contact.dart';
 import '../models/sar_marker.dart';
+import '../widgets/map/location_pointer.dart';
 
 /// Centralized service for map marker management.
 ///
@@ -222,47 +223,31 @@ class MapMarkerService {
     }).toList();
   }
 
-  /// Generate user location marker.
+  /// Generate user location marker with directional pointer.
   ///
   /// Parameters:
   /// - [position]: Current GPS position
+  /// - [heading]: Current heading in degrees (0-360, where 0 = North)
+  ///   Pass null or -1 if heading unavailable
   /// - [context]: Build context for theme access
   ///
   /// Returns null if position is unavailable.
   Marker? generateUserLocationMarker({
     required Position? position,
+    double? heading,
     required BuildContext context,
   }) {
     if (position == null) return null;
 
     return Marker(
       point: LatLng(position.latitude, position.longitude),
-      width: 40,
-      height: 40,
-      rotate: false, // Don't rotate with map
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-          shape: BoxShape.circle,
-        ),
-        child: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            shape: BoxShape.circle,
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.my_location,
-            color: Colors.white,
-            size: 16,
-          ),
-        ),
+      width: 60,
+      height: 60,
+      rotate: false, // Don't rotate with map - we handle rotation internally
+      child: LocationPointer(
+        heading: heading,
+        color: Theme.of(context).colorScheme.primary,
+        size: 60,
       ),
     );
   }
