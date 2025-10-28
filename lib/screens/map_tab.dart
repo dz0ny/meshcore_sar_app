@@ -75,6 +75,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   bool _backgroundTrackingEnabled = false; // Toggle for background tracking
   StreamSubscription<CompassEvent>? _compassStreamSubscription;
   final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
+  bool _isDisposing = false; // Flag to prevent updates during disposal
 
   // MBTiles layers
   List<MapLayer> _mbtilesLayers = [];
@@ -195,8 +196,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     // Start listening to compass events
     _compassStreamSubscription = compassStream.listen(
       (CompassEvent event) {
-        // Double-check mounted status to prevent setState on disposed widget
-        if (!mounted || event.heading == null) return;
+        // Check if widget is disposing, mounted, and event has valid heading
+        if (_isDisposing || !mounted || event.heading == null) return;
 
         try {
           setState(() {
@@ -205,7 +206,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
           // Rotate map if rotation mode is enabled and we have compass heading
           // Only rotate if map is ready
-          if (_rotateMarkerWithHeading && event.heading != null && _isMapReady) {
+          if (_rotateMarkerWithHeading && event.heading != null && _isMapReady && !_isDisposing) {
             try {
               // Use moveAndRotate to set absolute rotation
               final camera = _mapController.camera;
@@ -220,7 +221,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           }
         } catch (e) {
           // Widget disposed during setState, ignore
-          debugPrint('Compass tracking error: $e');
+          if (!_isDisposing) {
+            debugPrint('Compass tracking error: $e');
+          }
         }
       },
     );
@@ -415,12 +418,19 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
+    // Set flag immediately to prevent any async callbacks from firing
+    _isDisposing = true;
+
+    // Cancel compass subscription first to stop new events
+    _compassStreamSubscription?.cancel();
+    _compassStreamSubscription = null;
+
     // Save map position before disposing
     _saveMapPosition();
 
     final mapProvider = context.read<MapProvider>();
     mapProvider.removeListener(_handleMapNavigation);
-    _compassStreamSubscription?.cancel();
+
     // DO NOT stop location tracking - it's managed by AppProvider
     // Just clear the map-specific callback
     _locationService.onPositionUpdate = null;
