@@ -1970,6 +1970,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wmsOverlays => 'WMS Overlays';
 
   @override
+  String get hikingTrails => 'Hiking Trails';
+
+  @override
+  String get mainRoads => 'Main Roads';
+
+  @override
+  String get houseNumbers => 'House Numbers';
+
+  @override
+  String get fireHazardZones => 'Fire Hazard Zones';
+
+  @override
+  String get historicalFires => 'Historical Fires';
+
+  @override
+  String get firebreaks => 'Firebreaks';
+
+  @override
+  String get krasFireZones => 'Kras Fire Zones';
+
+  @override
+  String get placeNames => 'Place Names';
+
+  @override
+  String get municipalityBorders => 'Municipality Borders';
+
+  @override
+  String get topographicMap => 'Topographic Map 1:25000';
+
+  @override
   String get recentMessages => 'Recent Messages';
 
   @override

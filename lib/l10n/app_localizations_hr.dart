@@ -1980,6 +1980,36 @@ class AppLocalizationsHr extends AppLocalizations {
   String get wmsOverlays => 'WMS prekrivanja';
 
   @override
+  String get hikingTrails => 'Planinske staze';
+
+  @override
+  String get mainRoads => 'Glavne ceste';
+
+  @override
+  String get houseNumbers => 'Kućni brojevi';
+
+  @override
+  String get fireHazardZones => 'Požarna ugroženost';
+
+  @override
+  String get historicalFires => 'Povijesni požari';
+
+  @override
+  String get firebreaks => 'Protupožarni pojasi';
+
+  @override
+  String get krasFireZones => 'Kraška požarišta';
+
+  @override
+  String get placeNames => 'Zemljopisna imena';
+
+  @override
+  String get municipalityBorders => 'Općinske granice';
+
+  @override
+  String get topographicMap => 'Topografska karta 1:25000';
+
+  @override
   String get recentMessages => 'Nedavne poruke';
 
   @override

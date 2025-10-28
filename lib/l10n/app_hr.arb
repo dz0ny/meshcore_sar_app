@@ -1010,6 +1010,17 @@
   "showForestRoads": "Prikaži šumske ceste",
   "wmsOverlays": "WMS prekrivanja",
 
+  "hikingTrails": "Planinske staze",
+  "mainRoads": "Glavne ceste",
+  "houseNumbers": "Kućni brojevi",
+  "fireHazardZones": "Požarna ugroženost",
+  "historicalFires": "Povijesni požari",
+  "firebreaks": "Protupožarni pojasi",
+  "krasFireZones": "Kraška požarišta",
+  "placeNames": "Zemljopisna imena",
+  "municipalityBorders": "Općinske granice",
+  "topographicMap": "Topografska karta 1:25000",
+
   "recentMessages": "Nedavne poruke",
 
   "addChannel": "Dodaj kanal",

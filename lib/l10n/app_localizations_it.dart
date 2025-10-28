@@ -1990,6 +1990,36 @@ class AppLocalizationsIt extends AppLocalizations {
   String get wmsOverlays => 'Sovrapposizioni WMS';
 
   @override
+  String get hikingTrails => 'Sentieri Escursionistici';
+
+  @override
+  String get mainRoads => 'Strade Principali';
+
+  @override
+  String get houseNumbers => 'Numeri Civici';
+
+  @override
+  String get fireHazardZones => 'Zone a Rischio Incendio';
+
+  @override
+  String get historicalFires => 'Incendi Storici';
+
+  @override
+  String get firebreaks => 'Fasce Tagliafuoco';
+
+  @override
+  String get krasFireZones => 'Zone di Incendio Kras';
+
+  @override
+  String get placeNames => 'Nomi di Luoghi';
+
+  @override
+  String get municipalityBorders => 'Confini Comunali';
+
+  @override
+  String get topographicMap => 'Carta Topografica 1:25000';
+
+  @override
   String get recentMessages => 'Messaggi Recenti';
 
   @override

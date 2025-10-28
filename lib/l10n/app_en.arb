@@ -3343,6 +3343,56 @@
     "description": "Section header for WMS overlay layers in layer selector"
   },
 
+  "hikingTrails": "Hiking Trails",
+  "@hikingTrails": {
+    "description": "Label for hiking/mountain trails WMS overlay layer"
+  },
+
+  "mainRoads": "Main Roads",
+  "@mainRoads": {
+    "description": "Label for main roads WMS overlay layer"
+  },
+
+  "houseNumbers": "House Numbers",
+  "@houseNumbers": {
+    "description": "Label for house numbers WMS overlay layer"
+  },
+
+  "fireHazardZones": "Fire Hazard Zones",
+  "@fireHazardZones": {
+    "description": "Label for fire hazard risk zones WMS overlay layer"
+  },
+
+  "historicalFires": "Historical Fires",
+  "@historicalFires": {
+    "description": "Label for historical forest fires WMS overlay layer"
+  },
+
+  "firebreaks": "Firebreaks",
+  "@firebreaks": {
+    "description": "Label for firebreaks WMS overlay layer"
+  },
+
+  "krasFireZones": "Kras Fire Zones",
+  "@krasFireZones": {
+    "description": "Label for Kras fire zones WMS overlay layer"
+  },
+
+  "placeNames": "Place Names",
+  "@placeNames": {
+    "description": "Label for geographic place names WMS overlay layer"
+  },
+
+  "municipalityBorders": "Municipality Borders",
+  "@municipalityBorders": {
+    "description": "Label for municipality borders WMS overlay layer"
+  },
+
+  "topographicMap": "Topographic Map 1:25000",
+  "@topographicMap": {
+    "description": "Label for DTK25 topographic base map layer"
+  },
+
   "recentMessages": "Recent Messages",
   "@recentMessages": {
     "description": "Header for recent messages overlay on map in fullscreen mode"

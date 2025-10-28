@@ -3555,6 +3555,66 @@ abstract class AppLocalizations {
   /// **'WMS Overlays'**
   String get wmsOverlays;
 
+  /// Label for hiking/mountain trails WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Hiking Trails'**
+  String get hikingTrails;
+
+  /// Label for main roads WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Main Roads'**
+  String get mainRoads;
+
+  /// Label for house numbers WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'House Numbers'**
+  String get houseNumbers;
+
+  /// Label for fire hazard risk zones WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Fire Hazard Zones'**
+  String get fireHazardZones;
+
+  /// Label for historical forest fires WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Historical Fires'**
+  String get historicalFires;
+
+  /// Label for firebreaks WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Firebreaks'**
+  String get firebreaks;
+
+  /// Label for Kras fire zones WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Kras Fire Zones'**
+  String get krasFireZones;
+
+  /// Label for geographic place names WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Place Names'**
+  String get placeNames;
+
+  /// Label for municipality borders WMS overlay layer
+  ///
+  /// In en, this message translates to:
+  /// **'Municipality Borders'**
+  String get municipalityBorders;
+
+  /// Label for DTK25 topographic base map layer
+  ///
+  /// In en, this message translates to:
+  /// **'Topographic Map 1:25000'**
+  String get topographicMap;
+
   /// Header for recent messages overlay on map in fullscreen mode
   ///
   /// In en, this message translates to:

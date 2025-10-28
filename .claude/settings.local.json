@@ -41,7 +41,9 @@
       "WebFetch(domain:github.com)",
       "Bash(find:*)",
       "WebFetch(domain:prostor.zgs.gov.si)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Read(//private/tmp/**)",
+      "Read(///**)"
     ],
     "deny": [],
     "ask": []

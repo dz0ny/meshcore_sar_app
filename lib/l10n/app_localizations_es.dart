@@ -1995,6 +1995,36 @@ class AppLocalizationsEs extends AppLocalizations {
   String get wmsOverlays => 'Superposiciones WMS';
 
   @override
+  String get hikingTrails => 'Senderos de Montaña';
+
+  @override
+  String get mainRoads => 'Carreteras Principales';
+
+  @override
+  String get houseNumbers => 'Números de Casa';
+
+  @override
+  String get fireHazardZones => 'Zonas de Riesgo de Incendio';
+
+  @override
+  String get historicalFires => 'Incendios Históricos';
+
+  @override
+  String get firebreaks => 'Cortafuegos';
+
+  @override
+  String get krasFireZones => 'Zonas de Incendio Kras';
+
+  @override
+  String get placeNames => 'Nombres de Lugares';
+
+  @override
+  String get municipalityBorders => 'Límites Municipales';
+
+  @override
+  String get topographicMap => 'Mapa Topográfico 1:25000';
+
+  @override
   String get recentMessages => 'Mensajes Recientes';
 
   @override

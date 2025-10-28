@@ -150,6 +150,25 @@ class MapLayer {
     );
   }
 
+  /// Slovenian Topographic Map 1:25000 (DTK25) - WMS Base Layer
+  /// Uses EPSG:3794 coordinate system (GeoWebCache tile matrix zoom 0-15)
+  /// Note: CRS is initialized at runtime in getDTK25()
+  static MapLayer getDTK25(Crs slovenianCrs) {
+    return MapLayer(
+      type: MapLayerType.wmsBase,
+      name: 'DTK25 (Slovenija)',
+      urlTemplate: '', // Not used for WMS
+      attribution: '© GURS (Geodetska uprava Republike Slovenije)',
+      maxZoom: 15, // GeoWebCache tile matrix maximum
+      isWms: true,
+      wmsBaseUrl: 'https://prostor.zgs.gov.si/geowebcache/service/wms?',
+      wmsLayers: const ['pregledovalnik:DTK25'],
+      wmsFormat: 'image/jpeg',
+      wmsTransparent: false,
+      crs: slovenianCrs,
+    );
+  }
+
   static const List<MapLayer> allLayers = [
     openStreetMap,
     openTopoMap,

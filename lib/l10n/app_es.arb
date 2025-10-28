@@ -2707,6 +2707,17 @@
   "showForestRoads": "Mostrar caminos forestales",
   "wmsOverlays": "Superposiciones WMS",
 
+  "hikingTrails": "Senderos de Montaña",
+  "mainRoads": "Carreteras Principales",
+  "houseNumbers": "Números de Casa",
+  "fireHazardZones": "Zonas de Riesgo de Incendio",
+  "historicalFires": "Incendios Históricos",
+  "firebreaks": "Cortafuegos",
+  "krasFireZones": "Zonas de Incendio Kras",
+  "placeNames": "Nombres de Lugares",
+  "municipalityBorders": "Límites Municipales",
+  "topographicMap": "Mapa Topográfico 1:25000",
+
   "recentMessages": "Mensajes Recientes",
 
   "addChannel": "Agregar Canal",

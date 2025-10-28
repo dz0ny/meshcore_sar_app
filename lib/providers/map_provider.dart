@@ -21,6 +21,15 @@ class MapProvider with ChangeNotifier {
   // WMS overlay toggles
   bool _showCadastralOverlay = false;
   bool _showForestRoadsOverlay = false;
+  bool _showHikingTrailsOverlay = false;
+  bool _showMainRoadsOverlay = false;
+  bool _showHouseNumbersOverlay = false;
+  bool _showFireHazardZonesOverlay = false;
+  bool _showHistoricalFiresOverlay = false;
+  bool _showFirebreaksOverlay = false;
+  bool _showKrasFireZonesOverlay = false;
+  bool _showPlaceNamesOverlay = false;
+  bool _showMunicipalityBordersOverlay = false;
 
   // Contact trail toggles
   bool _showAllContactTrails = false;
@@ -46,6 +55,15 @@ class MapProvider with ChangeNotifier {
   // WMS overlay getters
   bool get showCadastralOverlay => _showCadastralOverlay;
   bool get showForestRoadsOverlay => _showForestRoadsOverlay;
+  bool get showHikingTrailsOverlay => _showHikingTrailsOverlay;
+  bool get showMainRoadsOverlay => _showMainRoadsOverlay;
+  bool get showHouseNumbersOverlay => _showHouseNumbersOverlay;
+  bool get showFireHazardZonesOverlay => _showFireHazardZonesOverlay;
+  bool get showHistoricalFiresOverlay => _showHistoricalFiresOverlay;
+  bool get showFirebreaksOverlay => _showFirebreaksOverlay;
+  bool get showKrasFireZonesOverlay => _showKrasFireZonesOverlay;
+  bool get showPlaceNamesOverlay => _showPlaceNamesOverlay;
+  bool get showMunicipalityBordersOverlay => _showMunicipalityBordersOverlay;
 
   // Contact trail getters
   bool get showAllContactTrails => _showAllContactTrails;
@@ -252,11 +270,83 @@ class MapProvider with ChangeNotifier {
     await _saveOverlayState();
   }
 
+  /// Toggle hiking trails overlay
+  Future<void> toggleHikingTrailsOverlay() async {
+    _showHikingTrailsOverlay = !_showHikingTrailsOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Toggle main roads overlay
+  Future<void> toggleMainRoadsOverlay() async {
+    _showMainRoadsOverlay = !_showMainRoadsOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Toggle house numbers overlay
+  Future<void> toggleHouseNumbersOverlay() async {
+    _showHouseNumbersOverlay = !_showHouseNumbersOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Toggle fire hazard zones overlay
+  Future<void> toggleFireHazardZonesOverlay() async {
+    _showFireHazardZonesOverlay = !_showFireHazardZonesOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Toggle historical fires overlay
+  Future<void> toggleHistoricalFiresOverlay() async {
+    _showHistoricalFiresOverlay = !_showHistoricalFiresOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Toggle firebreaks overlay
+  Future<void> toggleFirebreaksOverlay() async {
+    _showFirebreaksOverlay = !_showFirebreaksOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Toggle Kras fire zones overlay
+  Future<void> toggleKrasFireZonesOverlay() async {
+    _showKrasFireZonesOverlay = !_showKrasFireZonesOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Toggle place names overlay
+  Future<void> togglePlaceNamesOverlay() async {
+    _showPlaceNamesOverlay = !_showPlaceNamesOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
+  /// Toggle municipality borders overlay
+  Future<void> toggleMunicipalityBordersOverlay() async {
+    _showMunicipalityBordersOverlay = !_showMunicipalityBordersOverlay;
+    notifyListeners();
+    await _saveOverlayState();
+  }
+
   /// Load overlay state from SharedPreferences
   Future<void> loadOverlayState() async {
     final prefs = await SharedPreferences.getInstance();
     _showCadastralOverlay = prefs.getBool('map_show_cadastral_overlay') ?? false;
     _showForestRoadsOverlay = prefs.getBool('map_show_forest_roads_overlay') ?? false;
+    _showHikingTrailsOverlay = prefs.getBool('map_show_hiking_trails_overlay') ?? false;
+    _showMainRoadsOverlay = prefs.getBool('map_show_main_roads_overlay') ?? false;
+    _showHouseNumbersOverlay = prefs.getBool('map_show_house_numbers_overlay') ?? false;
+    _showFireHazardZonesOverlay = prefs.getBool('map_show_fire_hazard_zones_overlay') ?? false;
+    _showHistoricalFiresOverlay = prefs.getBool('map_show_historical_fires_overlay') ?? false;
+    _showFirebreaksOverlay = prefs.getBool('map_show_firebreaks_overlay') ?? false;
+    _showKrasFireZonesOverlay = prefs.getBool('map_show_kras_fire_zones_overlay') ?? false;
+    _showPlaceNamesOverlay = prefs.getBool('map_show_place_names_overlay') ?? false;
+    _showMunicipalityBordersOverlay = prefs.getBool('map_show_municipality_borders_overlay') ?? false;
     notifyListeners();
   }
 
@@ -265,6 +355,15 @@ class MapProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('map_show_cadastral_overlay', _showCadastralOverlay);
     await prefs.setBool('map_show_forest_roads_overlay', _showForestRoadsOverlay);
+    await prefs.setBool('map_show_hiking_trails_overlay', _showHikingTrailsOverlay);
+    await prefs.setBool('map_show_main_roads_overlay', _showMainRoadsOverlay);
+    await prefs.setBool('map_show_house_numbers_overlay', _showHouseNumbersOverlay);
+    await prefs.setBool('map_show_fire_hazard_zones_overlay', _showFireHazardZonesOverlay);
+    await prefs.setBool('map_show_historical_fires_overlay', _showHistoricalFiresOverlay);
+    await prefs.setBool('map_show_firebreaks_overlay', _showFirebreaksOverlay);
+    await prefs.setBool('map_show_kras_fire_zones_overlay', _showKrasFireZonesOverlay);
+    await prefs.setBool('map_show_place_names_overlay', _showPlaceNamesOverlay);
+    await prefs.setBool('map_show_municipality_borders_overlay', _showMunicipalityBordersOverlay);
   }
 
   /// Toggle all contact trails on/off

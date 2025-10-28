@@ -2712,6 +2712,17 @@
   "showForestRoads": "Mostra strade forestali",
   "wmsOverlays": "Sovrapposizioni WMS",
 
+  "hikingTrails": "Sentieri Escursionistici",
+  "mainRoads": "Strade Principali",
+  "houseNumbers": "Numeri Civici",
+  "fireHazardZones": "Zone a Rischio Incendio",
+  "historicalFires": "Incendi Storici",
+  "firebreaks": "Fasce Tagliafuoco",
+  "krasFireZones": "Zone di Incendio Kras",
+  "placeNames": "Nomi di Luoghi",
+  "municipalityBorders": "Confini Comunali",
+  "topographicMap": "Carta Topografica 1:25000",
+
   "recentMessages": "Messaggi Recenti",
   "@recentMessages": {
     "description": "Header for recent messages overlay on map in fullscreen mode"

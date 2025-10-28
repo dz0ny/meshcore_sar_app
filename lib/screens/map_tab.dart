@@ -30,7 +30,6 @@ import '../services/map_marker_service.dart';
 import '../services/mbtiles_service.dart';
 import '../services/trail_color_service.dart';
 import '../widgets/map_debug_info.dart';
-import '../widgets/map/map_legend.dart';
 import '../widgets/map/compass_widget.dart';
 import '../widgets/map/detailed_compass_dialog.dart';
 import '../widgets/map/drawing_layer.dart';
@@ -68,7 +67,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   MapLayer _currentLayer = MapLayer.openStreetMap;
   double? _compassHeading; // Compass sensor heading
   bool _rotateMarkerWithHeading = false; // Toggle for rotation
-  bool _showLegend = false;
   bool _showMapDebugInfo = false; // Toggle for debug info
   bool _isFullscreen = false; // Toggle for fullscreen mode
   double _gpsUpdateDistance = 3.0; // meters
@@ -82,6 +80,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
   // WMS layers (Slovenian)
   late final MapLayer _slovenianAerialLayer;
+  late final MapLayer _dtk25Layer;
 
   // Vector tile theme
   vtr.Theme? _vectorTheme;
@@ -118,8 +117,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
-    // Initialize Slovenian aerial layer with CRS
+    // Initialize Slovenian WMS layers with CRS
     _slovenianAerialLayer = MapLayer.getSlovenianAerial2024(slovenianCrs);
+    _dtk25Layer = MapLayer.getDTK25(slovenianCrs);
     _loadSettings();
     _loadMbtilesLayers();
     _initializeTileCache();
@@ -260,7 +260,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   }
 
   /// Get all available layers (default + WMS + MBTiles)
-  List<MapLayer> get _allLayers => [...MapLayer.allLayers, _slovenianAerialLayer, ..._mbtilesLayers];
+  List<MapLayer> get _allLayers => [...MapLayer.allLayers, _slovenianAerialLayer, _dtk25Layer, ..._mbtilesLayers];
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -275,7 +275,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
       final lastLayerName = prefs.getString('map_last_layer_name');
 
       setState(() {
-        _showLegend = prefs.getBool('map_show_legend') ?? false;
         _rotateMarkerWithHeading = prefs.getBool('map_rotate_with_heading') ?? false;
         _showMapDebugInfo = prefs.getBool('map_show_debug_info') ?? false;
         _isFullscreen = prefs.getBool('map_fullscreen') ?? false;
@@ -326,7 +325,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('map_show_legend', _showLegend);
     await prefs.setBool('map_rotate_with_heading', _rotateMarkerWithHeading);
     await prefs.setBool('map_show_debug_info', _showMapDebugInfo);
     await prefs.setBool('map_fullscreen', _isFullscreen);
@@ -464,18 +462,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     }
   }
 
-  // Reset map rotation to north (0 degrees)
-  void _resetMapRotation() {
-    if (!_isMapReady) return;
-    try {
-      final camera = _mapController.camera;
-      _mapController.moveAndRotate(camera.center, camera.zoom, 0);
-    } catch (e) {
-      // Silently fail if map controller not ready
-      debugPrint('Failed to reset map rotation: $e');
-    }
-  }
-
   LatLng _calculateCenter(List<Contact> contacts, List<SarMarker> sarMarkers) {
     return _markerService.calculateCenter(
       contacts: contacts,
@@ -592,9 +578,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           Navigator.pop(context);
                         },
                       )),
-                  // Slovenian WMS base layer (only for Slovenian/Croatian regions)
+                  // Slovenian WMS base layers (only for Slovenian/Croatian regions)
                   if (AppLocalizations.of(context)!.localeName == 'sl' ||
-                      AppLocalizations.of(context)!.localeName == 'hr')
+                      AppLocalizations.of(context)!.localeName == 'hr') ...[
                     ListTile(
                       leading: _currentLayer == _slovenianAerialLayer
                           ? const Icon(Icons.check_circle, color: Colors.green)
@@ -617,6 +603,29 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         Navigator.pop(context);
                       },
                     ),
+                    ListTile(
+                      leading: _currentLayer == _dtk25Layer
+                          ? const Icon(Icons.check_circle, color: Colors.green)
+                          : const Icon(Icons.radio_button_unchecked),
+                      title: Text(AppLocalizations.of(context)!.topographicMap),
+                      subtitle: Text(_dtk25Layer.attribution),
+                      onTap: () async {
+                        setState(() {
+                          _currentLayer = _dtk25Layer;
+                          // Clamp zoom level if current zoom exceeds new layer's max
+                          // For WMS layers, use a middle zoom (11) instead of max zoom to avoid extreme close-up
+                          if (_isMapReady && _mapController.camera.zoom > _dtk25Layer.maxZoom) {
+                            _mapController.move(
+                              _mapController.camera.center,
+                              11.0, // Middle zoom for WMS
+                            );
+                          }
+                        });
+                        _saveSettings();
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
                   // Offline MBTiles layers section
                   if (_mbtilesLayers.isNotEmpty) ...[
                     const Divider(),
@@ -699,6 +708,87 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 mapProvider.toggleForestRoadsOverlay();
                               },
                             ),
+                            CheckboxListTile(
+                              secondary: const Icon(Icons.hiking, color: Colors.brown),
+                              title: Text(AppLocalizations.of(context)!.hikingTrails),
+                              subtitle: const Text('© GURS'),
+                              value: mapProvider.showHikingTrailsOverlay,
+                              onChanged: (value) {
+                                mapProvider.toggleHikingTrailsOverlay();
+                              },
+                            ),
+                            CheckboxListTile(
+                              secondary: const Icon(Icons.alt_route, color: Colors.grey),
+                              title: Text(AppLocalizations.of(context)!.mainRoads),
+                              subtitle: const Text('© GURS'),
+                              value: mapProvider.showMainRoadsOverlay,
+                              onChanged: (value) {
+                                mapProvider.toggleMainRoadsOverlay();
+                              },
+                            ),
+                            CheckboxListTile(
+                              secondary: const Icon(Icons.numbers, color: Colors.purple),
+                              title: Text(AppLocalizations.of(context)!.houseNumbers),
+                              subtitle: const Text('© GURS'),
+                              value: mapProvider.showHouseNumbersOverlay,
+                              onChanged: (value) {
+                                mapProvider.toggleHouseNumbersOverlay();
+                              },
+                            ),
+                            CheckboxListTile(
+                              secondary: const Icon(Icons.warning_amber, color: Colors.orange),
+                              title: Text(AppLocalizations.of(context)!.fireHazardZones),
+                              subtitle: const Text('© GURS'),
+                              value: mapProvider.showFireHazardZonesOverlay,
+                              onChanged: (value) {
+                                mapProvider.toggleFireHazardZonesOverlay();
+                              },
+                            ),
+                            CheckboxListTile(
+                              secondary: const Icon(Icons.local_fire_department, color: Colors.red),
+                              title: Text(AppLocalizations.of(context)!.historicalFires),
+                              subtitle: const Text('© GURS'),
+                              value: mapProvider.showHistoricalFiresOverlay,
+                              onChanged: (value) {
+                                mapProvider.toggleHistoricalFiresOverlay();
+                              },
+                            ),
+                            CheckboxListTile(
+                              secondary: const Icon(Icons.forest, color: Colors.teal),
+                              title: Text(AppLocalizations.of(context)!.firebreaks),
+                              subtitle: const Text('© GURS'),
+                              value: mapProvider.showFirebreaksOverlay,
+                              onChanged: (value) {
+                                mapProvider.toggleFirebreaksOverlay();
+                              },
+                            ),
+                            CheckboxListTile(
+                              secondary: const Icon(Icons.warning, color: Colors.deepOrange),
+                              title: Text(AppLocalizations.of(context)!.krasFireZones),
+                              subtitle: const Text('© GURS'),
+                              value: mapProvider.showKrasFireZonesOverlay,
+                              onChanged: (value) {
+                                mapProvider.toggleKrasFireZonesOverlay();
+                              },
+                            ),
+                            CheckboxListTile(
+                              secondary: const Icon(Icons.place, color: Colors.indigo),
+                              title: Text(AppLocalizations.of(context)!.placeNames),
+                              subtitle: const Text('© GURS'),
+                              value: mapProvider.showPlaceNamesOverlay,
+                              onChanged: (value) {
+                                mapProvider.togglePlaceNamesOverlay();
+                              },
+                            ),
+                            CheckboxListTile(
+                              secondary: const Icon(Icons.border_outer, color: Colors.cyan),
+                              title: Text(AppLocalizations.of(context)!.municipalityBorders),
+                              subtitle: const Text('© GURS'),
+                              value: mapProvider.showMunicipalityBordersOverlay,
+                              onChanged: (value) {
+                                mapProvider.toggleMunicipalityBordersOverlay();
+                              },
+                            ),
                           ],
                         );
                       },
@@ -753,54 +843,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     ),
                   ],
                 ),
-              ),
-              const Divider(),
-              // Legend toggle
-              SwitchListTile(
-                secondary: const Icon(Icons.info_outline),
-                title: Text(AppLocalizations.of(context)!.showLegend),
-                subtitle: Text(AppLocalizations.of(context)!.displayMarkerTypeCounts),
-                value: _showLegend,
-                onChanged: (value) {
-                  setState(() {
-                    _showLegend = value;
-                  });
-                  setModalState(() {});
-                  _saveSettings();
-                },
-              ),
-              const Divider(),
-              // Compass rotation toggle
-              SwitchListTile(
-                secondary: const Icon(Icons.explore),
-                title: Text(AppLocalizations.of(context)!.rotateMapWithHeading),
-                subtitle: Text(AppLocalizations.of(context)!.mapFollowsDirection),
-                value: _rotateMarkerWithHeading,
-                onChanged: (value) {
-                  setState(() {
-                    _rotateMarkerWithHeading = value;
-                    // Reset map rotation when disabling (only if map is ready)
-                    if (_isMapReady) {
-                      try {
-                        final camera = _mapController.camera;
-                        if (!_rotateMarkerWithHeading) {
-                          _mapController.moveAndRotate(camera.center, camera.zoom, 0);
-                        } else if (_currentHeading != null) {
-                          // Apply current heading rotation when enabling (if heading is valid)
-                          _mapController.moveAndRotate(
-                            camera.center,
-                            camera.zoom,
-                            -_currentHeading!,
-                          );
-                        }
-                      } catch (e) {
-                        // Map not ready yet, ignore
-                      }
-                    }
-                  });
-                  setModalState(() {});
-                  _saveSettings();
-                },
               ),
               const Divider(),
               // Map Debug Info toggle
@@ -1442,6 +1484,331 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           );
                         },
                       ),
+                      // Hiking trails overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.showHikingTrailsOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:KGI_LINIJE_PLANINSKE_POTI_G'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Hiking Trails',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:KGI_LINIJE_PLANINSKE_POTI_G'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Hiking trails overlay tile error at ${tile.coordinates}: $error');
+                            },
+                          );
+                        },
+                      ),
+                      // Main roads overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.showMainRoadsOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:KGI_LINIJE_CESTE_G'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Main Roads',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:KGI_LINIJE_CESTE_G'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Main roads overlay tile error at ${tile.coordinates}: $error');
+                            },
+                          );
+                        },
+                      ),
+                      // House numbers overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.showHouseNumbersOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:NEP_HISNE_STEVILKE'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'House Numbers',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:NEP_HISNE_STEVILKE'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 House numbers overlay tile error at ${tile.coordinates}: $error');
+                            },
+                          );
+                        },
+                      ),
+                      // Fire hazard zones overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.showFireHazardZonesOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:pozarna_ogrozenost'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Fire Hazard Zones',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:pozarna_ogrozenost'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Fire hazard zones overlay tile error at ${tile.coordinates}: $error');
+                            },
+                          );
+                        },
+                      ),
+                      // Historical fires overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.showHistoricalFiresOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:gozdni_pozari'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Historical Fires',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:gozdni_pozari'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Historical fires overlay tile error at ${tile.coordinates}: $error');
+                            },
+                          );
+                        },
+                      ),
+                      // Firebreaks overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.showFirebreaksOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:protipozarne_preseke'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Firebreaks',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:protipozarne_preseke'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Firebreaks overlay tile error at ${tile.coordinates}: $error');
+                            },
+                          );
+                        },
+                      ),
+                      // Kras fire zones overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.showKrasFireZonesOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:pozarisce_kras'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Kras Fire Zones',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:pozarisce_kras'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Kras fire zones overlay tile error at ${tile.coordinates}: $error');
+                            },
+                          );
+                        },
+                      ),
+                      // Place names overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.showPlaceNamesOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:zemljepisna_imena'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Place Names',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:zemljepisna_imena'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Place names overlay tile error at ${tile.coordinates}: $error');
+                            },
+                          );
+                        },
+                      ),
+                      // Municipality borders overlay
+                      Consumer<MapProvider>(
+                        builder: (context, mapProvider, _) {
+                          if (!mapProvider.showMunicipalityBordersOverlay || _currentLayer.crs == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return flutter_map.TileLayer(
+                            wmsOptions: WMSTileLayerOptions(
+                              baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                              layers: const ['pregledovalnik:NEP_RPE_OBCINE'],
+                              styles: const ['obcine'],
+                              format: 'image/png',
+                              transparent: true,
+                              crs: slovenianCrs,
+                            ),
+                            tileProvider: _tileCache.getTileProviderForWms(
+                              MapLayer(
+                                type: MapLayerType.wmsBase,
+                                name: 'Municipality Borders',
+                                urlTemplate: '',
+                                attribution: '© GURS',
+                                maxZoom: 19,
+                                isWms: true,
+                                wmsBaseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
+                                wmsLayers: const ['pregledovalnik:NEP_RPE_OBCINE'],
+                                wmsFormat: 'image/png',
+                                crs: slovenianCrs,
+                              ),
+                            ),
+                            userAgentPackageName: 'com.meshcore.sar',
+                            maxZoom: 19,
+                            errorTileCallback: (tile, error, stackTrace) {
+                              debugPrint('🔴 Municipality borders overlay tile error at ${tile.coordinates}: $error');
+                            },
+                          );
+                        },
+                      ),
                       // Imported trail layer (rendered at bottom for reference)
                       Consumer<MapProvider>(
                         builder: (context, mapProvider, _) {
@@ -1904,19 +2271,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   ),
                 ),
               ),
-            // Map legend overlay (hidden in fullscreen mode)
-            if (_showLegend && !_isFullscreen)
-              Positioned(
-                top: 80, // Position below compass
-                left: 16,
-                child: MapLegend(
-                  teamMemberCount: contactsWithLocation.length,
-                  foundPersonCount: messagesProvider.foundPersonMarkers.length,
-                  fireCount: messagesProvider.fireMarkers.length,
-                  stagingAreaCount: messagesProvider.stagingAreaMarkers.length,
-                  objectCount: messagesProvider.objectMarkers.length,
-                ),
-              ),
             // Measurement distance overlay
             if (drawingProvider.drawingMode == DrawingMode.measure)
               Positioned(
@@ -2017,6 +2371,82 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         return const DrawingToolbar();
                       },
                     ),
+                    // Hide other buttons when in drawing mode
+                    if (!drawingProvider.isDrawing) ...[
+                      // Current Location - always center to GPS
+                      FloatingActionButton.small(
+                        heroTag: 'center_map',
+                        onPressed: !_isMapReady ? null : () async {
+                          // Get current zoom to retain it
+                          final currentZoom = _mapController.camera.zoom;
+
+                          // Force update GPS location and jump to it
+                          final position = await _locationService.getCurrentPosition();
+                          if (position != null && mounted) {
+                            setState(() {
+                              // Position updated in service
+                            });
+                            _mapController.move(
+                              LatLng(position.latitude, position.longitude),
+                              currentZoom,
+                            );
+                          } else {
+                            // Fallback to cached position or default center
+                            final currentPosition = _locationService.currentPosition;
+                            if (currentPosition != null) {
+                              _mapController.move(
+                                LatLng(
+                                  currentPosition.latitude,
+                                  currentPosition.longitude,
+                                ),
+                                currentZoom,
+                              );
+                            } else {
+                              _mapController.move(center, currentZoom);
+                            }
+                          }
+                        },
+                        child: const Icon(Icons.my_location),
+                      ),
+                      const SizedBox(height: 8),
+                      // Map Rotation Lock - toggle rotate with heading
+                      FloatingActionButton.small(
+                        heroTag: 'rotation_lock',
+                        backgroundColor: _rotateMarkerWithHeading
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                        onPressed: !_isMapReady ? null : () {
+                          setState(() {
+                            _rotateMarkerWithHeading = !_rotateMarkerWithHeading;
+                            // Reset map rotation when disabling
+                            if (_isMapReady) {
+                              try {
+                                final camera = _mapController.camera;
+                                if (!_rotateMarkerWithHeading) {
+                                  // Disable: reset to north
+                                  _mapController.moveAndRotate(camera.center, camera.zoom, 0);
+                                } else if (_currentHeading != null) {
+                                  // Enable: apply current heading rotation
+                                  _mapController.moveAndRotate(
+                                    camera.center,
+                                    camera.zoom,
+                                    -_currentHeading!,
+                                  );
+                                }
+                              } catch (e) {
+                                debugPrint('Failed to toggle rotation lock: $e');
+                              }
+                            }
+                          });
+                          _saveSettings();
+                        },
+                        child: Icon(
+                          Icons.screen_lock_rotation,
+                          color: _rotateMarkerWithHeading ? Colors.white : null,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                     // In simple mode: show ruler FAB directly
                     Consumer<AppProvider>(
                       builder: (context, appProvider, _) {
@@ -2053,52 +2483,10 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         );
                       },
                     ),
-                    // Hide other buttons when in drawing mode
+                    // Continue with other buttons when not in drawing mode
                     if (!drawingProvider.isDrawing) ...[
-                      FloatingActionButton.small(
-                      heroTag: 'center_map',
-                      onPressed: !_isMapReady ? null : () async {
-                        // First tap: reset rotation if not 0
-                        // Second tap (or if rotation is 0): jump to current location
-                        if (_getMapRotation() != 0) {
-                          _resetMapRotation();
-                          return;
-                        }
-
-                        // Get current zoom to retain it
-                        final currentZoom = _mapController.camera.zoom;
-
-                        // Force update GPS location and jump to it
-                        final position = await _locationService.getCurrentPosition();
-                        if (position != null && mounted) {
-                          setState(() {
-                            // Position updated in service
-                          });
-                          _mapController.move(
-                            LatLng(position.latitude, position.longitude),
-                            currentZoom,
-                          );
-                        } else {
-                          // Fallback to cached position or default center
-                          final currentPosition = _locationService.currentPosition;
-                          if (currentPosition != null) {
-                            _mapController.move(
-                              LatLng(
-                                currentPosition.latitude,
-                                currentPosition.longitude,
-                              ),
-                              currentZoom,
-                            );
-                          } else {
-                            _mapController.move(center, currentZoom);
-                          }
-                        }
-                      },
-                      child: const Icon(Icons.my_location),
-                    ),
-                    const SizedBox(height: 8),
-                    // Trail controls button
-                    const TrailControls(),
+                      // Trail controls button
+                      const TrailControls(),
                     const SizedBox(height: 8),
                     FloatingActionButton.small(
                       heroTag: 'layer_selector',
