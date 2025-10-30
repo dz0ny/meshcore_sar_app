@@ -33,6 +33,9 @@ class NotificationService {
       'Notifications for incoming messages from contacts and channels';
 
   /// Initialize notification service
+  /// Following best practices: set all permission requests to false during init,
+  /// then request permissions explicitly via requestPermissions() method.
+  /// This approach is recommended for iOS (all supported versions) and macOS 10.14+.
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -47,18 +50,27 @@ class NotificationService {
         '@mipmap/ic_launcher',
       );
 
-      // iOS initialization settings
-      final darwinSettings = DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-        requestCriticalPermission: true, // For urgent SAR notifications
+      // iOS initialization settings - set all permissions to false
+      // Permissions will be requested later via requestPermissions()
+      const darwinSettings = DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
+
+      // macOS initialization settings - set all permissions to false
+      // Permissions will be requested later via requestPermissions()
+      const macOSSettings = MacOSInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
       );
 
       // Combined initialization settings
       final initSettings = InitializationSettings(
         android: androidSettings,
         iOS: darwinSettings,
+        macOS: macOSSettings,
       );
 
       // Initialize plugin
@@ -67,7 +79,7 @@ class NotificationService {
         onDidReceiveNotificationResponse: _onNotificationResponse,
       );
 
-      // Request permissions
+      // Request permissions at the appropriate point (after initialization)
       await _requestPermissions();
 
       // Create notification channels (Android)
@@ -82,9 +94,13 @@ class NotificationService {
   }
 
   /// Request notification permissions
+  /// Uses platform-specific implementations for iOS and macOS as recommended.
+  /// For iOS: Uses IOSFlutterLocalNotificationsPlugin.requestPermissions()
+  /// For macOS: Uses MacOSFlutterLocalNotificationsPlugin.requestPermissions()
+  /// For Android: Uses AndroidFlutterLocalNotificationsPlugin.requestNotificationsPermission()
   Future<void> _requestPermissions() async {
     try {
-      // iOS permissions
+      // iOS permissions - request at appropriate point after initialization
       final iosPlugin = _notificationsPlugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
@@ -102,6 +118,26 @@ class NotificationService {
           '📱 [NotificationService] iOS permissions granted: $_permissionGranted',
         );
         return; // Exit early if on iOS
+      }
+
+      // macOS permissions - request at appropriate point after initialization
+      final macOSPlugin = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin
+          >();
+      if (macOSPlugin != null) {
+        final granted = await macOSPlugin.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+          critical:
+              true, // Request critical alert permission for urgent SAR notifications
+        );
+        _permissionGranted = granted ?? false;
+        debugPrint(
+          '💻 [NotificationService] macOS permissions granted: $_permissionGranted',
+        );
+        return; // Exit early if on macOS
       }
 
       // Android 13+ permissions
