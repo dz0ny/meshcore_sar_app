@@ -594,8 +594,8 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                                 Expanded(
                                   child: Text(
                                     AppLocalizations.of(context)!.directMessagesInfo(chatContactsCount),
-                                    style: const TextStyle(
-                                      color: Colors.white70,
+                                    style: TextStyle(
+                                      color: Colors.green.shade900,
                                       fontSize: 11,
                                     ),
                                   ),
