@@ -640,8 +640,10 @@ class _SarUpdateSheetState extends State<SarUpdateSheet> {
                                         : AppLocalizations.of(
                                             context,
                                           )!.persistentRoomInfo,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
+                                    style: TextStyle(
+                                      color: _selectedContact!.isChannel
+                                          ? Colors.orange.shade900
+                                          : Colors.blue.shade900,
                                       fontSize: 11,
                                     ),
                                   ),
