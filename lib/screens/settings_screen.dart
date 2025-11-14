@@ -627,42 +627,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
 
-          // Location Settings Section
-          _buildSectionHeader(
-            AppLocalizations.of(context)!.locationBroadcasting,
-          ),
-
-          // Automatic tracking settings
-          SwitchListTile(
-            secondary: const Icon(Icons.location_on),
-            title: Text(AppLocalizations.of(context)!.autoLocationTracking),
-            subtitle: Text(
-              AppLocalizations.of(context)!.automaticallyBroadcastPosition,
-            ),
-            value: _locationService.isTracking,
-            onChanged: (value) {
-              if (value) {
-                _startBackgroundTracking();
-              } else {
-                _stopBackgroundTracking();
-              }
-            },
-          ),
-
-          if (_locationService.isTracking) ...[
-            ListTile(
-              leading: const Icon(Icons.tune),
-              title: Text(AppLocalizations.of(context)!.configureTracking),
-              subtitle: Text(
-                AppLocalizations.of(context)!.distanceAndTimeThresholds,
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showTrackingConfigDialog(),
-            ),
-          ],
-
-          const Divider(),
-
           // About Section
           _buildSectionHeader(AppLocalizations.of(context)!.about),
           ListTile(

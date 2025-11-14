@@ -551,21 +551,17 @@ org.gradle.jvmargs=-Xmx4096m
 ## Services Reference
 
 ### LocationTrackingService (Singleton)
-**Purpose**: GPS tracking + intelligent mesh location broadcasting
+**Purpose**: GPS tracking for map display and trail recording
 
 **Callbacks**: `onPositionUpdate`, `onError`, `onBroadcastSent`, `onTrackingStateChanged`
 
-**Thresholds**:
-- Min distance: 5.0m
-- Max distance: 100.0m
-- Min time: 30s
+**Broadcasting**:
+- **Automatic broadcasting DISABLED** - No automatic position adverts to mesh network
+- Manual broadcasting available via `broadcastLocationNow()` method
+- User must explicitly use the advert button to broadcast location
+- GPS tracking continues for map display, currentPosition tracking, and trail recording
 
-**Logic**:
-- First update → broadcast immediately
-- ≥100m moved → broadcast immediately
-- ≥5m + ≥30s → broadcast
-
-**File**: `lib/services/location_tracking_service.dart` (501 lines)
+**File**: `lib/services/location_tracking_service.dart`
 
 ### MapMarkerService (Singleton)
 **Purpose**: Map marker generation + geodesic calculations

@@ -47,7 +47,8 @@
       "Bash(flutter pub add:*)",
       "Bash(flutter run)",
       "Bash(echo:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

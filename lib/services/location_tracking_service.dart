@@ -420,52 +420,11 @@ class LocationTrackingService {
   }
 
   /// Check if position should be broadcast based on distance and time thresholds
+  /// DISABLED: Automatic broadcasting removed - use advert button for manual broadcasts
   void _checkAndBroadcast(Position position) {
-    // If never broadcast before, do it now
-    if (_lastBroadcastPosition == null || _lastBroadcastTime == null) {
-      _broadcastPosition(position);
-      return;
-    }
-
-    // Calculate time since last broadcast
-    final timeSinceLastBroadcast = DateTime.now().difference(
-      _lastBroadcastTime!,
-    );
-    final secondsSinceLastBroadcast = timeSinceLastBroadcast.inSeconds;
-
-    // Calculate distance from last broadcast position
-    final distanceFromLastBroadcast = Geolocator.distanceBetween(
-      _lastBroadcastPosition!.latitude,
-      _lastBroadcastPosition!.longitude,
-      position.latitude,
-      position.longitude,
-    );
-
-    debugPrint(
-      '   Distance from last broadcast: ${distanceFromLastBroadcast.toStringAsFixed(1)}m',
-    );
-    debugPrint('   Time since last broadcast: ${secondsSinceLastBroadcast}s');
-
-    // Broadcast if moved beyond max distance threshold
-    if (distanceFromLastBroadcast >= maxDistanceMeters) {
-      debugPrint(
-        '   📤 Triggering broadcast: exceeded max distance (${maxDistanceMeters}m)',
-      );
-      _broadcastPosition(position);
-      return;
-    }
-
-    // Broadcast if minimum time interval passed AND moved beyond min distance
-    if (secondsSinceLastBroadcast >= minTimeIntervalSeconds &&
-        distanceFromLastBroadcast >= minDistanceMeters) {
-      debugPrint(
-        '   📤 Triggering broadcast: exceeded min time (${minTimeIntervalSeconds}s) and min distance (${minDistanceMeters}m)',
-      );
-      _broadcastPosition(position);
-      return;
-    }
-
-    debugPrint('   ⏸️ Not broadcasting: thresholds not met');
+    // Automatic broadcasting disabled
+    // Use the manual advert button instead
+    debugPrint('   ⏸️ [LocationTracking] Automatic broadcasting disabled (use advert button)');
   }
 
   // ============================================================================
