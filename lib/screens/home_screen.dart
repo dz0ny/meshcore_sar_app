@@ -47,20 +47,12 @@ class _HomeScreenState extends State<HomeScreen>
   int _currentIndex = 0;
   bool _isMapFullscreen = false;
   bool _showRxTxIndicators = true;
+  bool _isMapEnabled = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      setState(() {
-        _currentIndex = _tabController.index;
-        // Exit fullscreen when switching away from map tab
-        if (_currentIndex != 2) {
-          _isMapFullscreen = false;
-        }
-      });
-    });
+    _loadMapEnabledAndInitTabs();
     _loadRxTxPreference();
 
     // Show permission dialog after the first frame if needed
@@ -69,6 +61,63 @@ class _HomeScreenState extends State<HomeScreen>
         _showPermissionDialog();
       });
     }
+  }
+
+  Future<void> _loadMapEnabledAndInitTabs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final mapEnabled = prefs.getBool('map_enabled') ?? true;
+    if (mapEnabled != _isMapEnabled) {
+      _isMapEnabled = mapEnabled;
+    }
+    _initTabController();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _initTabController() {
+    final tabCount = _isMapEnabled ? 3 : 2;
+    _tabController = TabController(length: tabCount, vsync: this);
+    _tabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    setState(() {
+      _currentIndex = _tabController.index;
+      // Exit fullscreen when switching away from map tab (only if map is enabled and is tab 2)
+      if (_isMapEnabled && _currentIndex != 2) {
+        _isMapFullscreen = false;
+      }
+    });
+  }
+
+  void _updateTabController(bool mapEnabled) {
+    if (_isMapEnabled == mapEnabled) return;
+
+    // Save current index before rebuilding
+    final oldIndex = _tabController.index;
+
+    // Remove old listener and dispose
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+
+    // Update state
+    _isMapEnabled = mapEnabled;
+
+    // Create new controller
+    final tabCount = mapEnabled ? 3 : 2;
+    _tabController = TabController(length: tabCount, vsync: this);
+    _tabController.addListener(_onTabChanged);
+
+    // Restore index (clamp to valid range)
+    if (oldIndex < tabCount) {
+      _tabController.index = oldIndex;
+      _currentIndex = oldIndex;
+    } else {
+      _currentIndex = tabCount - 1;
+    }
+
+    setState(() {});
   }
 
   Future<void> _loadRxTxPreference() async {
@@ -82,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
   }
@@ -225,8 +275,16 @@ class _HomeScreenState extends State<HomeScreen>
       messagesProvider.setLocalizations(localizations);
     }
 
+    // Check if map enabled setting changed and update tab controller
+    final appProvider = context.watch<AppProvider>();
+    if (_isMapEnabled != appProvider.isMapEnabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateTabController(appProvider.isMapEnabled);
+      });
+    }
+
     // Determine if we should hide the UI (only in fullscreen on map tab)
-    final shouldHideUI = _isMapFullscreen && _currentIndex == 2;
+    final shouldHideUI = _isMapEnabled && _isMapFullscreen && _currentIndex == 2;
 
     return Scaffold(
       appBar: shouldHideUI
@@ -308,16 +366,25 @@ class _HomeScreenState extends State<HomeScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          MessagesTab(onNavigateToMap: () => _tabController.animateTo(2)),
-          ContactsTab(onNavigateToMap: () => _tabController.animateTo(2)),
-          MapTab(
-            onFullscreenChanged: (isFullscreen) {
-              setState(() {
-                _isMapFullscreen = isFullscreen;
-              });
-            },
-            onNavigateToMessages: () => _tabController.animateTo(0),
+          MessagesTab(
+            onNavigateToMap: _isMapEnabled
+                ? () => _tabController.animateTo(2)
+                : null,
           ),
+          ContactsTab(
+            onNavigateToMap: _isMapEnabled
+                ? () => _tabController.animateTo(2)
+                : null,
+          ),
+          if (_isMapEnabled)
+            MapTab(
+              onFullscreenChanged: (isFullscreen) {
+                setState(() {
+                  _isMapFullscreen = isFullscreen;
+                });
+              },
+              onNavigateToMessages: () => _tabController.animateTo(0),
+            ),
         ],
       ),
       bottomNavigationBar: shouldHideUI
@@ -354,10 +421,11 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                         text: AppLocalizations.of(context)!.contacts,
                       ),
-                      Tab(
-                        icon: const Icon(Icons.map),
-                        text: AppLocalizations.of(context)!.map,
-                      ),
+                      if (_isMapEnabled)
+                        Tab(
+                          icon: const Icon(Icons.map),
+                          text: AppLocalizations.of(context)!.map,
+                        ),
                     ],
                   ),
                 );

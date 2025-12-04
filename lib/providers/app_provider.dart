@@ -28,6 +28,9 @@ class AppProvider with ChangeNotifier {
   bool _isSimpleMode = true;
   bool get isSimpleMode => _isSimpleMode;
 
+  bool _isMapEnabled = true;
+  bool get isMapEnabled => _isMapEnabled;
+
   AppProvider({
     required this.connectionProvider,
     required this.contactsProvider,
@@ -40,6 +43,7 @@ class AppProvider with ChangeNotifier {
     _initializeTileCache();
     _initializeLocationTracking();
     _loadSimpleMode();
+    _loadMapEnabled();
     _syncDrawingsOnStartup(); // Sync drawings immediately after providers load
     _isInitialized = true;
   }
@@ -81,6 +85,29 @@ class AppProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving simple mode setting: $e');
+    }
+  }
+
+  /// Load map enabled setting from shared preferences
+  Future<void> _loadMapEnabled() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isMapEnabled = prefs.getBool('map_enabled') ?? true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading map enabled setting: $e');
+    }
+  }
+
+  /// Toggle map on/off
+  Future<void> toggleMapEnabled(bool enabled) async {
+    try {
+      _isMapEnabled = enabled;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('map_enabled', enabled);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error saving map enabled setting: $e');
     }
   }
 

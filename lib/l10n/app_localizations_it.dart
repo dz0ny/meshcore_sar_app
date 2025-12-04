@@ -137,6 +137,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nascondi informazioni non essenziali nei messaggi e contatti';
 
   @override
+  String get disableMap => 'Disabilita mappa';
+
+  @override
+  String get disableMapDescription =>
+      'Nascondi la scheda mappa per ridurre il consumo della batteria';
+
+  @override
   String get language => 'Lingua';
 
   @override

@@ -528,6 +528,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
           ),
+          Consumer<AppProvider>(
+            builder: (context, appProvider, child) => SwitchListTile(
+              secondary: const Icon(Icons.map_outlined),
+              title: Text(AppLocalizations.of(context)!.disableMap),
+              subtitle: Text(
+                AppLocalizations.of(context)!.disableMapDescription,
+              ),
+              value: !appProvider.isMapEnabled,
+              onChanged: (value) async {
+                await appProvider.toggleMapEnabled(!value);
+              },
+            ),
+          ),
           ListTile(
             leading: const Icon(Icons.language),
             title: Text(AppLocalizations.of(context)!.language),

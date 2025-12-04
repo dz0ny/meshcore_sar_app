@@ -217,6 +217,16 @@
     "description": "Description du paramètre du mode simple"
   },
 
+  "disableMap": "Désactiver la carte",
+  "@disableMap": {
+    "description": "Paramètre pour désactiver l'onglet carte"
+  },
+
+  "disableMapDescription": "Masquer l'onglet carte pour réduire la consommation de batterie",
+  "@disableMapDescription": {
+    "description": "Description du paramètre pour désactiver la carte"
+  },
+
   "language": "Langue",
   "@language": {
     "description": "Libellé du paramètre de langue"

@@ -217,6 +217,16 @@
     "description": "Descrizione per l'impostazione della modalità semplice"
   },
 
+  "disableMap": "Disabilita mappa",
+  "@disableMap": {
+    "description": "Impostazione per disabilitare la scheda mappa"
+  },
+
+  "disableMapDescription": "Nascondi la scheda mappa per ridurre il consumo della batteria",
+  "@disableMapDescription": {
+    "description": "Descrizione per l'impostazione di disabilitazione mappa"
+  },
+
   "language": "Lingua",
   "@language": {
     "description": "Etichetta impostazione lingua"

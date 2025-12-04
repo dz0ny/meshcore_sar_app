@@ -79,6 +79,10 @@
 
   "simpleModeDescription": "Skrij nepomembne informacije v sporočilih in kontaktih",
 
+  "disableMap": "Onemogoči zemljevid",
+
+  "disableMapDescription": "Skrij zavihek z zemljevidom za varčevanje z baterijo",
+
   "language": "Jezik",
 
   "chooseLanguage": "Izberite jezik",

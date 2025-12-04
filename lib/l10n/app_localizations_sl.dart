@@ -137,6 +137,13 @@ class AppLocalizationsSl extends AppLocalizations {
       'Skrij nepomembne informacije v sporočilih in kontaktih';
 
   @override
+  String get disableMap => 'Onemogoči zemljevid';
+
+  @override
+  String get disableMapDescription =>
+      'Skrij zavihek z zemljevidom za varčevanje z baterijo';
+
+  @override
   String get language => 'Jezik';
 
   @override

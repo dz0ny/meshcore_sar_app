@@ -217,6 +217,16 @@
     "description": "Beschreibung für die Einstellung des einfachen Modus"
   },
 
+  "disableMap": "Karte deaktivieren",
+  "@disableMap": {
+    "description": "Einstellung zum Deaktivieren des Karten-Tabs"
+  },
+
+  "disableMapDescription": "Karten-Tab ausblenden, um Akku zu sparen",
+  "@disableMapDescription": {
+    "description": "Beschreibung für die Einstellung zum Deaktivieren der Karte"
+  },
+
   "language": "Sprache",
   "@language": {
     "description": "Beschriftung der Spracheinstellung"

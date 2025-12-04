@@ -79,6 +79,10 @@
 
   "simpleModeDescription": "Sakrij nevažne informacije u porukama i kontaktima",
 
+  "disableMap": "Onemogući kartu",
+
+  "disableMapDescription": "Sakrij karticu karte za uštedu baterije",
+
   "language": "Jezik",
 
   "chooseLanguage": "Odaberite jezik",

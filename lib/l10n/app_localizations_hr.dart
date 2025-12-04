@@ -137,6 +137,12 @@ class AppLocalizationsHr extends AppLocalizations {
       'Sakrij nevažne informacije u porukama i kontaktima';
 
   @override
+  String get disableMap => 'Onemogući kartu';
+
+  @override
+  String get disableMapDescription => 'Sakrij karticu karte za uštedu baterije';
+
+  @override
   String get language => 'Jezik';
 
   @override

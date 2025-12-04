@@ -18,9 +18,9 @@ import '../utils/toast_logger.dart';
 import '../l10n/app_localizations.dart';
 
 class MessagesTab extends StatefulWidget {
-  final VoidCallback onNavigateToMap;
+  final VoidCallback? onNavigateToMap;
 
-  const MessagesTab({super.key, required this.onNavigateToMap});
+  const MessagesTab({super.key, this.onNavigateToMap});
 
   @override
   State<MessagesTab> createState() => _MessagesTabState();
@@ -780,7 +780,8 @@ class _MessagesTabState extends State<MessagesTab> {
                             isHighlighted: isHighlighted,
                             onNavigateToMap: widget.onNavigateToMap,
                             onTap:
-                                message.isSarMarker &&
+                                widget.onNavigateToMap != null &&
+                                    message.isSarMarker &&
                                     message.sarGpsCoordinates != null
                                 ? () {
                                     final mapProvider = context
@@ -789,9 +790,10 @@ class _MessagesTabState extends State<MessagesTab> {
                                       location: message.sarGpsCoordinates!,
                                       zoom: 15.0,
                                     );
-                                    widget.onNavigateToMap();
+                                    widget.onNavigateToMap?.call();
                                   }
-                                : message.isDrawing && message.drawingId != null
+                                : widget.onNavigateToMap != null &&
+                                    message.isDrawing && message.drawingId != null
                                 ? () {
                                     debugPrint('🗺️ [MessagesTab] Drawing tapped! ID: ${message.drawingId}');
                                     final mapProvider = context
@@ -802,7 +804,7 @@ class _MessagesTabState extends State<MessagesTab> {
                                       message.drawingId!,
                                       drawingProvider,
                                     );
-                                    widget.onNavigateToMap();
+                                    widget.onNavigateToMap?.call();
                                   }
                                 : null,
                           );

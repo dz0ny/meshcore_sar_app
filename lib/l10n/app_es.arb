@@ -217,6 +217,16 @@
     "description": "Descripción de la configuración del modo simple"
   },
 
+  "disableMap": "Desactivar mapa",
+  "@disableMap": {
+    "description": "Configuración para desactivar la pestaña del mapa"
+  },
+
+  "disableMapDescription": "Ocultar la pestaña del mapa para reducir el uso de batería",
+  "@disableMapDescription": {
+    "description": "Descripción de la configuración para desactivar el mapa"
+  },
+
   "language": "Idioma",
   "@language": {
     "description": "Etiqueta de la configuración de idioma"

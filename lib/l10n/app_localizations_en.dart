@@ -137,6 +137,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Hide non-essential information in messages and contacts';
 
   @override
+  String get disableMap => 'Disable Map';
+
+  @override
+  String get disableMapDescription =>
+      'Hide the map tab to reduce battery usage';
+
+  @override
   String get language => 'Language';
 
   @override

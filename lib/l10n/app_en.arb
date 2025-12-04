@@ -217,6 +217,16 @@
     "description": "Description for simple mode setting"
   },
 
+  "disableMap": "Disable Map",
+  "@disableMap": {
+    "description": "Setting to disable the map tab"
+  },
+
+  "disableMapDescription": "Hide the map tab to reduce battery usage",
+  "@disableMapDescription": {
+    "description": "Description for disable map setting"
+  },
+
   "language": "Language",
   "@language": {
     "description": "Language setting label"

@@ -138,6 +138,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nicht wesentliche Informationen in Nachrichten und Kontakten ausblenden';
 
   @override
+  String get disableMap => 'Karte deaktivieren';
+
+  @override
+  String get disableMapDescription =>
+      'Karten-Tab ausblenden, um Akku zu sparen';
+
+  @override
   String get language => 'Sprache';
 
   @override

@@ -342,6 +342,18 @@ abstract class AppLocalizations {
   /// **'Hide non-essential information in messages and contacts'**
   String get simpleModeDescription;
 
+  /// Setting to disable the map tab
+  ///
+  /// In en, this message translates to:
+  /// **'Disable Map'**
+  String get disableMap;
+
+  /// Description for disable map setting
+  ///
+  /// In en, this message translates to:
+  /// **'Hide the map tab to reduce battery usage'**
+  String get disableMapDescription;
+
   /// Language setting label
   ///
   /// In en, this message translates to:

@@ -138,6 +138,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Masquer les informations non essentielles dans les messages et les contacts';
 
   @override
+  String get disableMap => 'Désactiver la carte';
+
+  @override
+  String get disableMapDescription =>
+      'Masquer l\'onglet carte pour réduire la consommation de batterie';
+
+  @override
   String get language => 'Langue';
 
   @override
