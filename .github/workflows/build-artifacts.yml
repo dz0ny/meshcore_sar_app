@@ -13,6 +13,7 @@ env:
   FLUTTER_VERSION: "3.35.6"
   APP_NAME: meshcore-sar
   ANDROID_NDK_VERSION: "27.0.12077973"
+  ANDROID_CMAKE_VERSION: "3.18.1"
 
 jobs:
   build-android:
@@ -44,8 +45,13 @@ jobs:
         with:
           path: |
             /usr/local/lib/android/sdk/ndk/${{ env.ANDROID_NDK_VERSION }}
+            /usr/local/lib/android/sdk/cmake/${{ env.ANDROID_CMAKE_VERSION }}
             /usr/local/lib/android/sdk/licenses
-          key: ${{ runner.os }}-android-ndk-${{ env.ANDROID_NDK_VERSION }}
+          key: ${{ runner.os }}-android-ndk-${{ env.ANDROID_NDK_VERSION }}-cmake-${{ env.ANDROID_CMAKE_VERSION }}
+
+      - name: Install Android CMake
+        run: |
+          /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "cmake;${ANDROID_CMAKE_VERSION}"
 
       - name: Install dependencies
         run: flutter pub get
