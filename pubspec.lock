@@ -141,8 +141,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "155a7581dcfb1ebbb2d1a9536ca5f5e23d42bdb8"
-      resolved-ref: "155a7581dcfb1ebbb2d1a9536ca5f5e23d42bdb8"
+      ref: "03998a2"
+      resolved-ref: "03998a2542804b872c58340044532fadace0bd4b"
       url: "https://github.com/dz0ny/codec2_flutter.git"
     source: git
     version: "0.1.0"
