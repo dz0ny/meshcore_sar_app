@@ -140,9 +140,11 @@ packages:
   codec2_flutter:
     dependency: "direct main"
     description:
-      path: "vendor/codec2_flutter_ios_only"
-      relative: true
-    source: path
+      path: "."
+      ref: main
+      resolved-ref: dcdf1fda3e7ae2b48d74dcbf3c0b3577106db79d
+      url: "/Users/dz0ny/meshcore-sar/packages/codec2_flutter"
+    source: git
     version: "0.1.0"
   collection:
     dependency: transitive
@@ -152,6 +154,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
+  convert:
+    dependency: transitive
+    description:
+      name: convert
+      sha256: b30acd5944035672bc15c6b7a8b47d773e41e2f17de064350988c5d02adb1c68
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.2"
   cross_file:
     dependency: transitive
     description:
@@ -695,11 +705,9 @@ packages:
   meshcore_client:
     dependency: "direct main"
     description:
-      path: "."
-      ref: main
-      resolved-ref: "6457853c57b20727f83f5932ee6684e16f20ff8f"
-      url: "https://github.com/dz0ny/meshcore_client.git"
-    source: git
+      path: "../meshcore_client"
+      relative: true
+    source: path
     version: "0.1.0"
   meta:
     dependency: transitive
@@ -957,6 +965,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   posix:
     dependency: transitive
     description:
