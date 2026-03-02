@@ -205,7 +205,34 @@ Status line below thumbnail:
 - Receiver (pending): `🖼️ Tap to load · {w}×{h}`
 - Loading: `📥 Loading… {received}/{total}`
 
-## 9. Persistence
+## 9. Transmit Time Estimate (UI)
+
+Image bubbles and Message Technical Details show an **estimated transmit time** (`~... tx`).
+
+The estimate is airtime-based (LoRa packet model), not just compressed image size:
+
+- Source inputs:
+  - `total` fragments and `bytes` from `IE1` envelope
+  - `pathLen` from message metadata
+  - current radio params from `deviceInfo`: `radioBw`, `radioSf`, `radioCr`
+- Per-fragment payload model:
+  - `meshHeader(2)` + `pathLen` + `imageHeader(8)` + `fragmentBytes`
+- LoRa airtime:
+  - standard symbol-time formula (preamble + payload symbols)
+- Mesh pacing/hops:
+  - multiplied by `(1 + airtimeBudgetFactor)` where default factor is `1.0`
+  - multiplied by hop count `(pathLen + 1)`
+- Total estimate:
+  - sum over all fragments
+
+BW handling:
+
+- If `radioBw` is index `0..9`, app maps it to Hz (`7.8k` .. `500k`)
+- If `radioBw > 1000`, it is treated as Hz directly
+
+Fallback defaults are used when radio params are unavailable: `SF10`, `BW250kHz`, `CR5`.
+
+## 10. Persistence
 
 `ImageProvider` stores sessions in `SharedPreferences` under key
 `stored_image_sessions_v1`:
@@ -214,14 +241,14 @@ Status line below thumbnail:
 - Outgoing: fragment list + envelope text + `cachedAt` timestamp.
 - Expired outgoing sessions (> 15 min) are not restored on startup.
 
-## 10. Operational Constraints
+## 11. Operational Constraints
 
 - No firmware changes required (reuses `cmdSendRawData` / `pushRawData`).
 - On-demand fetch works only if sender app is online and has cached session.
 - Raw return path requires a valid direct route to requester.
 - Available on iOS and Android (`image_picker` + `flutter_avif`).
 
-## 11. High-Level Sequence
+## 12. High-Level Sequence
 
 ```mermaid
 sequenceDiagram

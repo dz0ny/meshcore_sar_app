@@ -34,6 +34,15 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final radioBw = context.select<ConnectionProvider, int?>(
+      (p) => p.deviceInfo.radioBw,
+    );
+    final radioSf = context.select<ConnectionProvider, int?>(
+      (p) => p.deviceInfo.radioSf,
+    );
+    final radioCr = context.select<ConnectionProvider, int?>(
+      (p) => p.deviceInfo.radioCr,
+    );
     final envelope = ImageEnvelope.tryParse(widget.message.text);
     if (envelope == null) return const SizedBox.shrink();
 
@@ -84,6 +93,10 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
                     received: received,
                     total: total,
                     envelope: envelope,
+                    pathLen: widget.message.pathLen,
+                    radioBw: radioBw,
+                    radioSf: radioSf,
+                    radioCr: radioCr,
                     error: _errorText,
                     isSentByMe: widget.isSentByMe,
                   ),
@@ -219,17 +232,40 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     required int received,
     required int total,
     required ImageEnvelope envelope,
+    required int pathLen,
+    required int? radioBw,
+    required int? radioSf,
+    required int? radioCr,
     required String? error,
     required bool isSentByMe,
   }) {
+    final txEstimate = estimateImageTransmitDuration(
+      fragmentCount: envelope.total,
+      sizeBytes: envelope.sizeBytes,
+      pathLen: pathLen,
+      radioBw: radioBw,
+      radioSf: radioSf,
+      radioCr: radioCr,
+    );
+    final txEstimateLabel = _formatTransmitEstimate(txEstimate);
+
     if (error != null) return error;
-    if (isRequesting) return '📥 Loading… $received/$total';
+    if (isRequesting) return '📥 Loading… $received/$total · $txEstimateLabel';
     if (isComplete) {
       final base =
           '🖼️ ${envelope.width}×${envelope.height} ${envelope.format.label}';
-      return isSentByMe ? '$base · ${envelope.total} seg' : base;
+      return isSentByMe
+          ? '$base · ${envelope.total} seg · $txEstimateLabel'
+          : '$base · $txEstimateLabel';
     }
-    return '🖼️ Tap to load · ${envelope.width}×${envelope.height}';
+    return '🖼️ Tap to load · ${envelope.width}×${envelope.height} · $txEstimateLabel';
+  }
+
+  static String _formatTransmitEstimate(Duration value) {
+    if (value.inSeconds < 60) return '~${value.inSeconds}s tx';
+    final minutes = value.inMinutes;
+    final seconds = value.inSeconds % 60;
+    return '~${minutes}m ${seconds}s tx';
   }
 
   void _showFullScreen(BuildContext context, Uint8List imageBytes) {

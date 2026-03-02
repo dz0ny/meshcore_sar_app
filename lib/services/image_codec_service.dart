@@ -9,6 +9,9 @@ import 'package:flutter_avif/flutter_avif.dart';
 /// A typical 256×256 grayscale AVIF at quality 90 is highly compressed.
 /// → 7–20 fragments at 152 bytes each.
 class ImageCodecService {
+  static const int _normalAvifSpeed = 6;
+  static const int _ultraAvifSpeed = 4;
+
   /// Compress [rawBytes] (any decodable format: JPEG/PNG/WebP/AVIF) to a
   /// small grayscale AVIF suitable for mesh transmission.
   ///
@@ -22,8 +25,15 @@ class ImageCodecService {
     int maxDimension = 256,
     int compression = 90,
     bool grayscale = true,
+    bool ultraMode = false,
   }) async {
     try {
+      final effectiveMaxDimension = maxDimension.clamp(32, 1024);
+      final effectiveCompression = ultraMode
+          ? (compression + 12).clamp(10, 100)
+          : compression.clamp(10, 100);
+      final forceGrayscale = ultraMode ? true : grayscale;
+
       // 1a. Probe original dimensions (no resize).
       final probeCodec = await ui.instantiateImageCodec(rawBytes);
       final probeFrame = await probeCodec.getNextFrame();
@@ -35,13 +45,19 @@ class ImageCodecService {
       //     the image fits within maxDimension×maxDimension without stretching.
       int dstW = srcW;
       int dstH = srcH;
-      if (srcW > maxDimension || srcH > maxDimension) {
+      if (srcW > effectiveMaxDimension || srcH > effectiveMaxDimension) {
         if (srcW >= srcH) {
-          dstW = maxDimension;
-          dstH = (srcH * maxDimension / srcW).round().clamp(1, maxDimension);
+          dstW = effectiveMaxDimension;
+          dstH = (srcH * effectiveMaxDimension / srcW).round().clamp(
+            1,
+            effectiveMaxDimension,
+          );
         } else {
-          dstH = maxDimension;
-          dstW = (srcW * maxDimension / srcH).round().clamp(1, maxDimension);
+          dstH = effectiveMaxDimension;
+          dstW = (srcW * effectiveMaxDimension / srcH).round().clamp(
+            1,
+            effectiveMaxDimension,
+          );
         }
       }
 
@@ -67,7 +83,7 @@ class ImageCodecService {
 
       // 3. Optionally convert to grayscale in-place (luminance).
       final rgba = byteData.buffer.asUint8List();
-      if (grayscale) {
+      if (forceGrayscale) {
         for (var i = 0; i < rgba.length; i += 4) {
           final lum =
               (0.299 * rgba[i] + 0.587 * rgba[i + 1] + 0.114 * rgba[i + 2])
@@ -102,13 +118,19 @@ class ImageCodecService {
       // 5. Encode PNG → AVIF.
       //    maxQuantizer/minQuantizer: libavif CQ scale (0 = lossless, 63 = worst).
       //    compression=90 maps to maxQuantizer≈57, minQuantizer≈37.
-      final maxQ = ((compression / 100) * 63).round().clamp(0, 63);
+      final maxQ = ((effectiveCompression / 100) * 63).round().clamp(0, 63);
       final minQ = (maxQ * 0.65).round().clamp(0, maxQ);
       final avif = await encodeAvif(
         pngBytes,
+        maxThreads: 2,
         maxQuantizer: maxQ,
         minQuantizer: minQ,
-        speed: 8, // fast encode (0 = slowest/best, 10 = fastest)
+        // We force fully opaque alpha, so alpha can be quantized aggressively.
+        maxQuantizerAlpha: 63,
+        minQuantizerAlpha: 63,
+        // Slower speed improves compression efficiency at similar quality.
+        speed: ultraMode ? _ultraAvifSpeed : _normalAvifSpeed,
+        keepExif: false,
       );
       if (avif.isEmpty) return null;
 

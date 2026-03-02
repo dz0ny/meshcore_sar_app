@@ -175,19 +175,47 @@ Parser validation enforces:
 
 `VR1` handling verifies sender prefix matches `requesterKey6` to reduce spoofing risk.
 
-## 10. Operational Constraints
+## 10. Transmit Time Estimate (UI)
+
+Voice bubbles and Message Technical Details show an **estimated transmit time** (`~... tx`).
+
+The estimate is airtime-based (LoRa packet model), not file-duration-only:
+
+- Source inputs:
+  - `packetCount` and `durationMs` from `VE1` envelope, or
+  - actual received `VoicePacket.codec2Data.length` bytes when local session packets exist
+  - `pathLen` from message metadata
+  - current radio params from `deviceInfo`: `radioBw`, `radioSf`, `radioCr`
+- Per-packet payload model:
+  - `meshHeader(2)` + `pathLen` + `voiceHeader(8)` + `codec2Bytes`
+- LoRa airtime:
+  - standard symbol-time formula (preamble + payload symbols)
+- Mesh pacing/hops:
+  - multiplied by `(1 + airtimeBudgetFactor)` where default factor is `1.0`
+  - multiplied by hop count `(pathLen + 1)`
+- Total estimate:
+  - sum over all packets
+
+BW handling:
+
+- If `radioBw` is index `0..9`, app maps it to Hz (`7.8k` .. `500k`)
+- If `radioBw > 1000`, it is treated as Hz directly
+
+Fallback defaults are used when radio params are unavailable: `SF10`, `BW250kHz`, `CR5`.
+
+## 11. Operational Constraints
 
 - No firmware changes required.
 - On-demand fetch works only if sender app is online and has cached session.
 - Raw return path needs a currently valid direct route to requester.
 - Voice capture is available on iOS and Android (`Platform.isIOS || Platform.isAndroid`).
 
-## 11. Backward Compatibility
+## 12. Backward Compatibility
 
 - Legacy `V:` text packet parsing is still supported.
 - Message voice detection accepts both new `VE1` and legacy `V:` formats.
 
-## 12. High-Level Sequence
+## 13. High-Level Sequence
 
 ```mermaid
 sequenceDiagram

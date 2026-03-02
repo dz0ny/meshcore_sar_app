@@ -450,11 +450,17 @@ class _MessagesTabState extends State<MessagesTab> {
       final maxSize = await ImagePreferences.getMaxSize();
       final compression = await ImagePreferences.getCompression();
       final grayscale = await ImagePreferences.getGrayscale();
+      final ultraMode = await ImagePreferences.getUltraMode();
+      final effectiveMaxSize = ImagePreferences.effectiveMaxSize(
+        maxSize,
+        ultraMode: ultraMode,
+      );
       final result = await ImageCodecService.compress(
         rawBytes,
-        maxDimension: maxSize,
+        maxDimension: effectiveMaxSize,
         compression: compression,
         grayscale: grayscale,
+        ultraMode: ultraMode,
       );
       if (result == null) {
         if (!mounted) return;

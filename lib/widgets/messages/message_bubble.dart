@@ -298,6 +298,9 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   void _showTechnicalDetails(BuildContext context) {
     final connectionProvider = context.read<ConnectionProvider>();
+    final radioBw = connectionProvider.deviceInfo.radioBw;
+    final radioSf = connectionProvider.deviceInfo.radioSf;
+    final radioCr = connectionProvider.deviceInfo.radioCr;
     final contactsProvider = context.read<ContactsProvider>();
     final voiceProvider = context.read<VoiceProvider>();
     final imageProvider = context.read<ip.ImageProvider>();
@@ -350,6 +353,45 @@ class _MessageBubbleState extends State<MessageBubble> {
     final imageSession = imageEnvelope != null
         ? imageProvider.session(imageEnvelope.sessionId)
         : null;
+    final imageTxEstimate = imageEnvelope != null
+        ? estimateImageTransmitDuration(
+            fragmentCount: imageEnvelope.total,
+            sizeBytes: imageEnvelope.sizeBytes,
+            pathLen: widget.message.pathLen,
+            radioBw: radioBw,
+            radioSf: radioSf,
+            radioCr: radioCr,
+          )
+        : Duration.zero;
+    final voiceTxEstimate = voiceSession != null
+        ? estimateVoiceTransmitDurationFromPackets(
+            packets: voiceSession.packets,
+            pathLen: widget.message.pathLen,
+            radioBw: radioBw,
+            radioSf: radioSf,
+            radioCr: radioCr,
+          )
+        : envelope != null
+        ? estimateVoiceTransmitDuration(
+            mode: envelope.mode,
+            packetCount: envelope.total,
+            durationMs: envelope.durationMs,
+            pathLen: widget.message.pathLen,
+            radioBw: radioBw,
+            radioSf: radioSf,
+            radioCr: radioCr,
+          )
+        : legacyVoicePacket != null
+        ? estimateVoiceTransmitDuration(
+            mode: legacyVoicePacket.mode,
+            packetCount: legacyVoicePacket.total,
+            durationMs: legacyVoicePacket.durationMs * legacyVoicePacket.total,
+            pathLen: widget.message.pathLen,
+            radioBw: radioBw,
+            radioSf: radioSf,
+            radioCr: radioCr,
+          )
+        : Duration.zero;
 
     final senderPrefixHex = widget.message.senderPublicKeyPrefix
         ?.map((b) => b.toRadixString(16).padLeft(2, '0'))
@@ -431,8 +473,16 @@ class _MessageBubbleState extends State<MessageBubble> {
         rawLines.add(
           'Session estimated duration s: ${voiceSession.estimatedDurationSeconds.toStringAsFixed(2)}',
         );
+        rawLines.add(
+          'Estimated voice tx: ~${voiceTxEstimate.inSeconds}s (current radio)',
+        );
       } else {
         rawLines.add('Session present locally: no');
+        if (voiceTxEstimate > Duration.zero) {
+          rawLines.add(
+            'Estimated voice tx: ~${voiceTxEstimate.inSeconds}s (current radio)',
+          );
+        }
       }
     }
 
@@ -448,6 +498,9 @@ class _MessageBubbleState extends State<MessageBubble> {
       );
       rawLines.add('Fragments total (envelope): ${imageEnvelope.total}');
       rawLines.add('Compressed size (envelope): ${imageEnvelope.sizeBytes} B');
+      rawLines.add(
+        'Estimated image tx: ~${imageTxEstimate.inSeconds}s (current radio)',
+      );
       rawLines.add('Envelope senderKey6: ${imageEnvelope.senderKey6}');
       rawLines.add('Envelope ts: ${imageEnvelope.timestampSec}');
       rawLines.add('Envelope ver: ${imageEnvelope.version}');
@@ -588,7 +641,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                       _detailRow(
                         context,
                         label: l10n.floodFallback,
-                        value: widget.message.usedFloodFallback ? l10n.yes : l10n.no,
+                        value: widget.message.usedFloodFallback
+                            ? l10n.yes
+                            : l10n.no,
                       ),
                     ],
                   ),
@@ -670,6 +725,59 @@ class _MessageBubbleState extends State<MessageBubble> {
                             label: l10n.complete,
                             value: voiceSession.isComplete ? l10n.yes : l10n.no,
                           ),
+                        if (voiceTxEstimate > Duration.zero)
+                          _detailRow(
+                            context,
+                            label: 'Estimated tx',
+                            value: voiceTxEstimate.inSeconds < 60
+                                ? '~${voiceTxEstimate.inSeconds}s'
+                                : '~${voiceTxEstimate.inMinutes}m ${voiceTxEstimate.inSeconds % 60}s',
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (imageEnvelope != null) ...[
+                  const SizedBox(height: 12),
+                  _techSection(
+                    context,
+                    icon: Icons.image_outlined,
+                    title: 'Image',
+                    child: Column(
+                      children: [
+                        _detailRow(context, label: l10n.envelope, value: 'IE1'),
+                        _detailRow(
+                          context,
+                          label: 'Format',
+                          value: imageEnvelope.format.label,
+                        ),
+                        _detailRow(
+                          context,
+                          label: 'Dimensions',
+                          value:
+                              '${imageEnvelope.width}×${imageEnvelope.height}',
+                        ),
+                        _detailRow(
+                          context,
+                          label: 'Segments',
+                          value: imageSession != null
+                              ? '${imageSession.receivedCount}/${imageSession.total}'
+                              : '${imageEnvelope.total}',
+                        ),
+                        if (imageSession != null)
+                          _detailRow(
+                            context,
+                            label: l10n.complete,
+                            value: imageSession.isComplete ? l10n.yes : l10n.no,
+                          ),
+                        if (imageTxEstimate > Duration.zero)
+                          _detailRow(
+                            context,
+                            label: 'Estimated tx',
+                            value: imageTxEstimate.inSeconds < 60
+                                ? '~${imageTxEstimate.inSeconds}s'
+                                : '~${imageTxEstimate.inMinutes}m ${imageTxEstimate.inSeconds % 60}s',
+                          ),
                       ],
                     ),
                   ),
@@ -681,7 +789,10 @@ class _MessageBubbleState extends State<MessageBubble> {
                   visualDensity: VisualDensity.compact,
                   title: Text(
                     l10n.rawDump,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   children: [
                     Container(
@@ -1834,7 +1945,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                 !widget.isCompact)
               VoiceMessageBubble(message: message, isSentByMe: isOwnMessage)
             // Image message content (IE1 envelope)
-            else if (ImageEnvelope.isEnvelope(message.text) && !widget.isCompact)
+            else if (ImageEnvelope.isEnvelope(message.text) &&
+                !widget.isCompact)
               ImageMessageBubble(message: message, isSentByMe: isOwnMessage)
             // Regular message content
             else if (!message.isDrawing || widget.isCompact)

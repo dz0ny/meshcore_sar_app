@@ -6,12 +6,14 @@ class ImagePreferences {
   // Keep the legacy key name so existing users retain their saved value.
   static const String _qualityKey = 'image_quality';
   static const String _grayscaleKey = 'image_grayscale';
+  static const String _ultraModeKey = 'image_ultra_mode';
 
   static const int defaultMaxSize = 256;
   static const int defaultQuality = 90;
   static const bool defaultGrayscale = true;
+  static const bool defaultUltraMode = false;
 
-  static const List<int> supportedSizes = [64, 128, 256];
+  static const List<int> supportedSizes = [64, 96, 128, 256];
 
   static Future<int> getMaxSize() async {
     final prefs = await SharedPreferences.getInstance();
@@ -43,5 +45,22 @@ class ImagePreferences {
   static Future<void> setGrayscale(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_grayscaleKey, value);
+  }
+
+  static Future<bool> getUltraMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_ultraModeKey) ?? defaultUltraMode;
+  }
+
+  static Future<void> setUltraMode(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_ultraModeKey, value);
+  }
+
+  static int effectiveMaxSize(
+    int configuredMaxSize, {
+    required bool ultraMode,
+  }) {
+    return configuredMaxSize.clamp(32, 1024);
   }
 }

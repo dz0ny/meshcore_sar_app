@@ -31,6 +31,15 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final radioBw = context.select<ConnectionProvider, int?>(
+      (p) => p.deviceInfo.radioBw,
+    );
+    final radioSf = context.select<ConnectionProvider, int?>(
+      (p) => p.deviceInfo.radioSf,
+    );
+    final radioCr = context.select<ConnectionProvider, int?>(
+      (p) => p.deviceInfo.radioCr,
+    );
     final voiceId = widget.message.voiceId;
     if (voiceId == null) return const SizedBox.shrink();
 
@@ -73,6 +82,16 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
           session: session,
           messageText: widget.message.text,
         );
+        final txEstimate = _resolveVoiceTransmitEstimate(
+          session: session,
+          envelope: envelope,
+          messageText: widget.message.text,
+          pathLen: widget.message.pathLen,
+          radioBw: radioBw,
+          radioSf: radioSf,
+          radioCr: radioCr,
+        );
+        final txEstimateLabel = _formatTransmitEstimate(txEstimate);
 
         return Row(
           mainAxisSize: MainAxisSize.min,
@@ -124,21 +143,21 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
                     ),
                   )
                 else
-                  _WaveformBar(
-                    isComplete: isComplete,
-                    bars: waveformBars,
-                  ),
+                  _WaveformBar(isComplete: isComplete, bars: waveformBars),
                 const SizedBox(height: 4),
                 Text(
                   _buildStatusText(
                     durationLabel: durationLabel,
                     modeLabel: modeLabel,
+                    txEstimateLabel: txEstimateLabel,
                     received: received,
                     total: total,
                     isComplete: isComplete,
                     isRequesting: _isRequesting,
                     errorText: _errorText,
-                    requestingLabel: AppLocalizations.of(context)!.requestingVoice,
+                    requestingLabel: AppLocalizations.of(
+                      context,
+                    )!.requestingVoice,
                   ),
                   style: TextStyle(
                     fontSize: 11,
@@ -236,6 +255,7 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
   static String _buildStatusText({
     required String durationLabel,
     required String modeLabel,
+    required String txEstimateLabel,
     required int received,
     required int total,
     required bool isComplete,
@@ -246,12 +266,12 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
     if (errorText != null) return errorText;
     final progress = total > 0 ? ' ($received/$total)' : '';
     if (isRequesting) {
-      return '$requestingLabel$progress';
+      return '$requestingLabel$progress · $txEstimateLabel';
     }
     if (!isComplete && total > 0) {
-      return '🎙️ $durationLabel · $modeLabel$progress';
+      return '🎙️ $durationLabel · $modeLabel$progress · $txEstimateLabel';
     }
-    return '🎙️ $durationLabel · $modeLabel';
+    return '🎙️ $durationLabel · $modeLabel · $txEstimateLabel';
   }
 
   List<double> _resolveWaveformBars({
@@ -271,16 +291,68 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
 
     return const [];
   }
+
+  Duration _resolveVoiceTransmitEstimate({
+    required VoiceSession? session,
+    required VoiceEnvelope? envelope,
+    required String messageText,
+    required int pathLen,
+    required int? radioBw,
+    required int? radioSf,
+    required int? radioCr,
+  }) {
+    if (session != null) {
+      final fromSession = estimateVoiceTransmitDurationFromPackets(
+        packets: session.packets,
+        pathLen: pathLen,
+        radioBw: radioBw,
+        radioSf: radioSf,
+        radioCr: radioCr,
+      );
+      if (fromSession > Duration.zero) return fromSession;
+    }
+
+    if (envelope != null) {
+      return estimateVoiceTransmitDuration(
+        mode: envelope.mode,
+        packetCount: envelope.total,
+        durationMs: envelope.durationMs,
+        pathLen: pathLen,
+        radioBw: radioBw,
+        radioSf: radioSf,
+        radioCr: radioCr,
+      );
+    }
+
+    final legacyPacket = VoicePacket.tryParseText(messageText);
+    if (legacyPacket != null) {
+      return estimateVoiceTransmitDuration(
+        mode: legacyPacket.mode,
+        packetCount: legacyPacket.total,
+        durationMs: legacyPacket.durationMs * legacyPacket.total,
+        pathLen: pathLen,
+        radioBw: radioBw,
+        radioSf: radioSf,
+        radioCr: radioCr,
+      );
+    }
+    return Duration.zero;
+  }
+
+  static String _formatTransmitEstimate(Duration value) {
+    if (value <= Duration.zero) return '~0s tx';
+    if (value.inSeconds < 60) return '~${value.inSeconds}s tx';
+    final minutes = value.inMinutes;
+    final seconds = value.inSeconds % 60;
+    return '~${minutes}m ${seconds}s tx';
+  }
 }
 
 /// Voice waveform rendered as a row of bars.
 class _WaveformBar extends StatelessWidget {
   final bool isComplete;
   final List<double> bars;
-  const _WaveformBar({
-    required this.isComplete,
-    required this.bars,
-  });
+  const _WaveformBar({required this.isComplete, required this.bars});
 
   @override
   Widget build(BuildContext context) {

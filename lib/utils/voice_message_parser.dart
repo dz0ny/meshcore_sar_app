@@ -1,6 +1,16 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+const int _meshPacketHeaderBytes = 2; // mesh header bytes before path/payload
+const int _voicePacketHeaderBytes = 8; // voice packet binary header in payload
+const int _defaultLoRaSf = 10; // MeshCore companion defaults (SF10)
+const int _defaultLoRaCr = 5; // MeshCore companion defaults (4/5)
+const int _defaultLoRaBwHz = 250000; // MeshCore companion defaults (250kHz)
+const int _defaultLoRaPreambleSymbols = 8;
+const int _defaultLoRaCrcEnabled = 1;
+const int _defaultLoRaExplicitHeader = 1;
+const double _defaultAirtimeBudgetFactor = 1.0; // one half duty-cycle
+
 /// Identifies which Codec2 mode was used for a voice packet.
 /// Matches the modeId byte in the text/binary packet header.
 enum VoicePacketMode {
@@ -245,6 +255,160 @@ class VoiceEnvelope {
 
   String encodeText() {
     return '$_prefix${sessionId.toLowerCase()}:${mode.id}:$total:$durationMs:${senderKey6.toLowerCase()}:$timestampSec:$version';
+  }
+}
+
+int voiceModeBytesPerSecond(VoicePacketMode mode) => switch (mode) {
+  VoicePacketMode.mode700c => 100,
+  VoicePacketMode.mode1200 => 150,
+  VoicePacketMode.mode1300 => 175,
+  VoicePacketMode.mode1400 => 175,
+  VoicePacketMode.mode1600 => 200,
+  VoicePacketMode.mode2400 => 300,
+  VoicePacketMode.mode3200 => 400,
+};
+
+/// Approximate end-to-end transmit time for a voice session over MeshCore LoRa.
+///
+/// Uses envelope-level metadata (mode + duration + packet count) when only the
+/// envelope is available and packet bytes are not yet received locally.
+Duration estimateVoiceTransmitDuration({
+  required VoicePacketMode mode,
+  required int packetCount,
+  required int durationMs,
+  int pathLen = 0,
+  int? radioBw,
+  int? radioSf,
+  int? radioCr,
+}) {
+  if (packetCount <= 0 || durationMs <= 0) return Duration.zero;
+
+  final bytesPerSecond = voiceModeBytesPerSecond(mode);
+  final totalCodecBytes = (durationMs * bytesPerSecond / 1000.0).round();
+  final safePathLen = pathLen.clamp(0, 64);
+  final hops = safePathLen + 1;
+  final baseBytesPerPacket = totalCodecBytes ~/ packetCount;
+  final extraBytes = totalCodecBytes % packetCount;
+  var totalMs = 0.0;
+
+  for (var i = 0; i < packetCount; i++) {
+    final codecBytes = baseBytesPerPacket + (i < extraBytes ? 1 : 0);
+    final loraLen =
+        _meshPacketHeaderBytes +
+        safePathLen +
+        _voicePacketHeaderBytes +
+        codecBytes;
+    final airtimeMs = _estimateLoRaAirtimeMs(
+      loraLen,
+      radioBw: radioBw,
+      radioSf: radioSf,
+      radioCr: radioCr,
+    );
+    totalMs += airtimeMs * (1.0 + _defaultAirtimeBudgetFactor) * hops;
+  }
+
+  return Duration(milliseconds: totalMs.round());
+}
+
+/// Approximate transmit time using actually received voice packet sizes.
+Duration estimateVoiceTransmitDurationFromPackets({
+  required Iterable<VoicePacket?> packets,
+  int pathLen = 0,
+  int? radioBw,
+  int? radioSf,
+  int? radioCr,
+}) {
+  final safePathLen = pathLen.clamp(0, 64);
+  final hops = safePathLen + 1;
+  var totalMs = 0.0;
+
+  for (final packet in packets) {
+    if (packet == null) continue;
+    final loraLen =
+        _meshPacketHeaderBytes +
+        safePathLen +
+        _voicePacketHeaderBytes +
+        packet.codec2Data.length;
+    final airtimeMs = _estimateLoRaAirtimeMs(
+      loraLen,
+      radioBw: radioBw,
+      radioSf: radioSf,
+      radioCr: radioCr,
+    );
+    totalMs += airtimeMs * (1.0 + _defaultAirtimeBudgetFactor) * hops;
+  }
+
+  return Duration(milliseconds: totalMs.round());
+}
+
+double _estimateLoRaAirtimeMs(
+  int payloadLenBytes, {
+  int? radioBw,
+  int? radioSf,
+  int? radioCr,
+}) {
+  final sf = _normalizeSf(radioSf);
+  final bw = _resolveBandwidthHz(radioBw).toDouble();
+  final cr = (_normalizeCr(radioCr) - 4).clamp(1, 4);
+  final ih = _defaultLoRaExplicitHeader == 1 ? 0 : 1;
+  final de = (sf >= 11 && _defaultLoRaBwHz <= 125000) ? 1 : 0;
+
+  final symbolMs = ((1 << sf) / bw) * 1000.0;
+  final preambleMs = (_defaultLoRaPreambleSymbols + 4.25) * symbolMs;
+
+  final num =
+      (8 * payloadLenBytes) -
+      (4 * sf) +
+      28 +
+      (16 * _defaultLoRaCrcEnabled) -
+      (20 * ih);
+  final den = 4 * (sf - (2 * de));
+  final payloadSymCoeff = den <= 0 ? 0 : (num / den).ceil();
+  final payloadSymbols =
+      8 + (payloadSymCoeff < 0 ? 0 : payloadSymCoeff) * (cr + 4);
+  final payloadMs = payloadSymbols * symbolMs;
+
+  return preambleMs + payloadMs;
+}
+
+int _normalizeSf(int? value) {
+  if (value == null) return _defaultLoRaSf;
+  if (value >= 5 && value <= 12) return value;
+  return _defaultLoRaSf;
+}
+
+int _normalizeCr(int? value) {
+  if (value == null) return _defaultLoRaCr;
+  if (value >= 5 && value <= 8) return value;
+  return _defaultLoRaCr;
+}
+
+int _resolveBandwidthHz(int? rawBw) {
+  if (rawBw == null) return _defaultLoRaBwHz;
+  if (rawBw > 1000) return rawBw;
+  switch (rawBw) {
+    case 0:
+      return 7800;
+    case 1:
+      return 10400;
+    case 2:
+      return 15600;
+    case 3:
+      return 20800;
+    case 4:
+      return 31250;
+    case 5:
+      return 41700;
+    case 6:
+      return 62500;
+    case 7:
+      return 125000;
+    case 8:
+      return 250000;
+    case 9:
+      return 500000;
+    default:
+      return _defaultLoRaBwHz;
   }
 }
 

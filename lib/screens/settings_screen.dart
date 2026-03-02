@@ -1,5 +1,8 @@
 import 'dart:io' show Platform;
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_avif/flutter_avif.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -9,12 +12,17 @@ import 'package:url_launcher/url_launcher.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/messages_provider.dart';
 import '../providers/app_provider.dart';
+import '../providers/connection_provider.dart';
 import '../services/location_tracking_service.dart';
 import '../services/locale_preferences.dart';
 import '../services/update_checker_service.dart';
+import '../services/voice_codec_service.dart';
 import '../services/voice_bitrate_preferences.dart';
 import '../services/image_preferences.dart';
+import '../services/image_codec_service.dart';
 import '../utils/sample_data_generator.dart';
+import '../utils/image_message_parser.dart';
+import '../utils/voice_message_parser.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/connection_mode_selector.dart';
@@ -51,6 +59,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int _imageMaxSize = ImagePreferences.defaultMaxSize;
   int _imageCompression = ImagePreferences.defaultQuality;
   bool _imageGrayscale = ImagePreferences.defaultGrayscale;
+  bool _imageUltraMode = ImagePreferences.defaultUltraMode;
+  Uint8List? _previewSourceBytes;
+  String? _previewSourceName;
+  Uint8List? _previewCompressedBytes;
+  bool _isPreviewLoading = false;
+  bool _showCurrentImagePreview = true;
+  final ImagePicker _imagePicker = ImagePicker();
   final LocationTrackingService _locationService = LocationTrackingService();
 
   @override
@@ -121,24 +136,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final size = await ImagePreferences.getMaxSize();
     final compression = await ImagePreferences.getCompression();
     final grayscale = await ImagePreferences.getGrayscale();
+    final ultraMode = await ImagePreferences.getUltraMode();
     if (!mounted) return;
     setState(() {
-      _imageMaxSize = size;
+      _imageMaxSize = ImagePreferences.effectiveMaxSize(
+        size,
+        ultraMode: ultraMode,
+      );
       _imageCompression = compression;
       _imageGrayscale = grayscale;
+      _imageUltraMode = ultraMode;
     });
+    await _refreshImageModePreview();
   }
 
   Future<void> _saveImageMaxSize(int size) async {
     await ImagePreferences.setMaxSize(size);
     if (!mounted) return;
     setState(() => _imageMaxSize = size);
+    await _refreshImageModePreview();
   }
 
   Future<void> _saveImageCompression(int compression) async {
     await ImagePreferences.setCompression(compression);
     if (!mounted) return;
     setState(() => _imageCompression = compression);
+    await _refreshImageModePreview();
+  }
+
+  Future<void> _refreshImageModePreview() async {
+    final sourceBytes = _previewSourceBytes;
+    if (sourceBytes == null) {
+      if (!mounted) return;
+      setState(() => _previewCompressedBytes = null);
+      return;
+    }
+
+    setState(() => _isPreviewLoading = true);
+    try {
+      final result = await ImageCodecService.compress(
+        sourceBytes,
+        maxDimension: ImagePreferences.effectiveMaxSize(
+          _imageMaxSize,
+          ultraMode: _imageUltraMode,
+        ),
+        compression: _imageCompression,
+        grayscale: _imageGrayscale,
+        ultraMode: _imageUltraMode,
+      );
+      if (!mounted) return;
+      setState(() {
+        _previewCompressedBytes = result?.bytes;
+        _isPreviewLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _previewCompressedBytes = null;
+        _isPreviewLoading = false;
+      });
+    }
+  }
+
+  Future<void> _selectPreviewImageFromGallery() async {
+    try {
+      final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _previewSourceBytes = bytes;
+        _previewSourceName = picked.name;
+      });
+      await _refreshImageModePreview();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load preview image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _initializeLocationService() async {
@@ -606,14 +685,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Voice Settings Section
           _buildSectionHeader('Voice'),
-          Consumer<AppProvider>(
-            builder: (context, appProvider, child) => _buildVoiceStatsCard(
-              bitrate: _voiceBitrate,
-              bandPassEnabled: appProvider.isVoiceBandPassFilterEnabled,
-              compressorEnabled: appProvider.isVoiceCompressorEnabled,
-              limiterEnabled: appProvider.isVoiceLimiterEnabled,
-              silenceTrimEnabled: appProvider.isVoiceSilenceTrimmingEnabled,
-            ),
+          Consumer2<AppProvider, ConnectionProvider>(
+            builder: (context, appProvider, connectionProvider, child) =>
+                _buildVoiceStatsCard(
+                  bitrate: _voiceBitrate,
+                  connectionProvider: connectionProvider,
+                  bandPassEnabled: appProvider.isVoiceBandPassFilterEnabled,
+                  compressorEnabled: appProvider.isVoiceCompressorEnabled,
+                  limiterEnabled: appProvider.isVoiceLimiterEnabled,
+                  silenceTrimEnabled: appProvider.isVoiceSilenceTrimmingEnabled,
+                ),
           ),
           ListTile(
             leading: const Icon(Icons.graphic_eq),
@@ -708,7 +789,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (value) async {
               await ImagePreferences.setGrayscale(value);
               setState(() => _imageGrayscale = value);
+              await _refreshImageModePreview();
             },
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.compress),
+            title: const Text('Ultra mode'),
+            subtitle: const Text(
+              'Extra-aggressive compression with stronger AVIF settings',
+            ),
+            value: _imageUltraMode,
+            onChanged: (value) async {
+              await ImagePreferences.setUltraMode(value);
+              setState(() {
+                _imageUltraMode = value;
+              });
+              await _refreshImageModePreview();
+            },
+          ),
+          Consumer<ConnectionProvider>(
+            builder: (context, connectionProvider, child) =>
+                _buildImageModePreviewCard(connectionProvider),
           ),
           const Divider(),
 
@@ -931,8 +1032,187 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildImageModePreviewCard(ConnectionProvider connectionProvider) {
+    final sourceBytes = _previewSourceBytes;
+    final fileName = _previewSourceName ?? 'No image selected';
+    final radioBw = connectionProvider.deviceInfo.radioBw;
+    final radioSf = connectionProvider.deviceInfo.radioSf;
+    final radioCr = connectionProvider.deviceInfo.radioCr;
+    final bwHz = _resolveBandwidthHz(radioBw);
+    final previewSizeBytes = _previewCompressedBytes?.length ?? 0;
+    final directChunk = safeImageDataBytesForPath(0);
+    final twoHopChunk = safeImageDataBytesForPath(2);
+    final directFragments = previewSizeBytes > 0
+        ? (previewSizeBytes + directChunk - 1) ~/ directChunk
+        : 0;
+    final twoHopFragments = previewSizeBytes > 0
+        ? (previewSizeBytes + twoHopChunk - 1) ~/ twoHopChunk
+        : 0;
+    final imageDirect = estimateImageTransmitDuration(
+      fragmentCount: directFragments,
+      sizeBytes: previewSizeBytes,
+      pathLen: 0,
+      radioBw: radioBw,
+      radioSf: radioSf,
+      radioCr: radioCr,
+    );
+    final imageTwoHop = estimateImageTransmitDuration(
+      fragmentCount: twoHopFragments,
+      sizeBytes: previewSizeBytes,
+      pathLen: 2,
+      radioBw: radioBw,
+      radioSf: radioSf,
+      radioCr: radioCr,
+    );
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.photo_library_outlined),
+                SizedBox(width: 8),
+                Text(
+                  'Image mode preview',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Source image',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: _isPreviewLoading
+                      ? null
+                      : _selectPreviewImageFromGallery,
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text('Select from gallery'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              fileName,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.8),
+              ),
+            ),
+            if (previewSizeBytes > 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Preview tx (this image): Direct ${_formatEstimateDuration(imageDirect)} • 2-hop ${_formatEstimateDuration(imageTwoHop)}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              Text(
+                'Radio BW ${_formatBandwidthLabel(bwHz)} · SF ${radioSf ?? 10} · CR ${radioCr ?? 5}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _showCurrentImagePreview
+                        ? 'Showing: current image mode'
+                        : 'Showing: source image',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+                Switch.adaptive(
+                  value: _showCurrentImagePreview,
+                  onChanged: (value) {
+                    setState(() => _showCurrentImagePreview = value);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: _showCurrentImagePreview
+                    ? (_isPreviewLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : (_previewCompressedBytes != null
+                                ? AvifImage.memory(
+                                    _previewCompressedBytes!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(color: Colors.black12)))
+                    : (sourceBytes != null
+                          ? Image.memory(sourceBytes, fit: BoxFit.cover)
+                          : Container(color: Colors.black12)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatEstimateDuration(Duration value) {
+    if (value.inSeconds < 60) return '~${value.inSeconds}s';
+    return '~${value.inMinutes}m ${value.inSeconds % 60}s';
+  }
+
+  static String _formatBandwidthLabel(int bwHz) {
+    if (bwHz >= 1000000) return '${(bwHz / 1000000).toStringAsFixed(2)} MHz';
+    if (bwHz >= 1000) return '${(bwHz / 1000).toStringAsFixed(1)} kHz';
+    return '$bwHz Hz';
+  }
+
+  int _resolveBandwidthHz(int? rawBw) {
+    if (rawBw == null) return 250000;
+    if (rawBw > 1000) return rawBw;
+    switch (rawBw) {
+      case 0:
+        return 7800;
+      case 1:
+        return 10400;
+      case 2:
+        return 15600;
+      case 3:
+        return 20800;
+      case 4:
+        return 31250;
+      case 5:
+        return 41700;
+      case 6:
+        return 62500;
+      case 7:
+        return 125000;
+      case 8:
+        return 250000;
+      case 9:
+        return 500000;
+      default:
+        return 250000;
+    }
+  }
+
   Widget _buildVoiceStatsCard({
     required int bitrate,
+    required ConnectionProvider connectionProvider,
     required bool bandPassEnabled,
     required bool compressorEnabled,
     required bool limiterEnabled,
@@ -949,6 +1229,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
         (compressorEnabled ? 1 : 0) +
         (limiterEnabled ? 1 : 0) +
         (silenceTrimEnabled ? 1 : 0);
+    final radioBw = connectionProvider.deviceInfo.radioBw;
+    final radioSf = connectionProvider.deviceInfo.radioSf;
+    final radioCr = connectionProvider.deviceInfo.radioCr;
+    final bwHz = _resolveBandwidthHz(radioBw);
+    final voiceMode = VoiceBitratePreferences.toVoiceMode(bitrate);
+    const voicePreviewMs = 10000; // 10-second reference clip
+    final packetDurationMs = codec2ModeFor(voiceMode).packetDurationMs;
+    final voicePacketCount =
+        (voicePreviewMs + packetDurationMs - 1) ~/ packetDurationMs;
+    final voiceDirect = estimateVoiceTransmitDuration(
+      mode: voiceMode,
+      packetCount: voicePacketCount,
+      durationMs: voicePreviewMs,
+      pathLen: 0,
+      radioBw: radioBw,
+      radioSf: radioSf,
+      radioCr: radioCr,
+    );
+    final voiceTwoHop = estimateVoiceTransmitDuration(
+      mode: voiceMode,
+      packetCount: voicePacketCount,
+      durationMs: voicePreviewMs,
+      pathLen: 2,
+      radioBw: radioBw,
+      radioSf: radioSf,
+      radioCr: radioCr,
+    );
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -965,6 +1272,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text(
               'Bitrate: $bitrate bps',
               style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Preview tx (10s ${voiceMode.label}): Direct ${_formatEstimateDuration(voiceDirect)} • 2-hop ${_formatEstimateDuration(voiceTwoHop)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            Text(
+              'Radio BW ${_formatBandwidthLabel(bwHz)} · SF ${radioSf ?? 10} · CR ${radioCr ?? 5}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
             ),
             const SizedBox(height: 6),
             ClipRRect(
