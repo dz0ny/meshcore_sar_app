@@ -17,8 +17,8 @@ enum ConnectionMode {
   /// Act as SSE server - share BLE device with multiple clients
   sseServer,
 
-  /// Connect to remote SSE server - no direct BLE connection
-  sseClient,
+  /// Direct TCP/WiFi connection to MeshCore device (port 5000)
+  tcp,
 }
 
 extension ConnectionModeExtension on ConnectionMode {
@@ -28,8 +28,8 @@ extension ConnectionModeExtension on ConnectionMode {
         return 'Direct (BLE)';
       case ConnectionMode.sseServer:
         return 'Share Device (Server)';
-      case ConnectionMode.sseClient:
-        return 'Connect to Server';
+      case ConnectionMode.tcp:
+        return 'Direct (WiFi)';
     }
   }
 
@@ -39,8 +39,8 @@ extension ConnectionModeExtension on ConnectionMode {
         return 'Direct BLE connection to MeshCore device';
       case ConnectionMode.sseServer:
         return 'Share BLE device with multiple clients over network';
-      case ConnectionMode.sseClient:
-        return 'Connect to remote server without BLE';
+      case ConnectionMode.tcp:
+        return 'Direct WiFi/TCP connection to MeshCore device';
     }
   }
 }

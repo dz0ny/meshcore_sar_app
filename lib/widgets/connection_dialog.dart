@@ -20,7 +20,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
   final List<DiscoveredServer> _discoveredServers = [];
   int _scannedCount = 0;
   int _totalToScan = 0;
-  String? _connectingToServerUrl; // Track which server is being connected to
+  String? _connectingToServerKey; // Track which server is being connected to (ip:port)
 
   // Named listener method for proper cleanup
   void _onTabChanged() {
@@ -361,61 +361,16 @@ class _ConnectionDialogState extends State<ConnectionDialog>
   }
 
   Widget _buildNetworkServersTab() {
-    final connectionProvider = context.watch<ConnectionProvider>();
     final bool showingCachedResults =
         !_networkScanner.isScanning &&
         _networkScanner.hasCachedResults &&
         _discoveredServers.isNotEmpty;
-    final bool isConnectingToSse = connectionProvider.isSseClientConnecting;
-    final int sseReconnectAttempt =
-        connectionProvider.sseClientReconnectionAttempt;
-    final int sseMaxReconnects =
-        connectionProvider.sseClientMaxReconnectionAttempts;
 
     return Column(
       children: [
-        // SSE Reconnection banner (show when reconnecting)
-        if (isConnectingToSse && sseReconnectAttempt > 0)
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.tertiaryContainer,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Theme.of(context).colorScheme.onTertiaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Reconnecting to server... (Attempt $sseReconnectAttempt/$sseMaxReconnects)',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onTertiaryContainer,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
         // Info banner
         Container(
-          margin: EdgeInsets.fromLTRB(
-            16,
-            isConnectingToSse && sseReconnectAttempt > 0 ? 8 : 16,
-            16,
-            16,
-          ),
+          margin: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primaryContainer,
@@ -432,7 +387,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                 child: Text(
                   showingCachedResults
                       ? 'Showing cached results. Tap refresh to rescan.'
-                      : 'Scanning local network for shared MeshCore devices on port 12929',
+                      : 'Scanning local network for MeshCore WiFi devices on port 5000',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                     fontSize: 13,
@@ -505,10 +460,11 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                   itemCount: _discoveredServers.length,
                   itemBuilder: (context, index) {
                     final server = _discoveredServers[index];
+                    final serverKey = '${server.ipAddress}:${server.port}';
                     final isConnectingToThisServer =
-                        _connectingToServerUrl == server.serverUrl;
+                        _connectingToServerKey == serverKey;
                     final isAnyConnectionInProgress =
-                        isConnectingToSse || _connectingToServerUrl != null;
+                        _connectingToServerKey != null;
 
                     return Container(
                       margin: const EdgeInsets.symmetric(
@@ -593,7 +549,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
 
                                 // Mark this server as connecting
                                 setState(() {
-                                  _connectingToServerUrl = server.serverUrl;
+                                  _connectingToServerKey = serverKey;
                                 });
 
                                 try {
@@ -607,8 +563,9 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                                     );
                                   }
 
-                                  await connectionProvider.connectToSseServer(
-                                    serverUrl: server.serverUrl,
+                                  await connectionProvider.connectTcp(
+                                    server.ipAddress,
+                                    server.port,
                                   );
                                   await appProvider.initialize();
 
@@ -619,7 +576,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                                   // Clear connecting state on error
                                   if (mounted) {
                                     setState(() {
-                                      _connectingToServerUrl = null;
+                                      _connectingToServerKey = null;
                                     });
 
                                     // Clean up error message (remove "Exception: " prefix)

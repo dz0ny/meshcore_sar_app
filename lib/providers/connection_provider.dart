@@ -8,7 +8,6 @@ import '../models/room_login_state.dart';
 import '../models/sse_server_config.dart';
 import 'package:meshcore_client/meshcore_client.dart';
 import '../services/sse_server_service.dart';
-import '../services/sse_client_service.dart';
 import '../utils/sar_message_parser.dart';
 import 'helpers/room_login_manager.dart';
 import 'helpers/message_delivery_tracker.dart';
@@ -54,14 +53,20 @@ class ScannedDevice {
   ScannedDevice({required this.device, required this.rssi});
 }
 
-/// Connection Provider - manages MeshCore BLE connection
+/// Connection Provider - manages MeshCore device connection (BLE or TCP/WiFi)
 class ConnectionProvider with ChangeNotifier {
   final MeshCoreBleService _bleService = MeshCoreBleService();
   final SseServerService _sseServer = SseServerService();
-  final SseClientService _sseClient = SseClientService();
+  MeshCoreTcpService? _tcpService;
 
   /// Expose BLE service for background location tracking
   MeshCoreBleService get bleService => _bleService;
+
+  /// Active service — BLE or TCP depending on current mode
+  MeshCoreServiceBase get _activeService =>
+      (_connectionMode == ConnectionMode.tcp && _tcpService != null)
+          ? _tcpService!
+          : _bleService;
 
   /// Current connection mode
   ConnectionMode _connectionMode = ConnectionMode.ble;
@@ -71,9 +76,9 @@ class ConnectionProvider with ChangeNotifier {
   SseServerConfig _sseServerConfig = const SseServerConfig();
   SseServerConfig get sseServerConfig => _sseServerConfig;
 
-  /// SSE client server URL
-  String? _sseClientServerUrl;
-  String? get sseClientServerUrl => _sseClientServerUrl;
+  /// TCP host last connected to (for display / reconnection info)
+  String? _tcpHost;
+  String? get tcpHost => _tcpHost;
 
   DeviceInfo _deviceInfo = DeviceInfo();
   DeviceInfo get deviceInfo => _deviceInfo;
@@ -100,19 +105,13 @@ class ConnectionProvider with ChangeNotifier {
   Timer? _ackCleanupTimer;
 
   // Packet counters
-  int get rxPacketCount => _bleService.rxPacketCount;
-  int get txPacketCount => _bleService.txPacketCount;
+  int get rxPacketCount => _activeService.rxPacketCount;
+  int get txPacketCount => _activeService.txPacketCount;
 
-  // Reconnection state (exposed from BLE service)
-  bool get isReconnecting => _bleService.isReconnecting;
-  int get reconnectionAttempt => _bleService.reconnectionAttempt;
-  int get maxReconnectionAttempts => _bleService.maxReconnectionAttempts;
-
-  // SSE client connection state
-  bool get isSseClientConnecting => _sseClient.isConnecting;
-  int get sseClientReconnectionAttempt => _sseClient.reconnectionAttempts;
-  int get sseClientMaxReconnectionAttempts =>
-      _sseClient.maxReconnectionAttempts;
+  // Reconnection state
+  bool get isReconnecting => _activeService.isReconnecting;
+  int get reconnectionAttempt => _activeService.reconnectionAttempt;
+  int get maxReconnectionAttempts => _activeService.maxReconnectionAttempts;
 
   // Message sync state
   bool _noMoreMessages = false;
@@ -175,16 +174,19 @@ class ConnectionProvider with ChangeNotifier {
   final Map<String, _PendingSendOperation> _pendingSendOperations = {};
 
   ConnectionProvider() {
-    _initializeBleService();
+    _wireServiceCallbacks(_bleService);
   }
 
-  void _initializeBleService() {
-    _bleService.onConnectionStateChanged = (isConnected) {
+  /// Wire all shared event callbacks onto [service].
+  /// Called for both BLE and TCP services so the provider handles events
+  /// identically regardless of transport.
+  void _wireServiceCallbacks(MeshCoreServiceBase service) {
+    service.onConnectionStateChanged = (isConnected) {
       debugPrint('🔔 [Provider] Connection state callback fired: $isConnected');
       _deviceInfo = _deviceInfo.copyWith(
         connectionState: isConnected
             ? ConnectionState.connected
-            : (_bleService.isReconnecting
+            : (service.isReconnecting
                   ? ConnectionState.connecting
                   : ConnectionState.disconnected),
         lastUpdate: DateTime.now(),
@@ -195,7 +197,7 @@ class ConnectionProvider with ChangeNotifier {
       debugPrint(
         '  Updated deviceInfo.isConnected: ${_deviceInfo.isConnected}',
       );
-      debugPrint('  isReconnecting: ${_bleService.isReconnecting}');
+      debugPrint('  isReconnecting: ${service.isReconnecting}');
 
       // Start/stop ACK cleanup timer based on connection state
       if (isConnected) {
@@ -208,325 +210,156 @@ class ConnectionProvider with ChangeNotifier {
       debugPrint('  Notified listeners');
     };
 
-    _bleService.onReconnectionAttempt = (attemptNumber, maxAttempts) {
+    service.onReconnectionAttempt = (attemptNumber, maxAttempts) {
       debugPrint(
         '🔄 [Provider] Reconnection attempt $attemptNumber/$maxAttempts',
       );
-      // Notify UI to update reconnection status display
       notifyListeners();
     };
 
-    _bleService.onError = (error, {int? errorCode}) {
-      debugPrint('⚠️ [Provider] BLE error received: $error');
-      debugPrint('  Error code: ${errorCode ?? "none"}');
-      debugPrint('  Current connection state: ${_deviceInfo.connectionState}');
-
+    service.onError = (error, {int? errorCode}) {
+      debugPrint('⚠️ [Provider] Error received: $error');
       _error = error;
-
-      // Only set connection state to error if we're not already connected
-      // Data parsing errors after connection shouldn't disconnect us
       if (_deviceInfo.connectionState != ConnectionState.connected) {
-        debugPrint('  Setting connection state to error');
         _deviceInfo = _deviceInfo.copyWith(
           connectionState: ConnectionState.error,
         );
-      } else {
-        debugPrint(
-          '  Keeping connection state as connected (ignoring data parsing error)',
-        );
       }
-
       notifyListeners();
     };
 
-    _bleService.onContactNotFound = (contactPublicKey) async {
-      debugPrint(
-        '🔧 [Provider] Contact not found error detected - initiating auto-recovery',
-      );
+    service.onContactNotFound = (contactPublicKey) async {
+      debugPrint('🔧 [Provider] Contact not found - initiating auto-recovery');
+      if (contactPublicKey == null) return;
 
-      if (contactPublicKey == null) {
-        debugPrint('  ⚠️ No contact public key available for recovery');
-        return;
-      }
-
-      // Generate operation ID from public key
       final operationId = contactPublicKey
           .sublist(0, 6)
           .map((b) => b.toRadixString(16).padLeft(2, '0'))
           .join(':');
       final pendingOp = _pendingSendOperations[operationId];
-
-      if (pendingOp == null || pendingOp.contact == null) {
-        debugPrint(
-          '  ⚠️ No pending operation found for recovery: $operationId',
-        );
-        return;
-      }
-
-      debugPrint(
-        '  📋 Found pending operation for: ${pendingOp.contact!.advName}',
-      );
-      debugPrint('  📤 Step 1: Adding contact to radio...');
+      if (pendingOp == null || pendingOp.contact == null) return;
 
       try {
-        // Step 1: Add the contact to the radio
-        await _bleService.addOrUpdateContact(pendingOp.contact!);
-
-        // Small delay to ensure contact is added before retrying
+        await _activeService.addOrUpdateContact(pendingOp.contact!);
         await Future.delayed(const Duration(milliseconds: 300));
 
-        debugPrint('  ✅ Contact added successfully');
-        debugPrint('  🔄 Step 2: Retrying message send...');
-
-        // IMPORTANT: Re-track the message before retrying (auto-recovery bypasses sendTextMessage)
         if (pendingOp.messageId != null) {
           _messageDeliveryTracker.trackPendingMessage(pendingOp.messageId!);
-          debugPrint('  📝 Re-tracked message: ${pendingOp.messageId}');
         }
 
-        // Step 2: Retry the send operation
-        await _bleService.sendTextMessage(
+        await _activeService.sendTextMessage(
           contactPublicKey: pendingOp.contactPublicKey,
           text: pendingOp.text,
           attempt: pendingOp.retryAttempt,
         );
-
-        debugPrint('  ✅ Auto-recovery completed - message resent');
-
-        // Clear pending operation after successful recovery
         _pendingSendOperations.remove(operationId);
       } catch (e) {
         debugPrint('  ❌ Auto-recovery failed: $e');
         _error = 'Auto-recovery failed: $e';
         notifyListeners();
-
-        // Clear pending operation after failed recovery
         _pendingSendOperations.remove(operationId);
       }
     };
 
-    _bleService.onContactReceived = (contact) {
-      debugPrint('📥 [Provider] Contact received (0x8A): "${contact.advName}"');
-      debugPrint('  Forwarding to AppProvider via onContactReceived callback');
+    service.onContactReceived = (contact) {
+      debugPrint('📥 [Provider] Contact received: "${contact.advName}"');
       onContactReceived?.call(contact);
     };
 
-    _bleService.onContactsComplete = (contacts) {
-      debugPrint(
-        '📥 [Provider] Contacts sync complete: ${contacts.length} contacts',
-      );
-      debugPrint('  Forwarding to AppProvider via onContactsComplete callback');
+    service.onContactsComplete = (contacts) {
+      debugPrint('📥 [Provider] Contacts sync complete: ${contacts.length}');
       onContactsComplete?.call(contacts);
     };
 
-    _bleService.onChannelInfoReceived =
+    service.onChannelInfoReceived =
         (int channelIdx, String channelName, Uint8List secret, int? flags) {
           onChannelInfoReceived?.call(channelIdx, channelName, secret, flags);
         };
 
-    _bleService.onContactDeleted = (publicKey) {
-      debugPrint(
-        '⚠️ [Provider] Contact deleted by firmware (contacts full overwrite)',
-      );
-      onContactDeleted?.call(publicKey);
-    };
+    service.onContactDeleted = (publicKey) => onContactDeleted?.call(publicKey);
+    service.onContactsFull = () => onContactsFull?.call();
 
-    _bleService.onContactsFull = () {
-      debugPrint('⚠️ [Provider] Contacts storage is full');
-      onContactsFull?.call();
-    };
-
-    _bleService.onMessageReceived = (message) {
-      // Parse SAR markers
+    service.onMessageReceived = (message) {
       final enhancedMessage = SarMessageParser.enhanceMessage(message);
       onMessageReceived?.call(enhancedMessage);
-
-      // Complete sync response completer (message received = continue syncing)
       if (_syncResponseCompleter != null &&
           !_syncResponseCompleter!.isCompleted) {
         _syncResponseCompleter!.complete(true);
       }
     };
 
-    _bleService.onTelemetryReceived = (publicKey, lppData) {
-      debugPrint('📥 [Provider] Telemetry response (0x8B) received');
-      debugPrint(
-        '  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
-      );
-      debugPrint('  LPP data: ${lppData.length} bytes');
-      // Mark ping as successful if this was a ping request
+    service.onTelemetryReceived = (publicKey, lppData) {
+      debugPrint('📥 [Provider] Telemetry received');
       _pingTracker.markPingSuccessful(publicKey);
-      debugPrint(
-        '  Forwarding to AppProvider via onTelemetryReceived callback',
-      );
       onTelemetryReceived?.call(publicKey, lppData);
     };
 
-    _bleService.onBinaryResponse = (publicKeyPrefix, tag, responseData) {
+    service.onBinaryResponse = (publicKeyPrefix, tag, responseData) {
       debugPrint('📥 [Provider] Binary response received');
-      debugPrint(
-        '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
-      );
-      debugPrint('  Tag: $tag');
-      debugPrint('  Response data: ${responseData.length} bytes');
-      // Mark ping as successful if this was a ping request
-      // Binary responses can also be telemetry responses (newer firmware)
       _pingTracker.markPingSuccessful(publicKeyPrefix);
       onBinaryResponse?.call(publicKeyPrefix, tag, responseData);
     };
 
-    _bleService.onNoMoreMessages = () {
-      debugPrint('📥 [Provider] Received NoMoreMessages signal');
+    service.onNoMoreMessages = () {
       _noMoreMessages = true;
-
-      // Complete sync response completer (no more messages = stop syncing)
       if (_syncResponseCompleter != null &&
           !_syncResponseCompleter!.isCompleted) {
         _syncResponseCompleter!.complete(false);
       }
     };
 
-    _bleService.onMessageWaiting = () {
-      debugPrint(
-        '📥 [Provider] PUSH_CODE_MSG_WAITING received - auto-fetching messages via event',
-      );
-      // Automatically fetch messages when push notification received
-      // This is the CORRECT way to receive messages - room server pushes them
+    service.onMessageWaiting = () {
+      debugPrint('📥 [Provider] MSG_WAITING - auto-syncing');
       syncAllMessages();
     };
 
-    _bleService
-        .onLoginSuccess = (publicKeyPrefix, permissions, isAdmin, tag) async {
-      debugPrint('📥 [Provider] Login successful to room');
-      debugPrint(
-        '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
-      );
-      debugPrint('  Permissions: $permissions, Admin: $isAdmin, Tag: $tag');
+    service.onLoginSuccess =
+        (publicKeyPrefix, permissions, isAdmin, tag) async {
+          await _roomLoginManager.handleLoginSuccess(
+            publicKeyPrefix: publicKeyPrefix,
+            permissions: permissions,
+            isAdmin: isAdmin,
+            tag: tag,
+          );
+          notifyListeners();
+          onLoginSuccess?.call(publicKeyPrefix, permissions, isAdmin, tag);
+        };
 
-      // Update room login state via helper
-      await _roomLoginManager.handleLoginSuccess(
-        publicKeyPrefix: publicKeyPrefix,
-        permissions: permissions,
-        isAdmin: isAdmin,
-        tag: tag,
-      );
-      notifyListeners();
-
-      onLoginSuccess?.call(publicKeyPrefix, permissions, isAdmin, tag);
-    };
-
-    _bleService.onLoginFail = (publicKeyPrefix) {
-      debugPrint('📥 [Provider] Login failed to room');
-      debugPrint(
-        '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
-      );
-
-      // Update room login state to logged out via helper
+    service.onLoginFail = (publicKeyPrefix) {
       _roomLoginManager.handleLoginFail(publicKeyPrefix: publicKeyPrefix);
       notifyListeners();
-
       onLoginFail?.call(publicKeyPrefix);
     };
 
-    _bleService.onAdvertReceived = (publicKey) {
-      debugPrint('📥 [Provider] Advert received from node');
-      debugPrint(
-        '  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
-      );
-      // Forward to AppProvider to trigger contact update
-      // The radio may send only PUSH_CODE_ADVERT (0x80) for existing contacts
-      // instead of PUSH_CODE_NEW_ADVERT (0x8A), so we need to handle this
-      onAdvertReceived?.call(publicKey);
-    };
+    service.onAdvertReceived = (publicKey) => onAdvertReceived?.call(publicKey);
+    service.onPathUpdated = (publicKey) => onPathUpdated?.call(publicKey);
 
-    _bleService.onPathUpdated = (publicKey) {
-      debugPrint('📥 [Provider] Path updated for contact');
-      debugPrint(
-        '  Public key: ${publicKey.sublist(0, 6).map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}...',
-      );
-      debugPrint(
-        '  Note: Mesh network discovered a new/better routing path to this contact',
-      );
-      // Forward the callback to ContactsProvider to trigger contact sync
-      onPathUpdated?.call(publicKey);
-    };
-
-    _bleService.onMessageSent =
+    service.onMessageSent =
         (expectedAckTag, suggestedTimeoutMs, isFloodMode, contactPublicKey) {
-          debugPrint(
-            '📥 [Provider] Message sent - ACK tag: $expectedAckTag, timeout: ${suggestedTimeoutMs}ms',
-          );
-
-          // Pop message ID from FIFO queue (matches send order)
           final messageId = _messageDeliveryTracker.popPendingMessageId();
-
           if (messageId != null) {
-            debugPrint('  ✅ Matched with message ID: $messageId');
-
-            // Check if approaching firmware limit (8 pending ACKs max)
-            if (_messageDeliveryTracker.shouldRateLimit) {
-              debugPrint(
-                '  ⚠️ WARNING: ${_messageDeliveryTracker.pendingCount} pending ACKs (firmware limit: 8)',
-              );
-              debugPrint(
-                '  ⚠️ Firmware may drop ACK tracking if limit exceeded!',
-              );
-            }
-
-            // Store the ACK tag to message ID mapping for delivery confirmation
             _messageDeliveryTracker.mapAckTagToMessageId(
               expectedAckTag,
               messageId,
             );
-
-            // Notify callback with message ID
             onMessageSent?.call(messageId, expectedAckTag, suggestedTimeoutMs);
-          } else {
-            debugPrint(
-              '⚠️ [Provider] SENT response received but no pending message IDs',
-            );
           }
         };
 
-    _bleService.onMessageDelivered = (ackCode, roundTripTimeMs) {
-      debugPrint(
-        '📥 [Provider] Message delivered - ACK code: $ackCode, RTT: ${roundTripTimeMs}ms',
-      );
-      onMessageDelivered?.call(ackCode, roundTripTimeMs);
-    };
+    service.onMessageDelivered = (ackCode, roundTripTimeMs) =>
+        onMessageDelivered?.call(ackCode, roundTripTimeMs);
 
-    _bleService
-        .onMessageEchoDetected = (messageId, echoCount, snrRaw, rssiDbm) {
-      debugPrint(
-        '🔊 [Provider] Echo detected - Message: $messageId, Count: $echoCount',
-      );
-      onMessageEchoDetected?.call(messageId, echoCount, snrRaw, rssiDbm);
-    };
+    service.onMessageEchoDetected = (messageId, echoCount, snrRaw, rssiDbm) =>
+        onMessageEchoDetected?.call(messageId, echoCount, snrRaw, rssiDbm);
 
-    _bleService.onStatusResponse = (publicKeyPrefix, statusData) {
-      debugPrint('📥 [Provider] Status response received from node');
-      debugPrint(
-        '  Public key prefix: ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
-      );
-      debugPrint('  Status data: ${statusData.length} bytes');
-      // Forward the callback to whoever needs it (e.g., ContactsProvider)
-      onStatusResponse?.call(publicKeyPrefix, statusData);
-    };
+    service.onStatusResponse = (publicKeyPrefix, statusData) =>
+        onStatusResponse?.call(publicKeyPrefix, statusData);
 
-    _bleService.onRawDataReceived = (payload, snrRaw, rssiDbm) {
-      onRawDataReceived?.call(payload, snrRaw, rssiDbm);
-    };
+    service.onRawDataReceived = (payload, snrRaw, rssiDbm) =>
+        onRawDataReceived?.call(payload, snrRaw, rssiDbm);
 
-    _bleService.onDeviceInfoReceived = (deviceInfo) {
-      debugPrint('📥 [Provider] Received DeviceInfo:');
-      debugPrint('  Firmware Version: ${deviceInfo['firmwareVersion']}');
-      debugPrint('  Max Contacts: ${deviceInfo['maxContacts']}');
-      debugPrint('  Max Channels: ${deviceInfo['maxChannels']}');
-      debugPrint('  BLE PIN: ${deviceInfo['blePin']}');
-      debugPrint('  Build Date: ${deviceInfo['firmwareBuildDate']}');
-      debugPrint('  Model: ${deviceInfo['manufacturerModel']}');
-      debugPrint('  Version: ${deviceInfo['semanticVersion']}');
-
+    service.onDeviceInfoReceived = (deviceInfo) {
+      debugPrint('📥 [Provider] DeviceInfo received');
       _deviceInfo = _deviceInfo.copyWith(
         firmwareVersion: deviceInfo['firmwareVersion'] as int?,
         maxContacts: deviceInfo['maxContacts'] as int?,
@@ -538,9 +371,6 @@ class ConnectionProvider with ChangeNotifier {
         clientRepeat: deviceInfo['clientRepeat'] as bool?,
       );
       notifyListeners();
-      debugPrint('✅ [Provider] Device info updated with DeviceInfo');
-
-      // Update SSE server with device name if running
       if (_sseServer.isRunning) {
         _sseServer.setDeviceName(
           _deviceInfo.deviceName ?? _deviceInfo.selfName,
@@ -548,19 +378,8 @@ class ConnectionProvider with ChangeNotifier {
       }
     };
 
-    _bleService.onSelfInfoReceived = (selfInfo) {
-      debugPrint('📥 [Provider] Received SelfInfo:');
-      debugPrint(
-        '  TX Power: ${selfInfo['txPower']} / ${selfInfo['maxTxPower']} dBm',
-      );
-      debugPrint(
-        '  Radio: freq=${selfInfo['radioFreq']}, bw=${selfInfo['radioBw']}, sf=${selfInfo['radioSf']}, cr=${selfInfo['radioCr']}',
-      );
-      debugPrint(
-        '  Position: ${selfInfo['advLat'] / 1000000.0}, ${selfInfo['advLon'] / 1000000.0}',
-      );
-      debugPrint('  Self Name: ${selfInfo['selfName']}');
-
+    service.onSelfInfoReceived = (selfInfo) {
+      debugPrint('📥 [Provider] SelfInfo received');
       _deviceInfo = _deviceInfo.copyWith(
         deviceType: selfInfo['deviceType'] as int?,
         txPower: selfInfo['txPower'] as int?,
@@ -576,9 +395,6 @@ class ConnectionProvider with ChangeNotifier {
         selfName: selfInfo['selfName'] as String?,
       );
       notifyListeners();
-      debugPrint('✅ [Provider] Device info updated with SelfInfo');
-
-      // Update SSE server with device name if running
       if (_sseServer.isRunning) {
         _sseServer.setDeviceName(
           _deviceInfo.deviceName ?? _deviceInfo.selfName,
@@ -586,24 +402,7 @@ class ConnectionProvider with ChangeNotifier {
       }
     };
 
-    // Activity indicators
-
-    _bleService.onBatteryAndStorage = (millivolts, usedKb, totalKb) {
-      debugPrint('📥 [Provider] Received BatteryAndStorage:');
-      debugPrint(
-        '  Battery: ${millivolts}mV (${(millivolts / 1000.0).toStringAsFixed(2)}V)',
-      );
-      if (usedKb != null) {
-        debugPrint('  Storage Used: ${usedKb}KB');
-      }
-      if (totalKb != null) {
-        debugPrint('  Storage Total: ${totalKb}KB');
-        if (totalKb > 0 && usedKb != null) {
-          final usedPercent = (usedKb / totalKb) * 100.0;
-          debugPrint('  Storage Usage: ${usedPercent.toStringAsFixed(1)}%');
-        }
-      }
-
+    service.onBatteryAndStorage = (millivolts, usedKb, totalKb) {
       _deviceInfo = _deviceInfo.copyWith(
         batteryMilliVolts: millivolts,
         storageUsedKb: usedKb,
@@ -611,13 +410,11 @@ class ConnectionProvider with ChangeNotifier {
         lastUpdate: DateTime.now(),
       );
       notifyListeners();
-      debugPrint('✅ [Provider] Device info updated with BatteryAndStorage');
     };
-    _bleService.onRxActivity = () {
+
+    service.onRxActivity = () {
       _rxActivity = true;
       notifyListeners();
-
-      // Reset after 100ms
       _rxActivityTimer?.cancel();
       _rxActivityTimer = Timer(const Duration(milliseconds: 100), () {
         _rxActivity = false;
@@ -625,17 +422,14 @@ class ConnectionProvider with ChangeNotifier {
       });
     };
 
-    _bleService.onAllowedRepeatFreqReceived = (ranges) {
-      debugPrint('📥 [Provider] Received AllowedRepeatFreq: $ranges');
+    service.onAllowedRepeatFreqReceived = (ranges) {
       _deviceInfo = _deviceInfo.copyWith(allowedRepeatFreqRanges: ranges);
       notifyListeners();
     };
 
-    _bleService.onTxActivity = () {
+    service.onTxActivity = () {
       _txActivity = true;
       notifyListeners();
-
-      // Reset after 100ms
       _txActivityTimer?.cancel();
       _txActivityTimer = Timer(const Duration(milliseconds: 100), () {
         _txActivity = false;
@@ -643,7 +437,7 @@ class ConnectionProvider with ChangeNotifier {
       });
     };
 
-    _bleService.onRssiUpdate = (rssi) {
+    service.onRssiUpdate = (rssi) {
       _deviceInfo = _deviceInfo.copyWith(
         signalRssi: rssi,
         lastUpdate: DateTime.now(),
@@ -742,6 +536,51 @@ class ConnectionProvider with ChangeNotifier {
     return success;
   }
 
+  /// Connect to a MeshCore device over TCP/WiFi (port 5000)
+  Future<bool> connectTcp(String host, int port) async {
+    debugPrint('🌐 [Provider] connectTcp() $host:$port');
+
+    _tcpHost = host;
+    _deviceInfo = _deviceInfo.copyWith(
+      deviceId: '$host:$port',
+      deviceName: host,
+      connectionState: ConnectionState.connecting,
+    );
+    _error = null;
+    notifyListeners();
+
+    // Create fresh TCP service and wire its callbacks
+    _tcpService?.dispose();
+    _tcpService = MeshCoreTcpService();
+    _wireServiceCallbacks(_tcpService!);
+
+    _connectionMode = ConnectionMode.tcp;
+
+    final success = await _tcpService!.connect(host, port);
+    if (!success) {
+      _deviceInfo = _deviceInfo.copyWith(connectionState: ConnectionState.error);
+      notifyListeners();
+    }
+    return success;
+  }
+
+  /// Disconnect from TCP/WiFi device
+  Future<void> disconnectTcp() async {
+    if (_tcpService != null) {
+      await _tcpService!.disconnect();
+      _tcpService!.dispose();
+      _tcpService = null;
+    }
+    _tcpHost = null;
+    _connectionMode = ConnectionMode.ble;
+    _deviceInfo = DeviceInfo(connectionState: ConnectionState.disconnected);
+    _roomLoginManager.clearRoomLoginStates();
+    _pingTracker.clearAll();
+    _pendingSendOperations.clear();
+    _messageDeliveryTracker.clearTracking();
+    notifyListeners();
+  }
+
   /// Disconnect from device
   Future<void> disconnect() async {
     _deviceInfo = _deviceInfo.copyWith(
@@ -749,20 +588,18 @@ class ConnectionProvider with ChangeNotifier {
     );
     notifyListeners();
 
-    // Disconnect from BLE if connected
-    await _bleService.disconnect();
-
-    // Disconnect from SSE if connected
-    if (_sseClient.isConnected) {
-      await disconnectFromSseServer();
+    if (_connectionMode == ConnectionMode.tcp) {
+      await disconnectTcp();
+      return;
     }
 
+    await _bleService.disconnect();
+
     _deviceInfo = DeviceInfo(connectionState: ConnectionState.disconnected);
-    _roomLoginManager
-        .clearRoomLoginStates(); // Clear login states on disconnect
-    _pingTracker.clearAll(); // Clear pending pings on disconnect
-    _pendingSendOperations.clear(); // Clear pending operations on disconnect
-    _messageDeliveryTracker.clearTracking(); // Clear ACK tracking on disconnect
+    _roomLoginManager.clearRoomLoginStates();
+    _pingTracker.clearAll();
+    _pendingSendOperations.clear();
+    _messageDeliveryTracker.clearTracking();
     notifyListeners();
   }
 
@@ -809,14 +646,14 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Get contacts from device
   Future<void> getContacts() async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.getContacts();
+      await _activeService.getContacts();
     } catch (e) {
       _error = 'Failed to get contacts: $e';
       notifyListeners();
@@ -830,28 +667,28 @@ class ConnectionProvider with ChangeNotifier {
   ///
   /// The contact will be delivered via the onContactReceived callback.
   Future<void> getContact(Uint8List publicKey) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.getContactByKey(publicKey);
+      await _activeService.getContactByKey(publicKey);
     } catch (e) {
       _error = 'Failed to get contact: $e';
       debugPrint(
         '⚠️ [Provider] Failed to get contact by key, falling back to full contact sync',
       );
       // Fallback to full contact sync if command not supported
-      await _bleService.getContacts();
+      await _activeService.getContacts();
       notifyListeners();
     }
   }
 
   /// Sync all channels from device
   Future<void> syncChannels({int? maxChannels}) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
@@ -860,7 +697,7 @@ class ConnectionProvider with ChangeNotifier {
     try {
       // Use maxChannels from device info if available, otherwise default to 40
       final channelCount = maxChannels ?? _deviceInfo.maxChannels ?? 40;
-      await _bleService.syncAllChannels(maxChannels: channelCount);
+      await _activeService.syncAllChannels(maxChannels: channelCount);
     } catch (e) {
       _error = 'Failed to sync channels: $e';
       notifyListeners();
@@ -876,7 +713,7 @@ class ConnectionProvider with ChangeNotifier {
   /// The public channel uses a well-known pre-shared key that all MeshCore
   /// devices use for the default public channel.
   Future<void> configureDefaultPublicChannel() async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
@@ -889,7 +726,7 @@ class ConnectionProvider with ChangeNotifier {
       debugPrint(
         '  Using secret: ${MeshCoreConstants.defaultPublicChannelSecret.map((b) => b.toRadixString(16).padLeft(2, '0')).join('')}',
       );
-      await _bleService.setChannel(
+      await _activeService.setChannel(
         channelIdx: 0,
         channelName: 'Public Channel',
         secret: MeshCoreConstants.defaultPublicChannelSecret,
@@ -916,7 +753,7 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Check if a specific channel slot is empty
   Future<bool> isChannelSlotEmpty(int channelIdx) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       return false;
     }
 
@@ -931,7 +768,7 @@ class ConnectionProvider with ChangeNotifier {
       }
 
       // If not cached, query the device
-      await _bleService.getChannel(channelIdx);
+      await _activeService.getChannel(channelIdx);
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Check again after query
@@ -952,7 +789,7 @@ class ConnectionProvider with ChangeNotifier {
   }
 
   Future<int?> findNextEmptyChannelSlot() async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       throw Exception('Not connected to device');
     }
 
@@ -1007,7 +844,7 @@ class ConnectionProvider with ChangeNotifier {
     required String channelName,
     required String channelSecret,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       throw Exception('Not connected to device');
     }
 
@@ -1082,7 +919,7 @@ class ConnectionProvider with ChangeNotifier {
       }
 
       // Send CMD_SET_CHANNEL to radio
-      await _bleService.setChannel(
+      await _activeService.setChannel(
         channelIdx: slotIdx,
         channelName: channelName,
         secret: secretBytes,
@@ -1097,7 +934,7 @@ class ConnectionProvider with ChangeNotifier {
 
       // Refresh channels to update UI
       // The channel info will be received via onChannelInfoReceived callback
-      await _bleService.getChannel(slotIdx);
+      await _activeService.getChannel(slotIdx);
     } catch (e) {
       _error = 'Failed to create channel: $e';
       debugPrint('❌ [Provider] Channel creation failed: $e');
@@ -1115,7 +952,7 @@ class ConnectionProvider with ChangeNotifier {
   ///
   /// Throws an exception if the channel cannot be deleted or if channel 0 is specified.
   Future<void> deleteChannel(int channelIdx) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       throw Exception('Not connected to device');
     }
 
@@ -1127,7 +964,7 @@ class ConnectionProvider with ChangeNotifier {
       debugPrint('🗑️  [Provider] Deleting channel in slot $channelIdx...');
 
       // Delete channel on device (sets empty name and zeroed secret)
-      await _bleService.deleteChannel(channelIdx);
+      await _activeService.deleteChannel(channelIdx);
 
       debugPrint(
         '✅ [Provider] Channel deleted successfully from slot $channelIdx',
@@ -1138,7 +975,7 @@ class ConnectionProvider with ChangeNotifier {
 
       // Refresh channels to update UI
       // The empty channel will trigger removal via onChannelInfoReceived callback
-      await _bleService.getChannel(channelIdx);
+      await _activeService.getChannel(channelIdx);
     } catch (e) {
       _error = 'Failed to delete channel: $e';
       debugPrint('❌ [Provider] Channel deletion failed: $e');
@@ -1169,14 +1006,14 @@ class ConnectionProvider with ChangeNotifier {
   /// This manually adds a contact to the radio's internal contact table.
   /// Useful when a room contact was deleted or never advertised yet.
   Future<void> addOrUpdateContact(Contact contact) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.addOrUpdateContact(contact);
+      await _activeService.addOrUpdateContact(contact);
     } catch (e) {
       _error = 'Failed to add/update contact: $e';
       notifyListeners();
@@ -1199,7 +1036,7 @@ class ConnectionProvider with ChangeNotifier {
     Contact? contact,
     int retryAttempt = 0,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return false;
@@ -1283,7 +1120,7 @@ class ConnectionProvider with ChangeNotifier {
       }
 
       // Send the message with retry attempt info
-      await _bleService.sendTextMessage(
+      await _activeService.sendTextMessage(
         contactPublicKey: contactPublicKey,
         text: text,
         attempt: retryAttempt,
@@ -1320,7 +1157,7 @@ class ConnectionProvider with ChangeNotifier {
     required String text,
     String? messageId,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
@@ -1332,7 +1169,7 @@ class ConnectionProvider with ChangeNotifier {
       debugPrint('  Text: $text');
       debugPrint('  MessageID: $messageId');
 
-      await _bleService.sendChannelMessage(channelIdx: channelIdx, text: text);
+      await _activeService.sendChannelMessage(channelIdx: channelIdx, text: text);
 
       debugPrint('✅ [ConnectionProvider] BLE send completed');
       debugPrint(
@@ -1349,7 +1186,7 @@ class ConnectionProvider with ChangeNotifier {
         // Track for echo detection
         // The BLE handler will capture the packet via LOG_RX_DATA and associate it
         debugPrint('  Calling trackSentChannelMessage...');
-        _bleService.trackSentChannelMessage(
+        _activeService.trackSentChannelMessage(
           messageId,
           channelIdx: channelIdx,
           plainText: text,
@@ -1379,8 +1216,8 @@ class ConnectionProvider with ChangeNotifier {
     required int contactPathLen,
     required Uint8List payload,
   }) async {
-    if (!_bleService.isConnected) return;
-    await _bleService.sendRawVoicePacket(
+    if (!_activeService.isConnected) return;
+    await _activeService.sendRawVoicePacket(
       contactPathLen: contactPathLen,
       contactPath: contactPath,
       payload: payload,
@@ -1406,14 +1243,14 @@ class ConnectionProvider with ChangeNotifier {
     Uint8List contactPublicKey, {
     bool zeroHop = false,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.requestTelemetry(contactPublicKey, zeroHop: zeroHop);
+      await _activeService.requestTelemetry(contactPublicKey, zeroHop: zeroHop);
     } catch (e) {
       _error = 'Failed to request telemetry: $e';
       notifyListeners();
@@ -1434,7 +1271,7 @@ class ConnectionProvider with ChangeNotifier {
     required bool hasPath,
     Function()? onRetryWithFlooding,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return PingResult(success: false, usedFlooding: false, timedOut: true);
@@ -1451,7 +1288,7 @@ class ConnectionProvider with ChangeNotifier {
       );
 
       // Send the ping
-      await _bleService.requestTelemetry(contactPublicKey, zeroHop: true);
+      await _activeService.requestTelemetry(contactPublicKey, zeroHop: true);
 
       // Wait for response or timeout
       final bool gotResponse = await pingFuture;
@@ -1479,7 +1316,7 @@ class ConnectionProvider with ChangeNotifier {
         );
 
         // Retry with flooding (zeroHop=true acts as broadcast to neighbors)
-        await _bleService.requestTelemetry(contactPublicKey, zeroHop: true);
+        await _activeService.requestTelemetry(contactPublicKey, zeroHop: true);
 
         // Wait for response or timeout
         final bool gotRetryResponse = await retryFuture;
@@ -1527,7 +1364,7 @@ class ConnectionProvider with ChangeNotifier {
     required int requestType,
     Uint8List? additionalParams,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
@@ -1540,7 +1377,7 @@ class ConnectionProvider with ChangeNotifier {
         if (additionalParams != null) ...additionalParams,
       ]);
 
-      await _bleService.sendBinaryRequest(
+      await _activeService.sendBinaryRequest(
         contactPublicKey: contactPublicKey,
         requestData: requestData,
       );
@@ -1552,14 +1389,14 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Get device time from companion radio to detect clock drift
   Future<void> getDeviceTime() async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.getDeviceTime();
+      await _activeService.getDeviceTime();
     } catch (e) {
       _error = 'Failed to get device time: $e';
       notifyListeners();
@@ -1568,10 +1405,10 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Set device time to current time
   Future<void> syncDeviceTime() async {
-    if (!_bleService.isConnected) return;
+    if (!_activeService.isConnected) return;
 
     try {
-      await _bleService.setDeviceTime();
+      await _activeService.setDeviceTime();
     } catch (e) {
       _error = 'Failed to sync time: $e';
       notifyListeners();
@@ -1580,14 +1417,14 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Set advertised name
   Future<void> setAdvertName(String name) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.setAdvertName(name);
+      await _activeService.setAdvertName(name);
     } catch (e) {
       _error = 'Failed to set name: $e';
       notifyListeners();
@@ -1599,14 +1436,14 @@ class ConnectionProvider with ChangeNotifier {
     required double latitude,
     required double longitude,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.setAdvertLatLon(
+      await _activeService.setAdvertLatLon(
         latitude: latitude,
         longitude: longitude,
       );
@@ -1625,7 +1462,7 @@ class ConnectionProvider with ChangeNotifier {
   /// [floodMode] - if true, broadcast to entire mesh (default for SAR ops)
   ///               if false, only send to direct neighbors (zero-hop)
   Future<void> sendSelfAdvert({bool floodMode = true}) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
@@ -1643,7 +1480,7 @@ class ConnectionProvider with ChangeNotifier {
         }
       }
       _isAdvertInProgress = true;
-      await _bleService.sendSelfAdvert(floodMode: floodMode);
+      await _activeService.sendSelfAdvert(floodMode: floodMode);
       _lastAdvertRequestedAt = DateTime.now();
     } catch (e) {
       _error = 'Failed to send advertisement: $e';
@@ -1661,14 +1498,14 @@ class ConnectionProvider with ChangeNotifier {
     required int codingRate,
     bool? repeat,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.setRadioParams(
+      await _activeService.setRadioParams(
         frequency: frequency,
         bandwidth: bandwidth,
         spreadingFactor: spreadingFactor,
@@ -1683,9 +1520,9 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Request the list of allowed repeat frequency ranges from the device (firmware v9+)
   Future<void> getAllowedRepeatFreq() async {
-    if (!_bleService.isConnected) return;
+    if (!_activeService.isConnected) return;
     try {
-      await _bleService.getAllowedRepeatFreq();
+      await _activeService.getAllowedRepeatFreq();
     } catch (e) {
       debugPrint('Failed to get allowed repeat freq: $e');
     }
@@ -1693,14 +1530,14 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Set transmit power
   Future<void> setTxPower(int powerDbm) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.setTxPower(powerDbm);
+      await _activeService.setTxPower(powerDbm);
     } catch (e) {
       _error = 'Failed to set TX power: $e';
       notifyListeners();
@@ -1714,14 +1551,14 @@ class ConnectionProvider with ChangeNotifier {
     required int advertLocationPolicy,
     int multiAcks = 0,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.setOtherParams(
+      await _activeService.setOtherParams(
         manualAddContacts: manualAddContacts,
         telemetryModes: telemetryModes,
         advertLocationPolicy: advertLocationPolicy,
@@ -1735,7 +1572,7 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Request fresh device info (triggers SelfInfo response)
   Future<void> refreshDeviceInfo() async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
@@ -1743,9 +1580,9 @@ class ConnectionProvider with ChangeNotifier {
 
     try {
       // The device query command triggers a SelfInfo response
-      await _bleService.refreshDeviceInfo();
+      await _activeService.refreshDeviceInfo();
       // Also request allowed repeat frequencies (firmware v9+, no-op on older firmware)
-      await _bleService.getAllowedRepeatFreq();
+      await _activeService.getAllowedRepeatFreq();
     } catch (e) {
       _error = 'Failed to refresh device info: $e';
       notifyListeners();
@@ -1761,14 +1598,14 @@ class ConnectionProvider with ChangeNotifier {
   ///
   /// Results arrive via onBatteryAndStorage callback and update deviceInfo.
   Future<void> getBatteryAndStorage() async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.getBatteryAndStorage();
+      await _activeService.getBatteryAndStorage();
     } catch (e) {
       _error = 'Failed to get battery and storage: $e';
       notifyListeners();
@@ -1784,7 +1621,7 @@ class ConnectionProvider with ChangeNotifier {
       return false;
     }
 
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return false;
@@ -1802,7 +1639,7 @@ class ConnectionProvider with ChangeNotifier {
       }
 
       _isSyncingMessages = true;
-      await _bleService.syncNextMessage();
+      await _activeService.syncNextMessage();
       _lastSyncNextRequestedAt = DateTime.now();
       return true;
     } catch (e) {
@@ -1821,7 +1658,7 @@ class ConnectionProvider with ChangeNotifier {
       return 0;
     }
 
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return 0;
@@ -1865,7 +1702,7 @@ class ConnectionProvider with ChangeNotifier {
           }
         }
 
-        await _bleService.syncNextMessage();
+        await _activeService.syncNextMessage();
         _lastSyncNextRequestedAt = DateTime.now();
         count++;
 
@@ -1932,7 +1769,7 @@ class ConnectionProvider with ChangeNotifier {
     required Uint8List roomPublicKey,
     required String password,
   }) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
@@ -1950,7 +1787,7 @@ class ConnectionProvider with ChangeNotifier {
         }
       }
       _isLoginInProgress = true;
-      await _bleService.loginToRoom(
+      await _activeService.loginToRoom(
         roomPublicKey: roomPublicKey,
         password: password,
       );
@@ -1976,7 +1813,7 @@ class ConnectionProvider with ChangeNotifier {
   /// await connectionProvider.requestStatus(repeaterContact.publicKey);
   /// ```
   Future<void> requestStatus(Uint8List contactPublicKey) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
@@ -1994,7 +1831,7 @@ class ConnectionProvider with ChangeNotifier {
         }
       }
       _isStatusRequestInProgress = true;
-      await _bleService.sendStatusRequest(contactPublicKey);
+      await _activeService.sendStatusRequest(contactPublicKey);
       _lastStatusRequestedAt = DateTime.now();
     } catch (e) {
       _error = 'Failed to send status request: $e';
@@ -2015,14 +1852,14 @@ class ConnectionProvider with ChangeNotifier {
   /// After calling this, the device will automatically fall back to flood mode
   /// for the next message to this contact, and learn a new path from the response.
   Future<void> resetPath(Uint8List contactPublicKey) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.resetPath(contactPublicKey);
+      await _activeService.resetPath(contactPublicKey);
     } catch (e) {
       _error = 'Failed to reset path: $e';
       notifyListeners();
@@ -2035,14 +1872,14 @@ class ConnectionProvider with ChangeNotifier {
   /// The contact will no longer appear in the contact list and all
   /// routing information will be cleared.
   Future<void> removeContact(Uint8List contactPublicKey) async {
-    if (!_bleService.isConnected) {
+    if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
       return;
     }
 
     try {
-      await _bleService.removeContact(contactPublicKey);
+      await _activeService.removeContact(contactPublicKey);
     } catch (e) {
       _error = 'Failed to remove contact: $e';
       notifyListeners();
@@ -2157,140 +1994,6 @@ class ConnectionProvider with ChangeNotifier {
   /// Get number of connected SSE clients
   int get sseClientCount => _sseServer.connectedClients;
 
-  // ============================================================================
-  // SSE Client Methods
-  // ============================================================================
-
-  /// Connect to remote SSE server
-  Future<void> connectToSseServer({
-    required String serverUrl,
-    String? authToken,
-  }) async {
-    if (_sseClient.isConnected) {
-      debugPrint('⚠️ [ConnectionProvider] SSE client already connected');
-      return;
-    }
-
-    try {
-      debugPrint(
-        '🔌 [ConnectionProvider] Connecting to SSE server: $serverUrl',
-      );
-      _sseClientServerUrl = serverUrl;
-
-      // Wire up callbacks
-      _sseClient.onMessageReceived = (message) {
-        debugPrint('📥 [ConnectionProvider] Received message from SSE server');
-        onMessageReceived?.call(message);
-      };
-
-      _sseClient.onContactReceived = (contact) {
-        debugPrint('📥 [ConnectionProvider] Received contact from SSE server');
-        onContactReceived?.call(contact);
-      };
-
-      _sseClient.onConnectionStateChanged = (isConnected) {
-        debugPrint(
-          '🔔 [ConnectionProvider] SSE client connection state changed: $isConnected',
-        );
-        if (isConnected) {
-          debugPrint(
-            '✅ [ConnectionProvider] SSE client connected - updating UI state',
-          );
-        } else {
-          debugPrint(
-            '❌ [ConnectionProvider] SSE client disconnected - updating UI state',
-          );
-        }
-        _deviceInfo = _deviceInfo.copyWith(
-          connectionState: isConnected
-              ? ConnectionState.connected
-              : ConnectionState.disconnected,
-        );
-        notifyListeners();
-      };
-
-      _sseClient.onError = (error) {
-        debugPrint('❌ [ConnectionProvider] SSE client error: $error');
-        _error = error;
-        notifyListeners();
-      };
-
-      debugPrint(
-        '📌 [ConnectionProvider] SSE callbacks registered, starting connection...',
-      );
-      await _sseClient.connect(serverUrl: serverUrl, authToken: authToken);
-
-      _connectionMode = ConnectionMode.sseClient;
-      notifyListeners();
-
-      debugPrint('✅ [ConnectionProvider] Connected to SSE server');
-      debugPrint(
-        '📊 [ConnectionProvider] SSE client state: isConnected=${_sseClient.isConnected}',
-      );
-      debugPrint(
-        '📊 [ConnectionProvider] DeviceInfo state: connectionState=${_deviceInfo.connectionState}, isConnected=${_deviceInfo.isConnected}',
-      );
-    } catch (e) {
-      _error = 'Failed to connect to SSE server: $e';
-      debugPrint('❌ [ConnectionProvider] Failed to connect to SSE server: $e');
-      notifyListeners();
-      rethrow;
-    }
-  }
-
-  /// Disconnect from SSE server
-  Future<void> disconnectFromSseServer() async {
-    if (!_sseClient.isConnected) {
-      return;
-    }
-
-    debugPrint('🔌 [ConnectionProvider] Disconnecting from SSE server...');
-    await _sseClient.disconnect();
-
-    _sseClientServerUrl = null;
-
-    if (_connectionMode == ConnectionMode.sseClient) {
-      _connectionMode = ConnectionMode.ble;
-    }
-
-    notifyListeners();
-    debugPrint('✅ [ConnectionProvider] Disconnected from SSE server');
-  }
-
-  /// Send message via SSE client (when in client mode)
-  Future<bool> sendMessageViaSseClient({
-    required Uint8List contactPublicKey,
-    required String text,
-  }) async {
-    if (!_sseClient.isConnected) {
-      throw Exception('Not connected to SSE server');
-    }
-
-    final publicKeyHex = contactPublicKey
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join('');
-
-    return await _sseClient.sendMessage(
-      recipientPublicKey: publicKeyHex,
-      text: text,
-    );
-  }
-
-  /// Send channel message via SSE client (when in client mode)
-  Future<void> sendChannelMessageViaSseClient({
-    required int channelIdx,
-    required String text,
-  }) async {
-    if (!_sseClient.isConnected) {
-      throw Exception('Not connected to SSE server');
-    }
-
-    await _sseClient.sendChannelMessage(channelIdx: channelIdx, text: text);
-  }
-
-  /// Get SSE client connection status
-  bool get isSseClientConnected => _sseClient.isConnected;
-
   /// Set connection mode
   void setConnectionMode(ConnectionMode mode) {
     _connectionMode = mode;
@@ -2308,8 +2011,8 @@ class ConnectionProvider with ChangeNotifier {
     _rxActivityTimer?.cancel();
     _txActivityTimer?.cancel();
     _bleService.dispose();
+    _tcpService?.dispose();
     _sseServer.stopServer();
-    _sseClient.dispose();
     super.dispose();
   }
 }

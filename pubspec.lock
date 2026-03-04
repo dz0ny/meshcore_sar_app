@@ -883,7 +883,7 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "624e3d3cf6ea32d8245cc85d5b599f30ca910501"
+      resolved-ref: d6f91774f19136ff71b0087feaf95fa5490524d9
       url: "https://github.com/dz0ny/meshcore_client.git"
     source: git
     version: "0.1.0"

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 import '../providers/connection_provider.dart';
 import '../providers/app_provider.dart';
+import '../models/device_info.dart' show ConnectionMode;
 import '../providers/messages_provider.dart';
 import '../providers/contacts_provider.dart';
 import '../theme/app_theme.dart';
@@ -298,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen>
                   builder: (context, provider, child) {
                     final isConnected =
                         provider.deviceInfo.isConnected ||
-                        provider.isSseClientConnected;
+                        provider.deviceInfo.isConnected;
                     if (isConnected) {
                       return IconButton(
                         onPressed: () async {
@@ -446,9 +447,9 @@ class _HomeScreenState extends State<HomeScreen>
     return Consumer<ConnectionProvider>(
       builder: (context, provider, child) {
         final deviceInfo = provider.deviceInfo;
-        final isBleConnected = deviceInfo.isConnected;
-        final isSseConnected = provider.isSseClientConnected;
-        final isConnected = isBleConnected || isSseConnected;
+        final isConnected = deviceInfo.isConnected;
+        final isTcpConnected = provider.connectionMode == ConnectionMode.tcp;
+        final isBleConnected = isConnected && !isTcpConnected;
 
         if (!isConnected) {
           // Disconnected state: show connect button
@@ -536,10 +537,10 @@ class _HomeScreenState extends State<HomeScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              isSseConnected
+                              isTcpConnected
                                   ? Icons.wifi
                                   : Icons.bluetooth_connected,
-                              color: isSseConnected
+                              color: isTcpConnected
                                   ? Colors.green
                                   : (deviceInfo.signalRssi != null
                                         ? BatteryDisplayHelper.getSignalColor(
@@ -561,10 +562,10 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                               ),
                             ],
-                            if (isSseConnected && !isBleConnected) ...[
+                            if (isTcpConnected) ...[
                               const SizedBox(width: 3),
                               Text(
-                                'SSE',
+                                'WiFi',
                                 style: const TextStyle(
                                   fontSize: 11,
                                   color: Colors.green,
