@@ -15,20 +15,25 @@
 </p>
 
 MeshCore SAR helps teams coordinate in low-connectivity or no-connectivity environments with messaging, voice, images, maps, and live location context in one app.
+It uses the MeshCore protocol over LoRa for long-range, infrastructure-free communication.
 
 ## Highlights
 
-- Fast mesh messaging for direct and group coordination
-- On-demand voice and image transfer optimized for constrained links
-- Offline-first mapping with tactical overlays and SAR markers
-- Live team tracking, trails, and shareable map drawings
+- Rapid mesh chat for both 1:1 and group coordination
+- On-demand voice (Codec2) and image (AVIF) transfer tuned for low-bandwidth links
+- Offline-first mapping with tactical overlays and SAR incident markers
+- Live team location, movement trails, and shareable tactical drawings
 
 ## Demo Video
 
+<<<<<<< Updated upstream
 [<img width="1280" height="720" alt="image" src="https://github.com/user-attachments/assets/13ccacee-7306-4976-a408-f31f3336828a" />](https://youtu.be/rLsKeLJBpFg)
 
 
 Watch on YouTube: https://youtu.be/rLsKeLJBpFg
+=======
+[Watch the MeshCore SAR demo on YouTube](https://youtu.be/rLsKeLJBpFg)
+>>>>>>> Stashed changes
 
 ## Screenshots
 
@@ -45,8 +50,8 @@ Watch on YouTube: https://youtu.be/rLsKeLJBpFg
 | Area | What you get |
 |---|---|
 | Messaging | Direct and group chat over mesh, with contact/room awareness from live telemetry |
-| Voice | Push-to-talk voice clips, fetched on demand when play is pressed, auto-play on completion |
-| Images | Camera/gallery image sending, auto-compression, tap-to-load receiving, full-screen viewer |
+| Voice | Push-to-talk voice clips (Codec2), fetched on demand when play is pressed, auto-play on completion |
+| Images | Camera/gallery image sending (AVIF), auto-compression, tap-to-load receiving, full-screen viewer |
 | Maps | Street/topo/satellite/terrain layers, offline tile downloads, optional MBTiles import |
 | SAR Operations | Team markers with freshness indicators, SAR markers for incidents and staging points |
 | Tracking | Continuous GPS updates, personal trails, distance/duration trail stats |

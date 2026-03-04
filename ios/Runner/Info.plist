@@ -43,7 +43,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>68</string>
+	<string>69</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
@@ -68,8 +68,12 @@
 	<string>MeshCore SAR needs access to the compass to show your heading direction on the map</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MeshCore SAR needs microphone access to send voice messages over the mesh radio network during SAR operations</string>
+	<key>NSCameraUsageDescription</key>
+	<string>MeshCore SAR needs camera access to take photos and attach them to SAR messages</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>MeshCore SAR may need access to your photo library to attach images to messages or save map screenshots for documentation during SAR operations</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>MeshCore SAR needs permission to save exported screenshots and SAR documentation images to your photo library</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

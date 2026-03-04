@@ -34,8 +34,9 @@ DAILY_BUILD := $(shell \
 # Version format: YYYY.MMDD.DAILY+BUILD
 # DAILY resets each day (for readability), BUILD always increments (for Android)
 NEW_VERSION := $(YEAR).$(MMDD).$(DAILY_BUILD)+$(NEW_BUILD_NUMBER)
+NEW_BUILD_NAME := $(shell echo $(NEW_VERSION) | cut -d'+' -f1)
 
-.PHONY: help version bump build release release-android release-ios clean deps analyze test icon bundle bundle-no-bump
+.PHONY: help version bump make-bump sync-ios-version build release release-android release-ios clean deps analyze test icon bundle bundle-no-bump
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -49,7 +50,18 @@ version: ## Show current and next version
 bump: ## Bump version in pubspec.yaml
 	@echo "Bumping version to $(NEW_VERSION)..."
 	@sed -i '' 's/^version: .*/version: $(NEW_VERSION)/' $(PUBSPEC)
+	@$(MAKE) sync-ios-version BUILD_NAME=$(NEW_BUILD_NAME) BUILD_NUMBER=$(NEW_BUILD_NUMBER)
 	@echo "Version bumped to $(NEW_VERSION)"
+
+make-bump: bump ## Alias for bump
+
+sync-ios-version: ## Sync iOS FLUTTER_BUILD_NAME/NUMBER from pubspec or provided BUILD_NAME/BUILD_NUMBER
+	@$(eval IOS_VERSION := $(shell grep '^version:' $(PUBSPEC) | sed 's/version: //'))
+	@$(eval IOS_BUILD_NAME := $(if $(BUILD_NAME),$(BUILD_NAME),$(shell echo $(IOS_VERSION) | cut -d'+' -f1)))
+	@$(eval IOS_BUILD_NUMBER := $(if $(BUILD_NUMBER),$(BUILD_NUMBER),$(shell echo $(IOS_VERSION) | cut -d'+' -f2)))
+	@echo "Syncing iOS version to $(IOS_BUILD_NAME)+$(IOS_BUILD_NUMBER)..."
+	@flutter build ios --config-only --build-name "$(IOS_BUILD_NAME)" --build-number "$(IOS_BUILD_NUMBER)" > /dev/null
+	@echo "iOS version synced"
 
 deps: ## Install dependencies
 	flutter pub get
@@ -115,6 +127,7 @@ release-android: build ## Build APK and create GitHub release (Android only)
 
 release-ios: ## Build iOS and upload to TestFlight
 	@echo "Building iOS and uploading to TestFlight..."
+	@$(MAKE) sync-ios-version
 	cd ios && fastlane release
 	@echo "iOS release uploaded!"
 
