@@ -25,6 +25,7 @@ import '../../l10n/app_localizations.dart';
 import '../../utils/message_extensions.dart';
 import 'voice_message_bubble.dart';
 import 'image_message_bubble.dart';
+import 'message_trace_sheet.dart';
 
 /// Reusable message bubble widget that displays messages with various types:
 /// - Regular text messages (channel or direct)
@@ -278,6 +279,17 @@ class _MessageBubbleState extends State<MessageBubble> {
                 _showTechnicalDetails(context);
               },
             ),
+            if (!isOwnMessage &&
+                widget.message.pathLen > 0 &&
+                widget.message.pathLen < 255)
+              ListTile(
+                leading: const Icon(Icons.route),
+                title: const Text('Trace'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showTraceSheet(context);
+                },
+              ),
             // Delete message option
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
@@ -293,6 +305,18 @@ class _MessageBubbleState extends State<MessageBubble> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showTraceSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => MessageTraceSheet(message: widget.message),
     );
   }
 
