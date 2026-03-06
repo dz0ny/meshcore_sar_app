@@ -64,6 +64,8 @@ class LocalePreferences {
         return 'Italiano';
       case 'el':
         return 'Greek';
+      case 'cn':
+        return '简体中文';
       default:
         return locale.languageCode;
     }
@@ -88,6 +90,8 @@ class LocalePreferences {
         return 'Italiano';
       case 'el':
         return 'Ελληνικά';
+      case 'cn':
+        return '简体中文';
       default:
         return locale.languageCode;
     }
