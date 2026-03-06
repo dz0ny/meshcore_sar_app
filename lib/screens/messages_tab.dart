@@ -287,6 +287,18 @@ class _MessagesTabState extends State<MessagesTab> {
     return 'Select recipient';
   }
 
+  String _getDestinationLabel() {
+    if (_destinationType ==
+            MessageDestinationPreferences.destinationTypeChannel &&
+        _selectedRecipient != null) {
+      return _selectedRecipient!.getLocalizedDisplayName(context);
+    }
+    if (_selectedRecipient != null) {
+      return _selectedRecipient!.displayName;
+    }
+    return 'Public Channel';
+  }
+
   Future<void> _sendMessage() async {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
@@ -1561,95 +1573,182 @@ class _MessagesTabState extends State<MessagesTab> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Quick actions (+) button
-                        IconButton(
-                          icon: Icon(_isRecording ? Icons.stop : Icons.add),
-                          tooltip: _isRecording
-                              ? 'Stop recording'
-                              : 'More actions',
-                          onPressed: _isRecording
-                              ? _stopAndSendVoice
-                              : _showComposerActions,
-                          style: IconButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primaryContainer,
-                            foregroundColor: _isRecording
-                                ? Colors.red
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
+                  SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer
+                                      .withValues(alpha: 0.95),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    _isRecording ? Icons.stop : Icons.add,
+                                  ),
+                                  tooltip: _isRecording
+                                      ? 'Stop recording'
+                                      : 'More actions',
+                                  onPressed: _isRecording
+                                      ? _stopAndSendVoice
+                                      : _showComposerActions,
+                                  color: _isRecording
+                                      ? Colors.red
+                                      : Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(22),
+                                    onTap: _showRecipientSelector,
+                                    child: Ink(
+                                      height: 46,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            _destinationType ==
+                                                MessageDestinationPreferences
+                                                    .destinationTypeChannel
+                                            ? Theme.of(context)
+                                                  .colorScheme
+                                                  .surfaceContainerHighest
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.secondaryContainer,
+                                        borderRadius: BorderRadius.circular(22),
+                                        border: Border.all(
+                                          color: Theme.of(
+                                            context,
+                                          ).dividerColor.withValues(alpha: 0.7),
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              _getDestinationIcon(),
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                _getDestinationLabel(),
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                  color:
+                                                      _destinationType ==
+                                                          MessageDestinationPreferences
+                                                              .destinationTypeChannel
+                                                      ? Theme.of(
+                                                          context,
+                                                        ).colorScheme.onSurface
+                                                      : Theme.of(context)
+                                                            .colorScheme
+                                                            .onSecondaryContainer,
+                                                ),
+                                              ),
+                                            ),
+                                            Icon(
+                                              Icons.expand_more_rounded,
+                                              size: 20,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        // Destination switcher button
-                        IconButton(
-                          icon: Icon(_getDestinationIcon()),
-                          tooltip: _getDestinationTooltip(),
-                          onPressed: _showRecipientSelector,
-                          style: IconButton.styleFrom(
-                            backgroundColor:
-                                _destinationType ==
-                                    MessageDestinationPreferences
-                                        .destinationTypeChannel
-                                ? Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.secondaryContainer,
-                            foregroundColor:
-                                _destinationType ==
-                                    MessageDestinationPreferences
-                                        .destinationTypeChannel
-                                ? Theme.of(context).colorScheme.onSurface
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.onSecondaryContainer,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: TextField(
-                            controller: _textController,
-                            focusNode: _focusNode,
-                            maxLength: _maxCharacters,
-                            maxLines: null,
-                            maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                            style: const TextStyle(fontSize: 14),
-                            decoration: InputDecoration(
-                              hintText: AppLocalizations.of(
-                                context,
-                              )!.typeYourMessage,
-                              hintStyle: const TextStyle(fontSize: 14),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
+                          const SizedBox(height: 12),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 180),
+                                  constraints: const BoxConstraints(
+                                    minHeight: 48,
+                                    maxHeight: 140,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHigh,
+                                    borderRadius: BorderRadius.circular(28),
+                                    border: Border.all(
+                                      color: _focusNode.hasFocus
+                                          ? Theme.of(
+                                              context,
+                                            ).colorScheme.primary
+                                          : Theme.of(context).dividerColor
+                                                .withValues(alpha: 0.6),
+                                      width: _focusNode.hasFocus ? 1.5 : 1,
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 18,
+                                      vertical: 12,
+                                    ),
+                                    child: TextField(
+                                      controller: _textController,
+                                      focusNode: _focusNode,
+                                      minLines: 1,
+                                      maxLines: 4,
+                                      keyboardType: TextInputType.multiline,
+                                      inputFormatters: [
+                                        LengthLimitingTextInputFormatter(
+                                          _maxCharacters,
+                                        ),
+                                      ],
+                                      style: const TextStyle(fontSize: 15),
+                                      textAlignVertical:
+                                          TextAlignVertical.center,
+                                      decoration: InputDecoration(
+                                        hintText: AppLocalizations.of(
+                                          context,
+                                        )!.typeYourMessage,
+                                        hintStyle: TextStyle(
+                                          fontSize: 15,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                        border: InputBorder.none,
+                                        isCollapsed: true,
+                                      ),
+                                      textInputAction: TextInputAction.newline,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              isDense: true,
-                              counterText: _characterCount >= 150
-                                  ? '$_characterCount/$_maxCharacters'
-                                  : '',
-                              counterStyle: TextStyle(
-                                fontSize: 10,
-                                color: _characterCount > _maxCharacters * 0.9
-                                    ? Colors.orange
-                                    : Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.color,
-                              ),
-                              suffixIcon: Builder(
+                              const SizedBox(width: 10),
+                              Builder(
                                 builder: (context) {
                                   final canSendText =
                                       !_isRecording &&
@@ -1698,48 +1797,99 @@ class _MessagesTabState extends State<MessagesTab> {
                                             (_voiceSupported && _isRecording)
                                             ? () => _stopAndSendVoice()
                                             : null,
-                                        child: IconButton(
-                                          icon: _isSendingVoice
-                                              ? const SizedBox(
-                                                  width: 18,
-                                                  height: 18,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                      ),
-                                                )
-                                              : Icon(
-                                                  _isRecording
-                                                      ? Icons.mic
-                                                      : Icons.send_rounded,
-                                                  size: 22,
-                                                  color: _isRecording
-                                                      ? Colors.red
-                                                      : (_textController.text
-                                                                .trim()
-                                                                .isEmpty
-                                                            ? Theme.of(
-                                                                context,
-                                                              ).disabledColor
-                                                            : Theme.of(context)
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            AnimatedContainer(
+                                              duration: const Duration(
+                                                milliseconds: 180,
+                                              ),
+                                              width: 48,
+                                              height: 48,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    canSendText || _isRecording
+                                                    ? Theme.of(
+                                                        context,
+                                                      ).colorScheme.primary
+                                                    : Theme.of(context)
+                                                          .colorScheme
+                                                          .surfaceContainerHighest,
+                                                shape: BoxShape.circle,
+                                                boxShadow:
+                                                    canSendText || _isRecording
+                                                    ? [
+                                                        BoxShadow(
+                                                          color:
+                                                              Theme.of(context)
                                                                   .colorScheme
-                                                                  .primary),
-                                                ),
-                                          onPressed: canSendText
-                                              ? _sendMessage
-                                              : null,
+                                                                  .primary
+                                                                  .withValues(
+                                                                    alpha: 0.28,
+                                                                  ),
+                                                          blurRadius: 16,
+                                                          offset: const Offset(
+                                                            0,
+                                                            6,
+                                                          ),
+                                                        ),
+                                                      ]
+                                                    : null,
+                                              ),
+                                              child: _isSendingVoice
+                                                  ? Center(
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            color:
+                                                                Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .colorScheme
+                                                                    .onPrimary,
+                                                          ),
+                                                    )
+                                                  : Icon(
+                                                      _isRecording
+                                                          ? Icons.mic_rounded
+                                                          : Icons.send_rounded,
+                                                      color:
+                                                          canSendText ||
+                                                              _isRecording
+                                                          ? Theme.of(context)
+                                                                .colorScheme
+                                                                .onPrimary
+                                                          : Theme.of(context)
+                                                                .colorScheme
+                                                                .onSurfaceVariant,
+                                                    ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              '$_characterCount/$_maxCharacters',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color:
+                                                    _characterCount >
+                                                        _maxCharacters * 0.9
+                                                    ? Colors.orange.shade800
+                                                    : Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
                                   );
                                 },
                               ),
-                            ),
-                            textInputAction: TextInputAction.send,
-                            onSubmitted: (_) => _sendMessage(),
+                            ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],

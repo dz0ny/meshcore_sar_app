@@ -103,15 +103,28 @@ class _HomeScreenState extends State<HomeScreen>
   void _initTabController() {
     _tabController = TabController(length: _enabledTabs.length, vsync: this);
     _tabController.addListener(_onTabChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _handleTabActivated(_currentTab);
+    });
   }
 
   void _onTabChanged() {
+    final previousTab = _currentTab;
+    final nextIndex = _tabController.index;
+
     setState(() {
-      _currentIndex = _tabController.index;
+      _currentIndex = nextIndex;
       if (_currentTab != _HomeTab.map) {
         _isMapFullscreen = false;
       }
     });
+
+    final nextTab = _currentTab;
+    if (previousTab != nextTab) {
+      _handleTabActivated(nextTab);
+    }
   }
 
   void _updateTabController({
@@ -156,6 +169,23 @@ class _HomeScreenState extends State<HomeScreen>
     if (targetIndex >= 0 && targetIndex != _tabController.index) {
       _tabController.animateTo(targetIndex);
     }
+  }
+
+  void _handleTabActivated(_HomeTab tab) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      switch (tab) {
+        case _HomeTab.messages:
+          context.read<MessagesProvider>().markAllAsRead();
+          break;
+        case _HomeTab.contacts:
+          context.read<ContactsProvider>().markAllAsViewed();
+          break;
+        case _HomeTab.map:
+          break;
+      }
+    });
   }
 
   Future<void> _loadRxTxPreference() async {
