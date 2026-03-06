@@ -161,5 +161,76 @@ void main() {
       );
       expect(provider.messages.single.roundTripTimeMs, 220);
     });
+
+    test('repeated max-retry failures request path reset', () async {
+      final provider = MessagesProvider();
+      final contact = _buildContact();
+      final resetRequests = <(String, int)>[];
+      provider.onDirectPathFailedCallback =
+          ({required contact, required failureStreak}) async {
+            resetRequests.add((contact.advName, failureStreak));
+          };
+
+      provider.addSentMessage(
+        _buildDirectMessage('m5').copyWith(
+          retryAttempt: 3,
+          usedFloodFallback: true,
+        ),
+        contact: contact,
+      );
+      provider.markMessageFailed('m5');
+
+      provider.addSentMessage(
+        _buildDirectMessage('m6').copyWith(
+          retryAttempt: 3,
+          usedFloodFallback: true,
+        ),
+        contact: contact,
+      );
+      provider.markMessageFailed('m6');
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(resetRequests, [('Teammate', 2)]);
+    });
+
+    test('successful delivery clears path failure streak', () async {
+      final provider = MessagesProvider();
+      final contact = _buildContact();
+      final resetRequests = <int>[];
+      provider.onDirectPathFailedCallback =
+          ({required contact, required failureStreak}) async {
+            resetRequests.add(failureStreak);
+          };
+
+      provider.addSentMessage(
+        _buildDirectMessage('m7').copyWith(
+          retryAttempt: 3,
+          usedFloodFallback: true,
+        ),
+        contact: contact,
+      );
+      provider.markMessageFailed('m7');
+
+      provider.addSentMessage(
+        _buildDirectMessage('m8'),
+        contact: contact,
+      );
+      provider.markMessageSent('m8', 123, 10);
+      provider.markMessageDelivered(123, 150);
+
+      provider.addSentMessage(
+        _buildDirectMessage('m9').copyWith(
+          retryAttempt: 3,
+          usedFloodFallback: true,
+        ),
+        contact: contact,
+      );
+      provider.markMessageFailed('m9');
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(resetRequests, isEmpty);
+    });
   });
 }

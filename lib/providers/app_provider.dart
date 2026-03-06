@@ -1041,6 +1041,32 @@ class AppProvider with ChangeNotifier {
             retryAttempt: retryAttempt,
           );
         };
+
+    messagesProvider.onDirectPathFailedCallback =
+        ({required contact, required failureStreak}) async {
+          debugPrint(
+            '🧭 [AppProvider] Clearing unhealthy path for ${contact.advName} after $failureStreak failed send chain(s)',
+          );
+
+          contactsProvider.markPathUnhealthy(contact.publicKey);
+
+          if (!connectionProvider.deviceInfo.isConnected) {
+            return;
+          }
+
+          try {
+            await connectionProvider.resetPath(contact.publicKey);
+            Future.delayed(const Duration(milliseconds: 150), () {
+              if (connectionProvider.deviceInfo.isConnected) {
+                connectionProvider.getContact(contact.publicKey);
+              }
+            });
+          } catch (e) {
+            debugPrint(
+              '⚠️ [AppProvider] Failed to reset path for ${contact.advName}: $e',
+            );
+          }
+        };
   }
 
   /// Initialize the app (load contacts, sync time, etc.)

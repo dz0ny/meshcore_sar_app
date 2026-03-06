@@ -74,6 +74,12 @@ class MessagesProvider with ChangeNotifier {
   })?
   sendMessageCallback;
 
+  Future<void> Function({
+    required Contact contact,
+    required int failureStreak,
+  })?
+  onDirectPathFailedCallback;
+
   List<Message> get messages => List.unmodifiable(_messages);
 
   List<Message> get contactMessages =>
@@ -1388,6 +1394,10 @@ class MessagesProvider with ChangeNotifier {
 
         // Clear retry tracking on successful delivery
         _retryManager.clearRetry(message.id);
+        final deliveredContact = _messageContactMap[message.id];
+        if (deliveredContact != null) {
+          _retryManager.recordDeliverySuccess(deliveredContact);
+        }
 
         debugPrint(
           '✅ [MessagesProvider] Message ${message.id} delivered in ${roundTripTimeMs}ms (ACK $ackCode)',
@@ -1427,6 +1437,10 @@ class MessagesProvider with ChangeNotifier {
           _rememberCompletedAck(ackCode);
           _clearAckHistoryForMessage(historicalMessageId);
           _retryManager.clearRetry(historicalMessageId);
+          final deliveredContact = _messageContactMap[historicalMessageId];
+          if (deliveredContact != null) {
+            _retryManager.recordDeliverySuccess(deliveredContact);
+          }
           _persistMessages();
           notifyListeners();
           debugPrint(
@@ -1662,6 +1676,22 @@ class MessagesProvider with ChangeNotifier {
 
       // Clear retry tracking
       _retryManager.clearRetry(messageId);
+
+      final failedContact = _messageContactMap[messageId];
+      if (failedContact != null && failedContact.hasPath) {
+        final failureStreak = _retryManager.recordPathFailure(failedContact);
+        debugPrint(
+          '   Path failure streak for ${failedContact.advName}: $failureStreak',
+        );
+        if (failureStreak >= 2 && onDirectPathFailedCallback != null) {
+          unawaited(
+            onDirectPathFailedCallback!(
+              contact: failedContact,
+              failureStreak: failureStreak,
+            ),
+          );
+        }
+      }
 
       _persistMessages();
       notifyListeners();

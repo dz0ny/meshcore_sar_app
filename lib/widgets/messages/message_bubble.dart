@@ -574,6 +574,9 @@ class _MessageBubbleState extends State<MessageBubble> {
             : null);
     final rssiDbm =
         matchedRxLog?.logRxDataInfo?.rssiDbm ?? widget.message.lastEchoRssiDbm;
+    final retryCause = _retryCauseLabel(widget.message);
+    final retryResult = _retryResultLabel(widget.message);
+    final retryMode = _retryModeLabel(widget.message);
 
     final rawLines = <String>[
       'Message ID: ${widget.message.id}',
@@ -598,6 +601,9 @@ class _MessageBubbleState extends State<MessageBubble> {
       'Round-trip ms: ${widget.message.roundTripTimeMs ?? '-'}',
       'Retry attempt: ${widget.message.retryAttempt}',
       'Used flood fallback: ${widget.message.usedFloodFallback}',
+      'Retry cause: ${retryCause ?? '-'}',
+      'Retry mode: ${retryMode ?? '-'}',
+      'Retry result: ${retryResult ?? '-'}',
       'Sender key prefix: ${senderPrefixHex ?? '-'}',
       'Sender name: ${senderName ?? widget.message.senderName ?? '-'}',
       'Sender location at receipt: ${senderLocationSnapshot?.formattedCoordinates ?? '-'}',
@@ -848,6 +854,18 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 value:
                                     '${widget.message.suggestedTimeoutMs} ms',
                               ),
+                            if (retryCause != null)
+                              _detailRow(
+                                context,
+                                label: 'Retry cause',
+                                value: retryCause,
+                              ),
+                            if (retryMode != null)
+                              _detailRow(
+                                context,
+                                label: 'Retry mode',
+                                value: retryMode,
+                              ),
                             if (widget.message.roundTripTimeMs != null)
                               _detailRow(
                                 context,
@@ -876,6 +894,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 context,
                                 label: l10n.floodFallback,
                                 value: l10n.yes,
+                              ),
+                            if (retryResult != null)
+                              _detailRow(
+                                context,
+                                label: 'Retry result',
+                                value: retryResult,
                               ),
                             if (packetPathHex != null)
                               _detailRow(
@@ -1716,6 +1740,85 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
     if (message.pathLen >= 255) return 'Unknown (raw: ${message.pathLen})';
     return _hopDisplayLabel(message);
+  }
+
+  String? _retryCauseLabel(Message message) {
+    if (!message.isContactMessage || message.expectedAckTag == null) {
+      return null;
+    }
+
+    if (message.deliveryStatus == MessageDeliveryStatus.sending &&
+        message.retryAttempt == 0) {
+      return 'Waiting for delivery ACK';
+    }
+
+    if (message.retryAttempt > 0 || message.usedFloodFallback) {
+      return 'Delivery ACK timeout';
+    }
+
+    if (message.deliveryStatus == MessageDeliveryStatus.failed) {
+      return 'Delivery confirmation not received';
+    }
+
+    return null;
+  }
+
+  String? _retryModeLabel(Message message) {
+    if (!message.isContactMessage) {
+      return null;
+    }
+
+    if (message.usedFloodFallback) {
+      return 'Flood fallback';
+    }
+
+    if (message.retryAttempt > 0 || message.expectedAckTag != null) {
+      return 'Learned direct path';
+    }
+
+    return null;
+  }
+
+  String? _retryResultLabel(Message message) {
+    if (!message.isContactMessage) {
+      return null;
+    }
+
+    if (message.deliveryStatus == MessageDeliveryStatus.delivered) {
+      if (message.usedFloodFallback) {
+        return 'Delivered after flood fallback';
+      }
+      if (message.retryAttempt > 0) {
+        return 'Delivered after retry';
+      }
+      if (message.expectedAckTag != null) {
+        return 'Delivery confirmed';
+      }
+    }
+
+    if (message.deliveryStatus == MessageDeliveryStatus.sending) {
+      if (message.usedFloodFallback) {
+        return 'Flood fallback in progress';
+      }
+      if (message.retryAttempt > 0) {
+        return 'Retry in progress';
+      }
+      if (message.expectedAckTag != null) {
+        return 'Awaiting confirmation';
+      }
+    }
+
+    if (message.deliveryStatus == MessageDeliveryStatus.failed) {
+      if (message.usedFloodFallback) {
+        return 'Failed after flood fallback';
+      }
+      if (message.retryAttempt > 0) {
+        return 'Failed after retry attempts';
+      }
+      return 'Delivery failed';
+    }
+
+    return null;
   }
 
   Widget _techChip(

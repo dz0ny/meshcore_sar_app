@@ -20,6 +20,7 @@ class MessageRetryManager {
   // Track retry state for each message ID
   final Map<String, int> _retryAttempts = {};
   final Map<String, DateTime> _lastRetryTimes = {};
+  final Map<String, int> _pathFailureStreaks = {};
 
   // Progressive timeout values in milliseconds
   // These are app-level timeouts, separate from firmware's suggested timeout
@@ -120,6 +121,7 @@ class MessageRetryManager {
   void clearAll() {
     _retryAttempts.clear();
     _lastRetryTimes.clear();
+    _pathFailureStreaks.clear();
   }
 
   /// Get current retry attempt for a message (for debugging)
@@ -130,6 +132,27 @@ class MessageRetryManager {
   /// Get last retry time for a message (for debugging)
   DateTime? getLastRetryTime(String messageId) {
     return _lastRetryTimes[messageId];
+  }
+
+  /// Record a successful delivery for a contact and clear any accumulated
+  /// route failure streak for future sends.
+  void recordDeliverySuccess(Contact contact) {
+    _pathFailureStreaks.remove(contact.publicKeyHex);
+  }
+
+  /// Record a permanent route failure for a contact.
+  ///
+  /// Returns the updated failure streak so callers can decide when to reset
+  /// the learned path on the radio and in local state.
+  int recordPathFailure(Contact contact) {
+    final contactKey = contact.publicKeyHex;
+    final next = (_pathFailureStreaks[contactKey] ?? 0) + 1;
+    _pathFailureStreaks[contactKey] = next;
+    return next;
+  }
+
+  int? getPathFailureStreak(Contact contact) {
+    return _pathFailureStreaks[contact.publicKeyHex];
   }
 
   int _estimateLoRaAirtimeMs(int payloadLenBytes) {

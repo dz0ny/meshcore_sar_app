@@ -517,6 +517,22 @@ class ContactsProvider with ChangeNotifier {
     return _contacts[keyHex];
   }
 
+  /// Clear a contact's learned path locally so the UI and next send both
+  /// prefer flood routing until the radio reports a fresh route.
+  void markPathUnhealthy(Uint8List publicKey) {
+    final contact = findContactByKey(publicKey);
+    if (contact == null || !contact.hasPath) {
+      return;
+    }
+
+    _contacts[contact.publicKeyHex] = contact.copyWith(
+      outPathLen: -1,
+      outPath: Uint8List(0),
+    );
+    _persistContacts();
+    notifyListeners();
+  }
+
   /// Add or refresh a pending advert entry from PUSH_CODE_ADVERT (0x80).
   /// Excludes self key and existing contacts.
   void addPendingAdvert(Uint8List publicKey, {Uint8List? devicePublicKey}) {
