@@ -179,6 +179,85 @@ Widget buildReceivedSignalStatus(
   );
 }
 
+Widget buildSentDirectSignalStatus(
+  BuildContext context,
+  Message message, {
+  required int roundTripTimeMs,
+  required Duration txEstimate,
+}) {
+  final estimatedTransmitMs = sanitizeEstimatedTransmitMs(
+    estimatedTransmitMs: txEstimate > Duration.zero
+        ? txEstimate.inMilliseconds
+        : null,
+    senderToReceiptMs: roundTripTimeMs,
+  );
+  final postTransmitDelayMs = estimatedTransmitMs != null
+      ? (roundTripTimeMs - estimatedTransmitMs).clamp(0, 86400000).toInt()
+      : null;
+
+  return Wrap(
+    spacing: 4,
+    runSpacing: 4,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    children: [
+      _techChip(
+        context,
+        icon: Icons.alt_route,
+        label: hopDisplayLabel(message),
+        color: Colors.indigo,
+      ),
+      _techChip(
+        context,
+        icon: Icons.schedule,
+        label: _formatMs(roundTripTimeMs),
+        color: Colors.deepPurple,
+      ),
+      if (estimatedTransmitMs != null)
+        _techChip(
+          context,
+          icon: Icons.timelapse,
+          label: '~${_formatMs(estimatedTransmitMs)} tx',
+          color: Colors.blue,
+        ),
+      if (postTransmitDelayMs != null)
+        _techChip(
+          context,
+          icon: Icons.hourglass_bottom,
+          label: '+${_formatMs(postTransmitDelayMs)} lag',
+          color: Colors.orange,
+        ),
+      if (message.retryAttempt > 0)
+        _techChip(
+          context,
+          icon: Icons.refresh,
+          label: 'retry ${message.retryAttempt}/3',
+          color: Colors.redAccent,
+        ),
+      if (message.suggestedTimeoutMs != null)
+        _techChip(
+          context,
+          icon: Icons.timer_outlined,
+          label: 'timeout ${_formatMs(message.suggestedTimeoutMs!)}',
+          color: Colors.blueGrey,
+        ),
+      if (message.usedFloodFallback)
+        _techChip(
+          context,
+          icon: Icons.waves,
+          label: 'flood fallback',
+          color: Colors.teal,
+        )
+      else if (message.expectedAckTag != null)
+        _techChip(
+          context,
+          icon: Icons.route,
+          label: 'direct ACK',
+          color: Colors.indigo,
+        ),
+    ],
+  );
+}
+
 String _formatMs(int value) {
   if (value >= 60000) {
     final minutes = value ~/ 60000;

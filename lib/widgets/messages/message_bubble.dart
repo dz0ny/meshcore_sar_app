@@ -22,6 +22,7 @@ import '../../utils/sar_message_parser.dart';
 import '../../utils/key_comparison.dart';
 import '../../utils/voice_message_parser.dart';
 import '../../utils/image_message_parser.dart';
+import '../../utils/message_airtime_estimator.dart';
 import '../../utils/tictactoe_message_parser.dart';
 import '../../utils/location_formats.dart';
 import '../../l10n/app_localizations.dart';
@@ -2465,74 +2466,114 @@ class _MessageBubbleState extends State<MessageBubble> {
                 // Show single message delivery status
                 else if (!message.isChannelMessage ||
                     message.deliveryStatus == MessageDeliveryStatus.failed)
-                  Row(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Icon(
-                        getDeliveryStatusIcon(message.deliveryStatus),
-                        size: 12,
-                        color: getDeliveryStatusColor(message.deliveryStatus),
-                      ),
-                      const SizedBox(width: 3),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            message.getLocalizedDeliveryStatus(context),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                                  color: getDeliveryStatusColor(
-                                    message.deliveryStatus,
-                                  ),
-                                  fontStyle: FontStyle.italic,
+                  Builder(
+                    builder: (context) {
+                      final txEstimate = estimateMessageTransmitDuration(
+                        message,
+                        radioBw: connectionProvider.deviceInfo.radioBw,
+                        radioSf: connectionProvider.deviceInfo.radioSf,
+                        radioCr: connectionProvider.deviceInfo.radioCr,
+                      );
+                      final showSentDirectStats =
+                          message.isContactMessage &&
+                          message.deliveryStatus ==
+                              MessageDeliveryStatus.delivered &&
+                          _showReceivedStats &&
+                          message.roundTripTimeMs != null;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Icon(
+                                getDeliveryStatusIcon(message.deliveryStatus),
+                                size: 12,
+                                color: getDeliveryStatusColor(
+                                  message.deliveryStatus,
                                 ),
-                          ),
-                        ),
-                      ),
-                      // Show retry button for failed messages
-                      if (message.deliveryStatus ==
-                          MessageDeliveryStatus.failed) ...[
-                        const SizedBox(width: 6),
-                        GestureDetector(
-                          onTap: () => _retryFailedMessage(context, message),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: Colors.orange,
-                                width: 1,
                               ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.refresh,
-                                  size: 12,
-                                  color: Colors.orange,
+                              const SizedBox(width: 3),
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    message.getLocalizedDeliveryStatus(context),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: getDeliveryStatusColor(
+                                            message.deliveryStatus,
+                                          ),
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                  ),
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Retry',
-                                  style: Theme.of(context).textTheme.labelSmall
-                                      ?.copyWith(
-                                        color: Colors.orange,
-                                        fontWeight: FontWeight.bold,
+                              ),
+                              // Show retry button for failed messages
+                              if (message.deliveryStatus ==
+                                  MessageDeliveryStatus.failed) ...[
+                                const SizedBox(width: 6),
+                                GestureDetector(
+                                  onTap: () =>
+                                      _retryFailedMessage(context, message),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.withValues(
+                                        alpha: 0.2,
                                       ),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: Colors.orange,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.refresh,
+                                          size: 12,
+                                          color: Colors.orange,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Retry',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: Colors.orange,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ],
-                            ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ],
+                          if (showSentDirectStats) ...[
+                            const SizedBox(height: 6),
+                            buildSentDirectSignalStatus(
+                              context,
+                              message,
+                              roundTripTimeMs: message.roundTripTimeMs!,
+                              txEstimate: txEstimate,
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 if (shouldShowSentChannelStats(
                   message,

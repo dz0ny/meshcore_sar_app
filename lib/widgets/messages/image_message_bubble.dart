@@ -406,6 +406,9 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
 
     final payload = request.encodeBinary();
     try {
+      debugPrint(
+        '📷 [ImageMessageBubble] Outgoing image fetch request: session=${envelope.sessionId} want=${isPartialResume ? 'missing' : 'all'} target=${sender.advName} hops=${sender.outPathLen}',
+      );
       await conn.sendRawVoicePacket(
         contactPath: sender.outPath,
         contactPathLen: sender.outPathLen,

@@ -70,12 +70,6 @@ class ImageProvider with ChangeNotifier {
     required Uint8List payload,
   })?
   sendRawPacketCallback;
-  Future<bool> Function({
-    required String sessionId,
-    required int index,
-    Duration timeout,
-  })?
-  waitForFragmentAckCallback;
 
   ImageProvider() {
     _restore();
@@ -264,7 +258,6 @@ class ImageProvider with ChangeNotifier {
       indexOf: (fragment) => fragment.index,
       encodeBinary: (fragment) => fragment.encodeBinary(),
       sendRawPacket: sendRawPacketCallback,
-      waitForFragmentAck: waitForFragmentAckCallback,
       requestedIndices: requestedIndices,
     );
   }

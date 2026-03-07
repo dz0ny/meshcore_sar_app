@@ -374,6 +374,9 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
           );
 
     try {
+      debugPrint(
+        '🎙️ [VoiceMessageBubble] Outgoing voice fetch request: session=$sessionId want=${isPartialResume ? 'missing' : 'all'} target=${sender.advName} hops=${sender.outPathLen}',
+      );
       await connectionProvider.sendRawVoicePacket(
         contactPath: sender.outPath,
         contactPathLen: sender.outPathLen,

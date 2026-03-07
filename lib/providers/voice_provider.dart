@@ -71,12 +71,6 @@ class VoiceProvider with ChangeNotifier {
     required Uint8List payload,
   })?
   sendRawPacketCallback;
-  Future<bool> Function({
-    required String sessionId,
-    required int index,
-    Duration timeout,
-  })?
-  waitForFragmentAckCallback;
 
   final Map<String, _OutgoingVoiceSession> _outgoingSessions = {};
 
@@ -217,7 +211,6 @@ class VoiceProvider with ChangeNotifier {
       indexOf: (packet) => packet.index,
       encodeBinary: (packet) => packet.encodeBinary(),
       sendRawPacket: sendRawPacketCallback,
-      waitForFragmentAck: waitForFragmentAckCallback,
       requestedIndices: requestedIndices,
     );
   }

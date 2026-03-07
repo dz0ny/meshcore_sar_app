@@ -148,6 +148,8 @@ dev_dependencies:
 
 dependency_overrides:
   path_provider_foundation: 2.5.1
+  meshcore_client:
+    path: ../meshcore_client
 
 flutter_launcher_icons:
   android: "launcher_icon"

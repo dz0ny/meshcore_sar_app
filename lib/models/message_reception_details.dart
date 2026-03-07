@@ -1,3 +1,26 @@
+const int _transmitEstimateToleranceMs = 1500;
+
+int? sanitizeEstimatedTransmitMs({
+  required int? estimatedTransmitMs,
+  required int? senderToReceiptMs,
+}) {
+  if (estimatedTransmitMs == null || estimatedTransmitMs <= 0) {
+    return null;
+  }
+
+  if (senderToReceiptMs == null || senderToReceiptMs <= 0) {
+    return estimatedTransmitMs;
+  }
+
+  // Sender timestamps are second-granularity, so allow a small cushion before
+  // treating the estimate as impossible for the observed delivery time.
+  if (estimatedTransmitMs > senderToReceiptMs + _transmitEstimateToleranceMs) {
+    return null;
+  }
+
+  return estimatedTransmitMs;
+}
+
 class MessageReceptionDetails {
   final DateTime capturedAt;
   final DateTime? packetLoggedAt;

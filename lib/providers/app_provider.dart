@@ -70,10 +70,6 @@ class AppProvider with ChangeNotifier {
   final Map<String, int> _voiceMissingRetryAttempts = {};
   final Map<String, Timer> _imageMissingRetryTimers = {};
   final Map<String, int> _imageMissingRetryAttempts = {};
-  final FragmentAckWaitRegistry _voiceFragmentAckWaiters =
-      FragmentAckWaitRegistry();
-  final FragmentAckWaitRegistry _imageFragmentAckWaiters =
-      FragmentAckWaitRegistry();
   final FragmentAckWaitRegistry _rawProbeWaiters = FragmentAckWaitRegistry();
   final Map<String, Future<bool>> _pendingRawRouteProbes = {};
   Timer? _packetCaptureFlushTimer;
@@ -468,27 +464,6 @@ class AppProvider with ChangeNotifier {
             payload: payload,
           );
         };
-    voiceProvider.waitForFragmentAckCallback =
-        ({
-          required sessionId,
-          required index,
-          timeout = const Duration(seconds: 8),
-        }) => _waitForVoiceFragmentAck(
-          sessionId: sessionId,
-          index: index,
-          timeout: timeout,
-        );
-    imageProvider.waitForFragmentAckCallback =
-        ({
-          required sessionId,
-          required index,
-          timeout = const Duration(seconds: 8),
-        }) => _waitForImageFragmentAck(
-          sessionId: sessionId,
-          index: index,
-          timeout: timeout,
-        );
-
     // When a contact is received from BLE
     connectionProvider.onContactReceived = (contact) {
       // Pass device public key to filter out our own contact
@@ -814,18 +789,27 @@ class AppProvider with ChangeNotifier {
     connectionProvider.onRawDataReceived = (payload, snrRaw, rssiDbm) {
       final rawProbeRequest = RawRouteProbeRequest.tryParseBinary(payload);
       if (rawProbeRequest != null) {
+        debugPrint(
+          '📡 [AppProvider] Incoming raw route probe: nonce=${rawProbeRequest.nonce.toRadixString(16)} requester=${rawProbeRequest.requesterKey6}',
+        );
         _handleRawRouteProbeRequest(rawProbeRequest);
         return;
       }
 
       final rawProbeAck = RawRouteProbeAck.tryParseBinary(payload);
       if (rawProbeAck != null) {
+        debugPrint(
+          '📡 [AppProvider] Incoming raw route probe ACK: nonce=${rawProbeAck.nonce.toRadixString(16)}',
+        );
         _completeRawRouteProbeAck(rawProbeAck.nonce);
         return;
       }
 
       final voiceFetchRequest = VoiceFetchRequest.tryParseBinary(payload);
       if (voiceFetchRequest != null) {
+        debugPrint(
+          '🎙️ [AppProvider] Incoming voice fetch request: session=${voiceFetchRequest.sessionId} want=${voiceFetchRequest.want} requester=${voiceFetchRequest.requesterKey6}',
+        );
         final requester = _resolveVoiceFetchRequester(voiceFetchRequest);
         if (requester == null) {
           debugPrint(
@@ -906,18 +890,6 @@ class AppProvider with ChangeNotifier {
         return;
       }
 
-      final voiceAck = VoiceFragmentAck.tryParseBinary(payload);
-      if (voiceAck != null) {
-        _completeVoiceFragmentAck(voiceAck.sessionId, voiceAck.index);
-        return;
-      }
-
-      final imageAck = ImageFragmentAck.tryParseBinary(payload);
-      if (imageAck != null) {
-        _completeImageFragmentAck(imageAck.sessionId, imageAck.index);
-        return;
-      }
-
       if (ImagePacket.isImageBinary(payload)) {
         final frag = ImagePacket.tryParseBinary(payload);
         if (frag == null) return;
@@ -928,7 +900,6 @@ class AppProvider with ChangeNotifier {
           width: session?.width ?? 0,
           height: session?.height ?? 0,
         );
-        _sendImageFragmentAck(frag);
         _scheduleImageMissingRetry(
           frag.sessionId,
           justComplete: imageProvider.isComplete(frag.sessionId),
@@ -941,7 +912,6 @@ class AppProvider with ChangeNotifier {
       if (pkt == null) return;
       debugPrint('🎙️ [AppProvider] Binary voice packet received: $pkt');
       final justComplete = voiceProvider.addPacket(pkt);
-      _sendVoiceFragmentAck(pkt);
       _scheduleVoiceMissingRetry(pkt.sessionId, justComplete: justComplete);
       // Insert or update the placeholder message in the chat list
       _handleIncomingVoicePacket(pkt, justComplete: justComplete);
@@ -1586,7 +1556,6 @@ class AppProvider with ChangeNotifier {
     messagesProvider.addMessage(placeholder, contactLookup: (_) => '');
   }
 
-  String _fragmentAckKey(String sessionId, int index) => '$sessionId:$index';
   String _rawProbeKey(int nonce) =>
       nonce.toRadixString(16).padLeft(8, '0').toLowerCase();
 
@@ -1627,6 +1596,9 @@ class AppProvider with ChangeNotifier {
       );
 
       try {
+        debugPrint(
+          '📡 [AppProvider] Outgoing raw route probe: target=${target.advName} hops=${target.outPathLen} nonce=${nonce.toRadixString(16)}',
+        );
         await connectionProvider.sendRawVoicePacket(
           contactPath: target.outPath,
           contactPathLen: target.outPathLen,
@@ -1660,54 +1632,6 @@ class AppProvider with ChangeNotifier {
     return 'name:${target.advName}:${target.outPathLen}:${target.outPath.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
   }
 
-  Future<bool> _waitForVoiceFragmentAck({
-    required String sessionId,
-    required int index,
-    Duration timeout = const Duration(seconds: 8),
-  }) => _voiceFragmentAckWaiters.waitFor(
-    _fragmentAckKey(sessionId, index),
-    timeout: timeout,
-  );
-
-  void _completeVoiceFragmentAck(String sessionId, int index) {
-    final completed = _voiceFragmentAckWaiters.complete(
-      _fragmentAckKey(sessionId, index),
-    );
-    if (completed == 0) {
-      debugPrint(
-        'ℹ️ [AppProvider] Voice fragment ACK had no waiter: $sessionId#$index',
-      );
-      return;
-    }
-    debugPrint(
-      '✅ [AppProvider] Voice fragment ACK received for $sessionId#$index ($completed waiter(s))',
-    );
-  }
-
-  Future<bool> _waitForImageFragmentAck({
-    required String sessionId,
-    required int index,
-    Duration timeout = const Duration(seconds: 8),
-  }) => _imageFragmentAckWaiters.waitFor(
-    _fragmentAckKey(sessionId, index),
-    timeout: timeout,
-  );
-
-  void _completeImageFragmentAck(String sessionId, int index) {
-    final completed = _imageFragmentAckWaiters.complete(
-      _fragmentAckKey(sessionId, index),
-    );
-    if (completed == 0) {
-      debugPrint(
-        'ℹ️ [AppProvider] Image fragment ACK had no waiter: $sessionId#$index',
-      );
-      return;
-    }
-    debugPrint(
-      '✅ [AppProvider] Image fragment ACK received for $sessionId#$index ($completed waiter(s))',
-    );
-  }
-
   void _handleRawRouteProbeRequest(RawRouteProbeRequest request) {
     final requester = _resolveContactByPrefixHex(request.requesterKey6);
     if (requester == null) {
@@ -1726,6 +1650,9 @@ class AppProvider with ChangeNotifier {
     if (requester.outPath.isEmpty) {
       return;
     }
+    debugPrint(
+      '📡 [AppProvider] Outgoing raw route probe ACK: requester=${requester.advName} hops=${requester.outPathLen} nonce=${request.nonce.toRadixString(16)}',
+    );
     unawaited(
       connectionProvider.sendRawVoicePacket(
         contactPath: requester.outPath,
@@ -1739,46 +1666,6 @@ class AppProvider with ChangeNotifier {
     _rawProbeWaiters.complete(_rawProbeKey(nonce));
   }
 
-  void _sendVoiceFragmentAck(VoicePacket packet) {
-    final senderKey6 = _voiceSessionSenderKey6[packet.sessionId];
-    if (senderKey6 == null) return;
-    final sender = _resolveContactByPrefixHex(senderKey6);
-    if (sender == null) return;
-    if (sender.outPathLen < 0 || sender.outPathLen > _maxDirectPayloadHops) {
-      return;
-    }
-    unawaited(
-      connectionProvider.sendRawVoicePacket(
-        contactPath: sender.outPath,
-        contactPathLen: sender.outPathLen,
-        payload: VoiceFragmentAck(
-          sessionId: packet.sessionId,
-          index: packet.index,
-        ).encodeBinary(),
-      ),
-    );
-  }
-
-  void _sendImageFragmentAck(ImagePacket fragment) {
-    final senderKey6 = _imageSessionSenderKey6[fragment.sessionId];
-    if (senderKey6 == null) return;
-    final sender = _resolveContactByPrefixHex(senderKey6);
-    if (sender == null) return;
-    if (sender.outPathLen < 0 || sender.outPathLen > _maxDirectPayloadHops) {
-      return;
-    }
-    unawaited(
-      connectionProvider.sendRawVoicePacket(
-        contactPath: sender.outPath,
-        contactPathLen: sender.outPathLen,
-        payload: ImageFragmentAck(
-          sessionId: fragment.sessionId,
-          index: fragment.index,
-        ).encodeBinary(),
-      ),
-    );
-  }
-
   MessageReceptionDetails? _buildReceptionDetailsSnapshot(Message message) {
     final matchedRxLog = _findBestMatchingRxLog(message);
     final estimatedTx = estimateMessageTransmitDuration(
@@ -1788,9 +1675,12 @@ class AppProvider with ChangeNotifier {
       radioCr: connectionProvider.deviceInfo.radioCr,
     );
     final senderToReceiptMs = _senderToReceiptMs(message);
-    final estimatedTransmitMs = estimatedTx > Duration.zero
-        ? estimatedTx.inMilliseconds
-        : null;
+    final estimatedTransmitMs = sanitizeEstimatedTransmitMs(
+      estimatedTransmitMs: estimatedTx > Duration.zero
+          ? estimatedTx.inMilliseconds
+          : null,
+      senderToReceiptMs: senderToReceiptMs,
+    );
     final postTransmitDelayMs =
         senderToReceiptMs != null && estimatedTransmitMs != null
         ? (senderToReceiptMs - estimatedTransmitMs).clamp(0, 86400000).toInt()

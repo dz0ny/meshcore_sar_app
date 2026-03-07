@@ -2,6 +2,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore_sar_app/models/message_reception_details.dart';
 
 void main() {
+  test('drops impossible transmit estimate for received messages', () {
+    expect(
+      sanitizeEstimatedTransmitMs(
+        estimatedTransmitMs: 16 * 60 * 1000 + 54 * 1000,
+        senderToReceiptMs: 4200,
+      ),
+      isNull,
+    );
+  });
+
+  test(
+    'keeps close transmit estimate despite second-level timestamp rounding',
+    () {
+      expect(
+        sanitizeEstimatedTransmitMs(
+          estimatedTransmitMs: 1800,
+          senderToReceiptMs: 900,
+        ),
+        1800,
+      );
+    },
+  );
+
   test('round trips reception details json', () {
     final details = MessageReceptionDetails(
       capturedAt: DateTime.fromMillisecondsSinceEpoch(1700000000000),

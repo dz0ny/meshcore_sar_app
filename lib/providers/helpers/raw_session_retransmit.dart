@@ -9,13 +9,6 @@ typedef RawPacketSender =
       required Uint8List payload,
     });
 
-typedef FragmentAckWaiter =
-    Future<bool> Function({
-      required String sessionId,
-      required int index,
-      Duration timeout,
-    });
-
 Future<bool> serveCachedSessionFragments<T>({
   required String providerLabel,
   required String sessionId,
@@ -25,9 +18,7 @@ Future<bool> serveCachedSessionFragments<T>({
   required int Function(T fragment) indexOf,
   required Uint8List Function(T fragment) encodeBinary,
   required RawPacketSender? sendRawPacket,
-  FragmentAckWaiter? waitForFragmentAck,
   Set<int>? requestedIndices,
-  Duration ackTimeout = const Duration(seconds: 8),
 }) async {
   if (fragments.isEmpty) {
     debugPrint('⚠️ [$providerLabel] No cached fragments for $sessionId');
@@ -65,24 +56,12 @@ Future<bool> serveCachedSessionFragments<T>({
       continue;
     }
     try {
-      final ackFuture = waitForFragmentAck?.call(
-        sessionId: sessionId,
-        index: index,
-        timeout: ackTimeout,
-      );
       await sendRawPacket(
         contactPath: requester.outPath,
         contactPathLen: requester.outPathLen,
         payload: encodeBinary(fragment),
       );
       servedCount++;
-      if (ackFuture != null) {
-        final acked = await ackFuture;
-        if (!acked) {
-          debugPrint('⚠️ [$providerLabel] ACK timeout for $sessionId#$index');
-          return false;
-        }
-      }
     } catch (e, st) {
       debugPrint(
         '❌ [$providerLabel] Serve error for $sessionId#$index: $e\n$st',
