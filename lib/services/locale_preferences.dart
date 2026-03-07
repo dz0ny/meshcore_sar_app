@@ -15,6 +15,7 @@ class LocalePreferences {
     Locale('fr'), // French
     Locale('it'), // Italian
     Locale('el'), // Greek
+    Locale('zh'), // Chinese
   ];
 
   /// Get the saved locale or return null to use system locale
