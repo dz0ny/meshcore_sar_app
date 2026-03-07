@@ -67,6 +67,13 @@ void main() {
       );
     });
 
+    test('rejects routes that do not match the configured hash size', () {
+      expect(
+        () => ContactRouteCodec.parse('AABB,CCDD', expectedHashSize: 1),
+        throwsA(isA<ContactRouteFormatException>()),
+      );
+    });
+
     test('rejects invalid tokens', () {
       expect(
         () => ContactRouteCodec.parse('AA,XYZ'),

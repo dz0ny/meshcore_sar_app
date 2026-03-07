@@ -19,6 +19,7 @@ import '../services/update_checker_service.dart';
 import '../services/voice_codec_service.dart';
 import '../services/voice_bitrate_preferences.dart';
 import '../services/image_preferences.dart';
+import '../services/route_hash_preferences.dart';
 import '../services/image_codec_service.dart';
 import '../utils/sample_data_generator.dart';
 import '../utils/image_message_parser.dart';
@@ -56,6 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _showRxTxIndicators = true;
   bool _isCheckingForUpdates = false;
   int _voiceBitrate = VoiceBitratePreferences.defaultBitrate;
+  int _routeHashSize = RouteHashPreferences.defaultHashSize;
   int _imageMaxSize = ImagePreferences.defaultMaxSize;
   int _imageCompression = ImagePreferences.defaultQuality;
   bool _imageGrayscale = ImagePreferences.defaultGrayscale;
@@ -77,6 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _initializeLocationService();
     _loadRxTxPreference();
     _loadVoiceBitratePreference();
+    _loadRouteHashSizePreference();
     _loadImagePreferences();
   }
 
@@ -130,6 +133,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _voiceBitrateSubtitle(int bitrate) {
     return '$bitrate bps';
+  }
+
+  Future<void> _loadRouteHashSizePreference() async {
+    final value = await RouteHashPreferences.getHashSize();
+    if (!mounted) return;
+    setState(() {
+      _routeHashSize = value;
+    });
+  }
+
+  Future<void> _saveRouteHashSizePreference(int value) async {
+    await RouteHashPreferences.setHashSize(value);
+    if (!mounted) return;
+    setState(() {
+      _routeHashSize = value;
+    });
   }
 
   Future<void> _loadImagePreferences() async {
@@ -658,6 +677,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _showRouteHashSizeDialog() async {
+    final selected = await showDialog<int>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Route path byte size'),
+        children: [
+          for (final value in [1, 2, 3])
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(value),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('$value byte${value == 1 ? '' : 's'}'),
+                        Text(
+                          'Use ${value * 2} hex characters per hop',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_routeHashSize == value)
+                    Icon(
+                      Icons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (selected == null) return;
+    await _saveRouteHashSizePreference(selected);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -756,6 +815,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: Text(LocalePreferences.getDisplayName(_selectedLocale)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showLanguageDialog(),
+          ),
+          ListTile(
+            leading: const Icon(Icons.alt_route),
+            title: const Text('Route path byte size'),
+            subtitle: Text(
+              '$_routeHashSize byte${_routeHashSize == 1 ? '' : 's'} for manual contact routes',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _showRouteHashSizeDialog,
           ),
           ListTile(
             leading: const Icon(Icons.delete_sweep, color: Colors.red),

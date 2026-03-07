@@ -46,10 +46,17 @@ class ContactRouteCodec {
   static const int maxPathBytes = 64;
   static const int _unknownDescriptor = 0xFF;
 
-  static ParsedContactRoute parse(String input) {
+  static ParsedContactRoute parse(String input, {int? expectedHashSize}) {
     final normalized = input.trim().toUpperCase();
     if (normalized.isEmpty) {
       throw const ContactRouteFormatException('Route cannot be empty.');
+    }
+
+    if (expectedHashSize != null &&
+        (expectedHashSize < 1 || expectedHashSize > maxHashSize)) {
+      throw const ContactRouteFormatException(
+        'Hash size must be 1, 2, or 3 bytes.',
+      );
     }
 
     final hopTokens = normalized
@@ -77,6 +84,13 @@ class ContactRouteCodec {
       if (currentHashSize < 1 || currentHashSize > maxHashSize) {
         throw ContactRouteFormatException(
           'Hop "$token" must be 1, 2, or 3 bytes.',
+        );
+      }
+
+      if (expectedHashSize != null && currentHashSize != expectedHashSize) {
+        throw ContactRouteFormatException(
+          'Hop "$token" must be $expectedHashSize '
+          'byte${expectedHashSize == 1 ? '' : 's'}.',
         );
       }
 
