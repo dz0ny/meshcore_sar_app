@@ -4,6 +4,7 @@ import '../models/message.dart';
 import '../models/contact.dart';
 import '../models/message_contact_location.dart';
 import '../models/message_reception_details.dart';
+import '../models/message_transfer_details.dart';
 import '../models/sar_marker.dart';
 import '../models/map_drawing.dart';
 import '../services/message_storage_service.dart';
@@ -25,6 +26,7 @@ class MessagesProvider with ChangeNotifier {
   AppLocalizations? _localizations;
   final Map<String, MessageContactLocation> _messageContactLocations = {};
   final Map<String, MessageReceptionDetails> _messageReceptionDetails = {};
+  final Map<String, MessageTransferDetails> _messageTransferDetails = {};
 
   // Track pending sent messages by expected ACK/TAG
   final Map<int, Message> _pendingSentMessages = {};
@@ -121,6 +123,9 @@ class MessagesProvider with ChangeNotifier {
   MessageReceptionDetails? getMessageReceptionDetails(String messageId) =>
       _messageReceptionDetails[messageId];
 
+  MessageTransferDetails? getMessageTransferDetails(String messageId) =>
+      _messageTransferDetails[messageId];
+
   /// Set localizations for notifications
   void setLocalizations(AppLocalizations localizations) {
     _localizations = localizations;
@@ -153,12 +158,17 @@ class MessagesProvider with ChangeNotifier {
           .loadMessageContactLocations();
       final storedReceptionDetails = await _storageService
           .loadMessageReceptionDetails();
+      final storedTransferDetails = await _storageService
+          .loadMessageTransferDetails();
       _messageContactLocations
         ..clear()
         ..addAll(storedContactLocations);
       _messageReceptionDetails
         ..clear()
         ..addAll(storedReceptionDetails);
+      _messageTransferDetails
+        ..clear()
+        ..addAll(storedTransferDetails);
 
       // Add stored messages with enhancement to ensure SAR detection
       for (final message in storedMessages) {
@@ -198,14 +208,6 @@ class MessagesProvider with ChangeNotifier {
               isVoice: true,
               voiceId: envelope.sessionId,
             );
-          } else if (VoicePacket.isVoiceText(enhancedMessage.text)) {
-            final pkt = VoicePacket.tryParseText(enhancedMessage.text);
-            if (pkt != null) {
-              enhancedMessage = enhancedMessage.copyWith(
-                isVoice: true,
-                voiceId: pkt.sessionId,
-              );
-            }
           }
         }
 
@@ -353,14 +355,6 @@ class MessagesProvider with ChangeNotifier {
           isVoice: true,
           voiceId: envelope.sessionId,
         );
-      } else if (VoicePacket.isVoiceText(enhancedMessage.text)) {
-        final pkt = VoicePacket.tryParseText(enhancedMessage.text);
-        if (pkt != null) {
-          enhancedMessage = enhancedMessage.copyWith(
-            isVoice: true,
-            voiceId: pkt.sessionId,
-          );
-        }
       }
     }
 
@@ -649,18 +643,16 @@ class MessagesProvider with ChangeNotifier {
     final voiceEnvelope = VoiceEnvelope.tryParseText(message.text);
     if (voiceEnvelope != null) {
       final seconds = (voiceEnvelope.durationMs / 1000).ceil();
-      final route = isChannelMessage
-          ? 'Channel: ${channelName ?? _resolveChannelName(message.channelIdx)}'
-          : 'From: $senderName';
-      return '$route\nVoice message - ${voiceEnvelope.mode.label} - ${seconds}s - ${voiceEnvelope.total} packets';
+      final summary =
+          'Voice message - ${voiceEnvelope.mode.label} - ${seconds}s - ${voiceEnvelope.total} packets';
+      return isChannelMessage ? '$senderName\n$summary' : summary;
     }
 
     final imageEnvelope = ImageEnvelope.tryParse(message.text);
     if (imageEnvelope != null) {
-      final route = isChannelMessage
-          ? 'Channel: ${channelName ?? _resolveChannelName(message.channelIdx)}'
-          : 'From: $senderName';
-      return '$route\nImage - ${imageEnvelope.format.label} - ${imageEnvelope.width}x${imageEnvelope.height} - ${_formatBytes(imageEnvelope.sizeBytes)}';
+      final summary =
+          'Image - ${imageEnvelope.format.label} - ${imageEnvelope.width}x${imageEnvelope.height} - ${_formatBytes(imageEnvelope.sizeBytes)}';
+      return isChannelMessage ? '$senderName\n$summary' : summary;
     }
 
     if (!isChannelMessage && message.recipientPublicKey != null) {
@@ -669,12 +661,12 @@ class MessagesProvider with ChangeNotifier {
         fallback: null,
       );
       if (recipientName != 'Unknown') {
-        return 'From: $senderName\nTo: $recipientName\n${message.text}';
+        return 'To: $recipientName\n${message.text}';
       }
     }
 
-    if (isChannelMessage && channelName != null && channelName.isNotEmpty) {
-      return 'Channel: $channelName\n${message.text}';
+    if (isChannelMessage) {
+      return '$senderName\n${message.text}';
     }
 
     return message.text;
@@ -695,6 +687,7 @@ class MessagesProvider with ChangeNotifier {
         _messages,
         messageContactLocations: _messageContactLocations,
         messageReceptionDetails: _messageReceptionDetails,
+        messageTransferDetails: _messageTransferDetails,
       );
     } catch (e) {
       debugPrint('❌ [MessagesProvider] Error persisting messages: $e');
@@ -812,6 +805,7 @@ class MessagesProvider with ChangeNotifier {
       _groupedMessageMapping.remove(messageId);
       _messageContactLocations.remove(messageId);
       _messageReceptionDetails.remove(messageId);
+      _messageTransferDetails.remove(messageId);
 
       debugPrint('🗑️ [MessagesProvider] Message $messageId deleted');
 
@@ -842,6 +836,7 @@ class MessagesProvider with ChangeNotifier {
     _sarMarkers.clear();
     _messageContactLocations.clear();
     _messageReceptionDetails.clear();
+    _messageTransferDetails.clear();
     _persistMessages();
     notifyListeners();
   }
@@ -858,8 +853,67 @@ class MessagesProvider with ChangeNotifier {
     _sarMarkers.clear();
     _messageContactLocations.clear();
     _messageReceptionDetails.clear();
+    _messageTransferDetails.clear();
     _persistMessages();
     notifyListeners();
+  }
+
+  int transferCountForSession({
+    String? voiceSessionId,
+    String? imageSessionId,
+  }) {
+    final messageId = _findMessageIdByMediaSession(
+      voiceSessionId: voiceSessionId,
+      imageSessionId: imageSessionId,
+    );
+    if (messageId == null) return 0;
+    return _messageTransferDetails[messageId]?.totalTransfers ?? 0;
+  }
+
+  void recordMediaTransfer({
+    required String sessionId,
+    required String mediaType,
+    required String requesterKey6,
+    String? requesterName,
+  }) {
+    final messageId = _findMessageIdByMediaSession(
+      voiceSessionId: mediaType == 'voice' ? sessionId : null,
+      imageSessionId: mediaType == 'image' ? sessionId : null,
+    );
+    if (messageId == null) {
+      debugPrint(
+        '⚠️ [MessagesProvider] No message found for $mediaType session $sessionId',
+      );
+      return;
+    }
+
+    final current =
+        _messageTransferDetails[messageId] ??
+        const MessageTransferDetails.empty();
+    _messageTransferDetails[messageId] = current.registerTransfer(
+      requesterKey6: requesterKey6,
+      requesterName: requesterName,
+    );
+    _persistMessages();
+    notifyListeners();
+  }
+
+  String? _findMessageIdByMediaSession({
+    String? voiceSessionId,
+    String? imageSessionId,
+  }) {
+    for (final message in _messages.reversed) {
+      if (voiceSessionId != null && message.voiceId == voiceSessionId) {
+        return message.id;
+      }
+      if (imageSessionId != null) {
+        final envelope = ImageEnvelope.tryParse(message.text);
+        if (envelope != null && envelope.sessionId == imageSessionId) {
+          return message.id;
+        }
+      }
+    }
+    return null;
   }
 
   /// Get storage statistics
@@ -957,14 +1011,6 @@ class MessagesProvider with ChangeNotifier {
           isVoice: true,
           voiceId: envelope.sessionId,
         );
-      } else if (VoicePacket.isVoiceText(enhancedMessage.text)) {
-        final pkt = VoicePacket.tryParseText(enhancedMessage.text);
-        if (pkt != null) {
-          enhancedMessage = enhancedMessage.copyWith(
-            isVoice: true,
-            voiceId: pkt.sessionId,
-          );
-        }
       }
     }
 
@@ -1628,7 +1674,7 @@ class MessagesProvider with ChangeNotifier {
 
     debugPrint('❌ [MessagesProvider] Message $messageId timeout/failed');
     debugPrint('   Retry attempt: ${message.retryAttempt}');
-    debugPrint('   Contact has path: ${contact?.hasPath ?? false}');
+    debugPrint('   Contact has path: ${contact?.routeHasPath ?? false}');
     debugPrint('   Used flood fallback: ${message.usedFloodFallback}');
 
     // Decision tree for retry/flood/fail
@@ -1784,7 +1830,7 @@ class MessagesProvider with ChangeNotifier {
       _retryManager.clearRetry(messageId);
 
       final failedContact = _messageContactMap[messageId];
-      if (failedContact != null && failedContact.hasPath) {
+      if (failedContact != null && failedContact.routeHasPath) {
         final failureStreak = _retryManager.recordPathFailure(failedContact);
         debugPrint(
           '   Path failure streak for ${failedContact.advName}: $failureStreak',
@@ -1804,8 +1850,69 @@ class MessagesProvider with ChangeNotifier {
     }
   }
 
+  /// Reset an existing failed message back into a sending state so a manual
+  /// retry can reuse the same record instead of appending a duplicate.
+  bool prepareMessageForRetry(String messageId) {
+    final index = _messages.indexWhere((m) => m.id == messageId);
+    if (index == -1) {
+      debugPrint(
+        '⚠️ [MessagesProvider] prepareMessageForRetry: Message not found: $messageId',
+      );
+      return false;
+    }
+
+    final message = _messages[index];
+
+    _timeoutTimers[message.id]?.cancel();
+    _timeoutTimers.remove(message.id);
+    if (message.expectedAckTag != null) {
+      _pendingSentMessages.remove(message.expectedAckTag);
+    }
+    _clearAckHistoryForMessage(messageId);
+    _retryManager.clearRetry(messageId);
+
+    _messages[index] = Message(
+      id: message.id,
+      messageType: message.messageType,
+      senderPublicKeyPrefix: message.senderPublicKeyPrefix,
+      channelIdx: message.channelIdx,
+      pathLen: message.pathLen,
+      textType: message.textType,
+      senderTimestamp: message.senderTimestamp,
+      text: message.text,
+      isSarMarker: message.isSarMarker,
+      sarGpsCoordinates: message.sarGpsCoordinates,
+      sarNotes: message.sarNotes,
+      sarCustomEmoji: message.sarCustomEmoji,
+      sarColorIndex: message.sarColorIndex,
+      receivedAt: message.receivedAt,
+      senderName: message.senderName,
+      deliveryStatus: MessageDeliveryStatus.sending,
+      recipientPublicKey: message.recipientPublicKey,
+      retryAttempt: 0,
+      lastRetryAt: DateTime.now(),
+      usedFloodFallback: false,
+      isRead: message.isRead,
+      echoCount: message.echoCount,
+      firstEchoAt: message.firstEchoAt,
+      lastEchoSnrRaw: message.lastEchoSnrRaw,
+      lastEchoRssiDbm: message.lastEchoRssiDbm,
+      lastEchoAt: message.lastEchoAt,
+      isDrawing: message.isDrawing,
+      drawingId: message.drawingId,
+      groupId: message.groupId,
+      recipients: message.recipients,
+      isVoice: message.isVoice,
+      voiceId: message.voiceId,
+    );
+
+    _persistMessages();
+    notifyListeners();
+    return true;
+  }
+
   /// Resend a failed message
-  Future<void> resendMessage(String messageId) async {
+  Future<void> resendMessage(String messageId, {Contact? contact}) async {
     final index = _messages.indexWhere((m) => m.id == messageId);
     if (index == -1) {
       debugPrint(
@@ -1815,9 +1922,9 @@ class MessagesProvider with ChangeNotifier {
     }
 
     final message = _messages[index];
-    final contact = _messageContactMap[messageId];
+    final resolvedContact = contact ?? _messageContactMap[messageId];
 
-    if (contact == null) {
+    if (resolvedContact == null) {
       debugPrint(
         '⚠️ [MessagesProvider] Cannot resend: Contact not found for message $messageId',
       );
@@ -1826,26 +1933,19 @@ class MessagesProvider with ChangeNotifier {
 
     debugPrint('🔁 [MessagesProvider] Resending message $messageId');
 
-    // Reset retry state
-    _messages[index] = message.copyWith(
-      retryAttempt: 0,
-      usedFloodFallback: false,
-      deliveryStatus: MessageDeliveryStatus.sending,
-      lastRetryAt: DateTime.now(),
-    );
-
-    // Clear retry tracking
-    _retryManager.clearRetry(messageId);
-
-    notifyListeners();
+    _messageContactMap[messageId] = resolvedContact;
+    final prepared = prepareMessageForRetry(messageId);
+    if (!prepared) {
+      return;
+    }
 
     // Send again
     if (sendMessageCallback != null) {
       final queued = await sendMessageCallback!(
-        contactPublicKey: contact.publicKey,
+        contactPublicKey: resolvedContact.publicKey,
         text: message.text,
         messageId: messageId,
-        contact: contact,
+        contact: resolvedContact,
         retryAttempt: 0,
       );
       if (!queued) {

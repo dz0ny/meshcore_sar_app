@@ -3,7 +3,12 @@ import 'dart:typed_data';
 import '../models/contact.dart';
 import '../providers/contacts_provider.dart';
 
-enum TransmissionTargetFailure { unknownContact, unknownRoute, tooFar, unreachable }
+enum TransmissionTargetFailure {
+  unknownContact,
+  unknownRoute,
+  tooFar,
+  unreachable,
+}
 
 class TransmissionTargetResolution {
   final Contact? target;
@@ -16,7 +21,7 @@ class TransmissionTargetResolution {
     required this.maxHops,
   });
 
-  int get hops => target?.outPathLen ?? -1;
+  int get hops => target?.routeHopCount ?? -1;
   bool get isValid => target != null && failure == null;
 }
 
@@ -32,11 +37,17 @@ class TransmissionTargetResolver {
     String? senderName,
   }) {
     if (isSentByMe) {
-      final recipient = _findByRecipientKey(contactsProvider, recipientPublicKey);
+      final recipient = _findByRecipientKey(
+        contactsProvider,
+        recipientPublicKey,
+      );
       if (recipient != null) return recipient;
     }
 
-    final byEnvelope = _findByEnvelopeKey6(contactsProvider, senderKey6FromEnvelope);
+    final byEnvelope = _findByEnvelopeKey6(
+      contactsProvider,
+      senderKey6FromEnvelope,
+    );
     if (byEnvelope != null) return byEnvelope;
 
     final byPrefix = _findByPrefix(contactsProvider, senderPublicKeyPrefix);
@@ -64,7 +75,9 @@ class TransmissionTargetResolver {
       senderName: senderName,
     );
 
-    if (target == null || target.outPathLen < 0 || target.outPathLen > maxFetchHops) {
+    if (target == null ||
+        !target.routeHasPath ||
+        target.routeHopCount > maxFetchHops) {
       await refreshContacts();
       target = resolveLocalTarget(
         contactsProvider: contactsProvider,
@@ -83,14 +96,14 @@ class TransmissionTargetResolver {
         maxHops: maxFetchHops,
       );
     }
-    if (target.outPathLen < 0) {
+    if (!target.routeHasPath) {
       return TransmissionTargetResolution(
         target: target,
         failure: TransmissionTargetFailure.unknownRoute,
         maxHops: maxFetchHops,
       );
     }
-    if (target.outPathLen > maxFetchHops) {
+    if (target.routeHopCount > maxFetchHops) {
       return TransmissionTargetResolution(
         target: target,
         failure: TransmissionTargetFailure.tooFar,

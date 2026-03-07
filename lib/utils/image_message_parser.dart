@@ -4,7 +4,7 @@ const int _maxCompanionFrameBytes = 172; // MeshCore MAX_FRAME_SIZE
 const int _cmdSendRawDataOverheadBytes = 2; // cmd + pathLen
 const int _maxMeshPacketPayloadBytes = 184; // MeshCore MAX_PACKET_PAYLOAD
 const int _meshPacketHeaderBytes = 2; // mesh header bytes before path/payload
-const int _imagePacketHeaderBytes = 8; // image packet binary header in payload
+const int _imagePacketHeaderBytes = 6; // image packet binary header in payload
 const int _defaultLoRaSf = 10; // MeshCore companion defaults (SF10)
 const int _defaultLoRaCr = 5; // MeshCore companion defaults (4/5)
 const int _defaultLoRaBwHz = 250000; // MeshCore companion defaults (250kHz)
@@ -31,7 +31,7 @@ enum ImageFormat {
 /// A single binary fragment of a compressed image.
 ///
 /// Binary format (direct contacts, via pushRawData / cmdSendRawData):
-///   [0x49 'I'][sessionId:4B][fmt:1B][idx:1B][total:1B][imageData...]
+///   [0x49 'I'][sessionId:4B][idx:1B][imageData...]
 ///
 /// Legacy default is 152 data bytes per fragment.
 class ImagePacket {
@@ -50,7 +50,7 @@ class ImagePacket {
   });
 
   static const int _magic = 0x49; // 'I'
-  static const int _headerLen = 8; // magic(1)+session(4)+fmt(1)+idx(1)+total(1)
+  static const int _headerLen = 6; // magic(1)+session(4)+idx(1)
   static const int maxDataBytes =
       152; // Conservative default for compatibility.
 
@@ -65,16 +65,14 @@ class ImagePacket {
           .sublist(1, 5)
           .map((b) => b.toRadixString(16).padLeft(2, '0'))
           .join();
-      final fmtId = payload[5];
-      final index = payload[6];
-      final total = payload[7];
-      if (total < 1) return null;
+      final index = payload[5];
+      final data = payload.sublist(_headerLen);
       return ImagePacket(
         sessionId: sessionId,
-        format: ImageFormat.fromId(fmtId),
+        format: ImageFormat.avif,
         index: index,
-        total: total,
-        data: payload.sublist(_headerLen),
+        total: 0,
+        data: data,
       );
     } catch (_) {
       return null;
@@ -92,16 +90,16 @@ class ImagePacket {
     final out = Uint8List(_headerLen + data.length);
     out[0] = _magic;
     out.setRange(1, 5, sessionBytes);
-    out[5] = format.id;
-    out[6] = index;
-    out[7] = total;
+    out[5] = index;
     out.setRange(_headerLen, out.length, data);
     return out;
   }
 
   @override
-  String toString() =>
-      'ImagePacket($sessionId ${format.label} [$index/${total - 1}] ${data.length}B)';
+  String toString() {
+    final suffix = total > 0 ? ' ${format.label} [$index/${total - 1}]' : ' [$index]';
+    return 'ImagePacket($sessionId$suffix ${data.length}B)';
+  }
 }
 
 /// Compute the maximum safe image data bytes for a direct route path.
@@ -246,11 +244,11 @@ int _resolveBandwidthHz(int? rawBw) {
 /// Envelope announcing image availability (control plane).
 ///
 /// Text format:
-///   IE2:{sid}:{fmt}:{total}:{w}:{h}:{bytes}:{senderKey6}:{ts}
+///   IE4:{sid}:{fmt}:{total}:{w}:{h}:{bytes}
 /// Example:
-///   IE2:deadbeef:0:7:3k:3k:t6:aabbccddeeff:s44we8
+///   IE4:deadbeef:0:7:3k:3k:t6
 class ImageEnvelope {
-  static const String _prefix = 'IE2:';
+  static const String _prefixV4 = 'IE4:';
 
   final String sessionId; // 8 hex chars
   final ImageFormat format;
@@ -258,8 +256,6 @@ class ImageEnvelope {
   final int width;
   final int height;
   final int sizeBytes; // total compressed image size
-  final String senderKey6; // 12 hex chars (6 bytes)
-  final int timestampSec;
   final int version;
 
   const ImageEnvelope({
@@ -269,18 +265,16 @@ class ImageEnvelope {
     required this.width,
     required this.height,
     required this.sizeBytes,
-    required this.senderKey6,
-    required this.timestampSec,
-    this.version = 2,
+    this.version = 4,
   });
 
-  static bool isEnvelope(String text) => text.startsWith(_prefix);
+  static bool isEnvelope(String text) => text.startsWith(_prefixV4);
 
   static ImageEnvelope? tryParse(String text) {
     if (!isEnvelope(text)) return null;
-    final body = text.substring(_prefix.length);
+    final body = text.substring(_prefixV4.length);
     final parts = body.split(':');
-    if (parts.length != 8) return null;
+    if (parts.length != 6) return null;
     try {
       final sid = _decodeSessionId(parts[0]);
       final fmtId = _parseInt(parts[1], base36: true);
@@ -288,16 +282,12 @@ class ImageEnvelope {
       final w = _parseInt(parts[3], base36: true);
       final h = _parseInt(parts[4], base36: true);
       final bytes = _parseInt(parts[5], base36: true);
-      final senderKey6 = parts[6];
-      final ts = _parseInt(parts[7], base36: true);
 
       if (sid == null) return null;
       if (fmtId == null) return null;
       if (total == null || total < 1 || total > 255) return null;
       if (w == null || h == null || w < 1 || h < 1) return null;
       if (bytes == null || bytes < 1) return null;
-      if (!RegExp(r'^[0-9a-fA-F]{12}$').hasMatch(senderKey6)) return null;
-      if (ts == null || ts <= 0) return null;
 
       return ImageEnvelope(
         sessionId: sid,
@@ -306,9 +296,7 @@ class ImageEnvelope {
         width: w,
         height: h,
         sizeBytes: bytes,
-        senderKey6: senderKey6.toLowerCase(),
-        timestampSec: ts,
-        version: 2,
+        version: 4,
       );
     } catch (_) {
       return null;
@@ -316,27 +304,25 @@ class ImageEnvelope {
   }
 
   String encode() =>
-      '$_prefix${_encodeSessionId(sessionId)}:'
+      '$_prefixV4${_encodeSessionId(sessionId)}:'
       '${_toBase36(format.id)}:${_toBase36(total)}:${_toBase36(width)}:'
-      '${_toBase36(height)}:${_toBase36(sizeBytes)}:'
-      '${senderKey6.toLowerCase()}:${_toBase36(timestampSec)}';
+      '${_toBase36(height)}:${_toBase36(sizeBytes)}';
 }
 
 /// Direct request to fetch image fragments (control plane).
 ///
 /// Text format:
-///   IR2:{sid}:{want}:{requesterKey6}:{ts}
+///   IR4:{sid}:{want}:{requesterKey6}
 /// Example:
-///   IR2:deadbeef:a:aabbccddeeff:s44wea
+///   IR4:deadbeef:a:aabbccddeeff
 class ImageFetchRequest {
-  static const String _prefix = 'IR2:';
+  static const String _prefixV4 = 'IR4:';
   static const int _binaryMagic = 0x69; // 'i'
 
   final String sessionId;
   final String want; // 'all' or 'missing'
   final List<int> missingIndices;
   final String requesterKey6; // 12 hex chars
-  final int timestampSec;
   final int version;
 
   const ImageFetchRequest({
@@ -344,24 +330,22 @@ class ImageFetchRequest {
     this.want = 'all',
     this.missingIndices = const [],
     required this.requesterKey6,
-    required this.timestampSec,
-    this.version = 2,
+    this.version = 4,
   });
 
-  static bool isRequest(String text) => text.startsWith(_prefix);
+  static bool isRequest(String text) => text.startsWith(_prefixV4);
   static bool isRequestBinary(Uint8List payload) =>
       payload.isNotEmpty && payload[0] == _binaryMagic;
 
   static ImageFetchRequest? tryParse(String text) {
     if (!isRequest(text)) return null;
-    final body = text.substring(_prefix.length);
+    final body = text.substring(_prefixV4.length);
     final parts = body.split(':');
-    if (parts.length != 4) return null;
+    if (parts.length != 3) return null;
     try {
       final sid = _decodeSessionId(parts[0]);
       final wantToken = parts[1];
       final requesterKey6 = parts[2];
-      final ts = _parseInt(parts[3], base36: true);
       final normalizedWant = wantToken == 'a'
           ? 'all'
           : ((wantToken.startsWith('m')) ? 'missing' : wantToken);
@@ -377,15 +361,13 @@ class ImageFetchRequest {
         return null;
       }
       if (!RegExp(r'^[0-9a-fA-F]{12}$').hasMatch(requesterKey6)) return null;
-      if (ts == null || ts <= 0) return null;
 
       return ImageFetchRequest(
         sessionId: sid,
         want: normalizedWant,
         missingIndices: missingIndices,
         requesterKey6: requesterKey6.toLowerCase(),
-        timestampSec: ts,
-        version: 2,
+        version: 4,
       );
     } catch (_) {
       return null;
@@ -394,7 +376,7 @@ class ImageFetchRequest {
 
   static ImageFetchRequest? tryParseBinary(Uint8List payload) {
     if (!isRequestBinary(payload)) return null;
-    if (payload.length < 17) return null; // magic+sid+flags+key6+ts+count
+    if (payload.length < 13) return null; // magic+sid+flags+key6+count
     try {
       final sid = payload
           .sublist(1, 5)
@@ -407,25 +389,19 @@ class ImageFetchRequest {
           .map((b) => b.toRadixString(16).padLeft(2, '0'))
           .join()
           .toLowerCase();
-      final ts =
-          (payload[12] << 24) |
-          (payload[13] << 16) |
-          (payload[14] << 8) |
-          payload[15];
-      final missingCount = payload[16];
-      if (payload.length != 17 + missingCount) return null;
+      final missingCount = payload[12];
+      if (payload.length != 13 + missingCount) return null;
       final wantMissing = (flags & 0x01) == 0x01;
       final missing = <int>[];
       for (var i = 0; i < missingCount; i++) {
-        missing.add(payload[17 + i]);
+        missing.add(payload[13 + i]);
       }
       return ImageFetchRequest(
         sessionId: sid,
         want: wantMissing ? 'missing' : 'all',
         missingIndices: missing,
         requesterKey6: requesterKey6,
-        timestampSec: ts,
-        version: 2,
+        version: 4,
       );
     } catch (_) {
       return null;
@@ -436,7 +412,7 @@ class ImageFetchRequest {
     final wantToken = want == 'missing' && missingIndices.isNotEmpty
         ? 'm${_encodeMissingIndicesCompact(missingIndices)}'
         : (want == 'all' ? 'a' : want);
-    return '$_prefix${_encodeSessionId(sessionId)}:$wantToken:${requesterKey6.toLowerCase()}:${_toBase36(timestampSec)}';
+    return '$_prefixV4${_encodeSessionId(sessionId)}:$wantToken:${requesterKey6.toLowerCase()}';
   }
 
   Uint8List encodeBinary() {
@@ -455,7 +431,7 @@ class ImageFetchRequest {
         ? missingIndices.where((v) => v >= 0 && v <= 254).toList()
         : <int>[];
 
-    final out = Uint8List(17 + missing.length);
+    final out = Uint8List(13 + missing.length);
     out[0] = _binaryMagic;
     for (var i = 0; i < 4; i++) {
       out[1 + i] = int.parse(sessionId.substring(i * 2, i * 2 + 2), radix: 16);
@@ -467,13 +443,9 @@ class ImageFetchRequest {
         radix: 16,
       );
     }
-    out[12] = (timestampSec >> 24) & 0xFF;
-    out[13] = (timestampSec >> 16) & 0xFF;
-    out[14] = (timestampSec >> 8) & 0xFF;
-    out[15] = timestampSec & 0xFF;
-    out[16] = missing.length;
+    out[12] = missing.length;
     for (var i = 0; i < missing.length; i++) {
-      out[17 + i] = missing[i];
+      out[13 + i] = missing[i];
     }
     return out;
   }

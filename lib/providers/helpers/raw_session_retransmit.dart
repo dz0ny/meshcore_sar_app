@@ -28,13 +28,19 @@ Future<bool> serveCachedSessionFragments<T>({
     debugPrint('⚠️ [$providerLabel] sendRawPacketCallback not set');
     return false;
   }
-  if (requester.outPathLen < 0) {
+  if (!requester.routeHasPath) {
     debugPrint('⚠️ [$providerLabel] ${requester.advName} has no direct path');
     return false;
   }
-  if (requester.outPathLen > maxDirectPayloadHops) {
+  if (requester.routeHopCount > maxDirectPayloadHops) {
     debugPrint(
-      '⚠️ [$providerLabel] ${requester.advName} is too far: ${requester.outPathLen} hops (max $maxDirectPayloadHops)',
+      '⚠️ [$providerLabel] ${requester.advName} is too far: ${requester.routeHopCount} hops (max $maxDirectPayloadHops)',
+    );
+    return false;
+  }
+  if (!requester.routeSupportsLegacyRawTransport) {
+    debugPrint(
+      '⚠️ [$providerLabel] ${requester.advName} route uses unsupported 3-byte raw transport on current client',
     );
     return false;
   }
@@ -58,7 +64,7 @@ Future<bool> serveCachedSessionFragments<T>({
     try {
       await sendRawPacket(
         contactPath: requester.outPath,
-        contactPathLen: requester.outPathLen,
+        contactPathLen: requester.routeSignedPathLen,
         payload: encodeBinary(fragment),
       );
       servedCount++;

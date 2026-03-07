@@ -64,22 +64,54 @@ void main() {
       expect(provider.messages.single.roundTripTimeMs, 180);
     });
 
-    test('direct messages stay sent after device accept until confirm arrives', () {
+    test(
+      'direct messages stay sent after device accept until confirm arrives',
+      () {
+        final provider = MessagesProvider();
+        provider.addSentMessage(
+          _buildDirectMessage('m1b'),
+          contact: _buildContact(),
+        );
+
+        provider.markMessageSent('m1b', 78, 250);
+
+        expect(
+          provider.messages.single.deliveryStatus,
+          MessageDeliveryStatus.sent,
+        );
+        expect(provider.messages.single.expectedAckTag, 78);
+        expect(provider.messages.single.roundTripTimeMs, isNull);
+        expect(provider.messages.single.deliveredAt, isNull);
+      },
+    );
+
+    test('fallback sent state can later upgrade to ACK-tracked delivery', () {
       final provider = MessagesProvider();
       provider.addSentMessage(
-        _buildDirectMessage('m1b'),
+        _buildDirectMessage('m1c'),
         contact: _buildContact(),
       );
 
-      provider.markMessageSent('m1b', 78, 250);
-
+      provider.markMessageSent('m1c', 0, 0);
       expect(
         provider.messages.single.deliveryStatus,
         MessageDeliveryStatus.sent,
       );
-      expect(provider.messages.single.expectedAckTag, 78);
-      expect(provider.messages.single.roundTripTimeMs, isNull);
-      expect(provider.messages.single.deliveredAt, isNull);
+      expect(provider.messages.single.expectedAckTag, isNull);
+
+      provider.markMessageSent('m1c', 79, 250);
+      expect(
+        provider.messages.single.deliveryStatus,
+        MessageDeliveryStatus.sent,
+      );
+      expect(provider.messages.single.expectedAckTag, 79);
+
+      provider.markMessageDelivered(79, 190);
+      expect(
+        provider.messages.single.deliveryStatus,
+        MessageDeliveryStatus.delivered,
+      );
+      expect(provider.messages.single.roundTripTimeMs, 190);
     });
 
     test('channel messages are marked sent immediately', () {
@@ -180,6 +212,31 @@ void main() {
       expect(provider.messages.single.roundTripTimeMs, 220);
     });
 
+    test('manual retry reuses the same message record', () {
+      final provider = MessagesProvider();
+      provider.addSentMessage(
+        _buildDirectMessage('m4b'),
+        contact: _buildContact(),
+      );
+
+      provider.markMessageSent('m4b', 113, 10);
+      provider.markMessageDelivered(113, 220);
+
+      final prepared = provider.prepareMessageForRetry('m4b');
+
+      expect(prepared, isTrue);
+      expect(provider.messages, hasLength(1));
+      expect(provider.messages.single.id, 'm4b');
+      expect(
+        provider.messages.single.deliveryStatus,
+        MessageDeliveryStatus.sending,
+      );
+      expect(provider.messages.single.expectedAckTag, isNull);
+      expect(provider.messages.single.roundTripTimeMs, isNull);
+      expect(provider.messages.single.deliveredAt, isNull);
+      expect(provider.messages.single.retryAttempt, 0);
+    });
+
     test('repeated max-retry failures request path reset', () async {
       final provider = MessagesProvider();
       final contact = _buildContact();
@@ -190,19 +247,17 @@ void main() {
           };
 
       provider.addSentMessage(
-        _buildDirectMessage('m5').copyWith(
-          retryAttempt: 3,
-          usedFloodFallback: true,
-        ),
+        _buildDirectMessage(
+          'm5',
+        ).copyWith(retryAttempt: 3, usedFloodFallback: true),
         contact: contact,
       );
       provider.markMessageFailed('m5');
 
       provider.addSentMessage(
-        _buildDirectMessage('m6').copyWith(
-          retryAttempt: 3,
-          usedFloodFallback: true,
-        ),
+        _buildDirectMessage(
+          'm6',
+        ).copyWith(retryAttempt: 3, usedFloodFallback: true),
         contact: contact,
       );
       provider.markMessageFailed('m6');
@@ -222,26 +277,21 @@ void main() {
           };
 
       provider.addSentMessage(
-        _buildDirectMessage('m7').copyWith(
-          retryAttempt: 3,
-          usedFloodFallback: true,
-        ),
+        _buildDirectMessage(
+          'm7',
+        ).copyWith(retryAttempt: 3, usedFloodFallback: true),
         contact: contact,
       );
       provider.markMessageFailed('m7');
 
-      provider.addSentMessage(
-        _buildDirectMessage('m8'),
-        contact: contact,
-      );
+      provider.addSentMessage(_buildDirectMessage('m8'), contact: contact);
       provider.markMessageSent('m8', 123, 10);
       provider.markMessageDelivered(123, 150);
 
       provider.addSentMessage(
-        _buildDirectMessage('m9').copyWith(
-          retryAttempt: 3,
-          usedFloodFallback: true,
-        ),
+        _buildDirectMessage(
+          'm9',
+        ).copyWith(retryAttempt: 3, usedFloodFallback: true),
         contact: contact,
       );
       provider.markMessageFailed('m9');

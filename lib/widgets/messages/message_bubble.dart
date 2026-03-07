@@ -27,6 +27,7 @@ import '../../utils/tictactoe_message_parser.dart';
 import '../../utils/location_formats.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/message_extensions.dart';
+import '../../models/message_transfer_details.dart';
 import 'voice_message_bubble.dart';
 import 'image_message_bubble.dart';
 import 'tictactoe_message_bubble.dart';
@@ -119,20 +120,9 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
 
     try {
-      // Create new message ID for retry
-      final retryMessageId = '${failedMessage.id}_retry';
-
-      // Create retry message
-      final retryMessage = failedMessage.copyWith(
-        id: retryMessageId,
-        deliveryStatus: MessageDeliveryStatus.sending,
-      );
-
-      // Add retry message to provider
       Contact? roomContact;
       if (failedMessage.messageType == MessageType.contact) {
         if (failedMessage.recipientPublicKey == null) {
-          messagesProvider.markMessageFailed(retryMessageId);
           ToastLogger.error(
             context,
             AppLocalizations.of(context)!.cannotRetryMissingRecipient,
@@ -148,13 +138,10 @@ class _MessageBubbleState extends State<MessageBubble> {
         }).firstOrNull;
       }
 
-      messagesProvider.addSentMessage(retryMessage, contact: roomContact);
-
       // Resend the message
       if (failedMessage.messageType == MessageType.contact) {
         // Direct message retry (for SAR markers sent to rooms)
         if (failedMessage.recipientPublicKey == null) {
-          messagesProvider.markMessageFailed(retryMessageId);
           ToastLogger.error(
             context,
             AppLocalizations.of(context)!.cannotRetryMissingRecipient,
@@ -162,26 +149,39 @@ class _MessageBubbleState extends State<MessageBubble> {
           return;
         }
 
-        // Resend to the same room
+        final prepared = messagesProvider.prepareMessageForRetry(
+          failedMessage.id,
+        );
+        if (!prepared) {
+          return;
+        }
+
         final sentSuccessfully = await connectionProvider.sendTextMessage(
           contactPublicKey: failedMessage.recipientPublicKey!,
           text: failedMessage.text,
-          messageId: retryMessageId,
+          messageId: failedMessage.id,
           contact: roomContact,
         );
 
         if (!context.mounted) return;
 
         if (!sentSuccessfully) {
-          messagesProvider.markMessageFailed(retryMessageId);
+          messagesProvider.markMessageFailed(failedMessage.id);
           ToastLogger.error(context, 'Failed to resend message');
         }
       } else if (failedMessage.messageType == MessageType.channel) {
+        final prepared = messagesProvider.prepareMessageForRetry(
+          failedMessage.id,
+        );
+        if (!prepared) {
+          return;
+        }
+
         // Channel message retry
         await connectionProvider.sendChannelMessage(
           channelIdx: failedMessage.channelIdx ?? 0,
           text: failedMessage.text,
-          messageId: retryMessageId,
+          messageId: failedMessage.id,
         );
 
         if (!context.mounted) return;
@@ -415,9 +415,11 @@ class _MessageBubbleState extends State<MessageBubble> {
     final receptionDetails = messagesProvider.getMessageReceptionDetails(
       widget.message.id,
     );
+    final transferDetails = messagesProvider.getMessageTransferDetails(
+      widget.message.id,
+    );
 
     final envelope = VoiceEnvelope.tryParseText(widget.message.text);
-    final legacyVoicePacket = VoicePacket.tryParseText(widget.message.text);
     final voiceSession = widget.message.voiceId != null
         ? voiceProvider.session(widget.message.voiceId!)
         : null;
@@ -449,16 +451,6 @@ class _MessageBubbleState extends State<MessageBubble> {
             mode: envelope.mode,
             packetCount: envelope.total,
             durationMs: envelope.durationMs,
-            pathLen: widget.message.pathLen,
-            radioBw: radioBw,
-            radioSf: radioSf,
-            radioCr: radioCr,
-          )
-        : legacyVoicePacket != null
-        ? estimateVoiceTransmitDuration(
-            mode: legacyVoicePacket.mode,
-            packetCount: legacyVoicePacket.total,
-            durationMs: legacyVoicePacket.durationMs * legacyVoicePacket.total,
             pathLen: widget.message.pathLen,
             radioBw: radioBw,
             radioSf: radioSf,
@@ -540,10 +532,17 @@ class _MessageBubbleState extends State<MessageBubble> {
       'Text length: ${widget.message.text.length}',
     ];
 
+    if (transferDetails != null) {
+      rawLines.add('Transfers served: ${transferDetails.totalTransfers}');
+      rawLines.add(
+        'Downloaded by: ${_formatDownloaderSummary(transferDetails)}',
+      );
+    }
+
     if (widget.message.isVoice) {
       rawLines.add('--- Voice Technical ---');
       if (envelope != null) {
-        rawLines.add('Envelope format: VE1 compact');
+        rawLines.add('Envelope format: VE3 compact');
         rawLines.add(
           'Voice mode: ${envelope.mode.label} (id=${envelope.mode.id})',
         );
@@ -551,17 +550,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         rawLines.add(
           'Estimated duration ms (envelope): ${envelope.durationMs}',
         );
-        rawLines.add('Envelope senderKey6: ${envelope.senderKey6}');
-        rawLines.add('Envelope ts: ${envelope.timestampSec}');
         rawLines.add('Envelope ver: ${envelope.version}');
-      } else if (legacyVoicePacket != null) {
-        rawLines.add('Envelope format: legacy V packet');
-        rawLines.add(
-          'Legacy segment index/total: ${legacyVoicePacket.index + 1}/${legacyVoicePacket.total}',
-        );
-        rawLines.add(
-          'Legacy codec mode: ${legacyVoicePacket.mode.label} (id=${legacyVoicePacket.mode.id})',
-        );
       } else {
         rawLines.add('Envelope format: unknown');
       }
@@ -604,8 +593,6 @@ class _MessageBubbleState extends State<MessageBubble> {
       rawLines.add(
         'Estimated image tx: ~${imageTxEstimate.inSeconds}s (current radio)',
       );
-      rawLines.add('Envelope senderKey6: ${imageEnvelope.senderKey6}');
-      rawLines.add('Envelope ts: ${imageEnvelope.timestampSec}');
       rawLines.add('Envelope ver: ${imageEnvelope.version}');
 
       if (imageSession != null) {
@@ -916,11 +903,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                               _detailRow(
                                 context,
                                 label: l10n.envelope,
-                                value: envelope != null
-                                    ? 'VE1 compact'
-                                    : legacyVoicePacket != null
-                                    ? 'Legacy V packet'
-                                    : l10n.unknown,
+                                value: envelope != null ? 'VE3 compact' : l10n.unknown,
                               ),
                               if (voiceSession != null)
                                 _detailRow(
@@ -936,6 +919,21 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   value: voiceSession.isComplete
                                       ? l10n.yes
                                       : l10n.no,
+                                ),
+                              if (transferDetails != null)
+                                _detailRow(
+                                  context,
+                                  label: 'Transfers',
+                                  value: '${transferDetails.totalTransfers}',
+                                ),
+                              if (transferDetails != null &&
+                                  transferDetails.downloaders.isNotEmpty)
+                                _detailRow(
+                                  context,
+                                  label: 'Downloaded by',
+                                  value: _formatDownloaderSummary(
+                                    transferDetails,
+                                  ),
                                 ),
                               if (voiceTxEstimate > Duration.zero)
                                 _detailRow(
@@ -987,6 +985,21 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   value: imageSession.isComplete
                                       ? l10n.yes
                                       : l10n.no,
+                                ),
+                              if (transferDetails != null)
+                                _detailRow(
+                                  context,
+                                  label: 'Transfers',
+                                  value: '${transferDetails.totalTransfers}',
+                                ),
+                              if (transferDetails != null &&
+                                  transferDetails.downloaders.isNotEmpty)
+                                _detailRow(
+                                  context,
+                                  label: 'Downloaded by',
+                                  value: _formatDownloaderSummary(
+                                    transferDetails,
+                                  ),
                                 ),
                               if (imageTxEstimate > Duration.zero)
                                 _detailRow(
@@ -1145,6 +1158,20 @@ class _MessageBubbleState extends State<MessageBubble> {
         ],
       ),
     );
+  }
+
+  String _formatDownloaderSummary(MessageTransferDetails transferDetails) {
+    return transferDetails.downloaders.map(_formatDownloaderLabel).join(', ');
+  }
+
+  String _formatDownloaderLabel(MessageTransferDownloader downloader) {
+    final name = downloader.requesterName?.trim();
+    final base = name != null && name.isNotEmpty
+        ? '$name (${downloader.requesterKey6})'
+        : downloader.requesterKey6;
+    return downloader.transferCount > 1
+        ? '$base ×${downloader.transferCount}'
+        : base;
   }
 
   Widget _signalRow(

@@ -65,8 +65,28 @@ Widget buildBubbleMetaFooter(
   ).textTheme.labelSmall?.color?.withValues(alpha: 0.68);
 
   final items = <Widget>[];
+  final sentEchoLabel = message.isSentMessage && message.echoCount > 0
+      ? '${message.echoCount} echo${message.echoCount == 1 ? '' : 'es'}'
+      : null;
 
-  if (!isSarMarker && message.pathLen < 255) {
+  if (!isSarMarker && sentEchoLabel != null) {
+    items.addAll([
+      Icon(Icons.hub_outlined, size: 11, color: metaColor),
+      const SizedBox(width: 3),
+      Text(
+        sentEchoLabel,
+        style: Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(color: metaColor),
+      ),
+      Text(
+        ' • ',
+        style: Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(color: metaColor),
+      ),
+    ]);
+  } else if (!isSarMarker && message.pathLen < 255) {
     items.addAll([
       Icon(Icons.alt_route, size: 11, color: metaColor),
       const SizedBox(width: 3),

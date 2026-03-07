@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../models/ble_packet_log.dart';
 import '../../models/message.dart';
 import '../../providers/connection_provider.dart';
+import '../../providers/contacts_provider.dart';
 import '../../services/mesh_map_nodes_service.dart';
 
 class MessageTraceSheet extends StatefulWidget {
@@ -30,9 +31,7 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
 
   Future<_TraceResult> _loadTrace() async {
     final connectionProvider = context.read<ConnectionProvider>();
-    final nodes = await MeshMapNodesService.fetchNodes(
-      cacheTtl: MeshMapNodesService.traceCacheTtl,
-    );
+    final contactsProvider = context.read<ContactsProvider>();
     final packetPath = _extractPathFromPacketLogs(
       logs: connectionProvider.bleService.packetLogs,
       message: widget.message,
@@ -43,45 +42,27 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
         ? _toPrefixHex(widget.message.recipientPublicKey)
         : _toPrefixHex(connectionProvider.deviceInfo.publicKey);
 
-    final senderNode = _bestNodeForPrefix(nodes, senderPrefix);
-    final recipientNode = _bestNodeForPrefix(nodes, recipientPrefix);
-
-    if (packetPath != null && packetPath.isNotEmpty) {
-      final matched = _matchNodesFromPathHashes(
-        nodes: nodes,
-        pathHashes: packetPath,
-        senderPrefix: senderPrefix,
-        recipientPrefix: recipientPrefix,
-      );
-      return _TraceResult(
-        mode: TraceMode.packetPath,
-        sender: senderNode,
-        recipient: recipientNode,
-        pathHashes: packetPath,
-        matchedPathNodes: matched,
-      );
+    final localNodes = _localNodesFromContacts(contactsProvider);
+    var trace = _buildTraceResult(
+      nodes: localNodes,
+      packetPath: packetPath,
+      senderPrefix: senderPrefix,
+      recipientPrefix: recipientPrefix,
+    );
+    if (_isCompleteTrace(trace, expectedRelayCount: math.max(0, widget.message.pathLen))) {
+      return trace;
     }
 
-    // Fallback when packet path is unavailable.
-    final inferred = _inferRelaysFromHopCount(
-      nodes: nodes,
-      sender: senderNode,
-      recipient: recipientNode,
-      relayCount: math.max(0, widget.message.pathLen),
+    final remoteNodes = await MeshMapNodesService.fetchNodes(
+      cacheTtl: MeshMapNodesService.traceCacheTtl,
     );
-    final matchedPathNodes = <MeshMapNode?>[
-      if (senderNode != null) senderNode,
-      ...inferred,
-      if (recipientNode != null) recipientNode,
-    ];
-
-    return _TraceResult(
-      mode: TraceMode.hopCountInference,
-      sender: senderNode,
-      recipient: recipientNode,
-      pathHashes: const [],
-      matchedPathNodes: matchedPathNodes,
+    trace = _buildTraceResult(
+      nodes: _mergeNodes(localNodes, remoteNodes),
+      packetPath: packetPath,
+      senderPrefix: senderPrefix,
+      recipientPrefix: recipientPrefix,
     );
+    return trace;
   }
 
   @override
@@ -109,12 +90,16 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
           }
 
           final trace = snapshot.data!;
-          final mapPoints = trace.matchedPathNodes
-              .whereType<MeshMapNode>()
+          final routeEntries = _displayRouteEntries(trace);
+          final concretePathNodes = routeEntries
+              .where((entry) => entry.node != null)
+              .map((entry) => entry.node!)
+              .toList();
+          final mapPoints = concretePathNodes
               .map((n) => LatLng(n.latitude, n.longitude))
               .toList();
           final hasMapPath = mapPoints.length >= 2;
-          final relayNodes = _relayNodes(trace.matchedPathNodes);
+          final relayNodes = _relayNodes(trace);
 
           return SizedBox(
             height: MediaQuery.of(context).size.height * 0.75,
@@ -197,9 +182,7 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
                                           ],
                                         ),
                                         flutter_map.MarkerLayer(
-                                          markers: trace.matchedPathNodes
-                                              .whereType<MeshMapNode>()
-                                              .toList()
+                                          markers: concretePathNodes
                                               .asMap()
                                               .entries
                                               .map(
@@ -216,10 +199,7 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
                                                         entry.key == 0
                                                         ? Colors.green
                                                         : (entry.key ==
-                                                                  trace.matchedPathNodes
-                                                                          .whereType<
-                                                                            MeshMapNode
-                                                                          >()
+                                                                  concretePathNodes
                                                                           .length -
                                                                       1
                                                               ? Colors.red
@@ -246,6 +226,48 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
                                       ),
                                     ),
                             ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'Route',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      if (routeEntries.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: Text(
+                            'No named nodes could be matched for this trace.',
+                          ),
+                        ),
+                      ...routeEntries.asMap().entries.map(
+                        (entry) => ListTile(
+                          leading: CircleAvatar(
+                            radius: 14,
+                            backgroundColor: entry.key == 0
+                                ? Colors.green
+                                : (entry.key == routeEntries.length - 1
+                                      ? Colors.red
+                                      : Colors.blue),
+                            child: Text(
+                              '${entry.key + 1}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                          title: Text(entry.value.label),
+                          subtitle: Text(
+                            '${_routeRoleLabel(entry.key, routeEntries.length)}${entry.value.keyLabel == null ? '' : ' • ${entry.value.keyLabel}'}',
                           ),
                         ),
                       ),
@@ -288,10 +310,69 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
     );
   }
 
-  List<MeshMapNode> _relayNodes(List<MeshMapNode?> path) {
-    final concrete = path.whereType<MeshMapNode>().toList();
+  List<MeshMapNode> _relayNodes(_TraceResult trace) {
+    final concrete = trace.matchedPathNodes.whereType<MeshMapNode>().toList();
+    if (concrete.isEmpty) return const [];
+
+    if (trace.mode == TraceMode.packetPath) {
+      if (concrete.length <= 1) return const [];
+      return concrete.sublist(1);
+    }
+
     if (concrete.length <= 2) return const [];
     return concrete.sublist(1, concrete.length - 1);
+  }
+
+  List<_RouteDisplayEntry> _displayRouteEntries(_TraceResult trace) {
+    final pathNodes = trace.matchedPathNodes.whereType<MeshMapNode>().toList();
+    if (pathNodes.isEmpty) {
+      return [
+        if (trace.sender != null) _RouteDisplayEntry.fromNode(trace.sender!),
+        if (trace.recipient != null &&
+            trace.recipient!.publicKey != trace.sender?.publicKey)
+          _RouteDisplayEntry.fromNode(trace.recipient!),
+      ];
+    }
+
+    if (trace.mode == TraceMode.packetPath) {
+      final entries = trace.matchedPathNodes.asMap().entries.map((entry) {
+        final hashHex = trace.pathHashes[entry.key]
+            .toRadixString(16)
+            .padLeft(2, '0');
+        return _RouteDisplayEntry(
+          node: entry.value,
+          label: entry.value?.name ?? 'Unknown',
+          keyLabel: entry.value != null
+              ? _prefixKeyLabel(entry.value!.publicKey)
+              : hashHex,
+        );
+      }).toList();
+      final lastKey = pathNodes.last.publicKey;
+      return [
+        ...entries,
+        if (trace.recipient != null && trace.recipient!.publicKey != lastKey)
+          _RouteDisplayEntry.fromNode(trace.recipient!),
+      ];
+    }
+
+    final firstKey = pathNodes.first.publicKey;
+    final lastKey = pathNodes.last.publicKey;
+    return [
+      if (trace.sender != null && trace.sender!.publicKey != firstKey)
+        _RouteDisplayEntry.fromNode(trace.sender!),
+      ...pathNodes.map(_RouteDisplayEntry.fromNode),
+      if (trace.recipient != null && trace.recipient!.publicKey != lastKey)
+        _RouteDisplayEntry.fromNode(trace.recipient!),
+    ];
+  }
+
+  String _prefixKeyLabel(String publicKey) =>
+      publicKey.substring(0, math.min(12, publicKey.length));
+
+  String _routeRoleLabel(int index, int total) {
+    if (index == 0) return 'Sender';
+    if (index == total - 1) return 'Recipient';
+    return 'Relay';
   }
 
   String? _toPrefixHex(List<int>? key) {
@@ -310,6 +391,98 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
         nodes.where((n) => n.publicKey.startsWith(prefixHex)).toList()
           ..sort((a, b) => b.updatedAtMs.compareTo(a.updatedAtMs));
     return matches.isEmpty ? null : matches.first;
+  }
+
+  List<MeshMapNode> _localNodesFromContacts(ContactsProvider contactsProvider) {
+    return contactsProvider.contactsWithLocation
+        .map((contact) {
+          final location = contact.displayLocation;
+          if (location == null) return null;
+          return MeshMapNode(
+            type: contact.type.index,
+            name: contact.displayName,
+            publicKey: contact.publicKeyHex.toLowerCase(),
+            latitude: location.latitude,
+            longitude: location.longitude,
+            updatedAtMs: contact.lastAdvert * 1000,
+          );
+        })
+        .whereType<MeshMapNode>()
+        .toList();
+  }
+
+  List<MeshMapNode> _mergeNodes(
+    List<MeshMapNode> preferred,
+    List<MeshMapNode> fallback,
+  ) {
+    final merged = <String, MeshMapNode>{};
+    for (final node in fallback) {
+      merged[node.publicKey] = node;
+    }
+    for (final node in preferred) {
+      merged[node.publicKey] = node;
+    }
+    return merged.values.toList();
+  }
+
+  _TraceResult _buildTraceResult({
+    required List<MeshMapNode> nodes,
+    required List<int>? packetPath,
+    required String? senderPrefix,
+    required String? recipientPrefix,
+  }) {
+    final senderNode = _bestNodeForPrefix(nodes, senderPrefix);
+    final recipientNode = _bestNodeForPrefix(nodes, recipientPrefix);
+
+    if (packetPath != null && packetPath.isNotEmpty) {
+      final matched = _matchNodesFromPathHashes(
+        nodes: nodes,
+        pathHashes: packetPath,
+        senderPrefix: senderPrefix,
+        recipientPrefix: recipientPrefix,
+      );
+      return _TraceResult(
+        mode: TraceMode.packetPath,
+        sender: senderNode,
+        recipient: recipientNode,
+        pathHashes: packetPath,
+        matchedPathNodes: matched,
+      );
+    }
+
+    final inferred = _inferRelaysFromHopCount(
+      nodes: nodes,
+      sender: senderNode,
+      recipient: recipientNode,
+      relayCount: math.max(0, widget.message.pathLen),
+    );
+    final matchedPathNodes = <MeshMapNode?>[
+      if (senderNode != null) senderNode,
+      ...inferred,
+      if (recipientNode != null) recipientNode,
+    ];
+
+    return _TraceResult(
+      mode: TraceMode.hopCountInference,
+      sender: senderNode,
+      recipient: recipientNode,
+      pathHashes: const [],
+      matchedPathNodes: matchedPathNodes,
+    );
+  }
+
+  bool _isCompleteTrace(_TraceResult trace, {required int expectedRelayCount}) {
+    if (trace.sender == null || trace.recipient == null) {
+      return false;
+    }
+
+    if (trace.mode == TraceMode.packetPath) {
+      return trace.matchedPathNodes.length == trace.pathHashes.length &&
+          trace.matchedPathNodes.every((node) => node != null);
+    }
+
+    final concreteCount = trace.matchedPathNodes.whereType<MeshMapNode>().length;
+    return concreteCount >= expectedRelayCount + 2;
   }
 
   List<int>? _extractPathFromPacketLogs({
@@ -371,11 +544,6 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
             .where((n) => n.publicKey.startsWith(senderPrefix))
             .toList();
         if (senderMatches.isNotEmpty) filtered = senderMatches;
-      } else if (i == pathHashes.length - 1 && recipientPrefix != null) {
-        final recipientMatches = filtered
-            .where((n) => n.publicKey.startsWith(recipientPrefix))
-            .toList();
-        if (recipientMatches.isNotEmpty) filtered = recipientMatches;
       }
 
       filtered.sort((a, b) => b.updatedAtMs.compareTo(a.updatedAtMs));
@@ -460,4 +628,24 @@ class _TraceResult {
     required this.pathHashes,
     required this.matchedPathNodes,
   });
+}
+
+class _RouteDisplayEntry {
+  final MeshMapNode? node;
+  final String label;
+  final String? keyLabel;
+
+  const _RouteDisplayEntry({
+    required this.node,
+    required this.label,
+    required this.keyLabel,
+  });
+
+  factory _RouteDisplayEntry.fromNode(MeshMapNode node) {
+    return _RouteDisplayEntry(
+      node: node,
+      label: node.name,
+      keyLabel: node.publicKey.substring(0, math.min(12, node.publicKey.length)),
+    );
+  }
 }

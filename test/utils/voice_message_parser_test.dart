@@ -10,13 +10,11 @@ void main() {
         mode: VoicePacketMode.mode1200,
         total: 4,
         durationMs: 3000,
-        senderKey6: 'aabbccddeeff',
-        timestampSec: 1700000000,
       );
 
       final text = env.encodeText();
       expect(VoiceEnvelope.isVoiceEnvelopeText(text), isTrue);
-      expect(text.startsWith('VE2:'), isTrue);
+      expect(text.startsWith('VE3:'), isTrue);
       expect(text.split(':')[1], equals('a'));
 
       final parsed = VoiceEnvelope.tryParseText(text);
@@ -25,12 +23,11 @@ void main() {
       expect(parsed.mode, equals(VoicePacketMode.mode1200));
       expect(parsed.total, equals(4));
       expect(parsed.durationMs, equals(3000));
-      expect(parsed.senderKey6, equals('aabbccddeeff'));
-      expect(parsed.version, equals(2));
+      expect(parsed.version, equals(3));
     });
 
     test('rejects invalid envelope payload', () {
-      final text = 'VE2:bad_sid:1:2:1000:aabbccddeeff:s44we8';
+      final text = 'VE3:bad_sid:1:2:1000';
       expect(VoiceEnvelope.tryParseText(text), isNull);
     });
 
@@ -45,11 +42,10 @@ void main() {
       final req = VoiceFetchRequest(
         sessionId: '0000000a',
         requesterKey6: 'ffeeddccbbaa',
-        timestampSec: 1700000001,
       );
       final text = req.encodeText();
       expect(VoiceFetchRequest.isVoiceFetchRequestText(text), isTrue);
-      expect(text.startsWith('VR2:'), isTrue);
+      expect(text.startsWith('VR3:'), isTrue);
       expect(text.split(':')[1], equals('a'));
 
       final parsed = VoiceFetchRequest.tryParseText(text);
@@ -57,13 +53,13 @@ void main() {
       expect(parsed!.sessionId, equals('0000000a'));
       expect(parsed.want, equals('all'));
       expect(parsed.requesterKey6, equals('ffeeddccbbaa'));
-      expect(parsed.version, equals(2));
+      expect(parsed.version, equals(3));
     });
 
     test('rejects invalid request payload', () {
       expect(
         VoiceFetchRequest.tryParseText(
-          'VR2:a:chunk:ffeeddccbbaa:s44we9',
+          'VR3:a:chunk:ffeeddccbbaa',
         ),
         isNull,
       );
@@ -80,7 +76,6 @@ void main() {
         want: 'missing',
         missingIndices: const [0, 1, 2, 3, 7],
         requesterKey6: 'ffeeddccbbaa',
-        timestampSec: 1700000001,
       );
       final text = req.encodeText();
       expect(text, contains(':m0-3.7:'));
@@ -97,7 +92,6 @@ void main() {
         want: 'missing',
         missingIndices: const [1, 4],
         requesterKey6: 'ffeeddccbbaa',
-        timestampSec: 1700000001,
       );
 
       final payload = req.encodeBinary();
@@ -109,7 +103,7 @@ void main() {
       expect(parsed.want, equals('missing'));
       expect(parsed.missingIndices, equals([1, 4]));
       expect(parsed.requesterKey6, equals('ffeeddccbbaa'));
-      expect(parsed.version, equals(2));
+      expect(parsed.version, equals(3));
     });
   });
 
@@ -125,23 +119,7 @@ void main() {
     });
   });
 
-  group('VoicePacket backward compatibility', () {
-    test('parses legacy V: text format', () {
-      final pkt = VoicePacket(
-        sessionId: 'a1b2c3d4',
-        mode: VoicePacketMode.mode700c,
-        index: 0,
-        total: 1,
-        codec2Data: Uint8List.fromList([1, 2, 3, 4]),
-      );
-      final encoded = pkt.encodeText();
-      final parsed = VoicePacket.tryParseText(encoded);
-      expect(parsed, isNotNull);
-      expect(parsed!.sessionId, equals('a1b2c3d4'));
-      expect(parsed.total, equals(1));
-      expect(parsed.codec2Data, equals(Uint8List.fromList([1, 2, 3, 4])));
-    });
-
+  group('VoicePacket binary format', () {
     test('constructs binary datagram from actual packet data', () {
       final actualCodec2 = Uint8List.fromList([
         0xD3,
@@ -166,17 +144,15 @@ void main() {
       final datagram = pkt.encodeBinary();
       expect(datagram[0], equals(0x56)); // magic 'V'
       expect(datagram.sublist(1, 5), equals(Uint8List.fromList([1, 2, 3, 4])));
-      expect(datagram[5], equals(VoicePacketMode.mode1300.id));
-      expect(datagram[6], equals(2));
-      expect(datagram[7], equals(5));
-      expect(datagram.sublist(8), equals(actualCodec2));
+      expect(datagram[5], equals(2));
+      expect(datagram.sublist(6), equals(actualCodec2));
 
       final parsed = VoicePacket.tryParseBinary(datagram);
       expect(parsed, isNotNull);
       expect(parsed!.sessionId, equals('01020304'));
       expect(parsed.mode, equals(VoicePacketMode.mode1300));
       expect(parsed.index, equals(2));
-      expect(parsed.total, equals(5));
+      expect(parsed.total, equals(0));
       expect(parsed.codec2Data, equals(actualCodec2));
     });
   });

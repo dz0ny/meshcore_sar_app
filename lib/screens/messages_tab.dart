@@ -575,9 +575,9 @@ class _MessagesTabState extends State<MessagesTab> {
       if (_destinationType ==
               MessageDestinationPreferences.destinationTypeContact &&
           _selectedRecipient != null &&
-          _selectedRecipient!.outPathLen >= 0) {
+          _selectedRecipient!.routeHasPath) {
         imageDataBytesPerFragment = safeImageDataBytesForPath(
-          _selectedRecipient!.outPathLen,
+          _selectedRecipient!.routeHopCount,
         );
       }
 
@@ -601,11 +601,6 @@ class _MessagesTabState extends State<MessagesTab> {
         ToastLogger.error(context, 'Device key unavailable');
         return;
       }
-      final senderKey6 = deviceKey
-          .sublist(0, 6)
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join();
-
       final envelope = ImageEnvelope(
         sessionId: sessionId,
         format: ImageFormat.avif,
@@ -613,8 +608,6 @@ class _MessagesTabState extends State<MessagesTab> {
         width: result.width,
         height: result.height,
         sizeBytes: compressed.length,
-        senderKey6: senderKey6,
-        timestampSec: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       );
 
       if (!mounted) return;
@@ -915,9 +908,6 @@ class _MessagesTabState extends State<MessagesTab> {
       return;
     }
 
-    final senderKey6 = senderPublicKeyPrefix
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join('');
     final durationMs = encodedPackets.fold<int>(
       0,
       (sum, p) => sum + p.durationMs,
@@ -927,9 +917,7 @@ class _MessagesTabState extends State<MessagesTab> {
       mode: mode,
       total: encodedPackets.length,
       durationMs: durationMs,
-      senderKey6: senderKey6,
-      timestampSec: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      version: 1,
+      version: 3,
     );
     final envelopeText = envelope.encodeText();
 

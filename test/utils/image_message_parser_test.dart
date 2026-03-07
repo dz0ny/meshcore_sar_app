@@ -3,7 +3,7 @@ import 'package:meshcore_sar_app/utils/image_message_parser.dart';
 
 void main() {
   group('ImageEnvelope', () {
-    test('encodes and parses IE2 with compressed session id', () {
+    test('encodes and parses IE4 with compressed session id', () {
       final env = ImageEnvelope(
         sessionId: '0000000a',
         format: ImageFormat.avif,
@@ -11,12 +11,10 @@ void main() {
         width: 256,
         height: 171,
         sizeBytes: 2100,
-        senderKey6: 'aabbccddeeff',
-        timestampSec: 1700000000,
       );
 
       final text = env.encode();
-      expect(text.startsWith('IE2:'), isTrue);
+      expect(text.startsWith('IE4:'), isTrue);
       expect(text.split(':')[1], equals('a'));
 
       final parsed = ImageEnvelope.tryParse(text);
@@ -27,26 +25,25 @@ void main() {
       expect(parsed.width, equals(256));
       expect(parsed.height, equals(171));
       expect(parsed.sizeBytes, equals(2100));
-      expect(parsed.senderKey6, equals('aabbccddeeff'));
-      expect(parsed.version, equals(2));
+      expect(parsed.version, equals(4));
     });
 
     test('rejects IE1 legacy prefix', () {
       const legacy = 'IE1:deadbeef:0:7:128:128:1050:aabbccddeeff:1700000000:1';
       expect(ImageEnvelope.tryParse(legacy), isNull);
     });
+
   });
 
   group('ImageFetchRequest', () {
-    test('encodes and parses IR2 with compressed sid', () {
+    test('encodes and parses IR4 with compressed sid', () {
       final req = ImageFetchRequest(
         sessionId: '0000000a',
         requesterKey6: 'ffeeddccbbaa',
-        timestampSec: 1700000001,
       );
 
       final text = req.encode();
-      expect(text.startsWith('IR2:'), isTrue);
+      expect(text.startsWith('IR4:'), isTrue);
       expect(text.split(':')[1], equals('a'));
 
       final parsed = ImageFetchRequest.tryParse(text);
@@ -54,7 +51,7 @@ void main() {
       expect(parsed!.sessionId, equals('0000000a'));
       expect(parsed.want, equals('all'));
       expect(parsed.requesterKey6, equals('ffeeddccbbaa'));
-      expect(parsed.version, equals(2));
+      expect(parsed.version, equals(4));
     });
 
     test('encodes and parses compact missing index ranges', () {
@@ -63,7 +60,6 @@ void main() {
         want: 'missing',
         missingIndices: const [0, 1, 2, 5, 6, 8],
         requesterKey6: 'ffeeddccbbaa',
-        timestampSec: 1700000001,
       );
 
       final text = req.encode();
@@ -86,7 +82,6 @@ void main() {
         want: 'missing',
         missingIndices: const [0, 2, 5],
         requesterKey6: 'ffeeddccbbaa',
-        timestampSec: 1700000001,
       );
 
       final payload = req.encodeBinary();
@@ -98,7 +93,7 @@ void main() {
       expect(parsed.want, equals('missing'));
       expect(parsed.missingIndices, equals([0, 2, 5]));
       expect(parsed.requesterKey6, equals('ffeeddccbbaa'));
-      expect(parsed.version, equals(2));
+      expect(parsed.version, equals(4));
     });
   });
 

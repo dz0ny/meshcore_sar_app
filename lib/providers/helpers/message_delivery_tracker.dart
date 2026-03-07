@@ -98,6 +98,11 @@ class MessageDeliveryTracker {
     return _ackTagToMessageId[ackCode];
   }
 
+  /// Returns true once a message has been matched to a concrete ACK tag.
+  bool hasAckForMessage(String messageId) {
+    return _messageIdToAckTag.containsKey(messageId);
+  }
+
   /// Remove ACK tag mapping after delivery confirmed or timeout
   ///
   /// Cleans up both forward and reverse mappings.

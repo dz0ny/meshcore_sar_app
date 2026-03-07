@@ -3,11 +3,13 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_avif/flutter_avif.dart';
 import 'package:provider/provider.dart';
+import '../../models/contact.dart';
 import '../../models/message.dart';
 import '../../providers/app_provider.dart';
 import '../../providers/connection_provider.dart';
 import '../../providers/contacts_provider.dart';
 import '../../providers/image_provider.dart' as ip;
+import '../../providers/messages_provider.dart';
 import '../../utils/image_message_parser.dart';
 import '../../utils/transmission_target_resolver.dart';
 import 'transfer_timeout.dart';
@@ -33,7 +35,9 @@ class ImageMessageBubble extends StatefulWidget {
 
 class _ImageMessageBubbleState extends State<ImageMessageBubble> {
   static const int _maxFetchHops = 3;
+  static const Duration _recentInboundActivityWindow = Duration(seconds: 3);
   bool _isRequesting = false;
+  bool _isPartialRequest = false;
   String? _errorText;
   Timer? _requestTimeoutTimer;
 
@@ -59,6 +63,11 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
 
     return Consumer<ip.ImageProvider>(
       builder: (context, imageProvider, _) {
+        final transferCount = context.select<MessagesProvider, int>(
+          (provider) => provider.transferCountForSession(
+            imageSessionId: envelope.sessionId,
+          ),
+        );
         final contactsProvider = context.read<ContactsProvider>();
         final session = imageProvider.session(envelope.sessionId);
         final sender = TransmissionTargetResolver.resolveLocalTarget(
@@ -66,11 +75,10 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
           isSentByMe: widget.isSentByMe,
           recipientPublicKey: widget.message.recipientPublicKey,
           senderPublicKeyPrefix: widget.message.senderPublicKeyPrefix,
-          senderKey6FromEnvelope: envelope.senderKey6,
           senderName: widget.message.senderName,
         );
-        final effectivePathLen = sender != null && sender.outPathLen >= 0
-            ? sender.outPathLen
+        final effectivePathLen = sender != null && sender.routeHasPath
+            ? sender.routeHopCount
             : widget.message.pathLen;
         final isComplete = imageProvider.isComplete(envelope.sessionId);
         final eta = imageProvider.estimateRemainingTransferTime(
@@ -82,6 +90,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
             if (mounted) {
               setState(() {
                 _isRequesting = false;
+                _isPartialRequest = false;
                 _errorText = null;
               });
             }
@@ -91,6 +100,17 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
         final received = session?.receivedCount ?? 0;
         final total = session?.total ?? envelope.total;
         final imageBytes = isComplete ? session?.imageBytes : null;
+        final fragmentPresence =
+            session?.fragments.map((fragment) => fragment != null).toList() ??
+            List<bool>.filled(total, false);
+        final isReceivingData =
+            !_isRequesting &&
+            !isComplete &&
+            _hasRecentInboundActivity(
+              lastReceivedAt: session?.lastFragmentAt,
+              received: received,
+              total: total,
+            );
 
         return GestureDetector(
           onTap: isComplete
@@ -110,8 +130,10 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
                     imageBytes: imageBytes,
                     isComplete: isComplete,
                     isRequesting: _isRequesting,
+                    isReceivingData: isReceivingData,
                     received: received,
                     total: total,
+                    fragmentPresence: fragmentPresence,
                     envelope: envelope,
                     radioBw: radioBw,
                     radioSf: radioSf,
@@ -125,6 +147,8 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
                   _statusText(
                     isComplete: isComplete,
                     isRequesting: _isRequesting,
+                    isReceivingData: isReceivingData,
+                    isPartialRequest: _isPartialRequest,
                     received: received,
                     total: total,
                     envelope: envelope,
@@ -135,6 +159,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
                     isSentByMe: widget.isSentByMe,
                     eta: eta,
                     pathLen: effectivePathLen,
+                    transferCount: transferCount,
                   ),
                   style: TextStyle(
                     fontSize: 11,
@@ -156,8 +181,10 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     required Uint8List? imageBytes,
     required bool isComplete,
     required bool isRequesting,
+    required bool isReceivingData,
     required int received,
     required int total,
+    required List<bool> fragmentPresence,
     required ImageEnvelope envelope,
     required int? radioBw,
     required int? radioSf,
@@ -180,19 +207,28 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
           alignment: Alignment.center,
           children: [
             if (isRequesting) ...[
-              // Download progress ring.
-              SizedBox(
-                width: 48,
-                height: 48,
-                child: CircularProgressIndicator(
-                  value: total > 0 ? received / total : null,
-                  strokeWidth: 3,
-                  color: Theme.of(context).colorScheme.primary,
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              Text(
-                '$received/$total',
-                style: const TextStyle(color: Colors.white, fontSize: 11),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _PacketBlockProgress(
+                      presence: fragmentPresence,
+                      activeColor: Theme.of(context).colorScheme.primary,
+                      highlightMissing: _isPartialRequest,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$received/$total',
+                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                    ),
+                  ],
+                ),
               ),
               Positioned(
                 top: 8,
@@ -229,16 +265,25 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
             ] else ...[
               // Tap-to-load icon.
               IconButton(
-                onPressed: () => _requestAndFetch(
-                  envelope,
-                  radioBw: radioBw,
-                  radioSf: radioSf,
-                  radioCr: radioCr,
-                  pathLen: pathLen,
+                onPressed: isReceivingData
+                    ? null
+                    : () => _requestAndFetch(
+                        envelope,
+                        radioBw: radioBw,
+                        radioSf: radioSf,
+                        radioCr: radioCr,
+                        pathLen: pathLen,
+                      ),
+                icon: Icon(
+                  isReceivingData
+                      ? Icons.downloading_rounded
+                      : Icons.download_rounded,
+                  size: 40,
                 ),
-                icon: const Icon(Icons.download_rounded, size: 40),
                 color: Colors.white70,
-                tooltip: 'Load image',
+                tooltip: isReceivingData
+                    ? 'Image is already being received'
+                    : 'Load image',
               ),
             ],
           ],
@@ -255,10 +300,6 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     int pathLen = 0,
   }) async {
     if (_isRequesting) return;
-    setState(() {
-      _isRequesting = true;
-      _errorText = null;
-    });
 
     final conn = context.read<ConnectionProvider>();
     final imageProvider = context.read<ip.ImageProvider>();
@@ -271,7 +312,6 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
       isSentByMe: widget.isSentByMe,
       recipientPublicKey: widget.message.recipientPublicKey,
       senderPublicKeyPrefix: widget.message.senderPublicKeyPrefix,
-      senderKey6FromEnvelope: envelope.senderKey6,
       senderName: widget.message.senderName,
       maxFetchHops: _maxFetchHops,
     );
@@ -322,7 +362,6 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
         isSentByMe: widget.isSentByMe,
         recipientPublicKey: widget.message.recipientPublicKey,
         senderPublicKeyPrefix: widget.message.senderPublicKeyPrefix,
-        senderKey6FromEnvelope: envelope.senderKey6,
         senderName: widget.message.senderName,
         maxFetchHops: _maxFetchHops,
       );
@@ -364,9 +403,18 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
       }
     }
 
-    if (sender.outPathLen >= 2) {
+    if (!sender.routeSupportsLegacyRawTransport) {
+      _clearRequestState();
+      await _showBlockingAlert(
+        'Cannot fetch image',
+        'Sender route uses 3-byte hashes. Raw media fetch is not supported in this client yet.',
+      );
+      return;
+    }
+
+    if (sender.routeHopCount >= 2) {
       _showToast(
-        'Image fetch over ${sender.outPathLen} hops may take a while.',
+        'Image fetch over ${sender.routeHopCount} hops may take a while.',
       );
     }
 
@@ -390,28 +438,31 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     final missing = imageProvider.missingFragmentIndices(envelope.sessionId);
     final isPartialResume =
         missing.isNotEmpty && missing.length < envelope.total;
+    setState(() {
+      _isRequesting = true;
+      _isPartialRequest = isPartialResume;
+      _errorText = null;
+    });
     final request = isPartialResume
         ? ImageFetchRequest(
             sessionId: envelope.sessionId,
             want: 'missing',
             missingIndices: missing,
             requesterKey6: requesterKey6,
-            timestampSec: DateTime.now().millisecondsSinceEpoch ~/ 1000,
           )
         : ImageFetchRequest(
             sessionId: envelope.sessionId,
             requesterKey6: requesterKey6,
-            timestampSec: DateTime.now().millisecondsSinceEpoch ~/ 1000,
           );
 
     final payload = request.encodeBinary();
     try {
       debugPrint(
-        '📷 [ImageMessageBubble] Outgoing image fetch request: session=${envelope.sessionId} want=${isPartialResume ? 'missing' : 'all'} target=${sender.advName} hops=${sender.outPathLen}',
+        '📷 [ImageMessageBubble] Outgoing image fetch request: session=${envelope.sessionId} want=${isPartialResume ? 'missing' : 'all'} target=${sender.advName} hops=${sender.routeHopCount}',
       );
       await conn.sendRawVoicePacket(
         contactPath: sender.outPath,
-        contactPathLen: sender.outPathLen,
+        contactPathLen: sender.routeSignedPathLen,
         payload: payload,
       );
     } catch (_) {
@@ -419,6 +470,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
         _showToast('Image fetch failed to send request');
         setState(() {
           _isRequesting = false;
+          _isPartialRequest = false;
           _errorText = 'Image unavailable right now';
         });
       }
@@ -427,8 +479,8 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     if (!mounted) return;
 
     // Timeout = 2× estimated LoRa airtime (min 30s).
-    final effectivePathLen = sender.outPathLen >= 0
-        ? sender.outPathLen
+    final effectivePathLen = sender.routeHasPath
+        ? sender.routeHopCount
         : pathLen;
     final txEstimate = estimateImageTransmitDuration(
       fragmentCount: missing.isEmpty ? envelope.total : missing.length,
@@ -450,6 +502,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
           _showToast('Image fetch timed out');
           setState(() {
             _isRequesting = false;
+            _isPartialRequest = false;
             _errorText = 'Image fetch timed out';
           });
         }
@@ -471,6 +524,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     _showToast('Image receive canceled');
     setState(() {
       _isRequesting = false;
+      _isPartialRequest = false;
       _errorText = 'Image receive canceled';
     });
   }
@@ -479,6 +533,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     if (!mounted) return;
     setState(() {
       _isRequesting = false;
+      _isPartialRequest = false;
     });
   }
 
@@ -503,6 +558,8 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
   static String _statusText({
     required bool isComplete,
     required bool isRequesting,
+    required bool isReceivingData,
+    required bool isPartialRequest,
     required int received,
     required int total,
     required ImageEnvelope envelope,
@@ -513,6 +570,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     required String? error,
     required bool isSentByMe,
     required Duration? eta,
+    required int transferCount,
   }) {
     final txEstimate = estimateImageTransmitDuration(
       fragmentCount: envelope.total,
@@ -527,16 +585,25 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     if (error != null) return error;
     if (isRequesting) {
       final etaLabel = _formatEta(eta);
-      return '📥 Loading… $received/$total · $etaLabel · $txEstimateLabel';
+      final actionLabel = isPartialRequest
+          ? '📥 Fetching missing fragments…'
+          : '📥 Loading…';
+      return '$actionLabel $received/$total · $etaLabel · $txEstimateLabel';
+    }
+    if (isReceivingData) {
+      final etaLabel = _formatEta(eta);
+      return '📥 Receiving… $received/$total · $etaLabel · $txEstimateLabel';
     }
     if (isComplete) {
       final base =
           '🖼️ ${envelope.width}×${envelope.height} ${envelope.format.label}';
       return isSentByMe
-          ? '$base · ${envelope.total} seg · $txEstimateLabel'
+          ? '$base · ${envelope.total} seg · ${_formatTransferCount(transferCount)} · $txEstimateLabel'
           : '$base · $txEstimateLabel';
     }
-    return '🖼️ Tap to load · ${envelope.width}×${envelope.height} · $txEstimateLabel';
+    return isSentByMe
+        ? '🖼️ ${envelope.width}×${envelope.height} · ${_formatTransferCount(transferCount)} · $txEstimateLabel'
+        : '🖼️ Tap to load · ${envelope.width}×${envelope.height} · $txEstimateLabel';
   }
 
   static String _formatTransmitEstimate(Duration value) {
@@ -552,6 +619,22 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
     final minutes = eta.inMinutes;
     final seconds = eta.inSeconds % 60;
     return 'ETA ~${minutes}m ${seconds}s';
+  }
+
+  static String _formatTransferCount(int transferCount) {
+    return '$transferCount transfer${transferCount == 1 ? '' : 's'}';
+  }
+
+  bool _hasRecentInboundActivity({
+    required DateTime? lastReceivedAt,
+    required int received,
+    required int total,
+  }) {
+    if (lastReceivedAt == null || received <= 0 || received >= total) {
+      return false;
+    }
+    return DateTime.now().difference(lastReceivedAt) <=
+        _recentInboundActivityWindow;
   }
 
   void _showFullScreen(BuildContext context, Uint8List imageBytes) {
@@ -597,6 +680,70 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
         );
       },
       transitionDuration: const Duration(milliseconds: 150),
+    );
+  }
+}
+
+class _PacketBlockProgress extends StatelessWidget {
+  final List<bool> presence;
+  final Color activeColor;
+  final bool highlightMissing;
+
+  const _PacketBlockProgress({
+    required this.presence,
+    required this.activeColor,
+    this.highlightMissing = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (presence.isEmpty) {
+      return const SizedBox(width: 96, height: 12);
+    }
+
+    final bucketCount = presence.length <= 24 ? presence.length : 24;
+    final bucketFill = List<double>.generate(bucketCount, (bucketIndex) {
+      final start = (bucketIndex * presence.length) ~/ bucketCount;
+      final end = ((bucketIndex + 1) * presence.length) ~/ bucketCount;
+      final safeEnd = end <= start ? start + 1 : end;
+      final slice = presence.sublist(start, safeEnd);
+      final received = slice.where((value) => value).length;
+      return slice.isEmpty ? 0.0 : received / slice.length;
+    });
+    final missingColor = highlightMissing
+        ? Colors.amberAccent
+        : Colors.white.withValues(alpha: 0.14);
+
+    return SizedBox(
+      width: 120,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (final fill in bucketFill)
+            Expanded(
+              child: Container(
+                height: 12,
+                margin: const EdgeInsets.symmetric(horizontal: 1),
+                decoration: BoxDecoration(
+                  color: fill > 0
+                      ? activeColor.withValues(alpha: 0.18 + (0.72 * fill))
+                      : missingColor.withValues(
+                          alpha: highlightMissing ? 0.45 : 0.14,
+                        ),
+                  borderRadius: BorderRadius.circular(2),
+                  border: Border.all(
+                    color: fill > 0
+                        ? Colors.white.withValues(alpha: 0.18)
+                        : missingColor.withValues(
+                            alpha: highlightMissing ? 0.7 : 0.18,
+                          ),
+                    width: 0.5,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

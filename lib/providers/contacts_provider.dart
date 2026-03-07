@@ -521,7 +521,39 @@ class ContactsProvider with ChangeNotifier {
   /// prefer flood routing until the radio reports a fresh route.
   void markPathUnhealthy(Uint8List publicKey) {
     final contact = findContactByKey(publicKey);
-    if (contact == null || !contact.hasPath) {
+    if (contact == null || !contact.routeHasPath) {
+      return;
+    }
+
+    _contacts[contact.publicKeyHex] = contact.copyWith(
+      outPathLen: -1,
+      outPath: Uint8List(0),
+    );
+    _persistContacts();
+    notifyListeners();
+  }
+
+  void setContactRouteLocal(
+    Uint8List publicKey, {
+    required int signedEncodedPathLen,
+    required Uint8List paddedPathBytes,
+  }) {
+    final contact = findContactByKey(publicKey);
+    if (contact == null) {
+      return;
+    }
+
+    _contacts[contact.publicKeyHex] = contact.copyWith(
+      outPathLen: signedEncodedPathLen,
+      outPath: Uint8List.fromList(paddedPathBytes),
+    );
+    _persistContacts();
+    notifyListeners();
+  }
+
+  void resetContactRouteLocal(Uint8List publicKey) {
+    final contact = findContactByKey(publicKey);
+    if (contact == null) {
       return;
     }
 

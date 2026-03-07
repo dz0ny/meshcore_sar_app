@@ -20,8 +20,6 @@ void main() {
         width: 32,
         height: 32,
         sizeBytes: 4,
-        senderKey6: 'aabbccddeeff',
-        timestampSec: 1700000000,
       );
       final fragment = ImagePacket(
         sessionId: sessionId,

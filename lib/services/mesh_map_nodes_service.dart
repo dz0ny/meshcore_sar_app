@@ -35,6 +35,7 @@ class MeshMapNodesService {
       'https://api.meshcore.nz/api/v1/map/nodes';
   static const Duration _cacheTtl = Duration(minutes: 2);
   static const Duration traceCacheTtl = Duration(minutes: 10);
+  static const Duration traceTimeout = Duration(seconds: 30);
   static List<MeshMapNode>? _cachedNodes;
   static DateTime? _cachedAt;
 
@@ -52,7 +53,7 @@ class MeshMapNodesService {
 
     final response = await http
         .get(Uri.parse(_nodesEndpoint))
-        .timeout(const Duration(seconds: 12));
+        .timeout(traceTimeout);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('Map nodes API returned ${response.statusCode}');
     }

@@ -96,11 +96,28 @@ class ImageProvider with ChangeNotifier {
     return missing;
   }
 
+  List<int> availableFragmentIndices(String sessionId) {
+    final outgoing = _outgoing[sessionId];
+    if (outgoing != null) {
+      return outgoing.fragments.map((fragment) => fragment.index).toList()
+        ..sort();
+    }
+
+    final session = _sessions[sessionId];
+    if (session == null) return const [];
+    final indices = <int>[];
+    for (var i = 0; i < session.fragments.length; i++) {
+      if (session.fragments[i] != null) {
+        indices.add(i);
+      }
+    }
+    return indices;
+  }
+
   // ── Incoming fragment reception ──────────────────────────────────────────
 
-  /// Add a received [fragment].  Creates the session on first fragment using
-  /// metadata from the fragment itself (requires envelope to have been
-  /// announced first; if not, defaults width/height to 0 — corrected on save).
+  /// Add a received [fragment]. New compact fragments rely on prior envelope
+  /// metadata for total/format, while legacy fragments can still self-describe.
   ///
   /// Returns true when the session just became complete.
   bool addFragment(ImagePacket fragment, {int width = 0, int height = 0}) {
@@ -110,16 +127,20 @@ class ImageProvider with ChangeNotifier {
       );
       return false;
     }
-    _sessions.putIfAbsent(
-      fragment.sessionId,
-      () => ImageSession(
+    _sessions.putIfAbsent(fragment.sessionId, () {
+      if (fragment.total < 1) {
+        throw StateError(
+          'Image envelope missing for compact fragment ${fragment.sessionId}',
+        );
+      }
+      return ImageSession(
         sessionId: fragment.sessionId,
         format: fragment.format,
         total: fragment.total,
         width: width,
         height: height,
-      ),
-    );
+      );
+    });
 
     final session = _sessions[fragment.sessionId]!;
     if (fragment.index < session.total) {
@@ -244,16 +265,22 @@ class ImageProvider with ChangeNotifier {
     required Contact requester,
     Set<int>? requestedIndices,
   }) async {
-    final cached = _outgoing[sessionId];
-    if (cached == null) {
-      debugPrint('⚠️ [ImageProvider] No cached session for $sessionId');
+    final outgoing = _outgoing[sessionId];
+    final fragments = outgoing != null
+        ? List<ImagePacket>.from(outgoing.fragments)
+        : _sessions[sessionId]?.fragments.whereType<ImagePacket>().toList() ??
+              const <ImagePacket>[];
+    if (fragments.isEmpty) {
+      debugPrint(
+        '⚠️ [ImageProvider] No cached or received session for $sessionId',
+      );
       return false;
     }
     return serveCachedSessionFragments<ImagePacket>(
       providerLabel: 'ImageProvider',
       sessionId: sessionId,
       requester: requester,
-      fragments: cached.fragments,
+      fragments: fragments,
       maxDirectPayloadHops: maxDirectPayloadHops,
       indexOf: (fragment) => fragment.index,
       encodeBinary: (fragment) => fragment.encodeBinary(),

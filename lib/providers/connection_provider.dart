@@ -4,10 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:crypto/crypto.dart';
+import '../models/contact.dart';
 import '../models/device_info.dart';
 import '../models/room_login_state.dart';
 import '../models/sse_server_config.dart';
-import 'package:meshcore_client/meshcore_client.dart';
+import 'package:meshcore_client/meshcore_client.dart' hide Contact;
 import '../services/sse_server_service.dart';
 import '../utils/sar_message_parser.dart';
 import 'helpers/room_login_manager.dart';
@@ -1121,9 +1122,11 @@ class ConnectionProvider with ChangeNotifier {
           );
         }
         debugPrint('   Type: ${contact.type.displayName}');
-        debugPrint('   Path status: ${contact.pathDescription}');
-        if (contact.hasPath) {
-          debugPrint('   ✅ Using learned path (${contact.outPathLen} bytes)');
+        debugPrint('   Path status: ${contact.routeSummary}');
+        if (contact.routeHasPath) {
+          debugPrint(
+            '   ✅ Using learned path (${contact.routeHopCount} hop(s), ${contact.routeHashSize}-byte hashes)',
+          );
         } else {
           debugPrint('   ⚠️ No path available - will use flood mode');
         }
@@ -1172,6 +1175,19 @@ class ConnectionProvider with ChangeNotifier {
         text: text,
         attempt: retryAttempt,
       );
+
+      if (messageId != null) {
+        Future.delayed(const Duration(milliseconds: 350), () {
+          if (_messageDeliveryTracker.hasAckForMessage(messageId)) {
+            return;
+          }
+
+          debugPrint(
+            'ℹ️ [ConnectionProvider] Missing RESP_CODE_SENT for $messageId; promoting to sent via fallback',
+          );
+          onMessageSent?.call(messageId, 0, 0);
+        });
+      }
 
       // Clear pending operation after successful send (no error)
       // If ERR_CODE_NOT_FOUND occurs, the operation will be recovered automatically
@@ -2003,6 +2019,30 @@ class ConnectionProvider with ChangeNotifier {
     } catch (e) {
       _error = 'Failed to reset path: $e';
       notifyListeners();
+    }
+  }
+
+  Future<void> setContactRoute(
+    Contact contact, {
+    required int signedEncodedPathLen,
+    required Uint8List paddedPathBytes,
+  }) async {
+    if (!_activeService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      final updatedContact = contact.copyWith(
+        outPathLen: signedEncodedPathLen,
+        outPath: Uint8List.fromList(paddedPathBytes),
+      );
+      await _activeService.addOrUpdateContact(updatedContact);
+    } catch (e) {
+      _error = 'Failed to set route: $e';
+      notifyListeners();
+      rethrow;
     }
   }
 

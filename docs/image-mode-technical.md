@@ -2,10 +2,11 @@
 
 ## 1. Overview
 
-Image mode mirrors the voice on-demand architecture exactly:
+Image mode mirrors the voice on-demand architecture exactly, including
+swarm-assisted recovery for stalled partial transfers:
 
 - **Control plane (text messages):**
-  - `IE2:` image envelope announces image availability in chat.
+  - `IE4:` image envelope announces image availability in chat.
 - **Control plane (raw binary request):**
   - Binary image fetch request (same raw route as image fragments).
 - **Data plane (raw binary packets):**
@@ -14,11 +15,14 @@ Image mode mirrors the voice on-demand architecture exactly:
 Images are never broadcast in full to channels.  Chat carries only metadata;
 pixels are fetched on demand when the user taps the image bubble.
 
+Shared swarm fallback is documented in
+[Swarm Mode Technical Design](./swarm-mode-technical.md).
+
 ## 2. Key Modules
 
 - `lib/utils/image_message_parser.dart`
   - `ImagePacket` (binary fragment format)
-  - `ImageEnvelope` (`IE2`)
+  - `ImageEnvelope` (`IE4`)
   - `ImageFetchRequest` (binary)
   - `fragmentImage()` — split compressed bytes into packets
   - `reassembleImage()` — join received fragments into bytes
@@ -27,8 +31,9 @@ pixels are fetched on demand when the user taps the image bubble.
 - `lib/providers/image_provider.dart`
   - Reassembly sessions, outgoing cache, deferred serving
   - Outgoing sessions also registered as complete incoming sessions for immediate local display
+  - Received partial sessions can be re-served during swarm recovery
 - `lib/providers/app_provider.dart`
-  - Incoming routing for `IE2`, binary image fetch requests, binary `0x49` packets
+  - Incoming routing for `IE4`, binary image fetch requests, binary `0x49` packets, and raw swarm control payloads
 - `lib/widgets/messages/image_message_bubble.dart`
   - Square cover thumbnail (up to 256 px); tap-to-load for received images;
     progress ring during fetch; full-screen `InteractiveViewer` on tap
@@ -40,9 +45,9 @@ pixels are fetched on demand when the user taps the image bubble.
 
 ## 3. Wire Formats
 
-### 3.1 Image Envelope (`IE2`)
+### 3.1 Image Envelope (`IE4`)
 
-Prefix: `IE2:` + colon-delimited compact payload (base36 numeric fields)
+Prefix: `IE4:` + colon-delimited compact payload (base36 numeric fields)
 
 Fields:
 
@@ -54,51 +59,50 @@ Fields:
 | `w`          | base36 | Actual image width after compression (pixels)  |
 | `h`          | base36 | Actual image height after compression (pixels) |
 | `bytes`      | base36 | Total compressed size in bytes                 |
-| `senderKey6` | string | 12 hex chars (6 bytes sender prefix)           |
-| `ts`         | base36 | Unix timestamp (seconds)                       |
-
 Compact format:
 
 ```text
-IE2:{sid}:{fmt}:{total}:{w}:{h}:{bytes}:{senderKey6}:{ts}
+IE4:{sid}:{fmt}:{total}:{w}:{h}:{bytes}
 ```
 
 Example (256×171 landscape image, 14 fragments):
 
 ```text
-IE2:a:0:e:74:4r:1mc:aabbccddeeff:s44we8
+IE4:a:0:e:74:4r:1mc
 ```
 
 Note: `sid` is base36 on wire and expands to 8-hex internally.
 `w` and `h` reflect the actual post-compression dimensions, which preserve
 the source aspect ratio (contain within the configured max size).
 
-### 3.2 Image Fetch Request (binary)
+### 3.2 Image Fetch Request (`IR4` + binary)
+
+Text format:
+
+```text
+IR4:{sid}:{want}:{requesterKey6}
+```
 
 Binary payload format:
 
 ```text
-[magic=0x69][sid:4B][flags:1B][requesterKey6:6B][ts:4B][missingCount:1B][missingIndices...]
+[magic=0x69][sid:4B][flags:1B][requesterKey6:6B][missingCount:1B][missingIndices...]
 ```
 
 | Field            | Value                    |
 |------------------|--------------------------|
 | `flags`          | bit0=1 => request missing indices, else all |
 | `requesterKey6`  | 6-byte requester key prefix |
-| `ts`             | unix timestamp seconds (u32) |
-
 ### 3.3 Raw Image Packet (data plane)
 
 Binary payload structure:
 
 - Byte 0: magic `0x49` (`'I'`)
 - Bytes 1..4: session ID (4 bytes)
-- Byte 5: format ID
-- Byte 6: fragment index (0-based)
-- Byte 7: total fragments
-- Bytes 8..N: image data (max 152 bytes per fragment)
+- Byte 5: fragment index (0-based)
+- Bytes 6..N: image data (max 152 bytes per fragment)
 
-Header is 8 bytes — identical layout to `VoicePacket`.
+Header is 6 bytes. Image format and total fragment count come from the `IE4` envelope.
 
 ## 4. Compression Pipeline
 
@@ -152,11 +156,11 @@ only the shorter axis is padded — no cropping occurs.
 7. Envelope sent via normal message path:
    - Channel: `sendChannelMessage`
    - Direct: `sendTextMessage`
-8. Local placeholder message added (`IE2:` text, `deliveryStatus.sending`).
+8. Local placeholder message added (`IE4:` text, `deliveryStatus.sending`).
 
 ## 6. Incoming Flow (Receive)
 
-### 6.1 `IE2` envelope received
+### 6.1 `IE4` envelope received
 
 `AppProvider` calls `imageProvider.registerEnvelope()` and adds the message to
 chat.  The bubble shows a grey square placeholder with a download icon.
@@ -165,11 +169,21 @@ chat.  The bubble shows a grey square placeholder with a download icon.
 
 `AppProvider` treats it as control-plane only (not added to chat):
 
-- Validates requester key prefix.
 - Resolves requester contact.
 - Calls `imageProvider.serveSessionTo()` which streams all cached fragments.
 
-### 6.3 Raw packet received (`pushRawData`, magic `0x49`)
+### 6.3 Swarm control messages received
+
+`AppProvider` also handles shared raw swarm discovery payloads:
+
+- binary swarm requests advertise which image fragments are still missing
+- binary swarm availability responses advertise which fragments another peer can relay
+- swarm payloads arrive via `pushRawData` and are intercepted instead of being added to chat
+
+Shared discovery and responder semantics are documented in
+[Swarm Mode Technical Design](./swarm-mode-technical.md).
+
+### 6.4 Raw packet received (`pushRawData`, magic `0x49`)
 
 `AppProvider.onRawDataReceived` parses `ImagePacket` binary and calls
 `imageProvider.addFragment()`.  When the session becomes complete, the bubble
@@ -188,6 +202,9 @@ When `cacheOutgoingSession()` is called it also writes all fragments into
 `_sessions[sessionId]`, so the sender sees the image immediately in the bubble
 (no tap-to-load required for own messages).
 
+If a peer later receives only part of an image session, those received fragments
+can also be served onward to another requester during swarm recovery.
+
 ## 8. Display
 
 `ImageMessageBubble` (max width 256 px):
@@ -195,7 +212,8 @@ When `cacheOutgoingSession()` is called it also writes all fragments into
 - **Complete session**: `AspectRatio(1.0)` → `AvifImage.memory(fit: cover)`
   square thumbnail; tap → full-screen `InteractiveViewer` with fade transition.
 - **Incomplete/missing**: grey square placeholder with download icon;
-  tap → sends binary fetch request.
+  tap → sends binary fetch request, with raw swarm fallback if the original
+  sender path stalls.
 - **Loading**: circular progress indicator showing `received/total` count.
 - **Error**: broken-image icon.
 
@@ -213,12 +231,12 @@ Image bubbles and Message Technical Details show an **estimated transmit time** 
 The estimate is airtime-based (LoRa packet model), not just compressed image size:
 
 - Source inputs:
-  - `total` fragments and `bytes` from `IE2` envelope
+  - `total` fragments and `bytes` from `IE4` envelope
   - all numeric envelope values are decoded from base36
   - `pathLen` from message metadata
   - current radio params from `deviceInfo`: `radioBw`, `radioSf`, `radioCr`
 - Per-fragment payload model:
-  - `meshHeader(2)` + `pathLen` + `imageHeader(8)` + `fragmentBytes`
+  - `meshHeader(2)` + `pathLen` + `imageHeader(6)` + `fragmentBytes`
 - LoRa airtime:
   - standard symbol-time formula (preamble + payload symbols)
 - Mesh pacing/hops:
@@ -246,9 +264,12 @@ Fallback defaults are used when radio params are unavailable: `SF10`, `BW250kHz`
 ## 11. Operational Constraints
 
 - No firmware changes required (reuses `cmdSendRawData` / `pushRawData`).
-- On-demand fetch works only if sender app is online and has cached session.
+- On-demand fetch prefers the original sender, but a partial image can also be
+  completed from alternate peers that already hold matching fragments.
 - Raw return path requires a valid direct route to requester.
 - Available on iOS and Android (`image_picker` + `flutter_avif`).
+- Swarm discovery uses the same `cmdSendRawData` / `pushRawData` path as image
+  fetch and fragment delivery.
 
 ### 11.1 Raw Binary Routing Semantics
 
@@ -260,7 +281,28 @@ Fallback defaults are used when radio params are unavailable: `SF10`, `BW250kHz`
   - only nodes on that path relay it;
   - it is **not** received by everyone in the mesh.
 
-## 12. High-Level Sequence
+## 12. Swarm Fallback Sequence
+
+```mermaid
+sequenceDiagram
+  participant A as Original Sender
+  participant P as Peer With Fragments
+  participant N as Reachable Peers
+  participant B as Receiver App
+
+  A->>M: Send IE4 envelope
+  M->>B: Deliver IE4
+  B->>A: Direct binary image fetch request
+  A->>B: Stream raw ImagePacket fragments (partial)
+  Note over A,B: Sender path stops responding
+  B->>N: Raw swarm requests with missing image fragment indices
+  P->>B: Raw swarm availability response
+  B->>P: Direct binary fetch request for missing subset
+  P->>B: Stream remaining raw ImagePacket fragments
+  B->>B: Reassemble completed image
+```
+
+## 13. High-Level Sequence
 
 ```mermaid
 sequenceDiagram
@@ -272,8 +314,8 @@ sequenceDiagram
   A->>A: Compress: contain resize → grayscale → PNG → AVIF
   A->>A: Fragment into ≤152B packets
   A->>A: Cache outgoing + populate local session (immediate display)
-  A->>M: Send IE2 envelope (actual w×h, fragment count)
-  M->>B: Deliver IE2
+  A->>M: Send IE4 envelope (actual w×h, fragment count)
+  M->>B: Deliver IE4
   B->>B: Render grey placeholder bubble
   B->>A: Tap → send binary fetch request
   A->>B: Stream binary ImagePackets

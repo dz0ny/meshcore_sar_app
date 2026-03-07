@@ -502,6 +502,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                   child: TabBar(
                     controller: _tabController,
+                    onTap: (index) {
+                      final tabs = _enabledTabs;
+                      if (index < 0 || index >= tabs.length) {
+                        return;
+                      }
+                      _handleTabActivated(tabs[index]);
+                    },
                     tabs: enabledTabs.map((tab) {
                       switch (tab) {
                         case _HomeTab.messages:

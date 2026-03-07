@@ -233,4 +233,49 @@ void main() {
       expect(snapshot.location.longitude, closeTo(14.5058, 0.000001));
     });
   });
+
+  group('ContactsProvider route updates', () {
+    late ContactsProvider provider;
+    late Uint8List publicKey;
+
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      provider = ContactsProvider();
+      publicKey = createPublicKey(64);
+      provider.addOrUpdateContact(
+        createContact(key: publicKey, type: ContactType.chat, name: 'Routey'),
+      );
+    });
+
+    test('optimistically stores a multi-byte route locally', () {
+      final route = ContactRouteCodec.parse('AABB,CCDD');
+
+      provider.setContactRouteLocal(
+        publicKey,
+        signedEncodedPathLen: route.signedEncodedPathLen,
+        paddedPathBytes: route.paddedPathBytes,
+      );
+
+      final updated = provider.findContactByKey(publicKey)!;
+      expect(updated.routeHasPath, isTrue);
+      expect(updated.routeHashSize, 2);
+      expect(updated.routeHopCount, 2);
+      expect(updated.routeCanonicalText, 'AABB,CCDD');
+    });
+
+    test('resetContactRouteLocal clears route state', () {
+      final route = ContactRouteCodec.parse('AA,BB,CC');
+      provider.setContactRouteLocal(
+        publicKey,
+        signedEncodedPathLen: route.signedEncodedPathLen,
+        paddedPathBytes: route.paddedPathBytes,
+      );
+
+      provider.resetContactRouteLocal(publicKey);
+
+      final updated = provider.findContactByKey(publicKey)!;
+      expect(updated.routeHasPath, isFalse);
+      expect(updated.routeSummary, 'Flood/Unknown');
+    });
+  });
 }

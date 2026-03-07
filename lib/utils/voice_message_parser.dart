@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 const int _meshPacketHeaderBytes = 2; // mesh header bytes before path/payload
-const int _voicePacketHeaderBytes = 8; // voice packet binary header in payload
+const int _voicePacketHeaderBytes = 6; // voice packet binary header in payload
 const int _defaultLoRaSf = 10; // MeshCore companion defaults (SF10)
 const int _defaultLoRaCr = 5; // MeshCore companion defaults (4/5)
 const int _defaultLoRaBwHz = 250000; // MeshCore companion defaults (250kHz)
@@ -38,7 +38,7 @@ enum VoicePacketMode {
 ///   V:{sessionId8hex}:{modeId}:{index}/{total}:{base64Codec2}
 ///
 /// Binary format (direct contacts, received via pushRawData):
-///   [0x56 'V'][sessionId:4B][modeId:1B][index:1B][total:1B][codec2Data...]
+///   [0x56 'V'][sessionId:4B][index:1B][codec2Data...]
 class VoicePacket {
   final String sessionId; // 8 hex chars (4 bytes)
   final VoicePacketMode mode;
@@ -104,8 +104,7 @@ class VoicePacket {
   // ── Binary format ────────────────────────────────────────────────────────
 
   static const int _binaryMagic = 0x56; // 'V'
-  static const int _binaryHeaderLen =
-      8; // magic(1)+session(4)+mode(1)+idx(1)+total(1)
+  static const int _binaryHeaderLen = 6; // magic(1)+session(4)+idx(1)
 
   static bool isVoiceBinary(Uint8List payload) =>
       payload.isNotEmpty && payload[0] == _binaryMagic;
@@ -119,16 +118,13 @@ class VoicePacket {
       final sessionId = sessionBytes
           .map((b) => b.toRadixString(16).padLeft(2, '0'))
           .join();
-      final modeId = payload[5];
-      final index = payload[6];
-      final total = payload[7];
-      if (total < 1) return null;
+      final index = payload[5];
       final codec2Data = payload.sublist(_binaryHeaderLen);
       return VoicePacket(
         sessionId: sessionId,
-        mode: VoicePacketMode.fromId(modeId),
+        mode: VoicePacketMode.mode1300,
         index: index,
-        total: total,
+        total: 0,
         codec2Data: codec2Data,
       );
     } catch (_) {
@@ -148,9 +144,7 @@ class VoicePacket {
     final out = Uint8List(_binaryHeaderLen + codec2Data.length);
     out[0] = _binaryMagic;
     out.setRange(1, 5, sessionBytes);
-    out[5] = mode.id;
-    out[6] = index;
-    out[7] = total;
+    out[5] = index;
     out.setRange(_binaryHeaderLen, out.length, codec2Data);
     return out;
   }
@@ -174,25 +168,25 @@ class VoicePacket {
   }
 
   @override
-  String toString() =>
-      'VoicePacket($sessionId ${mode.label} [$index/${total - 1}] ${codec2Data.length}B)';
+  String toString() {
+    final suffix = total > 0 ? ' ${mode.label} [$index/${total - 1}]' : ' [$index]';
+    return 'VoicePacket($sessionId$suffix ${codec2Data.length}B)';
+  }
 }
 
 /// Lightweight public/direct message envelope advertising voice availability.
 ///
 /// Text format:
-///   VE2:{sid}:{mode}:{total}:{durS}:{senderKey6}:{ts}
+///   VE3:{sid}:{mode}:{total}:{durS}
 /// Example:
-///   VE2:00112233:1:4:4:aabbccddeeff:kf12oi
+///   VE3:00112233:1:4:4
 class VoiceEnvelope {
-  static const String _prefix = 'VE2:';
+  static const String _prefix = 'VE3:';
 
   final String sessionId;
   final VoicePacketMode mode;
   final int total;
   final int durationMs;
-  final String senderKey6;
-  final int timestampSec;
   final int version;
 
   const VoiceEnvelope({
@@ -200,9 +194,7 @@ class VoiceEnvelope {
     required this.mode,
     required this.total,
     required this.durationMs,
-    required this.senderKey6,
-    required this.timestampSec,
-    this.version = 2,
+    this.version = 3,
   });
 
   static bool isVoiceEnvelopeText(String text) => text.startsWith(_prefix);
@@ -215,14 +207,12 @@ class VoiceEnvelope {
 
   static VoiceEnvelope? _tryParse(String body) {
     final parts = body.split(':');
-    if (parts.length != 6) return null;
+    if (parts.length != 4) return null;
     try {
       final sid = _decodeSessionId(parts[0]);
       final mode = _parseInt(parts[1], base36: true);
       final total = _parseInt(parts[2], base36: true);
       final durS = _parseInt(parts[3], base36: true);
-      final senderKey6 = parts[4];
-      final ts = _parseInt(parts[5], base36: true);
 
       if (sid == null) {
         return null;
@@ -232,19 +222,13 @@ class VoiceEnvelope {
       }
       if (total == null || total < 1 || total > 255) return null;
       if (durS == null || durS < 0 || durS > 10 * 60) return null;
-      if (!RegExp(r'^[0-9a-fA-F]{12}$').hasMatch(senderKey6)) {
-        return null;
-      }
-      if (ts == null || ts <= 0) return null;
 
       return VoiceEnvelope(
         sessionId: sid,
         mode: VoicePacketMode.fromId(mode),
         total: total,
         durationMs: durS * 1000,
-        senderKey6: senderKey6.toLowerCase(),
-        timestampSec: ts,
-        version: 2,
+        version: 3,
       );
     } catch (_) {
       return null;
@@ -253,7 +237,7 @@ class VoiceEnvelope {
 
   String encodeText() {
     final durationSec = (durationMs / 1000).ceil().clamp(0, 10 * 60);
-    return '$_prefix${_encodeSessionId(sessionId)}:${_toBase36(mode.id)}:${_toBase36(total)}:${_toBase36(durationSec)}:${senderKey6.toLowerCase()}:${_toBase36(timestampSec)}';
+    return '$_prefix${_encodeSessionId(sessionId)}:${_toBase36(mode.id)}:${_toBase36(total)}:${_toBase36(durationSec)}';
   }
 }
 
@@ -414,18 +398,17 @@ int _resolveBandwidthHz(int? rawBw) {
 /// Direct control-plane request to fetch voice packets for a session.
 ///
 /// Text format:
-///   VR2:{sid}:{want}:{requesterKey6}:{ts}
+///   VR3:{sid}:{want}:{requesterKey6}
 /// Example:
-///   VR2:00112233:a:aabbccddeeff:kf12oi
+///   VR3:00112233:a:aabbccddeeff
 class VoiceFetchRequest {
-  static const String _prefix = 'VR2:';
+  static const String _prefix = 'VR3:';
   static const int _binaryMagic = 0x72; // 'r'
 
   final String sessionId;
   final String want;
   final List<int> missingIndices;
   final String requesterKey6;
-  final int timestampSec;
   final int version;
 
   const VoiceFetchRequest({
@@ -433,8 +416,7 @@ class VoiceFetchRequest {
     this.want = 'all',
     this.missingIndices = const [],
     required this.requesterKey6,
-    required this.timestampSec,
-    this.version = 2,
+    this.version = 3,
   });
 
   static bool isVoiceFetchRequestText(String text) =>
@@ -450,7 +432,7 @@ class VoiceFetchRequest {
 
   static VoiceFetchRequest? tryParseBinary(Uint8List payload) {
     if (!isVoiceFetchRequestBinary(payload)) return null;
-    if (payload.length < 17) return null; // magic+sid+flags+key6+ts+count
+    if (payload.length < 13) return null; // magic+sid+flags+key6+count
     try {
       final sidBytes = payload.sublist(1, 5);
       final sid = sidBytes
@@ -463,25 +445,19 @@ class VoiceFetchRequest {
           .map((b) => b.toRadixString(16).padLeft(2, '0'))
           .join()
           .toLowerCase();
-      final ts =
-          (payload[12] << 24) |
-          (payload[13] << 16) |
-          (payload[14] << 8) |
-          payload[15];
-      final missingCount = payload[16];
-      if (payload.length != 17 + missingCount) return null;
+      final missingCount = payload[12];
+      if (payload.length != 13 + missingCount) return null;
       final wantMissing = (flags & 0x01) == 0x01;
       final missing = <int>[];
       for (var i = 0; i < missingCount; i++) {
-        missing.add(payload[17 + i]);
+        missing.add(payload[13 + i]);
       }
       return VoiceFetchRequest(
         sessionId: sid,
         want: wantMissing ? 'missing' : 'all',
         missingIndices: missing,
         requesterKey6: requesterKey6,
-        timestampSec: ts,
-        version: 2,
+        version: 3,
       );
     } catch (_) {
       return null;
@@ -490,12 +466,11 @@ class VoiceFetchRequest {
 
   static VoiceFetchRequest? _tryParse(String body) {
     final parts = body.split(':');
-    if (parts.length != 4) return null;
+    if (parts.length != 3) return null;
     try {
       final sid = _decodeSessionId(parts[0]);
       final wantToken = parts[1];
       final requesterKey6 = parts[2];
-      final ts = _parseInt(parts[3], base36: true);
       final normalizedWant = wantToken == 'a'
           ? 'all'
           : ((wantToken.startsWith('m'))
@@ -517,15 +492,13 @@ class VoiceFetchRequest {
       if (!RegExp(r'^[0-9a-fA-F]{12}$').hasMatch(requesterKey6)) {
         return null;
       }
-      if (ts == null || ts <= 0) return null;
 
       return VoiceFetchRequest(
         sessionId: sid,
         want: normalizedWant,
         missingIndices: missingIndices,
         requesterKey6: requesterKey6.toLowerCase(),
-        timestampSec: ts,
-        version: 2,
+        version: 3,
       );
     } catch (_) {
       return null;
@@ -536,7 +509,7 @@ class VoiceFetchRequest {
     final wantToken = want == 'missing' && missingIndices.isNotEmpty
         ? 'm${_encodeMissingIndicesCompact(missingIndices)}'
         : (want == 'all' ? 'a' : want);
-    return '$_prefix${_encodeSessionId(sessionId)}:$wantToken:${requesterKey6.toLowerCase()}:${_toBase36(timestampSec)}';
+    return '$_prefix${_encodeSessionId(sessionId)}:$wantToken:${requesterKey6.toLowerCase()}';
   }
 
   Uint8List encodeBinary() {
@@ -555,7 +528,7 @@ class VoiceFetchRequest {
         ? missingIndices.where((v) => v >= 0 && v <= 254).toList()
         : <int>[];
 
-    final out = Uint8List(17 + missing.length);
+    final out = Uint8List(13 + missing.length);
     out[0] = _binaryMagic;
     for (var i = 0; i < 4; i++) {
       out[1 + i] = int.parse(sessionId.substring(i * 2, i * 2 + 2), radix: 16);
@@ -567,13 +540,9 @@ class VoiceFetchRequest {
         radix: 16,
       );
     }
-    out[12] = (timestampSec >> 24) & 0xFF;
-    out[13] = (timestampSec >> 16) & 0xFF;
-    out[14] = (timestampSec >> 8) & 0xFF;
-    out[15] = timestampSec & 0xFF;
-    out[16] = missing.length;
+    out[12] = missing.length;
     for (var i = 0; i < missing.length; i++) {
-      out[17 + i] = missing[i];
+      out[13 + i] = missing[i];
     }
     return out;
   }

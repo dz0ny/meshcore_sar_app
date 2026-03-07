@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math' as math;
 
 import '../../models/message.dart';
 import '../../models/contact.dart';
@@ -55,8 +54,8 @@ class MessageRetryManager {
 
     final payloadBytes = utf8.encode(text).length;
     final airtimeMs = _estimateLoRaAirtimeMs(payloadBytes);
-    final hopCount = contact?.hasPath == true
-        ? math.max(contact!.outPathLen, 0)
+    final hopCount = contact?.routeHasPath == true
+        ? contact!.routeHopCount
         : -1;
 
     if (hopCount < 0) {
@@ -87,7 +86,7 @@ class MessageRetryManager {
 
     // Only retry if contact has a learned path
     // If no path, the device uses flood mode automatically - retrying won't help
-    return contact.hasPath;
+    return contact.routeHasPath;
   }
 
   /// Check if should fall back to flood mode
@@ -101,7 +100,7 @@ class MessageRetryManager {
   /// Contacts without paths already use flood mode automatically.
   bool shouldUseFloodFallback(Message message, Contact contact) {
     return message.retryAttempt >= 3 &&
-        contact.hasPath && // ✅ FIXED: Flood fallback for failed direct paths
+        contact.routeHasPath &&
         !message.usedFloodFallback;
   }
 
