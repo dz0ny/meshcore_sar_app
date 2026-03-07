@@ -11,7 +11,6 @@ import 'voice_provider.dart';
 import 'image_provider.dart' as ip;
 import 'helpers/fragment_ack_wait_registry.dart';
 import 'helpers/session_metadata_restore.dart';
-import '../services/tile_cache_service.dart';
 import '../services/location_tracking_service.dart';
 import '../services/packet_capture_storage_service.dart';
 import '../models/contact.dart';
@@ -24,6 +23,7 @@ import '../utils/voice_message_parser.dart';
 import '../utils/image_message_parser.dart';
 import '../utils/media_swarm_protocol.dart';
 import '../utils/message_airtime_estimator.dart';
+import '../utils/fast_gps_packet.dart';
 
 /// Main App Provider - coordinates all other providers
 class AppProvider with ChangeNotifier {
@@ -35,7 +35,6 @@ class AppProvider with ChangeNotifier {
   final ChannelsProvider channelsProvider;
   final VoiceProvider voiceProvider;
   final ip.ImageProvider imageProvider;
-  final TileCacheService tileCacheService;
   final LocationTrackingService locationTrackingService =
       LocationTrackingService();
   final PacketCaptureStorageService packetCaptureStorageService =
@@ -79,6 +78,7 @@ class AppProvider with ChangeNotifier {
   final Map<String, Future<bool>> _pendingMediaSwarmFetches = {};
   final Map<String, Map<String, MediaSwarmAvailability>>
   _pendingMediaSwarmResponses = {};
+  bool _fastLocationScreenActive = false;
   Timer? _packetCaptureFlushTimer;
   String? _lastPersistedPacketSignature;
   bool _isPersistingPacketCapture = false;
@@ -91,10 +91,8 @@ class AppProvider with ChangeNotifier {
     required this.channelsProvider,
     required this.voiceProvider,
     required this.imageProvider,
-    required this.tileCacheService,
   }) {
     _setupCallbacks();
-    _initializeTileCache();
     _initializeLocationTracking();
     _loadSimpleMode();
     _loadMapEnabled();
@@ -436,16 +434,6 @@ class AppProvider with ChangeNotifier {
     }
   }
 
-  /// Initialize tile cache service
-  Future<void> _initializeTileCache() async {
-    try {
-      await tileCacheService.initialize();
-      debugPrint('Tile cache initialized');
-    } catch (e) {
-      debugPrint('Error initializing tile cache: $e');
-    }
-  }
-
   /// Initialize location tracking service
   Future<void> _initializeLocationTracking() async {
     try {
@@ -471,6 +459,10 @@ class AppProvider with ChangeNotifier {
         debugPrint(
           '🔄 [AppProvider] Location tracking state: ${isTracking ? "started" : "stopped"}',
         );
+      };
+
+      locationTrackingService.onFastLocationUpdate = (position, reason) {
+        unawaited(_sendFastLocationUpdate(position, reason: reason));
       };
 
       debugPrint('✅ [AppProvider] Location tracking service initialized');
@@ -836,6 +828,18 @@ class AppProvider with ChangeNotifier {
     // Magic 0x69 'i' = image fetch request; 0x56 'V' = voice packet.
     // Magic 0x49 'I' = image packet.
     connectionProvider.onRawDataReceived = (payload, snrRaw, rssiDbm) {
+      final fastGpsPacket = FastGpsPacket.tryParseBinary(payload);
+      if (fastGpsPacket != null) {
+        final sender = _resolveContactByPrefixHex(fastGpsPacket.senderKey6);
+        if (sender != null) {
+          contactsProvider.updateFastGps(
+            sender.publicKey.sublist(0, 6),
+            fastGpsPacket,
+          );
+        }
+        return;
+      }
+
       final rawProbeRequest = RawRouteProbeRequest.tryParseBinary(payload);
       if (rawProbeRequest != null) {
         debugPrint(
@@ -1380,6 +1384,46 @@ class AppProvider with ChangeNotifier {
   Contact? _resolveContactByPrefixHex(String prefixHex) {
     if (prefixHex.length != 12) return null;
     return contactsProvider.findContactByPrefixHex(prefixHex.toLowerCase());
+  }
+
+  void setFastLocationUiActive(bool isActive) {
+    if (_fastLocationScreenActive == isActive) return;
+    _fastLocationScreenActive = isActive;
+    locationTrackingService.setFastLocationActiveUse(isActive);
+  }
+
+  Future<void> _sendFastLocationUpdate(
+    dynamic position, {
+    required String reason,
+  }) async {
+    if (!connectionProvider.deviceInfo.isConnected) {
+      return;
+    }
+
+    final publicKey = connectionProvider.deviceInfo.publicKey;
+    if (publicKey == null || publicKey.length < 6) {
+      return;
+    }
+
+    final senderKey6 = publicKey
+        .sublist(0, 6)
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
+    final packet = FastGpsPacket(
+      senderKey6: senderKey6,
+      latitude: position.latitude as double,
+      longitude: position.longitude as double,
+      timestampSeconds: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
+    debugPrint(
+      '📍 [AppProvider] Sending fast GPS update ($reason): '
+      '${position.latitude}, ${position.longitude}',
+    );
+    try {
+      await connectionProvider.sendRawPrivateMulticast(packet.encodeBinary());
+    } catch (e) {
+      debugPrint('⚠️ [AppProvider] Fast GPS send failed: $e');
+    }
   }
 
   Contact? _resolveVoiceFetchRequester(VoiceFetchRequest request) {
@@ -2294,6 +2338,7 @@ class AppProvider with ChangeNotifier {
     locationTrackingService.onBroadcastSent = null;
     locationTrackingService.onError = null;
     locationTrackingService.onTrackingStateChanged = null;
+    locationTrackingService.onFastLocationUpdate = null;
     // Dispose the location tracking service to stop GPS stream and clean up resources
     locationTrackingService.dispose();
     for (final timer in _voiceMissingRetryTimers.values) {

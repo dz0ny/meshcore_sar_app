@@ -67,6 +67,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Uint8List? _previewCompressedBytes;
   bool _isPreviewLoading = false;
   bool _showCurrentImagePreview = true;
+  bool _fastLocationUpdatesEnabled = false;
+  double _fastLocationMovementThresholdMeters = 10.0;
+  int _fastLocationActiveCadenceSeconds = 10;
   final ImagePicker _imagePicker = ImagePicker();
   final LocationTrackingService _locationService = LocationTrackingService();
 
@@ -81,6 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadVoiceBitratePreference();
     _loadRouteHashSizePreference();
     _loadImagePreferences();
+    _loadFastLocationSettings();
   }
 
   @override
@@ -167,6 +171,108 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _imageUltraMode = ultraMode;
     });
     await _refreshImageModePreview();
+  }
+
+  Future<void> _loadFastLocationSettings() async {
+    await _locationService.loadSettings();
+    if (!mounted) return;
+    setState(() {
+      _fastLocationUpdatesEnabled = _locationService.fastLocationUpdatesEnabled;
+      _fastLocationMovementThresholdMeters =
+          _locationService.fastLocationMovementThresholdMeters;
+      _fastLocationActiveCadenceSeconds =
+          _locationService.fastLocationActiveCadenceSeconds;
+    });
+  }
+
+  Future<void> _setFastLocationUpdatesEnabled(bool enabled) async {
+    await _locationService.setFastLocationUpdatesEnabled(enabled);
+    if (!mounted) return;
+    setState(() {
+      _fastLocationUpdatesEnabled = _locationService.fastLocationUpdatesEnabled;
+    });
+  }
+
+  Future<void> _editFastLocationMovementThreshold() async {
+    final controller = TextEditingController(
+      text: _fastLocationMovementThresholdMeters.toStringAsFixed(0),
+    );
+    final value = await showDialog<double>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Fast GPS movement threshold'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'Meters',
+            helperText: 'Valid range: 1 to 1000 meters',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              final parsed = double.tryParse(controller.text.trim());
+              if (parsed == null) return;
+              Navigator.pop(context, parsed.clamp(1.0, 1000.0));
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (value == null) return;
+    await _locationService.updateFastLocationMovementThreshold(value);
+    if (!mounted) return;
+    setState(() {
+      _fastLocationMovementThresholdMeters =
+          _locationService.fastLocationMovementThresholdMeters;
+    });
+  }
+
+  Future<void> _editFastLocationActiveCadence() async {
+    final controller = TextEditingController(
+      text: _fastLocationActiveCadenceSeconds.toString(),
+    );
+    final value = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Fast GPS active-use interval'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Seconds',
+            helperText: 'Valid range: 5 to 60 seconds',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              final parsed = int.tryParse(controller.text.trim());
+              if (parsed == null) return;
+              Navigator.pop(context, parsed.clamp(5, 60));
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (value == null) return;
+    await _locationService.updateFastLocationActiveCadenceSeconds(value);
+    if (!mounted) return;
+    setState(() {
+      _fastLocationActiveCadenceSeconds =
+          _locationService.fastLocationActiveCadenceSeconds;
+    });
   }
 
   Future<void> _saveImageMaxSize(int size) async {
@@ -1018,6 +1124,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           _buildSectionHeader(AppLocalizations.of(context)!.permissionsSection),
           _buildSettingsCard([
+            SwitchListTile(
+              secondary: const Icon(Icons.gps_fixed),
+              title: const Text('Fast private GPS updates'),
+              subtitle: const Text(
+                'Use private zero-hop updates while moving significantly or while actively using map/messages.',
+              ),
+              value: _fastLocationUpdatesEnabled,
+              onChanged: _setFastLocationUpdatesEnabled,
+            ),
+            ListTile(
+              leading: const Icon(Icons.straighten),
+              title: const Text('Movement threshold'),
+              subtitle: Text(
+                '${_fastLocationMovementThresholdMeters.toStringAsFixed(0)} m',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _editFastLocationMovementThreshold,
+            ),
+            ListTile(
+              leading: const Icon(Icons.timer),
+              title: const Text('Active-use update interval'),
+              subtitle: Text('$_fastLocationActiveCadenceSeconds s'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _editFastLocationActiveCadence,
+            ),
             ListTile(
               leading: const Icon(Icons.location_on),
               title: Text(AppLocalizations.of(context)!.locationPermission),

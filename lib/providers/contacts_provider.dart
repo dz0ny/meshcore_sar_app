@@ -4,6 +4,7 @@ import '../models/contact.dart';
 import '../models/message_contact_location.dart';
 import '../services/cayenne_lpp_parser.dart';
 import '../services/contact_storage_service.dart';
+import '../utils/fast_gps_packet.dart';
 import '../utils/key_comparison.dart';
 
 class PendingAdvert {
@@ -462,6 +463,42 @@ class ContactsProvider with ChangeNotifier {
       debugPrint('  ❌ Failed to parse telemetry: $e');
       debugPrint('Failed to parse telemetry: $e');
     }
+  }
+
+  void updateFastGps(Uint8List publicKeyPrefix, FastGpsPacket packet) {
+    final contact = _findContactByPrefix(publicKeyPrefix);
+    if (contact == null) {
+      debugPrint(
+        '⚠️ [ContactsProvider] Fast GPS sender not found: ${packet.senderKey6}',
+      );
+      return;
+    }
+
+    final updatedTelemetry = _mergeTelemetryForContact(
+      existingTelemetry: contact.telemetry,
+      incomingTelemetry: ContactTelemetry(
+        gpsLocation: LatLng(packet.latitude, packet.longitude),
+        batteryPercentage: null,
+        batteryMilliVolts: null,
+        temperature: null,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(
+          packet.timestampSeconds * 1000,
+        ),
+        humidity: null,
+        pressure: null,
+        extraSensorData: null,
+      ),
+    );
+
+    final updatedContact = contact.copyWith(
+      telemetry: updatedTelemetry,
+      lastAdvert: packet.timestampSeconds,
+      advLat: _coordinateToAdvertMicrodegrees(packet.latitude),
+      advLon: _coordinateToAdvertMicrodegrees(packet.longitude),
+    );
+    _contacts[contact.publicKeyHex] = updatedContact;
+    _persistContacts();
+    notifyListeners();
   }
 
   bool _isInvalidTelemetryGps(LatLng? location) {

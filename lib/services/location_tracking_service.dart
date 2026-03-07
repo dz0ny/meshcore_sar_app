@@ -41,6 +41,12 @@ class LocationTrackingService {
   static const String _prefKeyGpsUpdateDistance = 'map_gps_update_distance';
   static const String _prefKeyLastLat = 'background_last_lat';
   static const String _prefKeyLastLon = 'background_last_lon';
+  static const String _prefKeyFastLocationEnabled =
+      'fast_location_updates_enabled';
+  static const String _prefKeyFastMovementThreshold =
+      'fast_location_movement_threshold_meters';
+  static const String _prefKeyFastActiveCadence =
+      'fast_location_active_cadence_seconds';
 
   // ============================================================================
   // Configuration Properties
@@ -57,6 +63,15 @@ class LocationTrackingService {
 
   /// GPS update distance filter for position stream
   double gpsUpdateDistance = 10.0;
+
+  /// Whether private fast GPS updates are enabled
+  bool fastLocationUpdatesEnabled = false;
+
+  /// Distance threshold for fast GPS updates
+  double fastLocationMovementThresholdMeters = 10.0;
+
+  /// Cadence for active-use fast GPS updates
+  int fastLocationActiveCadenceSeconds = 10;
 
   // ============================================================================
   // State Properties
@@ -84,6 +99,11 @@ class LocationTrackingService {
   /// Position stream subscription
   StreamSubscription<Position>? _positionSubscription;
 
+  Timer? _fastLocationTimer;
+  bool _isFastLocationActiveUse = false;
+  DateTime? _lastFastLocationSentAt;
+  Position? _lastFastLocationSentPosition;
+
   // ============================================================================
   // Callback Properties
   // ============================================================================
@@ -99,6 +119,9 @@ class LocationTrackingService {
 
   /// Called when tracking state changes
   void Function(bool isTracking)? onTrackingStateChanged;
+
+  /// Called when a fast private GPS update should be sent
+  void Function(Position position, String reason)? onFastLocationUpdate;
 
   // ============================================================================
   // Initialization
@@ -178,7 +201,9 @@ class LocationTrackingService {
     for (int attempt = 0; attempt <= retryCount; attempt++) {
       try {
         if (attempt > 0) {
-          debugPrint('🔄 [LocationTracking] Retry attempt $attempt/$retryCount');
+          debugPrint(
+            '🔄 [LocationTracking] Retry attempt $attempt/$retryCount',
+          );
           // Exponential backoff: wait 2^attempt seconds before retry
           await Future.delayed(Duration(seconds: 1 << attempt));
         }
@@ -192,21 +217,29 @@ class LocationTrackingService {
 
         currentPosition = position;
         if (attempt > 0) {
-          debugPrint('✅ [LocationTracking] Position acquired after $attempt retries');
+          debugPrint(
+            '✅ [LocationTracking] Position acquired after $attempt retries',
+          );
         }
         return position;
       } catch (e) {
         final isLastAttempt = attempt == retryCount;
         if (isLastAttempt) {
-          debugPrint('❌ [LocationTracking] Failed to get position after $retryCount retries: $e');
+          debugPrint(
+            '❌ [LocationTracking] Failed to get position after $retryCount retries: $e',
+          );
           // Only call error callback on final failure, and make it user-friendly
           if (e.toString().contains('TimeoutException')) {
-            onError?.call('GPS signal weak. Position stream will continue trying...');
+            onError?.call(
+              'GPS signal weak. Position stream will continue trying...',
+            );
           } else {
             onError?.call('Failed to get GPS position. Check device settings.');
           }
         } else {
-          debugPrint('⚠️ [LocationTracking] Position attempt $attempt failed: $e');
+          debugPrint(
+            '⚠️ [LocationTracking] Position attempt $attempt failed: $e',
+          );
         }
 
         if (isLastAttempt) {
@@ -244,16 +277,16 @@ class LocationTrackingService {
   /// GPS tracking works WITHOUT BLE connection - device broadcasts are simply skipped.
   Future<bool> startTracking({double? distanceThreshold}) async {
     if (!_isInitialized) {
-      debugPrint(
-        '⚠️ [LocationTracking] Service not initialized',
-      );
+      debugPrint('⚠️ [LocationTracking] Service not initialized');
       onError?.call('Location tracking service not initialized');
       return false;
     }
 
     // Allow tracking without BLE connection - broadcasts will be skipped
     if (_bleService == null || !_bleService!.isConnected) {
-      debugPrint('ℹ️ [LocationTracking] Starting GPS tracking without BLE connection (broadcasts disabled)');
+      debugPrint(
+        'ℹ️ [LocationTracking] Starting GPS tracking without BLE connection (broadcasts disabled)',
+      );
     }
 
     // Check permissions
@@ -271,17 +304,20 @@ class LocationTrackingService {
 
     // Try to get initial position in background (non-blocking)
     // This will populate currentPosition but won't block tracking startup
-    getCurrentPosition(
-      timeLimit: const Duration(seconds: 10),
-      retryCount: 1,
-    ).then((position) {
-      if (position != null) {
-        debugPrint('✅ [LocationTracking] Initial position acquired in background');
-      }
-    }).catchError((error) {
-      debugPrint('⚠️ [LocationTracking] Background initial position failed: $error');
-      // Not critical - position stream will eventually provide position
-    });
+    getCurrentPosition(timeLimit: const Duration(seconds: 10), retryCount: 1)
+        .then((position) {
+          if (position != null) {
+            debugPrint(
+              '✅ [LocationTracking] Initial position acquired in background',
+            );
+          }
+        })
+        .catchError((error) {
+          debugPrint(
+            '⚠️ [LocationTracking] Background initial position failed: $error',
+          );
+          // Not critical - position stream will eventually provide position
+        });
 
     // Start position stream immediately (don't wait for initial position)
     try {
@@ -296,6 +332,7 @@ class LocationTrackingService {
 
       isTracking = true;
       onTrackingStateChanged?.call(true);
+      _refreshFastLocationTimer();
 
       debugPrint(
         '✅ [LocationTracking] Tracking started with ${threshold}m threshold',
@@ -318,6 +355,7 @@ class LocationTrackingService {
 
     isTracking = false;
     onTrackingStateChanged?.call(false);
+    _refreshFastLocationTimer();
 
     // Reset first position flag so next connection starts fresh
     _firstPositionSet = false;
@@ -361,6 +399,8 @@ class LocationTrackingService {
     // Notify listeners
     onPositionUpdate?.call(position);
 
+    _evaluateFastLocationMovement(position);
+
     // SPECIAL CASE: First stable position after connection
     // Set lat/lon on device WITHOUT broadcasting to mesh network
     if (!_firstPositionSet) {
@@ -378,12 +418,16 @@ class LocationTrackingService {
   /// Updates the device's advertised lat/lon but does NOT send an advertisement.
   void _setInitialPosition(Position position) async {
     if (_bleService == null || !_bleService!.isConnected) {
-      debugPrint('⚠️ [LocationTracking] Cannot set initial position: BLE not connected');
+      debugPrint(
+        '⚠️ [LocationTracking] Cannot set initial position: BLE not connected',
+      );
       return;
     }
 
     try {
-      debugPrint('📍 [LocationTracking] Setting initial position (no broadcast)');
+      debugPrint(
+        '📍 [LocationTracking] Setting initial position (no broadcast)',
+      );
 
       // Update device's advertised location WITHOUT sending advertisement
       await _bleService!.setAdvertLatLon(
@@ -414,7 +458,94 @@ class LocationTrackingService {
   void _checkAndBroadcast(Position position) {
     // Automatic broadcasting disabled
     // Use the manual advert button instead
-    debugPrint('   ⏸️ [LocationTracking] Automatic broadcasting disabled (use advert button)');
+    debugPrint(
+      '   ⏸️ [LocationTracking] Automatic broadcasting disabled (use advert button)',
+    );
+  }
+
+  void setFastLocationActiveUse(bool isActive) {
+    if (_isFastLocationActiveUse == isActive) return;
+    _isFastLocationActiveUse = isActive;
+    _refreshFastLocationTimer();
+  }
+
+  Future<void> setFastLocationUpdatesEnabled(bool enabled) async {
+    fastLocationUpdatesEnabled = enabled;
+    await saveSettings();
+    _refreshFastLocationTimer();
+  }
+
+  Future<void> updateFastLocationMovementThreshold(double meters) async {
+    fastLocationMovementThresholdMeters = meters.clamp(1.0, 1000.0);
+    await saveSettings();
+  }
+
+  Future<void> updateFastLocationActiveCadenceSeconds(int seconds) async {
+    fastLocationActiveCadenceSeconds = seconds.clamp(5, 60);
+    await saveSettings();
+    _refreshFastLocationTimer();
+  }
+
+  void _evaluateFastLocationMovement(Position position) {
+    if (!fastLocationUpdatesEnabled) return;
+    final previous = _lastFastLocationSentPosition;
+    if (previous == null) {
+      _emitFastLocationUpdate(position, reason: 'initial');
+      return;
+    }
+
+    final distance = Geolocator.distanceBetween(
+      previous.latitude,
+      previous.longitude,
+      position.latitude,
+      position.longitude,
+    );
+    if (distance >= fastLocationMovementThresholdMeters) {
+      _emitFastLocationUpdate(position, reason: 'movement');
+    }
+  }
+
+  void _refreshFastLocationTimer() {
+    _fastLocationTimer?.cancel();
+    _fastLocationTimer = null;
+    if (!isTracking ||
+        !fastLocationUpdatesEnabled ||
+        !_isFastLocationActiveUse) {
+      return;
+    }
+
+    _fastLocationTimer = Timer.periodic(
+      Duration(seconds: fastLocationActiveCadenceSeconds),
+      (_) {
+        final position = currentPosition;
+        if (position == null) return;
+        _emitFastLocationUpdate(position, reason: 'active_use');
+      },
+    );
+  }
+
+  void _emitFastLocationUpdate(Position position, {required String reason}) {
+    if (!fastLocationUpdatesEnabled) return;
+
+    final now = DateTime.now();
+    final previous = _lastFastLocationSentPosition;
+    final previousTime = _lastFastLocationSentAt;
+    if (previous != null && previousTime != null) {
+      final distance = Geolocator.distanceBetween(
+        previous.latitude,
+        previous.longitude,
+        position.latitude,
+        position.longitude,
+      );
+      final elapsedMs = now.difference(previousTime).inMilliseconds;
+      if (distance < 1.0 && elapsedMs < 3000) {
+        return;
+      }
+    }
+
+    _lastFastLocationSentPosition = position;
+    _lastFastLocationSentAt = now;
+    onFastLocationUpdate?.call(position, reason);
   }
 
   // ============================================================================
@@ -457,7 +588,9 @@ class LocationTrackingService {
       await _bleService!.sendSelfAdvert(floodMode: true);
 
       debugPrint('✅ [LocationTracking] Manual broadcast successful');
-      debugPrint('   Automatic broadcasts will resume after ${minTimeIntervalSeconds}s');
+      debugPrint(
+        '   Automatic broadcasts will resume after ${minTimeIntervalSeconds}s',
+      );
       onBroadcastSent?.call(position);
 
       return true;
@@ -480,12 +613,24 @@ class LocationTrackingService {
     maxDistanceMeters = prefs.getDouble(_prefKeyMaxDistance) ?? 100.0;
     minTimeIntervalSeconds = prefs.getInt(_prefKeyMinTimeInterval) ?? 30;
     gpsUpdateDistance = prefs.getDouble(_prefKeyGpsUpdateDistance) ?? 10.0;
+    fastLocationUpdatesEnabled =
+        prefs.getBool(_prefKeyFastLocationEnabled) ?? false;
+    fastLocationMovementThresholdMeters =
+        (prefs.getDouble(_prefKeyFastMovementThreshold) ?? gpsUpdateDistance)
+            .clamp(1.0, 1000.0);
+    fastLocationActiveCadenceSeconds =
+        (prefs.getInt(_prefKeyFastActiveCadence) ?? 10).clamp(5, 60);
 
     debugPrint('✅ [LocationTracking] Settings loaded');
     debugPrint('    Min distance: ${minDistanceMeters}m');
     debugPrint('    Max distance: ${maxDistanceMeters}m');
     debugPrint('    Min time interval: ${minTimeIntervalSeconds}s');
     debugPrint('    GPS update distance: ${gpsUpdateDistance}m');
+    debugPrint('    Fast updates enabled: $fastLocationUpdatesEnabled');
+    debugPrint(
+      '    Fast movement threshold: ${fastLocationMovementThresholdMeters}m',
+    );
+    debugPrint('    Fast active cadence: ${fastLocationActiveCadenceSeconds}s');
   }
 
   /// Save settings to SharedPreferences
@@ -497,6 +642,18 @@ class LocationTrackingService {
     await prefs.setInt(_prefKeyMinTimeInterval, minTimeIntervalSeconds);
     await prefs.setDouble(_prefKeyGpsUpdateDistance, gpsUpdateDistance);
     await prefs.setBool(_prefKeyEnabled, isTracking);
+    await prefs.setBool(
+      _prefKeyFastLocationEnabled,
+      fastLocationUpdatesEnabled,
+    );
+    await prefs.setDouble(
+      _prefKeyFastMovementThreshold,
+      fastLocationMovementThresholdMeters,
+    );
+    await prefs.setInt(
+      _prefKeyFastActiveCadence,
+      fastLocationActiveCadenceSeconds,
+    );
 
     debugPrint('✅ [LocationTracking] Settings saved');
   }
@@ -509,6 +666,7 @@ class LocationTrackingService {
   void dispose() {
     debugPrint('🗑️ [LocationTracking] Disposing service');
     _positionSubscription?.cancel();
+    _fastLocationTimer?.cancel();
     _positionSubscription = null;
     _bleService = null;
     _isInitialized = false;

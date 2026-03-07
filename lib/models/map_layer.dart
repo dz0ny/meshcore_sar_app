@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../l10n/app_localizations.dart';
@@ -10,6 +9,7 @@ enum MapLayerType {
   googleHybrid,
   googleRoadmap,
   googleTerrain,
+  // Kept for stored preference compatibility after MBTiles removal.
   vectorMbtiles,
   wmsBase,
 }
@@ -20,13 +20,6 @@ class MapLayer {
   final String urlTemplate;
   final String attribution;
   final double maxZoom;
-
-  // Vector tile specific properties
-  final bool isVector;
-  final File? mbtilesFile;
-  final String? styleUrl;
-  final String? sourceName;
-  final bool? isGzipped;
 
   // WMS specific properties
   final bool isWms;
@@ -43,11 +36,6 @@ class MapLayer {
     required this.urlTemplate,
     required this.attribution,
     required this.maxZoom,
-    this.isVector = false,
-    this.mbtilesFile,
-    this.styleUrl,
-    this.sourceName,
-    this.isGzipped,
     this.isWms = false,
     this.wmsBaseUrl,
     this.wmsLayers,
@@ -74,7 +62,7 @@ class MapLayer {
       case MapLayerType.googleTerrain:
         return localizations.googleTerrain;
       case MapLayerType.vectorMbtiles:
-        // For vector tiles, use the name from metadata
+        // Legacy value kept only for preference migration compatibility.
         return name;
       case MapLayerType.wmsBase:
         // For WMS layers, use the name (will be localized separately)
@@ -181,29 +169,5 @@ class MapLayer {
 
   static MapLayer fromType(MapLayerType type) {
     return allLayers.firstWhere((layer) => layer.type == type);
-  }
-
-  /// Create a MapLayer from an MBTiles file
-  static MapLayer fromMbtilesFile({
-    required String name,
-    required File mbtilesFile,
-    required String styleUrl,
-    required String sourceName,
-    required double maxZoom,
-    required bool isGzipped,
-    String? attribution,
-  }) {
-    return MapLayer(
-      type: MapLayerType.vectorMbtiles,
-      name: name,
-      urlTemplate: '', // Not used for vector tiles
-      attribution: attribution ?? 'MBTiles',
-      maxZoom: maxZoom,
-      isVector: true,
-      mbtilesFile: mbtilesFile,
-      styleUrl: styleUrl,
-      sourceName: sourceName,
-      isGzipped: isGzipped,
-    );
   }
 }

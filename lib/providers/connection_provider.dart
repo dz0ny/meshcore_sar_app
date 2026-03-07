@@ -1290,6 +1290,19 @@ class ConnectionProvider with ChangeNotifier {
     );
   }
 
+  /// Send a raw private zero-hop payload.
+  ///
+  /// This wraps the raw custom transport using an empty path to match the
+  /// firmware's private multicast behavior.
+  Future<void> sendRawPrivateMulticast(Uint8List payload) async {
+    if (!_activeService.isConnected) return;
+    await _activeService.sendRawVoicePacket(
+      contactPathLen: 0,
+      contactPath: Uint8List(0),
+      payload: payload,
+    );
+  }
+
   /// Request telemetry from contact
   ///
   /// COMPATIBILITY NOTE: This method sends CMD_SEND_TELEMETRY_REQ (39).

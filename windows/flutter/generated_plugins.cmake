@@ -9,7 +9,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_blue_plus_winrt
   geolocator_windows
   nsd_windows
-  objectbox_flutter_libs
   permission_handler_windows
   record_windows
   share_plus

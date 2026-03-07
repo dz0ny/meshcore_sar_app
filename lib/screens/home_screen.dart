@@ -14,7 +14,6 @@ import 'messages_tab.dart';
 import 'contacts_tab.dart';
 import 'sensors_tab.dart';
 import 'map_tab.dart';
-import 'map_management_screen.dart';
 import 'settings_screen.dart';
 import 'device_config_screen.dart';
 import 'packet_log_screen.dart';
@@ -49,7 +48,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   late final AppProvider _appProvider;
   int _currentIndex = 0;
@@ -58,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isMapEnabled = true;
   bool _isContactsEnabled = true;
   bool _isSensorsEnabled = false;
+  AppLifecycleState _lifecycleState = AppLifecycleState.resumed;
 
   List<_HomeTab> get _enabledTabs {
     return [
@@ -79,6 +80,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _appProvider = context.read<AppProvider>();
     _isMapEnabled = _appProvider.isMapEnabled;
     _isContactsEnabled = _appProvider.isContactsEnabled;
@@ -184,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _handleTabActivated(_HomeTab tab) {
+    _syncFastLocationUiState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
@@ -202,6 +205,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  void _syncFastLocationUiState() {
+    final isActiveTab =
+        _currentTab == _HomeTab.map || _currentTab == _HomeTab.messages;
+    _appProvider.setFastLocationUiActive(
+      _lifecycleState == AppLifecycleState.resumed && isActiveTab,
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _lifecycleState = state;
+    _syncFastLocationUiState();
+  }
+
   Future<void> _loadRxTxPreference() async {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
@@ -213,6 +230,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _appProvider.setFastLocationUiActive(false);
     _appProvider.removeListener(_handleAppProviderChanged);
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
@@ -583,30 +602,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     PopupMenuItem(
                       child: Row(
                         children: [
-                          const Icon(Icons.map),
-                          const SizedBox(width: 8),
-                          Text(AppLocalizations.of(context)!.mapManagement),
-                        ],
-                      ),
-                      onTap: () {
-                        // Capture context-dependent objects before async gap
-                        final navigator = Navigator.of(context);
-                        final appProvider = context.read<AppProvider>();
-                        Future.delayed(Duration.zero, () {
-                          if (!mounted) return;
-                          navigator.push(
-                            MaterialPageRoute(
-                              builder: (context) => MapManagementScreen(
-                                tileCacheService: appProvider.tileCacheService,
-                              ),
-                            ),
-                          );
-                        });
-                      },
-                    ),
-                    PopupMenuItem(
-                      child: Row(
-                        children: [
                           const Icon(Icons.radar),
                           const SizedBox(width: 8),
                           const Text('Spectrum Scan'),
@@ -854,10 +849,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               Text(
                                 deviceInfo.selfName ??
                                     AppLocalizations.of(context)!.appTitle,
-                                style: (isTight
-                                        ? theme.textTheme.titleSmall
-                                        : theme.textTheme.titleMedium)
-                                    ?.copyWith(fontWeight: FontWeight.w700),
+                                style:
+                                    (isTight
+                                            ? theme.textTheme.titleSmall
+                                            : theme.textTheme.titleMedium)
+                                        ?.copyWith(fontWeight: FontWeight.w700),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
@@ -927,7 +923,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const DeviceConfigScreen(),
+                                builder: (context) =>
+                                    const DeviceConfigScreen(),
                               ),
                             );
                           },

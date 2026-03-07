@@ -17,7 +17,6 @@ import 'providers/app_provider.dart';
 import 'providers/sensors_provider.dart';
 import 'services/voice_codec_service.dart';
 import 'services/voice_player_service.dart';
-import 'services/tile_cache_service.dart';
 import 'services/notification_service.dart';
 import 'services/locale_preferences.dart';
 import 'services/update_checker_service.dart';
@@ -248,18 +247,14 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
         // Image provider (fragment reassembly + outgoing session cache)
         ChangeNotifierProvider(create: (_) => ip.ImageProvider()),
 
-        // Tile cache service
-        Provider(create: (_) => TileCacheService()),
-
         // App provider that coordinates everything
         // VoiceProvider is read via context.read inside create since it's already registered above
-        ChangeNotifierProxyProvider6<
+        ChangeNotifierProxyProvider5<
           ConnectionProvider,
           ContactsProvider,
           MessagesProvider,
           DrawingProvider,
           ChannelsProvider,
-          TileCacheService,
           AppProvider
         >(
           create: (context) => AppProvider(
@@ -270,7 +265,6 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
             channelsProvider: context.read<ChannelsProvider>(),
             voiceProvider: context.read<VoiceProvider>(),
             imageProvider: context.read<ip.ImageProvider>(),
-            tileCacheService: context.read<TileCacheService>(),
           ),
           update:
               (
@@ -280,7 +274,6 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
                 messages,
                 drawings,
                 channels,
-                tileCache,
                 previous,
               ) =>
                   previous ??
@@ -292,7 +285,6 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
                     channelsProvider: channels,
                     voiceProvider: context.read<VoiceProvider>(),
                     imageProvider: context.read<ip.ImageProvider>(),
-                    tileCacheService: tileCache,
                   ),
         ),
       ],

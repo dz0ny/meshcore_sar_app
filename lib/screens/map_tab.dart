@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
@@ -9,9 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vector_map_tiles/vector_map_tiles.dart';
-import 'package:vector_tile_renderer/vector_tile_renderer.dart' as vtr;
-import 'package:http/http.dart' as http;
 import '../utils/slovenian_crs.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/messages_provider.dart';
@@ -23,11 +19,9 @@ import '../models/contact.dart';
 import '../models/sar_marker.dart';
 import '../models/map_layer.dart';
 import '../models/message.dart';
-import '../services/tile_cache_service.dart';
 import '../services/background_location_service.dart';
 import '../services/location_tracking_service.dart';
 import '../services/map_marker_service.dart';
-import '../services/mbtiles_service.dart';
 import '../services/trail_color_service.dart';
 import '../widgets/map_debug_info.dart';
 import '../widgets/map/compass_widget.dart';
@@ -37,11 +31,9 @@ import '../widgets/map/drawing_toolbar.dart';
 import '../widgets/map/location_trail_layer.dart';
 import '../widgets/map/trail_controls.dart';
 import '../widgets/map/map_message_overlay.dart';
-import '../widgets/map/download_area_overlay.dart';
 import '../widgets/messages/sar_update_sheet.dart';
 import '../utils/key_comparison.dart';
 import '../l10n/app_localizations.dart';
-import 'map_management_screen.dart';
 
 class MapTab extends StatefulWidget {
   final Function(bool)? onFullscreenChanged;
@@ -59,11 +51,15 @@ class MapTab extends StatefulWidget {
 
 class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
-  late final TileCacheService _tileCache;
+  static final TileProvider _tileProvider = NetworkTileProvider(
+    cachingProvider: BuiltInMapCachingProvider.getOrCreateInstance(
+      maxCacheSize: 10_000_000_000,
+      overrideFreshAge: const Duration(days: 365),
+    ),
+  );
   // DO NOT create a new LocationTrackingService instance here
   // Use the singleton from AppProvider instead via _locationService getter
   final MapMarkerService _markerService = MapMarkerService();
-  bool _isInitialized = false;
   bool _isMapReady = false; // Track when map widget is actually rendered
   MapLayer _currentLayer = MapLayer.openStreetMap;
   double? _compassHeading; // Compass sensor heading
@@ -78,19 +74,12 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   bool _isDisposing = false; // Flag to prevent updates during disposal
   MapProvider? _mapProvider;
 
-  // MBTiles layers
-  List<MapLayer> _mbtilesLayers = [];
-
   // Store original location callback to restore in dispose
   void Function(Position)? _originalLocationCallback;
 
   // WMS layers (Slovenian)
   late final MapLayer _slovenianAerialLayer;
   late final MapLayer _dtk25Layer;
-
-  // Vector tile theme
-  vtr.Theme? _vectorTheme;
-  bool _isLoadingTheme = false;
 
   // Dropped pin state
   LatLng? _droppedPinLocation;
@@ -117,13 +106,11 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
-    _tileCache = context.read<TileCacheService>();
     // Initialize Slovenian WMS layers with CRS
     _slovenianAerialLayer = MapLayer.getSlovenianAerial2024(slovenianCrs);
     _dtk25Layer = MapLayer.getDTK25(slovenianCrs);
     _loadSettings();
-    _loadMbtilesLayers();
-    _initializeTileCache();
+    _markMapReadyWhenMounted();
     _setupLocationCallbacks();
     _startCompassTracking();
 
@@ -242,36 +229,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     });
   }
 
-  /// Load MBTiles layers from file system
-  Future<void> _loadMbtilesLayers() async {
-    try {
-      final mbtilesService = MbtilesService();
-      final metadata = await mbtilesService.getAllMetadata();
-
-      if (mounted) {
-        setState(() {
-          _mbtilesLayers = metadata.map((meta) {
-            // Determine if data is gzipped (for Geofabrik files)
-            final isGzipped = meta.format == 'pbf';
-
-            return MapLayer.fromMbtilesFile(
-              name: meta.name,
-              mbtilesFile: meta.file,
-              styleUrl: 'https://tiles.openfreemap.org/styles/bright',
-              sourceName: 'openmaptiles',
-              maxZoom: 20.0, // Override to 20 for overzooming
-              isGzipped: isGzipped,
-              attribution: meta.attribution,
-            );
-          }).toList();
-        });
-        debugPrint('Loaded ${_mbtilesLayers.length} MBTiles layers');
-      }
-    } catch (e) {
-      debugPrint('Error loading MBTiles layers: $e');
-    }
-  }
-
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
@@ -282,8 +239,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
       // Load last map layer
       final lastLayerType = prefs.getInt('map_last_layer_type');
-      final lastLayerName = prefs.getString('map_last_layer_name');
-
       setState(() {
         _rotateMarkerWithHeading =
             prefs.getBool('map_rotate_with_heading') ?? false;
@@ -304,17 +259,11 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           _savedMapZoom = lastZoom;
         }
 
-        // Restore last used map layer (by type and name for MBTiles)
+        // Restore last used map layer.
         if (lastLayerType != null) {
           final layerType = MapLayerType.values[lastLayerType];
-          if (layerType == MapLayerType.vectorMbtiles &&
-              lastLayerName != null) {
-            // Find MBTiles layer by name
-            final mbtilesLayer = _mbtilesLayers.firstWhere(
-              (layer) => layer.name == lastLayerName,
-              orElse: () => MapLayer.openStreetMap,
-            );
-            _currentLayer = mbtilesLayer;
+          if (layerType == MapLayerType.vectorMbtiles) {
+            _currentLayer = MapLayer.openStreetMap;
           } else if (layerType == MapLayerType.wmsBase) {
             // Use Slovenian aerial layer if that's what was saved
             _currentLayer = _slovenianAerialLayer;
@@ -347,11 +296,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
       _backgroundTrackingEnabled,
     );
 
-    // Save layer type and name (for MBTiles layers)
+    // Save layer type.
     await prefs.setInt('map_last_layer_type', _currentLayer.type.index);
-    if (_currentLayer.type == MapLayerType.vectorMbtiles) {
-      await prefs.setString('map_last_layer_name', _currentLayer.name);
-    }
+    await prefs.remove('map_last_layer_name');
   }
 
   Future<void> _saveMapPosition() async {
@@ -384,49 +331,17 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     }
   }
 
-  Future<void> _initializeTileCache() async {
-    try {
-      await _tileCache.initialize();
-      if (mounted) {
+  void _markMapReadyWhenMounted() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
         setState(() {
-          _isInitialized = true;
+          _isMapReady = true;
         });
-        // Wait for the map to render, then mark it as ready
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            // Give the map widget one more frame to fully initialize
-            Future.delayed(const Duration(milliseconds: 100), () {
-              if (mounted) {
-                setState(() {
-                  _isMapReady = true;
-                });
-                debugPrint('Map is now ready for controller operations');
-              }
-            });
-          }
-        });
-      }
-    } catch (e) {
-      debugPrint('Error initializing tile cache: $e');
-      if (mounted) {
-        setState(() {
-          _isInitialized = true; // Continue without caching
-        });
-        // Still mark map as ready after a delay
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            Future.delayed(const Duration(milliseconds: 100), () {
-              if (mounted) {
-                setState(() {
-                  _isMapReady = true;
-                });
-                debugPrint('Map is now ready for controller operations');
-              }
-            });
-          }
-        });
-      }
-    }
+        debugPrint('Map is now ready for controller operations');
+      });
+    });
   }
 
   @override
@@ -483,45 +398,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  /// Load vector tile theme from URL
-  Future<void> _loadVectorTheme(String styleUrl) async {
-    if (_isLoadingTheme) return;
-
-    setState(() {
-      _isLoadingTheme = true;
-    });
-
-    try {
-      final response = await http.get(Uri.parse(styleUrl));
-      if (response.statusCode == 200) {
-        final styleJson = jsonDecode(response.body) as Map<String, Object?>;
-        final theme = vtr.ThemeReader().read(styleJson);
-
-        if (mounted) {
-          setState(() {
-            _vectorTheme = theme;
-            _isLoadingTheme = false;
-          });
-        }
-      } else {
-        throw Exception('Failed to load style: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('Error loading vector theme: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingTheme = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load map style: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
   void _showLayerSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -543,14 +419,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.download),
-                    tooltip: AppLocalizations.of(context)!.downloadVisibleArea,
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _navigateToDownload(context);
-                    },
                   ),
                 ],
               ),
@@ -647,65 +515,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         _saveSettings();
                         Navigator.pop(context);
                       },
-                    ),
-                  ],
-                  // Offline MBTiles layers section
-                  if (_mbtilesLayers.isNotEmpty) ...[
-                    const Divider(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.offlineLayers,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                    ..._mbtilesLayers.map(
-                      (layer) => ListTile(
-                        leading: _currentLayer == layer
-                            ? const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                              )
-                            : Icon(
-                                layer.isVector ? Icons.layers : Icons.image,
-                                color: layer.isVector
-                                    ? Colors.blue
-                                    : Colors.orange,
-                              ),
-                        title: Text(layer.name),
-                        subtitle: Text(layer.attribution),
-                        onTap: () async {
-                          // Capture navigator before async operation
-                          final navigator = Navigator.of(context);
-                          // Load vector theme if switching to vector layer
-                          if (layer.isVector && layer.styleUrl != null) {
-                            navigator.pop();
-                            await _loadVectorTheme(layer.styleUrl!);
-                          }
-
-                          setState(() {
-                            _currentLayer = layer;
-                            // Clamp zoom level if current zoom exceeds new layer's max
-                            if (_isMapReady &&
-                                _mapController.camera.zoom > layer.maxZoom) {
-                              _mapController.move(
-                                _mapController.camera.center,
-                                layer.maxZoom,
-                              );
-                            }
-                          });
-                          _saveSettings();
-
-                          if (!layer.isVector && mounted) {
-                            navigator.pop();
-                          }
-                        },
-                      ),
                     ),
                   ],
                   // WMS Overlays section (only for Slovenian/Croatian regions and when WMS base layer is selected)
@@ -897,21 +706,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
         ),
       ),
     );
-  }
-
-  void _navigateToDownload(BuildContext context) {
-    if (!_isMapReady) return;
-
-    try {
-      // Get current map bounds
-      final bounds = _mapController.camera.visibleBounds;
-
-      // Enter download area selection mode (show preview overlay)
-      final mapProvider = context.read<MapProvider>();
-      mapProvider.enterDownloadAreaMode(bounds);
-    } catch (e) {
-      debugPrint('Error accessing map camera: $e');
-    }
   }
 
   void _showOptionsMenu(BuildContext context) {
@@ -1412,8 +1206,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
         return Stack(
           children: [
             // Map widget
-            _isInitialized
-                ? Listener(
+            Listener(
                     onPointerMove: (PointerMoveEvent event) {
                       // Track pointer movement for mobile drag (onPointerHover doesn't work on mobile)
                       if (_isDraggingPin) {
@@ -1566,17 +1359,8 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         },
                       ),
                       children: [
-                        // Render vector or raster tile layer based on layer type
-                        if (_currentLayer.isVector && _vectorTheme != null)
-                          VectorTileLayer(
-                            theme: _vectorTheme!,
-                            tileProviders: TileProviders({
-                              _currentLayer.sourceName ?? 'default': _tileCache
-                                  .getVectorTileProvider(_currentLayer)!,
-                            }),
-                            maximumZoom: _currentLayer.maxZoom,
-                          )
-                        else if (_currentLayer.isWms &&
+                        // Render raster or WMS tile layer based on layer type
+                        if (_currentLayer.isWms &&
                             _currentLayer.wmsBaseUrl != null &&
                             _currentLayer.crs != null)
                           // WMS Base Layer (e.g., Slovenian Aerial Imagery)
@@ -1591,9 +1375,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                               crs: _currentLayer.crs!,
                             ),
                             // Use cached tile provider for offline support
-                            tileProvider: _tileCache.getTileProviderForWms(
-                              _currentLayer,
-                            ),
+                            tileProvider: _tileProvider,
                             userAgentPackageName: 'com.meshcore.sar',
                             maxZoom: _currentLayer.maxZoom,
                             errorTileCallback: (tile, error, stackTrace) {
@@ -1602,13 +1384,10 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                               );
                             },
                           )
-                        else if (!_currentLayer.isVector &&
-                            !_currentLayer.isWms)
+                        else if (!_currentLayer.isWms)
                           flutter_map.TileLayer(
                             urlTemplate: _currentLayer.urlTemplate,
-                            tileProvider: _tileCache.getTileProvider(
-                              _currentLayer,
-                            ),
+                            tileProvider: _tileProvider,
                             userAgentPackageName: 'com.meshcore.sar',
                             maxZoom: _currentLayer.maxZoom,
                           ),
@@ -1632,23 +1411,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Cadastral Parcels',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geowebcache/service/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:kn_parcele',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -1680,23 +1443,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Forest Roads',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:gozdne_ceste',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -1728,23 +1475,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Hiking Trails',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:KGI_LINIJE_PLANINSKE_POTI_G',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -1773,23 +1504,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Main Roads',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:KGI_LINIJE_CESTE_G',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -1818,23 +1533,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'House Numbers',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:NEP_HISNE_STEVILKE',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -1863,23 +1562,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Fire Hazard Zones',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:pozarna_ogrozenost',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -1906,23 +1589,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Historical Fires',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:gozdni_pozari',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -1951,23 +1618,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Firebreaks',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:protipozarne_preseke',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -1994,23 +1645,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Kras Fire Zones',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:pozarisce_kras',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -2039,23 +1674,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Place Names',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:zemljepisna_imena',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -2083,23 +1702,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                                 transparent: true,
                                 crs: slovenianCrs,
                               ),
-                              tileProvider: _tileCache.getTileProviderForWms(
-                                MapLayer(
-                                  type: MapLayerType.wmsBase,
-                                  name: 'Municipality Borders',
-                                  urlTemplate: '',
-                                  attribution: '© GURS',
-                                  maxZoom: 19,
-                                  isWms: true,
-                                  wmsBaseUrl:
-                                      'https://prostor.zgs.gov.si/geoserver/wms?',
-                                  wmsLayers: const [
-                                    'pregledovalnik:NEP_RPE_OBCINE',
-                                  ],
-                                  wmsFormat: 'image/png',
-                                  crs: slovenianCrs,
-                                ),
-                              ),
+                              tileProvider: _tileProvider,
                               userAgentPackageName: 'com.meshcore.sar',
                               maxZoom: 19,
                               errorTileCallback: (tile, error, stackTrace) {
@@ -2474,114 +2077,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                             }
                           },
                         ),
-                        // Download area selection polygon (rendered on top when in selection mode)
-                        Consumer<MapProvider>(
-                          builder: (context, mapProvider, _) {
-                            if (!mapProvider.isSelectingDownloadArea ||
-                                mapProvider.downloadAreaBounds == null) {
-                              return const SizedBox.shrink();
-                            }
-                            final bounds = mapProvider.downloadAreaBounds!;
-
-                            // Add padding to the bounds so the rectangle is visible within the screen
-                            // Calculate 5% padding on each side
-                            final latPadding =
-                                (bounds.north - bounds.south) * 0.05;
-                            final lonPadding =
-                                (bounds.east - bounds.west) * 0.05;
-
-                            return PolygonLayer(
-                              polygons: [
-                                Polygon(
-                                  points: [
-                                    LatLng(
-                                      bounds.north - latPadding,
-                                      bounds.west + lonPadding,
-                                    ), // Top-left
-                                    LatLng(
-                                      bounds.north - latPadding,
-                                      bounds.east - lonPadding,
-                                    ), // Top-right
-                                    LatLng(
-                                      bounds.south + latPadding,
-                                      bounds.east - lonPadding,
-                                    ), // Bottom-right
-                                    LatLng(
-                                      bounds.south + latPadding,
-                                      bounds.west + lonPadding,
-                                    ), // Bottom-left
-                                  ],
-                                  color: Colors.blue.withValues(alpha: 0.2),
-                                  borderColor: Colors.blue,
-                                  borderStrokeWidth: 3.0,
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  )
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppLocalizations.of(context)!.initializingMap,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
                       ],
                     ),
                   ),
-            // Download area overlay (shown when in download area selection mode)
-            Consumer<MapProvider>(
-              builder: (context, mapProvider, _) {
-                if (!mapProvider.isSelectingDownloadArea ||
-                    mapProvider.downloadAreaBounds == null) {
-                  return const SizedBox.shrink();
-                }
-                return DownloadAreaOverlay(
-                  bounds: mapProvider.downloadAreaBounds!,
-                  onConfirm: () {
-                    // Navigate to map management screen with selected bounds
-                    final bounds = mapProvider.downloadAreaBounds!;
-                    final zoom = _mapController.camera.zoom.round();
-
-                    // Find matching layer from MapLayer.allLayers to avoid instance mismatch
-                    // Only pass initialLayer if it's in allLayers (standard layers only)
-                    MapLayer? initialLayer;
-                    try {
-                      initialLayer = MapLayer.allLayers.firstWhere(
-                        (layer) => layer.type == _currentLayer.type,
-                      );
-                    } catch (e) {
-                      // Current layer not in allLayers (WMS/vector), don't pass it
-                      initialLayer = null;
-                    }
-
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => MapManagementScreen(
-                          tileCacheService: _tileCache,
-                          initialBounds: bounds,
-                          initialLayer: initialLayer,
-                          initialZoom: zoom,
-                        ),
-                      ),
-                    );
-
-                    // Exit download area selection mode
-                    mapProvider.exitDownloadAreaMode();
-                  },
-                  onCancel: () {
-                    // Exit download area selection mode
-                    mapProvider.exitDownloadAreaMode();
-                  },
-                );
-              },
-            ),
             // Exit fullscreen button - top left (only shown in fullscreen mode)
             if (_isFullscreen)
               Positioned(

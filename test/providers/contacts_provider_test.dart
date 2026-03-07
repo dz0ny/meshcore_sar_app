@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore_sar_app/models/contact.dart';
 import 'package:meshcore_sar_app/providers/contacts_provider.dart';
 import 'package:meshcore_sar_app/services/cayenne_lpp_parser.dart';
+import 'package:meshcore_sar_app/utils/fast_gps_packet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -345,6 +346,67 @@ void main() {
       final updated = provider.findContactByKey(publicKey)!;
       expect(updated.routeHasPath, isFalse);
       expect(updated.routeSummary, 'Flood/Unknown');
+    });
+  });
+
+  group('ContactsProvider.updateFastGps', () {
+    late ContactsProvider provider;
+    late Uint8List publicKey;
+
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      provider = ContactsProvider();
+      publicKey = createPublicKey(50);
+      provider.addOrUpdateContact(
+        createContact(key: publicKey, type: ContactType.chat, name: 'Fast GPS'),
+      );
+    });
+
+    test('updates gps while preserving other telemetry fields', () {
+      final batteryOnly = CayenneLppParser.createBatteryData(3.9);
+      provider.updateTelemetry(publicKey.sublist(0, 6), batteryOnly);
+
+      provider.updateFastGps(
+        publicKey.sublist(0, 6),
+        const FastGpsPacket(
+          senderKey6: '323334353637',
+          latitude: 44.123456,
+          longitude: 13.654321,
+          timestampSeconds: 1700001234,
+        ),
+      );
+
+      final updated = provider.findContactByKey(publicKey)!;
+      expect(updated.telemetry, isNotNull);
+      expect(updated.telemetry!.gpsLocation, isNotNull);
+      expect(
+        updated.telemetry!.gpsLocation!.latitude,
+        closeTo(44.123456, 0.000001),
+      );
+      expect(
+        updated.telemetry!.gpsLocation!.longitude,
+        closeTo(13.654321, 0.000001),
+      );
+      expect(updated.telemetry!.batteryMilliVolts, isNotNull);
+      expect(updated.advLat, equals((44.123456 * 1e6).round()));
+      expect(updated.advLon, equals((13.654321 * 1e6).round()));
+      expect(updated.lastAdvert, equals(1700001234));
+    });
+
+    test('ignores unknown sender prefix safely', () {
+      final before = provider.findContactByKey(publicKey)!;
+      provider.updateFastGps(
+        Uint8List.fromList([1, 2, 3, 4, 5, 6]),
+        const FastGpsPacket(
+          senderKey6: '010203040506',
+          latitude: 10,
+          longitude: 20,
+          timestampSeconds: 99,
+        ),
+      );
+      final after = provider.findContactByKey(publicKey)!;
+      expect(after.advLat, equals(before.advLat));
+      expect(after.advLon, equals(before.advLon));
     });
   });
 }

@@ -66,24 +66,16 @@ dependencies:
   provider: ^6.1.0
 
   # Map display
-  flutter_map: ^8.2.2
+  flutter_map:
+    git:
+      url: https://github.com/fleaflet/flutter_map.git
+      ref: master
   latlong2: ^0.9.0
 
-  # Offline tile caching
-  flutter_map_tile_caching: ^10.1.1
-
-  # Vector map tiles
-  vector_map_tiles: ^9.0.0-beta.8
-  vector_map_tiles_mbtiles:
-    git:
-      url: https://github.com/josxha/flutter_map_plugins.git
-      path: vector_map_tiles_mbtiles
-  vector_tile_renderer: ^6.0.0
-  mbtiles: ^0.4.0
   http: ^1.2.0
 
   # Coordinate system projections for WMS (EPSG:3794)
-  proj4dart: ^2.1.0
+  proj4dart: ^3.0.0
 
   # Permissions
   permission_handler: ^12.0.1
