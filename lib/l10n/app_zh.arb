@@ -1,92 +1,74 @@
 {
   "@@locale": "zh",
-
   "appTitle": "MeshCore SAR",
   "@appTitle": {
     "description": "应用程序标题"
   },
-
   "messages": "消息",
   "@messages": {
-    "description": "消息标签页标签"
+    "description": "消息标签页标题"
   },
-
   "contacts": "联系人",
   "@contacts": {
-    "description": "联系人标签页标签"
+    "description": "联系人标签页标题"
   },
-
   "map": "地图",
   "@map": {
-    "description": "地图标签页标签"
+    "description": "地图标签页标题"
   },
-
   "settings": "设置",
   "@settings": {
     "description": "设置屏幕标题"
   },
-
   "connect": "连接",
   "@connect": {
     "description": "连接按钮标签"
   },
-
   "disconnect": "断开连接",
   "@disconnect": {
     "description": "断开连接按钮标签"
   },
-
   "scanningForDevices": "正在扫描设备...",
   "@scanningForDevices": {
     "description": "扫描 BLE 设备时显示的文本"
   },
-
   "noDevicesFound": "未找到设备",
   "@noDevicesFound": {
     "description": "未找到 BLE 设备时显示的文本"
   },
-
   "scanAgain": "重新扫描",
   "@scanAgain": {
-    "description": "重新启动 BLE 扫描的按钮"
+    "description": "重新开始 BLE 扫描的按钮"
   },
-
   "tapToConnect": "点击连接",
   "@tapToConnect": {
     "description": "扫描列表中设备的副标题文本"
   },
-
   "deviceNotConnected": "设备未连接",
   "@deviceNotConnected": {
     "description": "设备未连接时的错误消息"
   },
-
   "locationPermissionDenied": "位置权限被拒绝",
   "@locationPermissionDenied": {
     "description": "位置权限被拒绝时的错误"
   },
-
   "locationPermissionPermanentlyDenied": "位置权限被永久拒绝。请在设置中启用。",
   "@locationPermissionPermanentlyDenied": {
     "description": "位置权限被永久拒绝时的错误"
   },
-
-  "locationPermissionRequired": "GPS 跟踪和团队协调需要位置权限。您可以稍后在设置中启用它。",
+  "locationPermissionRequired": "GPS 跟踪和团队协调需要位置权限。您可以稍后在设置中启用。",
   "@locationPermissionRequired": {
-    "description": "需要位置权限时的消息"
+    "description": "需要位置权限时显示的消息"
   },
-
-  "locationServicesDisabled": "位置服务已禁用。请在设置中启用它们。",
+  "locationServicesDisabled": "位置服务已禁用。请在设置中启用。",
   "@locationServicesDisabled": {
     "description": "位置服务禁用时的错误"
   },
-
   "failedToGetGpsLocation": "获取 GPS 位置失败",
   "@failedToGetGpsLocation": {
     "description": "无法获取 GPS 位置时的错误"
   },
-
-  "advertisedAtLocation": "已在 {latitude}， {longitude} 广播位置",
+  "advertisedAtLocation": "已广播位置 {latitude}, {longitude}",
   "@advertisedAtLocation": {
     "description": "显示已广播位置的成功消息",
     "placeholders": {
@@ -98,7 +80,6 @@
       }
     }
   },
-
   "failedToAdvertise": "广播失败: {error}",
   "@failedToAdvertise": {
     "description": "广播失败的错误消息",
@@ -108,7 +89,6 @@
       }
     }
   },
-
   "reconnecting": "正在重新连接... ({attempt}/{max})",
   "@reconnecting": {
     "description": "重新连接尝试期间显示的文本",
@@ -121,208 +101,159 @@
       }
     }
   },
-
   "cancelReconnection": "取消重新连接",
   "@cancelReconnection": {
     "description": "取消重新连接按钮的工具提示"
   },
-
   "mapManagement": "地图管理",
   "@mapManagement": {
-    "description": "地图管理的菜单项"
+    "description": "地图管理菜单项"
   },
-
   "general": "通用",
   "@general": {
-    "description": "通用设置部分标题"
+    "description": "通用设置区域标题"
   },
-
   "theme": "主题",
   "@theme": {
     "description": "主题设置标签"
   },
-
   "chooseTheme": "选择主题",
   "@chooseTheme": {
     "description": "主题选择对话框标题"
   },
-
-  "light": "浅色",
+  "light": "亮色",
   "@light": {
-    "description": "浅色主题选项"
+    "description": "亮色主题选项"
   },
-
-  "dark": "深色",
+  "dark": "暗色",
   "@dark": {
-    "description": "深色主题选项"
+    "description": "暗色主题选项"
   },
-
-  "blueLightTheme": "蓝色浅色主题",
+  "blueLightTheme": "蓝色亮色主题",
   "@blueLightTheme": {
-    "description": "蓝色浅色主题的描述"
+    "description": "蓝色亮色主题的描述"
   },
-
-  "blueDarkTheme": "蓝色深色主题",
+  "blueDarkTheme": "蓝色暗色主题",
   "@blueDarkTheme": {
-    "description": "蓝色深色主题的描述"
+    "description": "蓝色暗色主题的描述"
   },
-
   "sarRed": "搜救红",
   "@sarRed": {
-    "description": "搜救红色主题选项"
+    "description": "搜救红主题选项"
   },
-
   "alertEmergencyMode": "警报/紧急模式",
   "@alertEmergencyMode": {
-    "description": "搜救红色主题的描述"
+    "description": "搜救红主题的描述"
   },
-
   "sarGreen": "搜救绿",
   "@sarGreen": {
-    "description": "搜救绿色主题选项"
+    "description": "搜救绿主题选项"
   },
-
   "safeAllClearMode": "安全/解除警报模式",
   "@safeAllClearMode": {
-    "description": "搜救绿色主题的描述"
+    "description": "搜救绿主题的描述"
   },
-
-  "sarNavyBlue": "搜救海军蓝",
-  "@sarNavyBlue": {
-    "description": "搜救海军蓝主题名称"
-  },
-
-  "sarNavyBlueDescription": "专业/操作模式",
-  "@sarNavyBlueDescription": {
-    "description": "搜救海军蓝主题的描述"
-  },
-
-  "autoSystem": "自动 (系统)",
+  "autoSystem": "自动 (跟随系统)",
   "@autoSystem": {
-    "description": "自动/系统主题选项"
+    "description": "自动/跟随系统主题选项"
   },
-
   "followSystemTheme": "跟随系统主题",
   "@followSystemTheme": {
-    "description": "系统主题的描述"
+    "description": "跟随系统主题的描述"
   },
-
   "showRxTxIndicators": "显示 RX/TX 指示器",
   "@showRxTxIndicators": {
     "description": "显示 RX/TX 指示器的设置"
   },
-
   "displayPacketActivity": "在顶部栏显示数据包活动指示器",
   "@displayPacketActivity": {
     "description": "RX/TX 指示器设置的描述"
   },
-
   "simpleMode": "简洁模式",
   "@simpleMode": {
     "description": "启用简洁模式的设置"
   },
-
   "simpleModeDescription": "在消息和联系人中隐藏非必要信息",
   "@simpleModeDescription": {
     "description": "简洁模式设置的描述"
   },
-
   "disableMap": "禁用地图",
   "@disableMap": {
     "description": "禁用地图标签页的设置"
   },
-
-  "disableMapDescription": "隐藏地图标签页以减少电池使用量",
+  "disableMapDescription": "隐藏地图标签页以减少电池消耗",
   "@disableMapDescription": {
     "description": "禁用地图设置的描述"
   },
-
   "language": "语言",
   "@language": {
     "description": "语言设置标签"
   },
-
   "chooseLanguage": "选择语言",
   "@chooseLanguage": {
     "description": "语言选择对话框标题"
   },
-
   "english": "英语",
   "@english": {
     "description": "英语语言选项"
   },
-
   "slovenian": "斯洛文尼亚语",
   "@slovenian": {
     "description": "斯洛文尼亚语语言选项"
   },
-
   "croatian": "克罗地亚语",
   "@croatian": {
     "description": "克罗地亚语语言选项"
   },
-
   "german": "德语",
   "@german": {
     "description": "德语语言选项"
   },
-
   "spanish": "西班牙语",
   "@spanish": {
     "description": "西班牙语语言选项"
   },
-
   "french": "法语",
   "@french": {
     "description": "法语语言选项"
   },
-
   "italian": "意大利语",
   "@italian": {
     "description": "意大利语语言选项"
   },
-
   "locationBroadcasting": "位置广播",
   "@locationBroadcasting": {
-    "description": "位置设置部分标题"
+    "description": "位置设置区域标题"
   },
-
   "autoLocationTracking": "自动位置跟踪",
   "@autoLocationTracking": {
     "description": "自动位置跟踪设置"
   },
-
   "automaticallyBroadcastPosition": "自动广播位置更新",
   "@automaticallyBroadcastPosition": {
     "description": "自动位置跟踪的描述"
   },
-
   "configureTracking": "配置跟踪",
   "@configureTracking": {
     "description": "配置跟踪按钮标签"
   },
-
   "distanceAndTimeThresholds": "距离和时间阈值",
   "@distanceAndTimeThresholds": {
     "description": "跟踪配置的描述"
   },
-
   "locationTrackingConfiguration": "位置跟踪配置",
   "@locationTrackingConfiguration": {
     "description": "跟踪配置对话框标题"
   },
-
-  "configureWhenLocationBroadcasts": "配置何时向网格网络发送位置广播",
+  "configureWhenLocationBroadcasts": "配置何时向 Mesh 网络发送位置广播",
   "@configureWhenLocationBroadcasts": {
     "description": "跟踪配置对话框的描述"
   },
-
   "minimumDistance": "最小距离",
   "@minimumDistance": {
     "description": "最小距离设置标签"
   },
-
-  "broadcastAfterMoving": "仅移动 {distance} 米后广播",
+  "broadcastAfterMoving": "仅在移动 {distance} 米后广播",
   "@broadcastAfterMoving": {
     "description": "最小距离的描述",
     "placeholders": {
@@ -331,12 +262,10 @@
       }
     }
   },
-
   "maximumDistance": "最大距离",
   "@maximumDistance": {
     "description": "最大距离设置标签"
   },
-
   "alwaysBroadcastAfterMoving": "移动 {distance} 米后始终广播",
   "@alwaysBroadcastAfterMoving": {
     "description": "最大距离的描述",
@@ -346,13 +275,11 @@
       }
     }
   },
-
   "minimumTimeInterval": "最小时间间隔",
   "@minimumTimeInterval": {
     "description": "最小时间间隔设置标签"
   },
-
-  "alwaysBroadcastEvery": "每 {duration} 始终广播一次",
+  "alwaysBroadcastEvery": "每隔 {duration} 始终广播",
   "@alwaysBroadcastEvery": {
     "description": "时间间隔的描述",
     "placeholders": {
@@ -361,113 +288,91 @@
       }
     }
   },
-
   "save": "保存",
   "@save": {
     "description": "保存按钮标签"
   },
-
   "cancel": "取消",
   "@cancel": {
     "description": "取消按钮标签"
   },
-
   "close": "关闭",
   "@close": {
     "description": "关闭按钮标签"
   },
-
   "about": "关于",
   "@about": {
-    "description": "关于部分标题"
+    "description": "关于区域标题"
   },
-
   "appVersion": "应用版本",
   "@appVersion": {
     "description": "应用版本标签"
   },
-
   "appName": "应用名称",
   "@appName": {
     "description": "应用名称标签"
   },
-
-  "aboutMeshCoreSar": "关于 MeshCore 搜救",
+  "aboutMeshCoreSar": "关于 MeshCore 搜救助手",
   "@aboutMeshCoreSar": {
     "description": "关于对话框标题"
   },
-
-  "aboutDescription": "专为应急响应团队设计的搜救应用。功能包括：\n\n• 用于设备间通信的 BLE 网状网络\n• 支持多种图层选项的离线地图\n• 实时团队成员跟踪\n• 搜救战术标记（发现人员、火情、集结点）\n• 联系人管理和消息传递\n• 带指南针方向的 GPS 跟踪\n• 用于离线使用的地图瓦片缓存",
+  "aboutDescription": "专为应急响应团队设计的搜救应用程序。功能包括：\n\n• 用于设备间通信的 BLE Mesh 网络\n• 带有多个图层选项的离线地图\n• 实时团队成员跟踪\n• 搜救战术标记（找到的人员、火灾、集结区）\n• 联系人管理和消息收发\n• 带有指南针方向的 GPS 跟踪\n• 用于离线使用的地图瓦片缓存",
   "@aboutDescription": {
-    "description": "关于对话框描述"
+    "description": "关于对话框的描述"
   },
-
   "technologiesUsed": "使用的技术：",
   "@technologiesUsed": {
-    "description": "使用的技术部分标题"
+    "description": "使用的技术区域标题"
   },
-
-  "technologiesList": "• 用于跨平台开发的 Flutter\n• 用于网状网络的 BLE（低功耗蓝牙）\n• 用于地图的 OpenStreetMap\n• 用于状态管理的 Provider\n• 用于本地存储的 SharedPreferences",
+  "technologiesList": "• 用于跨平台开发的 Flutter\n• 用于 Mesh 网络的 BLE（低功耗蓝牙）\n• 用于地图的 OpenStreetMap\n• 用于状态管理的 Provider\n• 用于本地存储的 SharedPreferences",
   "@technologiesList": {
     "description": "使用的技术列表"
   },
-
   "moreInfo": "更多信息",
   "@moreInfo": {
     "description": "更多信息按钮标签"
   },
-
-  "learnMoreAbout": "了解更多关于 MeshCore 搜救的信息",
+  "learnMoreAbout": "了解更多关于 MeshCore 搜救助手的信息",
   "@learnMoreAbout": {
     "description": "了解更多链接的描述"
   },
-
   "developer": "开发者",
   "@developer": {
-    "description": "开发者部分标题"
+    "description": "开发者区域标题"
   },
-
   "packageName": "包名",
   "@packageName": {
     "description": "包名标签"
   },
-
   "sampleData": "示例数据",
   "@sampleData": {
-    "description": "示例数据部分标题"
+    "description": "示例数据区域标题"
   },
-
   "sampleDataDescription": "加载或清除用于测试的示例联系人、频道消息和搜救标记",
   "@sampleDataDescription": {
-    "description": "示例数据部分描述"
+    "description": "示例数据区域的描述"
   },
-
   "loadSampleData": "加载示例数据",
   "@loadSampleData": {
     "description": "加载示例数据按钮"
   },
-
   "clearAllData": "清除所有数据",
   "@clearAllData": {
     "description": "清除所有数据按钮"
   },
-
   "clearAllDataConfirmTitle": "清除所有数据",
   "@clearAllDataConfirmTitle": {
     "description": "清除数据确认对话框标题"
   },
-
-  "clearAllDataConfirmMessage": "这将清除所有联系人和搜救标记。确定吗？",
+  "clearAllDataConfirmMessage": "这将清除所有联系人和搜救标记。您确定吗？",
   "@clearAllDataConfirmMessage": {
     "description": "清除数据确认消息"
   },
-
   "clear": "清除",
   "@clear": {
     "description": "清除按钮标签"
   },
-
-  "loadedSampleData": "已加载 {teamCount} 个团队成员， {channelCount} 个频道， {sarCount} 个搜救标记， {messageCount} 条消息",
+  "loadedSampleData": "已加载 {teamCount} 个团队成员，{channelCount} 个频道，{sarCount} 个搜救标记，{messageCount} 条消息",
   "@loadedSampleData": {
     "description": "加载示例数据后的成功消息",
     "placeholders": {
@@ -485,7 +390,6 @@
       }
     }
   },
-
   "failedToLoadSampleData": "加载示例数据失败：{error}",
   "@failedToLoadSampleData": {
     "description": "示例数据加载失败时的错误消息",
@@ -495,18 +399,15 @@
       }
     }
   },
-
   "allDataCleared": "所有数据已清除",
   "@allDataCleared": {
     "description": "清除所有数据后的成功消息"
   },
-
-  "failedToStartBackgroundTracking": "启动后台跟踪失败。检查权限和 BLE 连接。",
+  "failedToStartBackgroundTracking": "启动后台跟踪失败。请检查权限和 BLE 连接。",
   "@failedToStartBackgroundTracking": {
     "description": "后台跟踪启动失败时的错误消息"
   },
-
-  "locationBroadcast": "位置广播：{latitude}， {longitude}",
+  "locationBroadcast": "位置广播：{latitude}, {longitude}",
   "@locationBroadcast": {
     "description": "位置广播的成功消息",
     "placeholders": {
@@ -518,72 +419,59 @@
       }
     }
   },
-
-  "defaultPinInfo": "无屏幕设备的默认 PIN 码是 123456。配对有问题？请在系统设置中忘记此蓝牙设备。",
+  "defaultPinInfo": "无屏幕设备的默认 PIN 是 123456。配对有问题？请在系统设置中忘记该蓝牙设备。",
   "@defaultPinInfo": {
-    "description": "关于默认配对 PIN 码的信息"
+    "description": "关于默认配对 PIN 的信息"
   },
-
   "noMessagesYet": "暂无消息",
   "@noMessagesYet": {
     "description": "没有消息时的空状态消息"
   },
-
   "pullDownToSync": "下拉同步消息",
   "@pullDownToSync": {
-    "description": "下拉刷新消息的指示"
+    "description": "下拉刷新消息的提示"
   },
-
   "deleteContact": "删除联系人",
   "@deleteContact": {
     "description": "删除联系人操作标签"
   },
-
   "delete": "删除",
   "@delete": {
     "description": "删除按钮标签"
   },
-
   "viewOnMap": "在地图上查看",
   "@viewOnMap": {
     "description": "在地图上查看联系人位置的操作"
   },
-
   "refresh": "刷新",
   "@refresh": {
     "description": "刷新按钮标签"
   },
-
   "sendDirectMessage": "发送",
   "@sendDirectMessage": {
     "description": "向联系人发送直连消息的操作"
   },
-
-  "resetPath": "重置路径（重新路由）",
+  "resetPath": "重置路径 (重新路由)",
   "@resetPath": {
     "description": "重置联系人路径以重新路由的操作"
   },
-
   "publicKeyCopied": "公钥已复制到剪贴板",
   "@publicKeyCopied": {
-    "description": "公钥复制成功时的消息"
+    "description": "复制公钥后的成功消息"
   },
-
   "copiedToClipboard": "{label} 已复制到剪贴板",
   "@copiedToClipboard": {
-    "description": "值复制到剪贴板时的成功消息",
+    "description": "将值复制到剪贴板后的成功消息",
     "placeholders": {
       "label": {
         "type": "String"
       }
     }
   },
-
   "pleaseEnterPassword": "请输入密码",
   "@pleaseEnterPassword": {
     "description": "密码字段为空的验证消息"
   },
-
   "failedToSyncContacts": "同步联系人失败：{error}",
   "@failedToSyncContacts": {
     "description": "联系人同步失败时的错误消息",
@@ -593,18 +481,15 @@
       }
     }
   },
-
   "loggedInSuccessfully": "登录成功！正在等待房间消息...",
   "@loggedInSuccessfully": {
     "description": "成功登录房间后的成功消息"
   },
-
   "loginFailed": "登录失败 - 密码错误",
   "@loginFailed": {
     "description": "房间登录失败时的错误消息"
   },
-
-  "loggingIn": "正在登录 {roomName}...",
+  "loggingIn": "正在登录到 {roomName}...",
   "@loggingIn": {
     "description": "房间登录过程中的状态消息",
     "placeholders": {
@@ -613,7 +498,6 @@
       }
     }
   },
-
   "failedToSendLogin": "发送登录命令失败：{error}",
   "@failedToSendLogin": {
     "description": "登录命令发送失败时的错误消息",
@@ -623,251 +507,249 @@
       }
     }
   },
-
   "lowLocationAccuracy": "位置精度低",
   "@lowLocationAccuracy": {
     "description": "GPS 精度低的警告标题"
   },
-
   "continue_": "继续",
   "@continue_": {
     "description": "继续按钮标签"
   },
-
   "sendSarMarker": "发送搜救标记",
   "@sendSarMarker": {
     "description": "发送搜救标记的操作"
   },
-
   "deleteDrawing": "删除绘图",
   "@deleteDrawing": {
-    "description": "删除地图绘图的操作"
+    "description": "删除地图绘制的操作"
   },
-
   "drawingTools": "绘图工具",
   "@drawingTools": {
-    "description": "绘图工具部分或菜单标题"
+    "description": "绘图工具区域或菜单标题"
   },
-
-  "drawLine": "画线",
+  "drawLine": "绘制线条",
   "@drawLine": {
-    "description": "地图绘图模式：线条"
+    "description": "地图绘制模式：线条"
   },
-
-  "drawLineDesc": "在地图上画一条手绘线",
+  "drawLineDesc": "在地图上绘制手绘线条",
   "@drawLineDesc": {
-    "description": "线条绘图模式的描述"
+    "description": "线条绘制模式的描述"
   },
-
-  "drawRectangle": "画矩形",
+  "drawRectangle": "绘制矩形",
   "@drawRectangle": {
-    "description": "地图绘图模式：矩形"
+    "description": "地图绘制模式：矩形"
   },
-
-  "drawRectangleDesc": "在地图上绘制一个矩形区域",
+  "drawRectangleDesc": "在地图上绘制矩形区域",
   "@drawRectangleDesc": {
-    "description": "矩形绘图模式的描述"
+    "description": "矩形绘制模式的描述"
   },
-
   "measureDistance": "测量距离",
   "@measureDistance": {
-    "description": "地图绘图模式：测量距离"
+    "description": "地图绘制模式：测量距离"
   },
-
   "measureDistanceDesc": "长按两个点进行测量",
   "@measureDistanceDesc": {
     "description": "距离测量模式的描述"
   },
-
   "clearMeasurement": "清除测量",
   "@clearMeasurement": {
     "description": "清除测量的工具提示"
   },
-
   "distanceLabel": "距离：{distance}",
   "@distanceLabel": {
     "description": "显示测量距离的标签",
     "placeholders": {
-      "distance": {"type": "String"}
+      "distance": {
+        "type": "String"
+      }
     }
   },
-
-  "longPressForSecondPoint": "长按选择第二个点",
+  "longPressForSecondPoint": "长按以选择第二个点",
   "@longPressForSecondPoint": {
-    "description": "设置第一个测量点时的指示"
+    "description": "设置第一个测量点后的提示"
   },
-
-  "longPressToStartMeasurement": "长按设置第一个点",
+  "longPressToStartMeasurement": "长按以设置第一个点",
   "@longPressToStartMeasurement": {
-    "description": "开始测量的指示"
+    "description": "开始测量的提示"
   },
-
-  "longPressToStartNewMeasurement": "长按开始新测量",
+  "longPressToStartNewMeasurement": "长按以开始新的测量",
   "@longPressToStartNewMeasurement": {
-    "description": "完成测量后重新开始的指示"
+    "description": "完成后重新开始测量的提示"
   },
-
   "shareDrawings": "共享绘图",
   "@shareDrawings": {
     "description": "将绘图共享到网络的操作"
   },
-
   "clearAllDrawings": "清除所有绘图",
   "@clearAllDrawings": {
-    "description": "清除所有本地绘图的操作"
+    "description": "清除所有本地绘制的操作"
   },
-
   "completeLine": "完成线条",
   "@completeLine": {
     "description": "完成绘制线条的工具提示"
   },
-
   "broadcastDrawingsToTeam": "向团队广播 {count} 个绘图",
   "@broadcastDrawingsToTeam": {
-    "description": "显示将要广播的绘图数量的副标题",
+    "description": "显示将广播多少个绘图的副标题",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
-
   "removeAllDrawings": "移除所有 {count} 个绘图",
   "@removeAllDrawings": {
-    "description": "移除所有绘图操作的副标题",
+    "description": "清除所有绘图操作的副标题",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
-
   "deleteAllDrawingsConfirm": "从地图上删除所有 {count} 个绘图吗？",
   "@deleteAllDrawingsConfirm": {
     "description": "删除所有绘图的确认对话框消息",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
-
   "drawing": "绘图",
   "@drawing": {
     "description": "通用绘图标签"
   },
-
   "shareDrawingsCount": "共享 {count} 个绘图",
   "@shareDrawingsCount": {
     "description": "共享绘图对话框的标题",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
-
-  "sentDrawingsToRoom": "已将 {count} 个地图绘图发送到 {roomName}",
+  "sentDrawingsToRoom": "已发送 {count} 个地图绘制到 {roomName}",
   "@sentDrawingsToRoom": {
-    "description": "绘图发送到房间时的系统消息",
+    "description": "将绘图发送到房间时的系统消息",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"},
-      "roomName": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      },
+      "roomName": {
+        "type": "String"
+      }
     }
   },
-
   "sharedDrawingsToRoom": "已将 {success}/{total} 个绘图共享到 {roomName}",
   "@sharedDrawingsToRoom": {
     "description": "显示共享到房间的绘图数量的提示消息",
     "placeholders": {
-      "success": {"type": "int"},
-      "total": {"type": "int"},
-      "plural": {"type": "String"},
-      "roomName": {"type": "String"}
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      },
+      "roomName": {
+        "type": "String"
+      }
     }
   },
-
   "showReceivedDrawings": "显示接收到的绘图",
   "@showReceivedDrawings": {
-    "description": "切换显示/隐藏来自其他团队成员的绘图"
+    "description": "显示/隐藏来自其他团队成员的绘图的开关"
   },
-
   "showingAllDrawings": "显示所有绘图",
   "@showingAllDrawings": {
-    "description": "显示接收到的绘图时的副标题"
+    "description": "当接收到的绘图可见时的副标题"
   },
-
   "showingOnlyYourDrawings": "仅显示您自己的绘图",
   "@showingOnlyYourDrawings": {
-    "description": "隐藏接收到的绘图时的副标题"
+    "description": "当接收到的绘图隐藏时的副标题"
   },
-
   "showSarMarkers": "显示搜救标记",
   "@showSarMarkers": {
-    "description": "切换在地图上显示/隐藏搜救标记"
+    "description": "在地图上显示/隐藏搜救标记的开关"
   },
-
   "showingSarMarkers": "显示搜救标记",
   "@showingSarMarkers": {
-    "description": "显示搜救标记时的副标题"
+    "description": "当搜救标记可见时的副标题"
   },
-
   "hidingSarMarkers": "隐藏搜救标记",
   "@hidingSarMarkers": {
-    "description": "隐藏搜救标记时的副标题"
+    "description": "当搜救标记隐藏时的副标题"
   },
-
   "clearAll": "全部清除",
   "@clearAll": {
     "description": "全部清除按钮标签"
   },
-
   "noLocalDrawings": "没有可共享的本地绘图",
   "@noLocalDrawings": {
     "description": "没有绘图可共享时的消息"
   },
-
   "publicChannel": "公共频道",
   "@publicChannel": {
-    "description": "共享的公共频道选项"
+    "description": "用于共享的公共频道选项"
   },
-
-  "broadcastToAll": "广播到所有附近节点（临时）",
+  "broadcastToAll": "广播给所有附近节点（临时）",
   "@broadcastToAll": {
     "description": "公共频道广播的描述"
   },
-
   "storedPermanently": "永久存储在房间中",
   "@storedPermanently": {
     "description": "房间存储持久性的描述"
   },
-
-  "drawingsSentToPublicChannel": "已将 {count} 个地图绘图发送到公共频道",
+  "drawingsSentToPublicChannel": "已将 {count} 个地图绘制发送到公共频道",
   "@drawingsSentToPublicChannel": {
-    "description": "绘图发送到公共频道时的系统消息",
+    "description": "将绘图发送到公共频道时的系统消息",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
-
   "drawingsSharedToPublicChannel": "已将 {success}/{total} 个绘图共享到公共频道",
   "@drawingsSharedToPublicChannel": {
-    "description": "显示共享到公共频道的绘图数量的提示消息",
+    "description": "显示共享到公共频道的绘图成功数量的提示消息",
     "placeholders": {
-      "success": {"type": "int"},
-      "total": {"type": "int"}
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
-
   "notConnectedToDevice": "未连接到设备",
   "@notConnectedToDevice": {
     "description": "直连消息发送时设备未连接的错误消息"
   },
-
   "directMessage": "直连消息",
   "@directMessage": {
-    "description": "直连消息表单的标题"
+    "description": "直连消息面板的标题"
   },
-
-  "directMessageSentTo": "已向 {contactName} 发送直连消息",
+  "directMessageSentTo": "直连消息已发送给 {contactName}",
   "@directMessageSentTo": {
     "description": "发送直连消息后的成功消息",
     "placeholders": {
@@ -876,7 +758,6 @@
       }
     }
   },
-
   "failedToSend": "发送失败：{error}",
   "@failedToSend": {
     "description": "发送直连消息失败时的错误消息",
@@ -886,92 +767,75 @@
       }
     }
   },
-
-  "directMessageInfo": "此消息将直接发送给 {contactName}。它也会出现在主消息列表中。",
+  "directMessageInfo": "此消息将直连发送给 {contactName}。它也将出现在主消息流中。",
   "@directMessageInfo": {
-    "description": "关于直连消息行为的说明",
+    "description": "关于直连消息行为的信息",
     "placeholders": {
       "contactName": {
         "type": "String"
       }
     }
   },
-
   "typeYourMessage": "输入您的消息...",
   "@typeYourMessage": {
     "description": "消息输入字段的占位符文本"
   },
-
   "quickLocationMarker": "快速位置标记",
   "@quickLocationMarker": {
-    "description": "搜救标记表单标题的副标题"
+    "description": "搜救标记面板标题的副标题"
   },
-
   "markerType": "标记类型",
   "@markerType": {
-    "description": "标记类型选择部分的标签"
+    "description": "标记类型选择区域的标签"
   },
-
   "sendTo": "发送至",
   "@sendTo": {
-    "description": "目的地选择部分的标签"
+    "description": "目的地选择区域的标签"
   },
-
   "noDestinationsAvailable": "没有可用的目的地。",
   "@noDestinationsAvailable": {
     "description": "没有房间或频道时的警告"
   },
-
   "selectDestination": "选择目的地...",
   "@selectDestination": {
-    "description": "目的地下拉框的占位符"
+    "description": "目的地下拉菜单的占位符"
   },
-
-  "ephemeralBroadcastInfo": "临时：仅空中广播。不存储 - 节点必须在线。",
+  "ephemeralBroadcastInfo": "临时：仅通过无线广播。不存储 - 节点必须在线。",
   "@ephemeralBroadcastInfo": {
     "description": "关于临时频道广播的信息"
   },
-
-  "persistentRoomInfo": "持久：不可变地存储在房间中。自动同步并可离线保存。",
+  "persistentRoomInfo": "持久：不可变地存储在房间中。自动同步并离线保留。",
   "@persistentRoomInfo": {
     "description": "关于持久房间存储的信息"
   },
-
   "location": "位置",
   "@location": {
-    "description": "位置部分的标签"
+    "description": "位置区域的标签"
   },
-
   "myLocation": "我的位置",
   "@myLocation": {
     "description": "插入当前 GPS 位置的按钮标签"
   },
-
   "fromMap": "来自地图",
   "@fromMap": {
     "description": "显示位置来自地图点击的徽章"
   },
-
   "gettingLocation": "正在获取位置...",
   "@gettingLocation": {
     "description": "获取 GPS 位置时的加载消息"
   },
-
   "locationError": "位置错误",
   "@locationError": {
     "description": "位置错误消息的标题"
   },
-
   "retry": "重试",
   "@retry": {
     "description": "重试按钮标签"
   },
-
   "refreshLocation": "刷新位置",
   "@refreshLocation": {
     "description": "刷新位置按钮的工具提示"
   },
-
   "accuracyMeters": "精度：±{accuracy}米",
   "@accuracyMeters": {
     "description": "以米为单位的 GPS 精度显示",
@@ -981,18 +845,15 @@
       }
     }
   },
-
   "notesOptional": "备注（可选）",
   "@notesOptional": {
     "description": "可选备注字段的标签"
   },
-
   "addAdditionalInformation": "添加附加信息...",
   "@addAdditionalInformation": {
     "description": "备注字段的占位符"
   },
-
-  "lowAccuracyWarning": "位置精度为 ±{accuracy}米。这对于搜救行动可能不够准确。\n\n仍然继续吗？",
+  "lowAccuracyWarning": "位置精度为 ±{accuracy}米。这可能不足以用于搜救行动。\n\n仍然继续吗？",
   "@lowAccuracyWarning": {
     "description": "GPS 精度低的警告对话框内容",
     "placeholders": {
@@ -1001,38 +862,31 @@
       }
     }
   },
-
   "loginToRoom": "登录到房间",
   "@loginToRoom": {
     "description": "房间登录对话框的标题"
   },
-
-  "enterPasswordInfo": "输入密码以访问此房间。密码将被保存以供将来使用。",
+  "enterPasswordInfo": "输入访问此房间的密码。密码将被保存以供将来使用。",
   "@enterPasswordInfo": {
     "description": "关于房间密码的信息"
   },
-
   "password": "密码",
   "@password": {
     "description": "密码字段标签"
   },
-
   "enterRoomPassword": "输入房间密码",
   "@enterRoomPassword": {
     "description": "密码字段提示"
   },
-
   "loggingInDots": "正在登录...",
   "@loggingInDots": {
     "description": "登录过程中的按钮文本"
   },
-
   "login": "登录",
   "@login": {
     "description": "登录按钮标签"
   },
-
-  "failedToAddRoom": "向设备添加房间失败：{error}\n\n该房间可能尚未广播。请等待房间广播。",
+  "failedToAddRoom": "无法将房间添加到设备：{error}\n\n该房间可能尚未广播。\n请等待房间广播。",
   "@failedToAddRoom": {
     "description": "添加房间失败时的错误消息",
     "placeholders": {
@@ -1041,70 +895,60 @@
       }
     }
   },
-
   "direct": "直连",
   "@direct": {
     "description": "直连路由指示器"
   },
-
   "flood": "泛洪",
   "@flood": {
     "description": "泛洪路由指示器"
   },
-
   "admin": "管理员",
   "@admin": {
     "description": "管理员徽章标签"
   },
-
   "loggedIn": "已登录",
   "@loggedIn": {
-    "description": "登录状态徽章"
+    "description": "已登录状态徽章"
   },
-
   "noGpsData": "无 GPS 数据",
   "@noGpsData": {
     "description": "GPS 数据不可用时的消息"
   },
-
   "distance": "距离",
   "@distance": {
     "description": "距离标签"
   },
-
-  "pingingDirect": "正在 ping {name} (通过路径直连)...",
+  "pingingDirect": "正在 Ping {name}（通过路径直连发送）...",
   "@pingingDirect": {
-    "description": "直连 ping 的状态消息",
+    "description": "直连 Ping 的状态消息",
     "placeholders": {
       "name": {
         "type": "String"
       }
     }
   },
-
-  "pingingFlood": "正在 ping {name} (泛洪 - 无路径)...",
+  "pingingFlood": "正在 Ping {name}（泛洪 - 无路径）...",
   "@pingingFlood": {
-    "description": "泛洪 ping 的状态消息",
+    "description": "泛洪 Ping 的状态消息",
     "placeholders": {
       "name": {
         "type": "String"
       }
     }
   },
-
-  "directPingTimeout": "直连 ping 超时 - 正在使用泛洪重试 {name}...",
+  "directPingTimeout": "直连 Ping 超时 - 正在使用泛洪重试 {name}...",
   "@directPingTimeout": {
-    "description": "直连 ping 超时的警告",
+    "description": "直连 Ping 超时时的警告",
     "placeholders": {
       "name": {
         "type": "String"
       }
     }
   },
-
-  "pingSuccessful": "成功 ping 到 {name}{fallback}",
+  "pingSuccessful": "成功 Ping 到 {name}{fallback}",
   "@pingSuccessful": {
-    "description": "ping 的成功消息",
+    "description": "Ping 的成功消息",
     "placeholders": {
       "name": {
         "type": "String"
@@ -1114,23 +958,20 @@
       }
     }
   },
-
-  "viaFloodingFallback": " (通过泛洪回退)",
+  "viaFloodingFallback": "（通过泛洪回退）",
   "@viaFloodingFallback": {
-    "description": "使用回退的 ping 成功后缀"
+    "description": "带有回退的 Ping 成功的后缀"
   },
-
-  "pingFailed": "ping {name} 失败 - 未收到响应",
+  "pingFailed": "Ping {name} 失败 - 未收到响应",
   "@pingFailed": {
-    "description": "ping 失败时的错误消息",
+    "description": "Ping 失败时的错误消息",
     "placeholders": {
       "name": {
         "type": "String"
       }
     }
   },
-
-  "deleteContactConfirmation": "确定要删除“{name}”吗？\n\n这将从应用和配套的无线电设备中移除该联系人。",
+  "deleteContactConfirmation": "您确定要删除“{name}”吗？\n\n这将从应用程序和配套的无线电设备中移除该联系人。",
   "@deleteContactConfirmation": {
     "description": "删除联系人的确认消息",
     "placeholders": {
@@ -1139,7 +980,6 @@
       }
     }
   },
-
   "removingContact": "正在移除 {name}...",
   "@removingContact": {
     "description": "移除联系人时的状态消息",
@@ -1149,7 +989,6 @@
       }
     }
   },
-
   "contactRemoved": "联系人“{name}”已移除",
   "@contactRemoved": {
     "description": "移除联系人后的成功消息",
@@ -1159,128 +998,105 @@
       }
     }
   },
-
   "failedToRemoveContact": "移除联系人失败：{error}",
   "@failedToRemoveContact": {
-    "description": "移除联系人失败时的错误消息",
+    "description": "联系人移除失败时的错误消息",
     "placeholders": {
       "error": {
         "type": "String"
       }
     }
   },
-
   "type": "类型",
   "@type": {
     "description": "联系人类型标签"
   },
-
   "publicKey": "公钥",
   "@publicKey": {
     "description": "公钥标签"
   },
-
   "lastSeen": "最后在线",
   "@lastSeen": {
     "description": "最后在线标签"
   },
-
   "roomStatus": "房间状态",
   "@roomStatus": {
-    "description": "房间状态部分标题"
+    "description": "房间状态区域标题"
   },
-
   "loginStatus": "登录状态",
   "@loginStatus": {
     "description": "登录状态标签"
   },
-
   "notLoggedIn": "未登录",
   "@notLoggedIn": {
     "description": "未登录状态"
   },
-
-  "adminAccess": "管理员访问权限",
+  "adminAccess": "管理员权限",
   "@adminAccess": {
-    "description": "管理员访问标签"
+    "description": "管理员权限标签"
   },
-
   "yes": "是",
   "@yes": {
-    "description": "是"
+    "description": "肯定回答"
   },
-
   "no": "否",
   "@no": {
-    "description": "否"
+    "description": "否定回答"
   },
-
   "permissions": "权限",
   "@permissions": {
     "description": "权限标签"
   },
-
   "passwordSaved": "密码已保存",
   "@passwordSaved": {
     "description": "密码已保存标签"
   },
-
   "locationColon": "位置：",
   "@locationColon": {
-    "description": "位置部分标题"
+    "description": "位置区域标题"
   },
-
   "telemetry": "遥测",
   "@telemetry": {
-    "description": "遥测部分标题"
+    "description": "遥测区域标题"
   },
-
   "requestingTelemetry": "正在向 {name} 请求遥测数据...",
   "@requestingTelemetry": {
-    "description": "请求遥测数据时的状态消息",
+    "description": "请求遥测时的状态消息",
     "placeholders": {
       "name": {
         "type": "String"
       }
     }
   },
-
   "voltage": "电压",
   "@voltage": {
     "description": "电压标签"
   },
-
   "battery": "电池",
   "@battery": {
     "description": "电池标签"
   },
-
   "temperature": "温度",
   "@temperature": {
     "description": "温度标签"
   },
-
   "humidity": "湿度",
   "@humidity": {
     "description": "湿度标签"
   },
-
   "pressure": "气压",
   "@pressure": {
     "description": "气压标签"
   },
-
-  "gpsTelemetry": "GPS (遥测)",
+  "gpsTelemetry": "GPS（遥测）",
   "@gpsTelemetry": {
     "description": "来自遥测的 GPS 标签"
   },
-
   "updated": "更新于",
   "@updated": {
     "description": "更新时间戳标签"
   },
-
-  "pathResetInfo": "{name} 的路径已重置。下一条消息将找到新路由。",
+  "pathResetInfo": "已重置 {name} 的路径。下一条消息将寻找新路由。",
   "@pathResetInfo": {
     "description": "路径重置后的信息消息",
     "placeholders": {
@@ -1289,117 +1105,96 @@
       }
     }
   },
-
   "reLoginToRoom": "重新登录到房间",
   "@reLoginToRoom": {
     "description": "重新登录到房间的按钮"
   },
-
   "heading": "航向",
   "@heading": {
     "description": "指南针航向标签"
   },
-
   "elevation": "海拔",
   "@elevation": {
     "description": "海拔高度标签"
   },
-
   "accuracy": "精度",
   "@accuracy": {
     "description": "GPS 精度标签"
   },
-
   "bearing": "方位角",
   "@bearing": {
-    "description": "指南针方位角标签"
+    "description": "指南针中的方位角标签"
   },
-
   "direction": "方向",
   "@direction": {
-    "description": "指南针方向标签"
+    "description": "指南针中的方向标签"
   },
-
   "filterMarkers": "筛选标记",
   "@filterMarkers": {
     "description": "筛选标记对话框的标题"
   },
-
   "filterMarkersTooltip": "筛选标记",
   "@filterMarkersTooltip": {
     "description": "筛选按钮的工具提示"
   },
-
   "contactsFilter": "联系人",
   "@contactsFilter": {
-    "description": "联系人的筛选选项"
+    "description": "联系人筛选选项"
   },
-
   "repeatersFilter": "转发节点",
   "@repeatersFilter": {
-    "description": "转发节点的筛选选项"
+    "description": "转发节点筛选选项"
   },
-
   "sarMarkers": "搜救标记",
   "@sarMarkers": {
-    "description": "搜救标记部分标题"
+    "description": "搜救标记区域标题"
   },
-
-  "foundPerson": "找到人员",
+  "foundPerson": "找到的人员",
   "@foundPerson": {
-    "description": "搜救标记类型：找到人员"
+    "description": "找到的人员搜救标记类型"
   },
-
-  "fire": "火情",
+  "fire": "火灾",
   "@fire": {
-    "description": "搜救标记类型：火情"
+    "description": "火灾搜救标记类型"
   },
-
-  "stagingArea": "集结点",
+  "stagingArea": "集结区",
   "@stagingArea": {
-    "description": "搜救标记类型：集结点"
+    "description": "集结区搜救标记类型"
   },
-
   "showAll": "显示全部",
   "@showAll": {
     "description": "显示所有筛选的按钮"
   },
-
   "nearbyContacts": "附近联系人",
   "@nearbyContacts": {
     "description": "指南针中附近联系人列表的标题"
   },
-
   "locationUnavailable": "位置不可用",
   "@locationUnavailable": {
     "description": "GPS 位置不可用时的消息"
   },
-
   "ahead": "前方",
   "@ahead": {
     "description": "相对方位方向 - 前方"
   },
-
-  "degreesRight": "右 {degrees}°",
+  "degreesRight": "向右 {degrees}°",
   "@degreesRight": {
-    "description": "相对方位方向 - 右",
+    "description": "相对方位方向 - 右侧",
     "placeholders": {
       "degrees": {
         "type": "int"
       }
     }
   },
-
-  "degreesLeft": "左 {degrees}°",
+  "degreesLeft": "向左 {degrees}°",
   "@degreesLeft": {
-    "description": "相对方位方向 - 左",
+    "description": "相对方位方向 - 左侧",
     "placeholders": {
       "degrees": {
         "type": "int"
       }
     }
   },
-
   "latLonFormat": "纬度：{latitude} 经度：{longitude}",
   "@latLonFormat": {
     "description": "纬度和经度显示格式",
@@ -1412,102 +1207,82 @@
       }
     }
   },
-
   "noContactsYet": "暂无联系人",
   "@noContactsYet": {
     "description": "没有联系人时的空状态消息"
   },
-
   "connectToDeviceToLoadContacts": "连接设备以加载联系人",
   "@connectToDeviceToLoadContacts": {
-    "description": "连接设备加载联系人的指示"
+    "description": "连接设备加载联系人的提示"
   },
-
   "teamMembers": "团队成员",
   "@teamMembers": {
-    "description": "团队成员（聊天联系人）部分标题"
+    "description": "团队成员区域标题（聊天联系人）"
   },
-
   "repeaters": "转发节点",
   "@repeaters": {
-    "description": "转发节点节点部分标题"
+    "description": "转发节点区域标题"
   },
-
   "rooms": "房间",
   "@rooms": {
-    "description": "房间部分标题"
+    "description": "房间区域标题"
   },
-
   "channels": "频道",
   "@channels": {
-    "description": "广播频道部分标题"
+    "description": "广播频道区域标题"
   },
-
   "cacheStatistics": "缓存统计",
   "@cacheStatistics": {
-    "description": "缓存统计部分标题"
+    "description": "缓存统计区域标题"
   },
-
-  "totalTiles": "瓦片总数",
+  "totalTiles": "总瓦片数",
   "@totalTiles": {
     "description": "缓存瓦片总数标签"
   },
-
   "cacheSize": "缓存大小",
   "@cacheSize": {
-    "description": "缓存大小（MB）标签"
+    "description": "以 MB 为单位的缓存大小标签"
   },
-
   "storeName": "存储名称",
   "@storeName": {
     "description": "缓存存储名称标签"
   },
-
-  "noCacheStatistics": "无可用缓存统计",
+  "noCacheStatistics": "没有可用的缓存统计信息",
   "@noCacheStatistics": {
-    "description": "缓存统计不可用时的消息"
+    "description": "缓存统计信息不可用时的消息"
   },
-
   "downloadRegion": "下载区域",
   "@downloadRegion": {
     "description": "下载区域部分标题"
   },
-
   "mapLayer": "地图图层",
   "@mapLayer": {
     "description": "地图图层选择标签"
   },
-
   "regionBounds": "区域边界",
   "@regionBounds": {
     "description": "区域边界输入部分标题"
   },
-
   "north": "北",
   "@north": {
     "description": "北坐标标签"
   },
-
   "south": "南",
   "@south": {
     "description": "南坐标标签"
   },
-
   "east": "东",
   "@east": {
     "description": "东坐标标签"
   },
-
   "west": "西",
   "@west": {
     "description": "西坐标标签"
   },
-
   "zoomLevels": "缩放级别",
   "@zoomLevels": {
     "description": "缩放级别部分标题"
   },
-
   "minZoom": "最小：{zoom}",
   "@minZoom": {
     "description": "最小缩放级别标签",
@@ -1517,7 +1292,6 @@
       }
     }
   },
-
   "maxZoom": "最大：{zoom}",
   "@maxZoom": {
     "description": "最大缩放级别标签",
@@ -1527,82 +1301,66 @@
       }
     }
   },
-
   "downloadingDots": "正在下载...",
   "@downloadingDots": {
     "description": "下载过程中的状态消息"
   },
-
   "cancelDownload": "取消下载",
   "@cancelDownload": {
     "description": "取消下载的按钮"
   },
-
   "downloadRegionButton": "下载区域",
   "@downloadRegionButton": {
     "description": "开始区域下载的按钮"
   },
-
-  "downloadNote": "注意：大区域或高缩放级别可能需要大量时间和存储空间。",
+  "downloadNote": "注意：大的区域或高缩放级别可能需要大量时间和存储空间。",
   "@downloadNote": {
     "description": "关于下载大小和时间的警告"
   },
-
   "cacheManagement": "缓存管理",
   "@cacheManagement": {
     "description": "缓存管理部分标题"
   },
-
   "clearAllMaps": "清除所有地图",
   "@clearAllMaps": {
     "description": "清除所有缓存地图的按钮"
   },
-
   "clearMapsConfirmTitle": "清除所有地图",
   "@clearMapsConfirmTitle": {
     "description": "清除地图确认对话框的标题"
   },
-
-  "clearMapsConfirmMessage": "确定要删除所有已下载的地图吗？此操作无法撤销。",
+  "clearMapsConfirmMessage": "您确定要删除所有下载的地图吗？此操作无法撤销。",
   "@clearMapsConfirmMessage": {
     "description": "清除地图的确认消息"
   },
-
   "mapDownloadCompleted": "地图下载完成！",
   "@mapDownloadCompleted": {
     "description": "地图下载后的成功消息"
   },
-
   "cacheClearedSuccessfully": "缓存清除成功！",
   "@cacheClearedSuccessfully": {
     "description": "清除缓存后的成功消息"
   },
-
   "downloadCancelled": "下载已取消",
   "@downloadCancelled": {
     "description": "下载取消时的消息"
   },
-
   "startingDownload": "正在开始下载...",
   "@startingDownload": {
     "description": "下载开始时的初始状态"
   },
-
   "downloadingMapTiles": "正在下载地图瓦片...",
   "@downloadingMapTiles": {
-    "description": "瓦片下载过程中的状态"
+    "description": "瓦片下载期间的状态"
   },
-
   "downloadCompletedSuccessfully": "下载成功完成！",
   "@downloadCompletedSuccessfully": {
-    "description": "成功下载后的状态"
+    "description": "下载成功后的状态"
   },
-
   "cancellingDownload": "正在取消下载...",
   "@cancellingDownload": {
-    "description": "取消下载过程中的状态"
+    "description": "取消下载时的状态"
   },
-
   "errorLoadingStats": "加载统计信息时出错：{error}",
   "@errorLoadingStats": {
     "description": "加载缓存统计信息失败时的错误消息",
@@ -1612,7 +1370,6 @@
       }
     }
   },
-
   "downloadFailed": "下载失败：{error}",
   "@downloadFailed": {
     "description": "下载失败时的错误消息",
@@ -1622,17 +1379,15 @@
       }
     }
   },
-
   "cancelFailed": "取消失败：{error}",
   "@cancelFailed": {
-    "description": "取消失败时的错误消息",
+    "description": "取消操作失败时的错误消息",
     "placeholders": {
       "error": {
         "type": "String"
       }
     }
   },
-
   "clearCacheFailed": "清除缓存失败：{error}",
   "@clearCacheFailed": {
     "description": "清除缓存失败时的错误消息",
@@ -1642,7 +1397,6 @@
       }
     }
   },
-
   "minZoomError": "最小缩放：{error}",
   "@minZoomError": {
     "description": "最小缩放的验证错误",
@@ -1652,7 +1406,6 @@
       }
     }
   },
-
   "maxZoomError": "最大缩放：{error}",
   "@maxZoomError": {
     "description": "最大缩放的验证错误",
@@ -1662,147 +1415,118 @@
       }
     }
   },
-
   "minZoomGreaterThanMax": "最小缩放必须小于或等于最大缩放",
   "@minZoomGreaterThanMax": {
-    "description": "最小缩放大于最大缩放时的验证错误"
+    "description": "当最小缩放大于最大缩放时的验证错误"
   },
-
   "selectMapLayer": "选择地图图层",
   "@selectMapLayer": {
     "description": "地图图层选择对话框的标题"
   },
-
   "mapOptions": "地图选项",
   "@mapOptions": {
     "description": "地图选项对话框的标题"
   },
-
   "showLegend": "显示图例",
   "@showLegend": {
-    "description": "显示地图图例的切换"
+    "description": "显示地图图例的开关"
   },
-
   "displayMarkerTypeCounts": "显示标记类型计数",
   "@displayMarkerTypeCounts": {
-    "description": "显示图例切换的描述"
+    "description": "显示图例开关的描述"
   },
-
   "rotateMapWithHeading": "随航向旋转地图",
   "@rotateMapWithHeading": {
-    "description": "随指南针航向旋转地图的切换"
+    "description": "随指南针航向旋转地图的开关"
   },
-
-  "mapFollowsDirection": "移动时地图跟随您的方向",
+  "mapFollowsDirection": "地图在移动时跟随您的方向",
   "@mapFollowsDirection": {
-    "description": "旋转地图切换的描述"
+    "description": "旋转地图开关的描述"
   },
-
   "resetMapRotation": "重置旋转",
   "@resetMapRotation": {
-    "description": "重置地图方向为北的按钮"
+    "description": "将地图旋转重置为北的按钮"
   },
-
-  "resetMapRotationTooltip": "将地图重置为北向上",
+  "resetMapRotationTooltip": "重置地图方向为北",
   "@resetMapRotationTooltip": {
     "description": "重置旋转按钮的工具提示"
   },
-
   "showMapDebugInfo": "显示地图调试信息",
   "@showMapDebugInfo": {
-    "description": "显示地图调试信息的切换"
+    "description": "显示地图调试信息的开关"
   },
-
   "displayZoomLevelBounds": "显示缩放级别和边界",
   "@displayZoomLevelBounds": {
-    "description": "调试信息切换的描述"
+    "description": "调试信息开关的描述"
   },
-
   "fullscreenMode": "全屏模式",
   "@fullscreenMode": {
-    "description": "全屏地图模式的切换"
+    "description": "全屏地图模式的开关"
   },
-
-  "hideUiFullMapView": "隐藏所有 UI 控件以获得完整地图视图",
+  "hideUiFullMapView": "隐藏所有 UI 控件以获得全地图视图",
   "@hideUiFullMapView": {
-    "description": "全屏模式切换的描述"
+    "description": "全屏模式开关的描述"
   },
-
   "openStreetMap": "OpenStreetMap",
   "@openStreetMap": {
     "description": "OpenStreetMap 图层名称"
   },
-
   "openTopoMap": "OpenTopoMap",
   "@openTopoMap": {
     "description": "OpenTopoMap 图层名称"
   },
-
   "esriSatellite": "ESRI 卫星图",
   "@esriSatellite": {
     "description": "ESRI 卫星影像图层名称"
   },
-
-  "googleHybrid": "Google 混合",
+  "googleHybrid": "Google 混合图",
   "@googleHybrid": {
-    "description": "Google 混合图层名称（卫星图 + 标签）"
+    "description": "Google 混合图层名称（卫星 + 标签）"
   },
-
   "googleRoadmap": "Google 道路图",
   "@googleRoadmap": {
-    "description": "Google 道路图图层名称（街道地图）"
+    "description": "Google 道路图层名称（街道地图）"
   },
-
   "googleTerrain": "Google 地形图",
   "@googleTerrain": {
-    "description": "Google 地形图图层名称（地形图）"
+    "description": "Google 地形图层名称（地形图）"
   },
-
   "downloadVisibleArea": "下载可见区域",
   "@downloadVisibleArea": {
     "description": "下载可见区域按钮的工具提示"
   },
-
   "initializingMap": "正在初始化地图...",
   "@initializingMap": {
     "description": "地图初始化的加载消息"
   },
-
   "dragToPosition": "拖动以定位",
   "@dragToPosition": {
     "description": "在地图上拖动图钉时的标签"
   },
-
   "createSarMarker": "创建搜救标记",
   "@createSarMarker": {
     "description": "从图钉创建搜救标记的标签"
   },
-
   "compass": "指南针",
   "@compass": {
-    "description": "详细指南针对话框的标题"
+    "description": "详细指南针对话框中的指南针标题"
   },
-
   "navigationAndContacts": "导航与联系人",
   "@navigationAndContacts": {
     "description": "指南针对话框的副标题"
   },
-
   "sarAlert": "搜救警报",
   "@sarAlert": {
     "description": "消息上的搜救警报徽章标签"
   },
-
   "messageSentToPublicChannel": "消息已发送到公共频道",
   "@messageSentToPublicChannel": {
-    "description": "消息发送到公共频道时的成功消息"
+    "description": "消息发送到公共频道后的成功消息"
   },
-
-  "pleaseSelectRoomToSendSar": "请选择一个房间以发送搜救标记",
+  "pleaseSelectRoomToSendSar": "请选择一个房间发送搜救标记",
   "@pleaseSelectRoomToSendSar": {
-    "description": "未选择房间发送搜救标记时的错误"
+    "description": "未为搜救标记选择房间时的错误"
   },
-
   "failedToSendSarMarker": "发送搜救标记失败：{error}",
   "@failedToSendSarMarker": {
     "description": "搜救标记发送失败时的错误消息",
@@ -1812,37 +1536,32 @@
       }
     }
   },
-
   "sarMarkerSentTo": "搜救标记已发送到 {roomName}",
   "@sarMarkerSentTo": {
-    "description": "搜救标记发送到房间时的成功消息",
+    "description": "搜救标记发送到房间后的成功消息",
     "placeholders": {
       "roomName": {
         "type": "String"
       }
     }
   },
-
   "notConnectedCannotSync": "未连接 - 无法同步消息",
   "@notConnectedCannotSync": {
     "description": "尝试在未连接时同步消息的警告"
   },
-
   "syncedMessageCount": "已同步 {count} 条消息",
   "@syncedMessageCount": {
-    "description": "显示已同步消息数量的成功消息",
+    "description": "显示同步消息数量的成功消息",
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-
   "noNewMessages": "没有新消息",
   "@noNewMessages": {
     "description": "没有新消息可同步时的信息消息"
   },
-
   "syncFailed": "同步失败：{error}",
   "@syncFailed": {
     "description": "同步失败时的错误消息",
@@ -1852,17 +1571,14 @@
       }
     }
   },
-
   "failedToResendMessage": "重新发送消息失败",
   "@failedToResendMessage": {
     "description": "消息重试失败时的错误"
   },
-
   "retryingMessage": "正在重试消息...",
   "@retryingMessage": {
     "description": "重试失败消息时的信息消息"
   },
-
   "retryFailed": "重试失败：{error}",
   "@retryFailed": {
     "description": "重试失败时的错误消息",
@@ -1872,65 +1588,53 @@
       }
     }
   },
-
   "textCopiedToClipboard": "文本已复制到剪贴板",
   "@textCopiedToClipboard": {
-    "description": "文本复制成功时的消息"
+    "description": "文本复制后的成功消息"
   },
-
-  "cannotReplySenderMissing": "无法回复：缺少发件人信息",
+  "cannotReplySenderMissing": "无法回复：缺少发送者信息",
   "@cannotReplySenderMissing": {
-    "description": "回复时缺少发件人信息的错误"
+    "description": "回复时缺少发送者信息的错误"
   },
-
-  "cannotReplyContactNotFound": "无法回复：找不到联系人",
+  "cannotReplyContactNotFound": "无法回复：未找到联系人",
   "@cannotReplyContactNotFound": {
-    "description": "回复时找不到联系人的错误"
+    "description": "回复时未找到联系人的错误"
   },
-
   "messageDeleted": "消息已删除",
   "@messageDeleted": {
-    "description": "消息删除时的信息消息"
+    "description": "消息删除后的信息消息"
   },
-
   "copyText": "复制文本",
   "@copyText": {
     "description": "将消息文本复制到剪贴板的选项"
   },
-
   "saveAsTemplate": "另存为模板",
   "@saveAsTemplate": {
     "description": "将搜救消息保存为可重用模板的选项"
   },
-
   "templateSaved": "模板保存成功",
   "@templateSaved": {
-    "description": "搜救模板保存成功时的成功消息"
+    "description": "搜救模板保存后的成功消息"
   },
-
   "templateAlreadyExists": "具有此表情符号的模板已存在",
   "@templateAlreadyExists": {
     "description": "尝试保存重复模板时的错误消息"
   },
-
   "deleteMessage": "删除消息",
   "@deleteMessage": {
-    "description": "删除消息对话框的标题"
+    "description": "删除消息的对话框标题"
   },
-
-  "deleteMessageConfirmation": "确定要删除此消息吗？",
+  "deleteMessageConfirmation": "您确定要删除此消息吗？",
   "@deleteMessageConfirmation": {
     "description": "消息删除的确认文本"
   },
-
   "shareLocation": "共享位置",
   "@shareLocation": {
     "description": "共享搜救标记位置的选项"
   },
-
-  "shareLocationText": "{markerInfo}\n\n坐标：{lat}， {lon}\n\n谷歌地图：{url}",
+  "shareLocationText": "{markerInfo}\n\n坐标：{lat}, {lon}\n\n谷歌地图：{url}",
   "@shareLocationText": {
-    "description": "共享搜救标记位置的格式化文本",
+    "description": "用于共享搜救标记位置的格式化文本",
     "placeholders": {
       "markerInfo": {
         "type": "String"
@@ -1946,83 +1650,71 @@
       }
     }
   },
-
   "sarLocationShare": "搜救位置",
   "@sarLocationShare": {
     "description": "共享搜救标记位置时的主题行"
   },
-
   "locationShared": "位置已共享",
   "@locationShared": {
-    "description": "位置共享成功时的消息"
+    "description": "位置共享后的成功消息"
   },
-
   "refreshedContacts": "联系人已刷新",
   "@refreshedContacts": {
-    "description": "联系人刷新成功时的消息"
+    "description": "联系人刷新后的成功消息"
   },
-
   "justNow": "刚刚",
   "@justNow": {
-    "description": "表示刚刚发生的活动的時間指示器"
+    "description": "非常近期活动的时间指示器"
   },
-
-  "minutesAgo": "{minutes} 分钟前",
+  "minutesAgo": "{minutes}分钟前",
   "@minutesAgo": {
-    "description": "表示几分钟前的時間指示器",
+    "description": "分钟前的时间指示器",
     "placeholders": {
       "minutes": {
         "type": "int"
       }
     }
   },
-
-  "hoursAgo": "{hours} 小时前",
+  "hoursAgo": "{hours}小时前",
   "@hoursAgo": {
-    "description": "表示几小时前的時間指示器",
+    "description": "小时前的时间指示器",
     "placeholders": {
       "hours": {
         "type": "int"
       }
     }
   },
-
-  "daysAgo": "{days} 天前",
+  "daysAgo": "{days}天前",
   "@daysAgo": {
-    "description": "表示几天前的時間指示器",
+    "description": "天前的时间指示器",
     "placeholders": {
       "days": {
         "type": "int"
       }
     }
   },
-
-  "secondsAgo": "{seconds} 秒前",
+  "secondsAgo": "{seconds}秒前",
   "@secondsAgo": {
-    "description": "表示几秒前的時間指示器",
+    "description": "秒前的时间指示器",
     "placeholders": {
       "seconds": {
         "type": "int"
       }
     }
   },
-
   "sending": "发送中...",
   "@sending": {
     "description": "投递状态：发送中"
   },
-
   "sent": "已发送",
   "@sent": {
     "description": "投递状态：已发送"
   },
-
   "delivered": "已送达",
   "@delivered": {
     "description": "投递状态：已送达"
   },
-
-  "deliveredWithTime": "已送达 ({time}ms)",
+  "deliveredWithTime": "已送达（{time}毫秒）",
   "@deliveredWithTime": {
     "description": "带有往返时间的投递状态",
     "placeholders": {
@@ -2031,20 +1723,17 @@
       }
     }
   },
-
   "failed": "失败",
   "@failed": {
     "description": "投递状态：失败"
   },
-
   "broadcast": "广播",
   "@broadcast": {
-    "description": "频道消息的投递状态（尚无回执）"
+    "description": "频道消息的投递状态（尚无回显）"
   },
-
   "deliveredToContacts": "已送达 {delivered}/{total} 个联系人",
   "@deliveredToContacts": {
-    "description": "群组消息投递计数",
+    "description": "分组消息投递计数",
     "placeholders": {
       "delivered": {
         "type": "int"
@@ -2054,146 +1743,120 @@
       }
     }
   },
-
   "allDelivered": "全部送达",
   "@allDelivered": {
-    "description": "所有收件人都收到消息时的状态"
+    "description": "当所有收件人都收到消息时的状态"
   },
-
   "recipientDetails": "收件人详情",
   "@recipientDetails": {
     "description": "可展开收件人列表的标题"
   },
-
   "pending": "等待中",
   "@pending": {
     "description": "投递状态：等待中"
   },
-
-  "sarMarkerFoundPerson": "找到人员",
+  "sarMarkerFoundPerson": "找到的人员",
   "@sarMarkerFoundPerson": {
-    "description": "搜救标记类型：找到人员"
+    "description": "搜救标记类型：找到的人员"
   },
-
-  "sarMarkerFire": "火情位置",
+  "sarMarkerFire": "火灾位置",
   "@sarMarkerFire": {
-    "description": "搜救标记类型：火情"
+    "description": "搜救标记类型：火灾"
   },
-
-  "sarMarkerStagingArea": "集结点",
+  "sarMarkerStagingArea": "集结区",
   "@sarMarkerStagingArea": {
-    "description": "搜救标记类型：集结点"
+    "description": "搜救标记类型：集结区"
   },
-
-  "sarMarkerObject": "找到物品",
+  "sarMarkerObject": "发现的物品",
   "@sarMarkerObject": {
     "description": "搜救标记类型：物品"
   },
-
   "from": "来自",
   "@from": {
     "description": "通知中的发件人标签"
   },
-
   "coordinates": "坐标",
   "@coordinates": {
     "description": "坐标标签"
   },
-
   "tapToViewOnMap": "点击在地图上查看",
   "@tapToViewOnMap": {
     "description": "通知操作文本"
   },
-
   "radioSettings": "无线电设置",
   "@radioSettings": {
     "description": "无线电设置部分标题"
   },
-
   "frequencyMHz": "频率 (MHz)",
   "@frequencyMHz": {
     "description": "无线电频率字段标签"
   },
-
-  "frequencyExample": "例如：869.618",
+  "frequencyExample": "例如 869.618",
   "@frequencyExample": {
-    "description": "频率的辅助示例文本"
+    "description": "频率示例帮助文本"
   },
-
   "bandwidth": "带宽",
   "@bandwidth": {
-    "description": "带宽下拉框标签"
+    "description": "带宽下拉菜单标签"
   },
-
   "spreadingFactor": "扩频因子",
   "@spreadingFactor": {
-    "description": "扩频因子下拉框标签"
+    "description": "扩频因子下拉菜单标签"
   },
-
   "codingRate": "编码率",
   "@codingRate": {
-    "description": "编码率下拉框标签"
+    "description": "编码率下拉菜单标签"
   },
-
   "txPowerDbm": "发射功率 (dBm)",
   "@txPowerDbm": {
     "description": "发射功率字段标签"
   },
-
   "maxPowerDbm": "最大：{power} dBm",
   "@maxPowerDbm": {
-    "description": "显示最大发射功率的辅助文本",
+    "description": "显示最大发射功率的帮助文本",
     "placeholders": {
-      "power": { "type": "int" }
+      "power": {
+        "type": "int"
+      }
     }
   },
-
   "you": "您",
   "@you": {
     "description": "消息气泡中当前用户的标签"
   },
-
   "offlineVectorMaps": "离线矢量地图",
   "@offlineVectorMaps": {
     "description": "离线矢量地图部分标题"
   },
-
   "offlineVectorMapsDescription": "导入和管理离线矢量地图瓦片（MBTiles 格式），以便在没有互联网连接时使用",
   "@offlineVectorMapsDescription": {
     "description": "离线矢量地图部分的描述"
   },
-
   "importMbtiles": "导入 MBTiles 文件",
   "@importMbtiles": {
     "description": "导入 MBTiles 文件的按钮"
   },
-
-  "importMbtilesNote": "支持带有矢量瓦片（PBF/MVT 格式）的 MBTiles 文件。Geofabrik 提取文件效果很好！",
+  "importMbtilesNote": "支持带有矢量瓦片（PBF/MVT 格式）的 MBTiles 文件。Geofabrik 的数据提取非常好用！",
   "@importMbtilesNote": {
     "description": "关于支持的 MBTiles 文件类型的说明"
   },
-
   "noMbtilesFiles": "未找到离线矢量地图",
   "@noMbtilesFiles": {
-    "description": "没有可用的 MBTiles 文件时的消息"
+    "description": "没有可用 MBTiles 文件时的消息"
   },
-
   "mbtilesImportedSuccessfully": "MBTiles 文件导入成功",
   "@mbtilesImportedSuccessfully": {
     "description": "导入 MBTiles 文件后的成功消息"
   },
-
   "failedToImportMbtiles": "导入 MBTiles 文件失败",
   "@failedToImportMbtiles": {
     "description": "MBTiles 导入失败时的错误消息"
   },
-
   "deleteMbtilesConfirmTitle": "删除离线地图",
   "@deleteMbtilesConfirmTitle": {
     "description": "删除 MBTiles 确认对话框的标题"
   },
-
-  "deleteMbtilesConfirmMessage": "确定要删除“{name}”吗？这将永久移除该离线地图。",
+  "deleteMbtilesConfirmMessage": "您确定要删除“{name}”吗？这将永久移除该离线地图。",
   "@deleteMbtilesConfirmMessage": {
     "description": "删除 MBTiles 文件的确认消息",
     "placeholders": {
@@ -2202,57 +1865,46 @@
       }
     }
   },
-
   "mbtilesDeletedSuccessfully": "离线地图删除成功",
   "@mbtilesDeletedSuccessfully": {
     "description": "删除 MBTiles 文件后的成功消息"
   },
-
   "failedToDeleteMbtiles": "删除离线地图失败",
   "@failedToDeleteMbtiles": {
     "description": "MBTiles 删除失败时的错误消息"
   },
-
   "importExportCachedTiles": "导入/导出缓存的瓦片",
   "@importExportCachedTiles": {
     "description": "导入/导出部分标题"
   },
-
-  "importExportDescription": "在设备之间备份、共享和恢复已下载的地图瓦片",
+  "importExportDescription": "在设备之间备份、共享和恢复下载的地图瓦片",
   "@importExportDescription": {
     "description": "导入/导出功能的描述"
   },
-
   "exportTilesToFile": "导出瓦片到文件",
   "@exportTilesToFile": {
-    "description": "导出瓦片到存档文件的按钮"
+    "description": "将瓦片导出到存档文件的按钮"
   },
-
   "importTilesFromFile": "从文件导入瓦片",
   "@importTilesFromFile": {
     "description": "从存档文件导入瓦片的按钮"
   },
-
   "selectExportLocation": "选择导出位置",
   "@selectExportLocation": {
     "description": "导出文件选择器的标题"
   },
-
   "selectImportFile": "选择瓦片存档",
   "@selectImportFile": {
     "description": "导入文件选择器的标题"
   },
-
   "exportingTiles": "正在导出瓦片...",
   "@exportingTiles": {
     "description": "导出过程中的状态消息"
   },
-
   "importingTiles": "正在导入瓦片...",
   "@importingTiles": {
     "description": "导入过程中的状态消息"
   },
-
   "exportSuccess": "成功导出 {count} 个瓦片",
   "@exportSuccess": {
     "description": "导出后的成功消息",
@@ -2262,7 +1914,6 @@
       }
     }
   },
-
   "importSuccess": "成功导入 {count} 个存储",
   "@importSuccess": {
     "description": "导入后的成功消息",
@@ -2272,7 +1923,6 @@
       }
     }
   },
-
   "exportFailed": "导出失败：{error}",
   "@exportFailed": {
     "description": "导出失败时的错误消息",
@@ -2282,7 +1932,6 @@
       }
     }
   },
-
   "importFailed": "导入失败：{error}",
   "@importFailed": {
     "description": "导入失败时的错误消息",
@@ -2292,22 +1941,18 @@
       }
     }
   },
-
-  "exportNote": "创建一个压缩存档 (.fmtc) 文件，可以共享并在其他设备上导入。",
+  "exportNote": "创建一个压缩存档（.fmtc）文件，可以共享并在其他设备上导入。",
   "@exportNote": {
     "description": "关于导出功能的说明"
   },
-
   "importNote": "从先前导出的存档文件导入地图瓦片。瓦片将与现有缓存合并。",
   "@importNote": {
     "description": "关于导入功能的说明"
   },
-
   "noTilesToExport": "没有可导出的瓦片",
   "@noTilesToExport": {
     "description": "缓存为空时的消息"
   },
-
   "archiveContainsStores": "存档包含 {count} 个存储",
   "@archiveContainsStores": {
     "description": "关于存档内容的信息",
@@ -2317,117 +1962,94 @@
       }
     }
   },
-
   "vectorTiles": "矢量瓦片",
   "@vectorTiles": {
     "description": "矢量瓦片类型的标签"
   },
-
   "schema": "模式",
   "@schema": {
     "description": "矢量瓦片模式的标签"
   },
-
   "unknown": "未知",
   "@unknown": {
     "description": "未知值标签"
   },
-
   "bounds": "边界",
   "@bounds": {
     "description": "地理边界标签"
   },
-
   "onlineLayers": "在线图层",
   "@onlineLayers": {
-    "description": "在线地图图层部分标题"
+    "description": "在线地图图层区域标题"
   },
-
   "offlineLayers": "离线图层",
   "@offlineLayers": {
-    "description": "离线地图图层（MBTiles）部分标题"
+    "description": "离线地图图层区域标题（MBTiles）"
   },
-
   "locationTrail": "位置轨迹",
   "@locationTrail": {
     "description": "位置轨迹标题"
   },
-
   "showTrailOnMap": "在地图上显示轨迹",
   "@showTrailOnMap": {
-    "description": "切换在地图上显示/隐藏轨迹"
+    "description": "在地图上显示/隐藏轨迹的开关"
   },
-
   "trailVisible": "轨迹在地图上可见",
   "@trailVisible": {
     "description": "轨迹可见性状态 - 可见"
   },
-
   "trailHiddenRecording": "轨迹已隐藏（仍在记录）",
   "@trailHiddenRecording": {
     "description": "轨迹可见性状态 - 隐藏但仍在记录"
   },
-
   "duration": "持续时间",
   "@duration": {
     "description": "持续时间标签"
   },
-
   "points": "点数",
   "@points": {
     "description": "轨迹点计数标签"
   },
-
   "clearTrail": "清除轨迹",
   "@clearTrail": {
     "description": "清除位置轨迹的按钮"
   },
-
   "clearTrailQuestion": "清除轨迹？",
   "@clearTrailQuestion": {
     "description": "确认对话框标题"
   },
-
-  "clearTrailConfirmation": "确定要清除当前的位置轨迹吗？此操作无法撤销。",
+  "clearTrailConfirmation": "您确定要清除当前的位置轨迹吗？此操作无法撤销。",
   "@clearTrailConfirmation": {
     "description": "确认对话框消息"
   },
-
   "noTrailRecorded": "尚未记录轨迹",
   "@noTrailRecorded": {
-    "description": "没有轨迹存在时的消息"
+    "description": "不存在轨迹时的消息"
   },
-
   "startTrackingToRecord": "开始位置跟踪以记录您的轨迹",
   "@startTrackingToRecord": {
-    "description": "开始记录轨迹的指示"
+    "description": "开始轨迹记录的提示"
   },
-
   "trailControls": "轨迹控制",
   "@trailControls": {
     "description": "轨迹控制工具提示"
   },
-
-  "exportTrailToGpx": "将轨迹导出为 GPX",
+  "exportTrailToGpx": "导出轨迹到 GPX",
   "@exportTrailToGpx": {
     "description": "将轨迹导出到 GPX 文件的按钮标签"
   },
-
   "importTrailFromGpx": "从 GPX 导入轨迹",
   "@importTrailFromGpx": {
     "description": "从 GPX 文件导入轨迹的按钮标签"
   },
-
   "trailExportedSuccessfully": "轨迹导出成功！",
   "@trailExportedSuccessfully": {
-    "description": "轨迹导出成功时的成功消息"
+    "description": "轨迹导出时的成功消息"
   },
-
   "failedToExportTrail": "导出轨迹失败",
   "@failedToExportTrail": {
     "description": "轨迹导出失败时的错误消息"
   },
-
   "failedToImportTrail": "导入轨迹失败：{error}",
   "@failedToImportTrail": {
     "description": "轨迹导入失败时的错误消息",
@@ -2437,13 +2059,11 @@
       }
     }
   },
-
   "importTrail": "导入轨迹",
   "@importTrail": {
     "description": "导入轨迹对话框标题"
   },
-
-  "importTrailQuestion": "导入包含 {pointCount} 个点的轨迹？\n\n您可以替换当前轨迹或将其与当前轨迹并排查看。",
+  "importTrailQuestion": "导入包含 {pointCount} 个点的轨迹吗？\n\n您可以替换当前轨迹，或将其与现有轨迹并排查看。",
   "@importTrailQuestion": {
     "description": "导入轨迹确认对话框内容",
     "placeholders": {
@@ -2452,192 +2072,159 @@
       }
     }
   },
-
   "viewAlongside": "并排查看",
   "@viewAlongside": {
-    "description": "将导入的轨迹与当前轨迹并排查看的按钮"
+    "description": "将导入的轨迹与当前轨迹并排显示的按钮"
   },
-
   "replaceCurrent": "替换当前",
   "@replaceCurrent": {
     "description": "用导入的轨迹替换当前轨迹的按钮"
   },
-
   "trailImported": "轨迹已导入！（{pointCount} 个点）",
   "@trailImported": {
-    "description": "轨迹导入成功时的成功消息",
+    "description": "轨迹导入时的成功消息",
     "placeholders": {
       "pointCount": {
         "type": "int"
       }
     }
   },
-
   "trailReplaced": "轨迹已替换！（{pointCount} 个点）",
   "@trailReplaced": {
-    "description": "轨迹替换成功时的成功消息",
+    "description": "轨迹替换时的成功消息",
     "placeholders": {
       "pointCount": {
         "type": "int"
       }
     }
   },
-
   "contactTrails": "联系人轨迹",
   "@contactTrails": {
-    "description": "联系人轨迹部分标题"
+    "description": "联系人轨迹区域标题"
   },
-
   "showAllContactTrails": "显示所有联系人轨迹",
   "@showAllContactTrails": {
-    "description": "切换标签，显示所有联系人轨迹"
+    "description": "显示所有联系人轨迹的开关标签"
   },
-
   "noContactsWithLocationHistory": "没有带位置历史的联系人",
   "@noContactsWithLocationHistory": {
-    "description": "当没有联系人具有轨迹时的副标题"
+    "description": "当没有联系人拥有轨迹时的副标题"
   },
-
   "showingTrailsForContacts": "正在显示 {count} 个联系人的轨迹",
   "@showingTrailsForContacts": {
-    "description": "显示具有轨迹的联系人数量的副标题",
+    "description": "显示拥有轨迹的联系人数量的副标题",
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-
   "individualContactTrails": "单个联系人轨迹",
   "@individualContactTrails": {
-    "description": "单个联系人轨迹的展开项标题"
+    "description": "单个联系人轨迹的扩展磁贴标题"
   },
-
   "deviceInformation": "设备信息",
   "@deviceInformation": {
-    "description": "设备信息部分标题"
+    "description": "设备信息区域标题"
   },
-
   "bleName": "BLE 名称",
   "@bleName": {
-    "description": "蓝牙低能耗设备名称标签"
+    "description": "低功耗蓝牙设备名称标签"
   },
-
-  "meshName": "网格名称",
+  "meshName": "Mesh 名称",
   "@meshName": {
-    "description": "网格网络名称标签"
+    "description": "Mesh 网络名称标签"
   },
-
   "notSet": "未设置",
   "@notSet": {
     "description": "当值未设置时的标签"
   },
-
   "model": "型号",
   "@model": {
     "description": "设备型号标签"
   },
-
   "version": "版本",
   "@version": {
     "description": "版本标签"
   },
-
   "buildDate": "构建日期",
   "@buildDate": {
     "description": "固件构建日期标签"
   },
-
   "firmware": "固件",
   "@firmware": {
     "description": "固件标签"
   },
-
-  "maxContacts": "最大联系人数",
+  "maxContacts": "最大联系人数量",
   "@maxContacts": {
     "description": "最大联系人容量标签"
   },
-
-  "maxChannels": "最大频道数",
+  "maxChannels": "最大频道数量",
   "@maxChannels": {
     "description": "最大频道容量标签"
   },
-
   "publicInfo": "公共信息",
   "@publicInfo": {
-    "description": "公共信息部分标题"
+    "description": "公共信息区域标题"
   },
-
-  "meshNetworkName": "网格网络名称",
+  "meshNetworkName": "Mesh 网络名称",
   "@meshNetworkName": {
-    "description": "网格网络名称字段标签"
+    "description": "Mesh 网络名称字段标签"
   },
-
-  "nameBroadcastInMesh": "在网格广播中通告的名称",
+  "nameBroadcastInMesh": "在 Mesh 广播中公布的名称",
   "@nameBroadcastInMesh": {
-    "description": "网格网络名称字段的帮助文本"
+    "description": "Mesh 网络名称字段的帮助文本"
   },
-
-  "telemetryAndLocationSharing": "遥测和位置共享",
+  "telemetryAndLocationSharing": "遥测与位置共享",
   "@telemetryAndLocationSharing": {
-    "description": "遥测和位置共享切换标签"
+    "description": "遥测和位置共享开关标签"
   },
-
   "lat": "纬度",
   "@lat": {
-    "description": "纬度字段标签（短形式）"
+    "description": "纬度字段标签（短格式）"
   },
-
   "lon": "经度",
   "@lon": {
-    "description": "经度字段标签（短形式）"
+    "description": "经度字段标签（短格式）"
   },
-
   "useCurrentLocation": "使用当前位置",
   "@useCurrentLocation": {
     "description": "使用当前位置按钮的工具提示"
   },
-
   "noneUnknown": "无/未知",
   "@noneUnknown": {
     "description": "设备类型：无或未知"
   },
-
   "chatNode": "聊天节点",
   "@chatNode": {
     "description": "设备类型：聊天节点"
   },
-
   "repeater": "转发节点",
   "@repeater": {
     "description": "设备类型：转发节点"
   },
-
   "roomChannel": "房间/频道",
   "@roomChannel": {
     "description": "设备类型：房间或频道"
   },
-
   "typeNumber": "类型 {number}",
   "@typeNumber": {
-    "description": "带数字的通用设备类型",
+    "description": "带有编号的通用设备类型",
     "placeholders": {
       "number": {
         "type": "int"
       }
     }
   },
-
   "copiedToClipboardShort": "{label} 已复制到剪贴板",
   "@copiedToClipboardShort": {
-    "description": "复制到剪贴板时的简短成功消息",
+    "description": "复制到剪贴板的简短成功消息",
     "placeholders": {
       "label": {
         "type": "String"
       }
     }
   },
-
   "failedToSave": "保存失败：{error}",
   "@failedToSave": {
     "description": "保存失败的通用错误消息",
@@ -2647,7 +2234,6 @@
       }
     }
   },
-
   "failedToGetLocation": "获取位置失败：{error}",
   "@failedToGetLocation": {
     "description": "获取位置失败时的错误消息",
@@ -2657,87 +2243,70 @@
       }
     }
   },
-
   "sarTemplates": "搜救模板",
   "@sarTemplates": {
     "description": "搜救模板菜单标题"
   },
-
-  "manageSarTemplates": "管理目标标记模板",
+  "manageSarTemplates": "管理光标目标模板",
   "@manageSarTemplates": {
     "description": "搜救模板设置的副标题"
   },
-
   "addTemplate": "添加模板",
   "@addTemplate": {
     "description": "添加新搜救模板的按钮"
   },
-
   "editTemplate": "编辑模板",
   "@editTemplate": {
     "description": "编辑模板对话框的标题"
   },
-
   "deleteTemplate": "删除模板",
   "@deleteTemplate": {
     "description": "删除模板的操作"
   },
-
   "templateName": "模板名称",
   "@templateName": {
-    "description": "模板名称字段的标签"
+    "description": "模板名称字段标签"
   },
-
-  "templateNameHint": "例如：找到的人员",
+  "templateNameHint": "例如 找到的人员",
   "@templateNameHint": {
     "description": "模板名称的提示文本"
   },
-
   "templateEmoji": "表情符号",
   "@templateEmoji": {
-    "description": "模板表情符号字段的标签"
+    "description": "模板表情符号字段标签"
   },
-
   "emojiRequired": "需要表情符号",
   "@emojiRequired": {
     "description": "表情符号字段为空时的验证错误"
   },
-
   "nameRequired": "需要名称",
   "@nameRequired": {
     "description": "名称字段为空时的验证错误"
   },
-
   "templateDescription": "描述（可选）",
   "@templateDescription": {
-    "description": "模板描述字段的标签"
+    "description": "模板描述字段标签"
   },
-
-  "templateDescriptionHint": "添加上下文...",
+  "templateDescriptionHint": "添加上下文信息...",
   "@templateDescriptionHint": {
     "description": "模板描述的提示文本"
   },
-
   "templateColor": "颜色",
   "@templateColor": {
-    "description": "模板颜色选择器的标签"
+    "description": "模板颜色选择器标签"
   },
-
   "previewFormat": "预览（搜救消息格式）",
   "@previewFormat": {
-    "description": "格式预览的标签"
+    "description": "格式预览标签"
   },
-
   "importFromClipboard": "导入",
   "@importFromClipboard": {
     "description": "从剪贴板导入模板的按钮"
   },
-
   "exportToClipboard": "导出",
   "@exportToClipboard": {
     "description": "将模板导出到剪贴板的按钮"
   },
-
   "deleteTemplateConfirmation": "删除模板“{name}”？",
   "@deleteTemplateConfirmation": {
     "description": "模板删除的确认消息",
@@ -2747,23 +2316,19 @@
       }
     }
   },
-
   "templateAdded": "模板已添加",
   "@templateAdded": {
-    "description": "模板添加成功时的成功消息"
+    "description": "模板添加后的成功消息"
   },
-
   "templateUpdated": "模板已更新",
   "@templateUpdated": {
-    "description": "模板更新成功时的成功消息"
+    "description": "模板更新后的成功消息"
   },
-
   "templateDeleted": "模板已删除",
   "@templateDeleted": {
-    "description": "模板删除成功时的成功消息"
+    "description": "模板删除后的成功消息"
   },
-
-  "templatesImported": "{count, plural, =0{没有导入模板} =1{已导入 1 个模板} other{已导入 {count} 个模板}}",
+  "templatesImported": "已导入 {count} 个模板",
   "@templatesImported": {
     "description": "导入模板后的成功消息",
     "placeholders": {
@@ -2772,8 +2337,7 @@
       }
     }
   },
-
-  "templatesExported": "{count, plural, =1{已导出 1 个模板到剪贴板} other{已导出 {count} 个模板到剪贴板}}",
+  "templatesExported": "已导出 {count} 个模板到剪贴板",
   "@templatesExported": {
     "description": "导出模板后的成功消息",
     "placeholders": {
@@ -2782,7 +2346,6 @@
       }
     }
   },
-
   "importFailed": "导入失败：{error}",
   "@importFailed": {
     "description": "导入失败时的错误消息",
@@ -2792,7 +2355,6 @@
       }
     }
   },
-
   "exportFailed": "导出失败：{error}",
   "@exportFailed": {
     "description": "导出失败时的错误消息",
@@ -2802,492 +2364,403 @@
       }
     }
   },
-
-  "resetToDefaults": "重置为默认值",
+  "resetToDefaults": "恢复默认",
   "@resetToDefaults": {
     "description": "将模板重置为默认值的操作"
   },
-
-  "resetToDefaultsConfirmation": "这将删除所有自定义模板并恢复 4 个默认模板。继续吗？",
+  "resetToDefaultsConfirmation": "这将删除所有自定义模板并恢复 4 个默认模板。是否继续？",
   "@resetToDefaultsConfirmation": {
-    "description": "重置为默认值的确认消息"
+    "description": "恢复默认的确认消息"
   },
-
   "reset": "重置",
   "@reset": {
     "description": "重置按钮标签"
   },
-
   "resetComplete": "模板已重置为默认值",
   "@resetComplete": {
     "description": "重置后的成功消息"
   },
-
   "noTemplates": "没有可用的模板",
   "@noTemplates": {
-    "description": "没有模板存在时的消息"
+    "description": "不存在模板时的消息"
   },
-
   "tapAddToCreate": "点击 + 创建您的第一个模板",
   "@tapAddToCreate": {
-    "description": "没有模板存在时的帮助文本"
+    "description": "不存在模板时的帮助文本"
   },
-
   "ok": "确定",
   "@ok": {
     "description": "确定按钮标签"
   },
-
   "permissionsSection": "权限",
   "@permissionsSection": {
-    "description": "权限部分标题"
+    "description": "权限区域标题"
   },
-
   "locationPermission": "位置权限",
   "@locationPermission": {
     "description": "位置权限标签"
   },
-
-  "checking": "检查中...",
+  "checking": "正在检查...",
   "@checking": {
     "description": "加载状态指示器"
   },
-
   "locationPermissionGrantedAlways": "已授予（始终）",
   "@locationPermissionGrantedAlways": {
-    "description": "位置权限状态：始终允许"
+    "description": "位置权限状态：始终授予"
   },
-
-  "locationPermissionGrantedWhileInUse": "已授予（使用时）",
+  "locationPermissionGrantedWhileInUse": "已授予（使用期间）",
   "@locationPermissionGrantedWhileInUse": {
-    "description": "位置权限状态：使用时允许"
+    "description": "位置权限状态：使用期间授予"
   },
-
   "locationPermissionDeniedTapToRequest": "已拒绝 - 点击请求",
   "@locationPermissionDeniedTapToRequest": {
     "description": "位置权限状态：已拒绝，用户可以请求"
   },
-
   "locationPermissionPermanentlyDeniedOpenSettings": "永久拒绝 - 打开设置",
   "@locationPermissionPermanentlyDeniedOpenSettings": {
     "description": "位置权限状态：永久拒绝"
   },
-
-  "locationPermissionDialogContent": "位置权限被永久拒绝。请在您的设备设置中启用它，以使用 GPS 跟踪和位置共享功能。",
+  "locationPermissionDialogContent": "位置权限被永久拒绝。请在设备设置中启用它，以便使用 GPS 跟踪和位置共享功能。",
   "@locationPermissionDialogContent": {
     "description": "永久拒绝时位置权限对话框的内容"
   },
-
   "openSettings": "打开设置",
   "@openSettings": {
     "description": "打开设备设置的按钮"
   },
-
   "locationPermissionGranted": "位置权限已授予！",
   "@locationPermissionGranted": {
-    "description": "位置权限授予成功时的成功消息"
+    "description": "位置权限授予后的成功消息"
   },
-
   "locationPermissionRequiredForGps": "GPS 跟踪和位置共享需要位置权限。",
   "@locationPermissionRequiredForGps": {
     "description": "关于位置权限要求的信息消息"
   },
-
-  "locationPermissionAlreadyGranted": "位置权限已经授予。",
+  "locationPermissionAlreadyGranted": "位置权限已被授予。",
   "@locationPermissionAlreadyGranted": {
     "description": "权限已授予时的信息消息"
   },
-
+  "sarNavyBlue": "搜救海军蓝",
+  "@sarNavyBlue": {
+    "description": "搜救海军蓝主题名称"
+  },
+  "sarNavyBlueDescription": "专业/操作模式",
+  "@sarNavyBlueDescription": {
+    "description": "搜救海军蓝主题的描述"
+  },
   "selectRecipient": "选择收件人",
   "@selectRecipient": {
-    "description": "收件人选择器表单的标题"
+    "description": "收件人选择面板的标题"
   },
-
-  "broadcastToAllNearby": "广播给所有附近的人",
+  "broadcastToAllNearby": "广播给所有附近设备",
   "@broadcastToAllNearby": {
     "description": "公共频道选项的副标题"
   },
-
   "searchRecipients": "搜索收件人...",
   "@searchRecipients": {
     "description": "收件人搜索字段的占位符文本"
   },
-
   "noContactsFound": "未找到联系人",
   "@noContactsFound": {
-    "description": "没有匹配搜索的联系人时的消息"
+    "description": "没有联系人匹配搜索时的消息"
   },
-
   "noRoomsFound": "未找到房间",
   "@noRoomsFound": {
-    "description": "没有匹配搜索的房间时的消息"
+    "description": "没有房间匹配搜索时的消息"
   },
-
   "noContactsOrRoomsAvailable": "没有可用的联系人或房间",
   "@noContactsOrRoomsAvailable": {
     "description": "没有联系人或房间存在时的消息"
   },
-
   "noRecipientsAvailable": "没有可用的收件人",
   "@noRecipientsAvailable": {
     "description": "没有收件人（联系人、房间或频道）存在时的消息"
   },
-
   "noChannelsFound": "未找到频道",
   "@noChannelsFound": {
-    "description": "没有匹配搜索的频道时的消息"
+    "description": "没有频道匹配搜索时的消息"
   },
-
-  "messagesWillBeSentToPublicChannel": "消息将被发送到公共频道",
+  "messagesWillBeSentToPublicChannel": "消息将发送到公共频道",
   "@messagesWillBeSentToPublicChannel": {
-    "description": "只有公共频道可用时的信息消息"
+    "description": "当只有公共频道可用时的信息消息"
   },
-
   "newMessage": "新消息",
   "@newMessage": {
     "description": "新消息的通知标题"
   },
-
   "channel": "频道",
   "@channel": {
     "description": "通知中的频道标签"
   },
-
-  "samplePoliceLead": "警方负责人",
+  "samplePoliceLead": "警队负责人",
   "@samplePoliceLead": {
-    "description": "示例团队成员姓名"
+    "description": "示例团队成员名称"
   },
-
   "sampleDroneOperator": "无人机操作员",
   "@sampleDroneOperator": {
-    "description": "示例团队成员姓名"
+    "description": "示例团队成员名称"
   },
-
   "sampleFirefighterAlpha": "消防员",
   "@sampleFirefighterAlpha": {
-    "description": "示例团队成员姓名"
+    "description": "示例团队成员名称"
   },
-
   "sampleMedicCharlie": "医护人员",
   "@sampleMedicCharlie": {
-    "description": "示例团队成员姓名"
+    "description": "示例团队成员名称"
   },
-
   "sampleCommandDelta": "指挥部",
   "@sampleCommandDelta": {
-    "description": "示例团队成员姓名"
+    "description": "示例团队成员名称"
   },
-
   "sampleFireEngine": "消防车",
   "@sampleFireEngine": {
-    "description": "示例团队成员姓名"
+    "description": "示例团队成员名称"
   },
-
   "sampleAirSupport": "空中支援",
   "@sampleAirSupport": {
-    "description": "示例团队成员姓名"
+    "description": "示例团队成员名称"
   },
-
   "sampleBaseCoordinator": "基地协调员",
   "@sampleBaseCoordinator": {
-    "description": "示例团队成员姓名"
+    "description": "示例团队成员名称"
   },
-
   "channelEmergency": "紧急",
   "@channelEmergency": {
     "description": "紧急频道名称"
   },
-
   "channelCoordination": "协调",
   "@channelCoordination": {
     "description": "协调频道名称"
   },
-
   "channelUpdates": "更新",
   "@channelUpdates": {
     "description": "更新频道名称"
   },
-
   "sampleTeamMember": "示例团队成员",
   "@sampleTeamMember": {
-    "description": "示例发件人姓名"
+    "description": "示例发件人名称"
   },
-
   "sampleScout": "示例侦察员",
   "@sampleScout": {
-    "description": "示例发件人姓名"
+    "description": "示例发件人名称"
   },
-
   "sampleBase": "示例基地",
   "@sampleBase": {
-    "description": "示例发件人姓名"
+    "description": "示例发件人名称"
   },
-
   "sampleSearcher": "示例搜索员",
   "@sampleSearcher": {
-    "description": "示例发件人姓名"
+    "description": "示例发件人名称"
   },
-
-  "sampleObjectBackpack": " 发现背包 - 蓝色",
+  "sampleObjectBackpack": " 发现的背包 - 蓝色",
   "@sampleObjectBackpack": {
     "description": "示例物品备注"
   },
-
-  "sampleObjectVehicle": " 废弃车辆 - 检查车主",
+  "sampleObjectVehicle": " 遗弃车辆 - 请核实车主",
   "@sampleObjectVehicle": {
     "description": "示例物品备注"
   },
-
-  "sampleObjectCamping": " 发现露营装备",
+  "sampleObjectCamping": " 发现的露营装备",
   "@sampleObjectCamping": {
     "description": "示例物品备注"
   },
-
-  "sampleObjectTrailMarker": " 在小径旁发现路径标记",
+  "sampleObjectTrailMarker": " 在小径外发现的路标",
   "@sampleObjectTrailMarker": {
     "description": "示例物品备注"
   },
-
-  "sampleMsgAllTeamsCheckIn": "所有队伍签到",
+  "sampleMsgAllTeamsCheckIn": "所有小队签到",
   "@sampleMsgAllTeamsCheckIn": {
     "description": "示例频道消息"
   },
-
   "sampleMsgWeatherUpdate": "天气更新：晴朗，气温 18°C",
   "@sampleMsgWeatherUpdate": {
     "description": "示例频道消息"
   },
-
-  "sampleMsgBaseCamp": "大本营已在集结点建立",
+  "sampleMsgBaseCamp": "基地营已在集结区建立",
   "@sampleMsgBaseCamp": {
     "description": "示例频道消息"
   },
-
-  "sampleMsgTeamAlpha": "队伍正在向第二区移动",
+  "sampleMsgTeamAlpha": "小队正在前往第 2 区",
   "@sampleMsgTeamAlpha": {
     "description": "示例频道消息"
   },
-
   "sampleMsgRadioCheck": "无线电检查 - 所有电台回应",
   "@sampleMsgRadioCheck": {
     "description": "示例频道消息"
   },
-
   "sampleMsgWaterSupply": "3 号检查点有水源",
   "@sampleMsgWaterSupply": {
     "description": "示例频道消息"
   },
-
-  "sampleMsgTeamBravo": "队伍报告：第一区已搜索完毕",
+  "sampleMsgTeamBravo": "小队报告：第 1 区已排查完毕",
   "@sampleMsgTeamBravo": {
     "description": "示例频道消息"
   },
-
   "sampleMsgEtaRallyPoint": "预计到达集合点时间：15 分钟",
   "@sampleMsgEtaRallyPoint": {
     "description": "示例频道消息"
   },
-
-  "sampleMsgSupplyDrop": "已确认 14：00 空投物资",
+  "sampleMsgSupplyDrop": "已确认 14:00 进行物资空投",
   "@sampleMsgSupplyDrop": {
     "description": "示例频道消息"
   },
-
   "sampleMsgDroneSurvey": "无人机勘察完成 - 无发现",
   "@sampleMsgDroneSurvey": {
     "description": "示例频道消息"
   },
-
-  "sampleMsgTeamCharlie": "队伍请求支援",
+  "sampleMsgTeamCharlie": "小队请求支援",
   "@sampleMsgTeamCharlie": {
     "description": "示例频道消息"
   },
-
   "sampleMsgRadioDiscipline": "所有单位：保持无线电纪律",
   "@sampleMsgRadioDiscipline": {
     "description": "示例频道消息"
   },
-
-  "sampleMsgUrgentMedical": "紧急：第四区需要医疗援助",
+  "sampleMsgUrgentMedical": "紧急：第 4 区需要医疗援助",
   "@sampleMsgUrgentMedical": {
     "description": "示例紧急消息"
   },
-
   "sampleMsgAdultMale": " 成年男性，意识清醒",
   "@sampleMsgAdultMale": {
     "description": "示例紧急消息备注"
   },
-
-  "sampleMsgFireSpotted": "发现火情 - 坐标稍后",
+  "sampleMsgFireSpotted": "发现火灾 - 坐标即将发送",
   "@sampleMsgFireSpotted": {
     "description": "示例紧急消息"
   },
-
-  "sampleMsgSpreadingRapidly": " 正在快速蔓延！",
+  "sampleMsgSpreadingRapidly": " 正在迅速蔓延！",
   "@sampleMsgSpreadingRapidly": {
     "description": "示例紧急消息备注"
   },
-
   "sampleMsgPriorityHelicopter": "优先级：需要直升机支援",
   "@sampleMsgPriorityHelicopter": {
     "description": "示例紧急消息"
   },
-
   "sampleMsgMedicalTeamEnRoute": "医疗队正在前往您的位置",
   "@sampleMsgMedicalTeamEnRoute": {
     "description": "示例紧急消息"
   },
-
-  "sampleMsgEvacHelicopter": "疏散直升机预计 10 分钟到达",
+  "sampleMsgEvacHelicopter": "救援直升机预计 10 分钟后到达",
   "@sampleMsgEvacHelicopter": {
     "description": "示例紧急消息"
   },
-
   "sampleMsgEmergencyResolved": "紧急情况已解决 - 解除警报",
   "@sampleMsgEmergencyResolved": {
     "description": "示例紧急消息"
   },
-
-  "sampleMsgEmergencyStagingArea": " 紧急集结点",
+  "sampleMsgEmergencyStagingArea": " 紧急集结区",
   "@sampleMsgEmergencyStagingArea": {
     "description": "示例紧急消息备注"
   },
-
-  "sampleMsgEmergencyServices": "已通知急救服务，正在响应",
+  "sampleMsgEmergencyServices": "紧急服务部门已接到通知并正在响应",
   "@sampleMsgEmergencyServices": {
     "description": "示例紧急消息"
   },
-
-  "sampleAlphaTeamLead": "队长",
+  "sampleAlphaTeamLead": "小队队长",
   "@sampleAlphaTeamLead": {
-    "description": "示例队伍名称"
+    "description": "示例小队名称"
   },
-
   "sampleBravoScout": "侦察员",
   "@sampleBravoScout": {
-    "description": "示例队伍名称"
+    "description": "示例小队名称"
   },
-
   "sampleCharlieMedic": "医护人员",
   "@sampleCharlieMedic": {
-    "description": "示例队伍名称"
+    "description": "示例小队名称"
   },
-
   "sampleDeltaNavigator": "导航员",
   "@sampleDeltaNavigator": {
-    "description": "示例队伍名称"
+    "description": "示例小队名称"
   },
-
   "sampleEchoSupport": "支援",
   "@sampleEchoSupport": {
-    "description": "示例队伍名称"
+    "description": "示例小队名称"
   },
-
   "sampleBaseCommand": "基地指挥部",
   "@sampleBaseCommand": {
-    "description": "示例队伍名称"
+    "description": "示例小队名称"
   },
-
   "sampleFieldCoordinator": "现场协调员",
   "@sampleFieldCoordinator": {
-    "description": "示例队伍名称"
+    "description": "示例小队名称"
   },
-
   "sampleMedicalTeam": "医疗队",
   "@sampleMedicalTeam": {
-    "description": "示例队伍名称"
+    "description": "示例小队名称"
   },
-
-  "mapDrawing": "地图绘图",
+  "mapDrawing": "地图绘制",
   "@mapDrawing": {
-    "description": "地图绘图消息的标签"
+    "description": "地图绘制消息的标签"
   },
-
   "navigateToDrawing": "导航到绘图",
   "@navigateToDrawing": {
-    "description": "导航到地图绘图的选项"
+    "description": "导航到地图上绘图的选项"
   },
-
   "copyCoordinates": "复制坐标",
   "@copyCoordinates": {
     "description": "将坐标复制到剪贴板的选项"
   },
-
   "hideFromMap": "在地图上隐藏",
   "@hideFromMap": {
     "description": "在地图上隐藏绘图的选项"
   },
-
   "lineDrawing": "线条绘图",
   "@lineDrawing": {
     "description": "线条类型绘图的标签"
   },
-
   "rectangleDrawing": "矩形绘图",
   "@rectangleDrawing": {
     "description": "矩形类型绘图的标签"
   },
-
   "coordinatesCopiedToClipboard": "坐标已复制到剪贴板",
   "@coordinatesCopiedToClipboard": {
-    "description": "坐标复制成功时的成功消息"
+    "description": "坐标复制后的成功消息"
   },
-
   "manualCoordinates": "手动输入坐标",
   "@manualCoordinates": {
-    "description": "手动坐标输入切换的标签"
+    "description": "手动坐标输入开关的标签"
   },
-
   "enterCoordinatesManually": "手动输入坐标",
   "@enterCoordinatesManually": {
     "description": "手动坐标输入选项的描述"
   },
-
   "latitudeLabel": "纬度",
   "@latitudeLabel": {
     "description": "纬度输入字段的标签"
   },
-
   "longitudeLabel": "经度",
   "@longitudeLabel": {
     "description": "经度输入字段的标签"
   },
-
   "invalidLatitude": "无效的纬度（-90 到 90）",
   "@invalidLatitude": {
     "description": "纬度值无效时的错误消息"
   },
-
   "invalidLongitude": "无效的经度（-180 到 180）",
   "@invalidLongitude": {
     "description": "经度值无效时的错误消息"
   },
-
   "exampleCoordinates": "例如：46.0569, 14.5058",
   "@exampleCoordinates": {
     "description": "示例坐标格式提示"
   },
-
-  "drawingShared": "地图绘图",
+  "drawingShared": "地图绘制",
   "@drawingShared": {
     "description": "共享绘图通知的标签"
   },
-
   "drawingHidden": "绘图已从地图上隐藏",
   "@drawingHidden": {
-    "description": "绘图隐藏成功时的成功消息"
+    "description": "绘图隐藏后的成功消息"
   },
-
-  "alreadyShared": "{count, plural, =1{1 个已共享} other{{count} 个已共享}}",
+  "alreadyShared": "{count} 个已共享",
   "@alreadyShared": {
-    "description": "显示已经共享了多少绘图的訊息",
+    "description": "显示已共享绘图数量的消息",
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-
   "newDrawingsShared": "已共享 {count} 个新绘图",
   "@newDrawingsShared": {
     "description": "共享新绘图后的成功消息",
@@ -3300,37 +2773,30 @@
       }
     }
   },
-
   "shareDrawing": "共享绘图",
   "@shareDrawing": {
     "description": "共享单个绘图对话框的标题"
   },
-
   "shareWithAllNearbyDevices": "与所有附近设备共享",
   "@shareWithAllNearbyDevices": {
     "description": "公共频道共享选项的副标题"
   },
-
   "shareToRoom": "共享到房间",
   "@shareToRoom": {
     "description": "房间共享部分的标题"
   },
-
   "sendToPersistentStorage": "发送到持久房间存储",
   "@sendToPersistentStorage": {
     "description": "房间共享选项的副标题"
   },
-
-  "deleteDrawingConfirm": "确定要删除此绘图吗？",
+  "deleteDrawingConfirm": "您确定要删除此绘图吗？",
   "@deleteDrawingConfirm": {
     "description": "删除单个绘图的确认消息"
   },
-
   "drawingDeleted": "绘图已删除",
   "@drawingDeleted": {
     "description": "删除绘图后的成功消息"
   },
-
   "yourDrawingsCount": "您的绘图 ({count})",
   "@yourDrawingsCount": {
     "description": "显示用户绘图数量的标题",
@@ -3340,197 +2806,158 @@
       }
     }
   },
-
   "shared": "已共享",
   "@shared": {
-    "description": "共享绘图的狀態标签"
+    "description": "已共享绘制的状态标签"
   },
-
   "line": "线条",
   "@line": {
     "description": "线条绘图类型标签"
   },
-
   "rectangle": "矩形",
   "@rectangle": {
     "description": "矩形绘图类型标签"
   },
-
   "updateAvailable": "有可用更新",
   "@updateAvailable": {
-    "description": "新版本可用时更新对话框的标题"
+    "description": "有新版本可用时更新对话框的标题"
   },
-
   "currentVersion": "当前版本",
   "@currentVersion": {
     "description": "当前应用版本标签"
   },
-
   "latestVersion": "最新版本",
   "@latestVersion": {
     "description": "最新可用应用版本标签"
   },
-
   "downloadUpdate": "下载",
   "@downloadUpdate": {
     "description": "下载应用更新的按钮"
   },
-
   "updateLater": "稍后",
   "@updateLater": {
-    "description": "取消更新对话框的按钮"
+    "description": "关闭更新对话框的按钮"
   },
-
-  "cadastralParcels": "地籍宗地",
+  "cadastralParcels": "地籍地块",
   "@cadastralParcels": {
-    "description": "地籍宗地 WMS 叠加图层标签"
+    "description": "地籍地块 WMS 覆盖图层标签"
   },
-
   "forestRoads": "森林道路",
   "@forestRoads": {
-    "description": "森林道路 WMS 叠加图层标签"
+    "description": "森林道路 WMS 覆盖图层标签"
   },
-
-  "showCadastralParcels": "显示地籍宗地",
+  "showCadastralParcels": "显示地籍地块",
   "@showCadastralParcels": {
-    "description": "地籍宗地叠加图层切换按钮的工具提示"
+    "description": "地籍地块覆盖切换按钮的工具提示"
   },
-
   "showForestRoads": "显示森林道路",
   "@showForestRoads": {
-    "description": "森林道路叠加图层切换按钮的工具提示"
+    "description": "森林道路覆盖切换按钮的工具提示"
   },
-
-  "wmsOverlays": "WMS 叠加层",
+  "wmsOverlays": "WMS 覆盖层",
   "@wmsOverlays": {
-    "description": "图层选择器中 WMS 叠加图层部分的标题"
+    "description": "图层选择器中 WMS 覆盖图层部分的标题"
   },
-
   "hikingTrails": "徒步小径",
   "@hikingTrails": {
-    "description": "徒步/山地小径 WMS 叠加图层标签"
+    "description": "徒步/山地小径 WMS 覆盖图层标签"
   },
-
   "mainRoads": "主要道路",
   "@mainRoads": {
-    "description": "主要道路 WMS 叠加图层标签"
+    "description": "主要道路 WMS 覆盖图层标签"
   },
-
   "houseNumbers": "门牌号",
   "@houseNumbers": {
-    "description": "门牌号 WMS 叠加图层标签"
+    "description": "门牌号 WMS 覆盖图层标签"
   },
-
   "fireHazardZones": "火灾危险区",
   "@fireHazardZones": {
-    "description": "火灾风险区域 WMS 叠加图层标签"
+    "description": "火灾风险区域 WMS 覆盖图层标签"
   },
-
   "historicalFires": "历史火灾",
   "@historicalFires": {
-    "description": "历史森林火灾 WMS 叠加图层标签"
+    "description": "历史森林火灾 WMS 覆盖图层标签"
   },
-
   "firebreaks": "防火隔离带",
   "@firebreaks": {
-    "description": "防火隔离带 WMS 叠加图层标签"
+    "description": "防火隔离带 WMS 覆盖图层标签"
   },
-
   "krasFireZones": "喀斯特火灾区",
   "@krasFireZones": {
-    "description": "喀斯特火灾区 WMS 叠加图层标签"
+    "description": "喀斯特火灾区 WMS 覆盖图层标签"
   },
-
   "placeNames": "地名",
   "@placeNames": {
-    "description": "地理地名 WMS 叠加图层标签"
+    "description": "地理地名 WMS 覆盖图层标签"
   },
-
   "municipalityBorders": "市镇边界",
   "@municipalityBorders": {
-    "description": "市镇边界 WMS 叠加图层标签"
+    "description": "市镇边界 WMS 覆盖图层标签"
   },
-
   "topographicMap": "地形图 1:25000",
   "@topographicMap": {
     "description": "DTK25 地形底图图层标签"
   },
-
   "recentMessages": "最近消息",
   "@recentMessages": {
-    "description": "全屏模式下地图上最近消息叠加层的标题"
+    "description": "全屏模式下地图上最近消息覆盖层的标题"
   },
-
   "addChannel": "添加频道",
   "@addChannel": {
     "description": "添加新频道的按钮"
   },
-
   "channelName": "频道名称",
   "@channelName": {
-    "description": "频道名称字段的标签"
+    "description": "频道名称字段标签"
   },
-
-  "channelNameHint": "例如：救援队阿尔法",
+  "channelNameHint": "例如 救援队阿尔法",
   "@channelNameHint": {
     "description": "频道名称字段的提示"
   },
-
   "channelSecret": "频道密钥",
   "@channelSecret": {
-    "description": "频道密钥字段的标签"
+    "description": "频道密钥字段标签"
   },
-
   "channelSecretHint": "此频道的共享密码",
   "@channelSecretHint": {
     "description": "频道密钥字段的提示"
   },
-
   "channelSecretHelp": "此密钥必须与需要访问此频道的所有团队成员共享",
   "@channelSecretHelp": {
     "description": "解释频道密钥的帮助文本"
   },
-
-  "channelTypesInfo": "哈希频道（#团队）：密钥根据名称自动生成。相同名称 = 跨设备相同频道。\n\n私有频道：使用明确的密钥。只有拥有密钥的人才能加入。",
+  "channelTypesInfo": "哈希频道 (#团队)：密钥根据名称自动生成。名称相同 = 跨设备频道相同。\n\n私有频道：使用显式密钥。只有拥有密钥的人才能加入。",
   "@channelTypesInfo": {
     "description": "解释哈希频道和私有频道类型的信息横幅"
   },
-
-  "hashChannelInfo": "哈希频道：密钥将从频道名称自动生成。任何使用相同名称的人都会加入同一个频道。",
+  "hashChannelInfo": "哈希频道：密钥将根据频道名称自动生成。任何使用相同名称的人将加入同一个频道。",
   "@hashChannelInfo": {
     "description": "哈希频道（# 前缀）的帮助文本"
   },
-
-  "channelNameRequired": "频道名称是必填项",
+  "channelNameRequired": "需要频道名称",
   "@channelNameRequired": {
     "description": "频道名称为空时的验证错误"
   },
-
-  "channelNameTooLong": "频道名称不能超过 31 个字符",
+  "channelNameTooLong": "频道名称必须为 31 个字符或更少",
   "@channelNameTooLong": {
     "description": "频道名称太长的验证错误"
   },
-
-  "channelSecretRequired": "频道密钥是必填项",
+  "channelSecretRequired": "需要频道密钥",
   "@channelSecretRequired": {
     "description": "频道密钥为空时的验证错误"
   },
-
-  "channelSecretTooLong": "频道密钥不能超过 32 个字符",
+  "channelSecretTooLong": "频道密钥必须为 32 个字符或更少",
   "@channelSecretTooLong": {
     "description": "频道密钥太长的验证错误"
   },
-
-  "invalidAsciiCharacters": "只允许使用 ASCII 字符",
+  "invalidAsciiCharacters": "只允许 ASCII 字符",
   "@invalidAsciiCharacters": {
     "description": "包含非 ASCII 字符时的验证错误"
   },
-
   "channelCreatedSuccessfully": "频道创建成功",
   "@channelCreatedSuccessfully": {
     "description": "创建频道后的成功消息"
   },
-
   "channelCreationFailed": "创建频道失败：{error}",
   "@channelCreationFailed": {
     "description": "频道创建失败时的错误消息",
@@ -3540,13 +2967,11 @@
       }
     }
   },
-
   "deleteChannel": "删除频道",
   "@deleteChannel": {
     "description": "删除频道按钮/菜单项"
   },
-
-  "deleteChannelConfirmation": "确定要删除频道“{channelName}”吗？此操作无法撤销。",
+  "deleteChannelConfirmation": "您确定要删除频道“{channelName}”吗？此操作无法撤销。",
   "@deleteChannelConfirmation": {
     "description": "删除频道时的确认对话框",
     "placeholders": {
@@ -3555,12 +2980,10 @@
       }
     }
   },
-
   "channelDeletedSuccessfully": "频道删除成功",
   "@channelDeletedSuccessfully": {
     "description": "删除频道后的成功消息"
   },
-
   "channelDeletionFailed": "删除频道失败：{error}",
   "@channelDeletionFailed": {
     "description": "频道删除失败时的错误消息",
@@ -3570,183 +2993,147 @@
       }
     }
   },
-
-  "allChannelSlotsInUse": "所有频道槽位已满（最多 39 个自定义频道）",
+  "allChannelSlotsInUse": "所有频道槽位都已在使用中（最多 39 个自定义频道）",
   "@allChannelSlotsInUse": {
     "description": "没有可用频道槽位时的错误"
   },
-
   "createChannel": "创建频道",
   "@createChannel": {
     "description": "创建频道的按钮文本"
   },
-
   "wizardBack": "返回",
   "@wizardBack": {
     "description": "向导返回按钮文本"
   },
-
   "wizardSkip": "跳过",
   "@wizardSkip": {
     "description": "向导跳过按钮文本"
   },
-
   "wizardNext": "下一步",
   "@wizardNext": {
     "description": "向导下一步按钮文本"
   },
-
   "wizardGetStarted": "开始使用",
   "@wizardGetStarted": {
     "description": "向导完成引导的最后按钮文本"
   },
-
-  "wizardWelcomeTitle": "欢迎使用 MeshCore 搜救",
+  "wizardWelcomeTitle": "欢迎使用 MeshCore 搜救助手",
   "@wizardWelcomeTitle": {
     "description": "欢迎向导第一页标题"
   },
-
-  "wizardWelcomeDescription": "一个强大的离网通信工具，专为搜索和救援行动设计。当传统网络不可用时，使用网状无线电技术与您的团队连接。",
+  "wizardWelcomeDescription": "一个功能强大的离网通信工具，用于搜索和救援行动。当传统网络不可用时，使用 Mesh 无线电技术与您的团队保持联系。",
   "@wizardWelcomeDescription": {
     "description": "欢迎向导第一页描述"
   },
-
   "wizardConnectingTitle": "连接到您的无线电",
   "@wizardConnectingTitle": {
     "description": "向导连接页面标题"
   },
-
   "wizardConnectingDescription": "通过蓝牙将您的智能手机连接到 MeshCore 无线电设备，开始离网通信。",
   "@wizardConnectingDescription": {
     "description": "向导连接页面描述"
   },
-
   "wizardConnectingFeature1": "扫描附近的 MeshCore 设备",
   "@wizardConnectingFeature1": {
     "description": "向导连接功能 1"
   },
-
   "wizardConnectingFeature2": "通过蓝牙与您的无线电配对",
   "@wizardConnectingFeature2": {
     "description": "向导连接功能 2"
   },
-
   "wizardConnectingFeature3": "完全离线工作 - 无需互联网",
   "@wizardConnectingFeature3": {
     "description": "向导连接功能 3"
   },
-
   "wizardSimpleModeTitle": "简洁模式",
   "@wizardSimpleModeTitle": {
     "description": "向导简洁模式页面标题"
   },
-
-  "wizardSimpleModeDescription": "刚接触网状网络？启用简洁模式以获得仅包含基本功能的简化界面。",
+  "wizardSimpleModeDescription": "刚接触 Mesh 网络？启用简洁模式以获得仅包含基本功能的简化界面。",
   "@wizardSimpleModeDescription": {
     "description": "向导简洁模式页面描述"
   },
-
-  "wizardSimpleModeFeature1": "初学者友好的界面，包含核心功能",
+  "wizardSimpleModeFeature1": "对初学者友好的界面，包含核心功能",
   "@wizardSimpleModeFeature1": {
     "description": "向导简洁模式功能 1"
   },
-
   "wizardSimpleModeFeature2": "随时在设置中切换到高级模式",
   "@wizardSimpleModeFeature2": {
     "description": "向导简洁模式功能 2"
   },
-
   "wizardChannelTitle": "频道",
   "@wizardChannelTitle": {
     "description": "向导频道页面标题"
   },
-
-  "wizardChannelDescription": "向频道上的所有人广播消息，非常适合团队范围内的公告和协调。",
+  "wizardChannelDescription": "向频道上的所有人广播消息，非常适合全队通告和协调。",
   "@wizardChannelDescription": {
     "description": "向导频道页面描述"
   },
-
-  "wizardChannelFeature1": "用于一般团队沟通的公共频道",
+  "wizardChannelFeature1": "用于一般团队通信的公共频道",
   "@wizardChannelFeature1": {
     "description": "向导频道功能 1"
   },
-
-  "wizardChannelFeature2": "为特定群组创建自定义频道",
+  "wizardChannelFeature2": "为特定小组创建自定义频道",
   "@wizardChannelFeature2": {
     "description": "向导频道功能 2"
   },
-
-  "wizardChannelFeature3": "消息由网格自动转发",
+  "wizardChannelFeature3": "消息由 Mesh 网络自动转发",
   "@wizardChannelFeature3": {
     "description": "向导频道功能 3"
   },
-
   "wizardContactsTitle": "联系人",
   "@wizardContactsTitle": {
     "description": "向导联系人页面标题"
   },
-
-  "wizardContactsDescription": "您的团队成员在加入网格网络时会自动出现。向他们发送直连消息或查看他们的位置。",
+  "wizardContactsDescription": "您的团队成员在加入 Mesh 网络时会自动出现。向他们发送直连消息或查看他们的位置。",
   "@wizardContactsDescription": {
     "description": "向导联系人页面描述"
   },
-
   "wizardContactsFeature1": "联系人自动发现",
   "@wizardContactsFeature1": {
     "description": "向导联系人功能 1"
   },
-
-  "wizardContactsFeature2": "发送私人直连消息",
+  "wizardContactsFeature2": "发送私密的直连消息",
   "@wizardContactsFeature2": {
     "description": "向导联系人功能 2"
   },
-
   "wizardContactsFeature3": "查看电池电量和最后在线时间",
   "@wizardContactsFeature3": {
     "description": "向导联系人功能 3"
   },
-
   "wizardMapTitle": "地图与位置",
   "@wizardMapTitle": {
     "description": "向导地图页面标题"
   },
-
-  "wizardMapDescription": "实时跟踪您的团队，并为搜索和救援行动标记重要位置。",
+  "wizardMapDescription": "实时跟踪您的团队，并为搜救行动标记重要位置。",
   "@wizardMapDescription": {
     "description": "向导地图页面描述"
   },
-
-  "wizardMapFeature1": "用于找到人员、火情和集结点的搜救标记",
+  "wizardMapFeature1": "用于标记找到的人员、火灾和集结区的搜救标记",
   "@wizardMapFeature1": {
     "description": "向导地图功能 1"
   },
-
   "wizardMapFeature2": "团队成员的实时 GPS 跟踪",
   "@wizardMapFeature2": {
     "description": "向导地图功能 2"
   },
-
-  "wizardMapFeature3": "下载偏远地区的离线地图",
+  "wizardMapFeature3": "为偏远地区下载离线地图",
   "@wizardMapFeature3": {
     "description": "向导地图功能 3"
   },
-
   "wizardMapFeature4": "绘制形状并共享战术信息",
   "@wizardMapFeature4": {
     "description": "向导地图功能 4"
   },
-
   "viewWelcomeTutorial": "查看欢迎教程",
   "@viewWelcomeTutorial": {
-    "description": "重新显示欢迎向导的设置选项"
+    "description": "设置中重新显示欢迎向导的选项"
   },
-
   "allTeamContacts": "所有团队联系人",
   "@allTeamContacts": {
     "description": "将搜救标记发送给所有团队联系人的目的地选项"
   },
-
-  "directMessagesInfo": "带有确认的直连消息。发送给 {count} 个团队成员。",
+  "directMessagesInfo": "带有确认消息的直连消息。发送给 {count} 名团队成员。",
   "@directMessagesInfo": {
     "description": "关于发送给所有联系人的信息",
     "placeholders": {
@@ -3755,7 +3142,6 @@
       }
     }
   },
-
   "sarMarkerSentToContacts": "搜救标记已发送给 {count} 个联系人",
   "@sarMarkerSentToContacts": {
     "description": "将搜救标记发送给所有联系人后的成功消息",
@@ -3765,84 +3151,58 @@
       }
     }
   },
-
   "noContactsAvailable": "没有可用的团队联系人",
   "@noContactsAvailable": {
     "description": "没有可发送的聊天联系人时的消息"
   },
-
   "reply": "回复",
   "@reply": {},
-
   "technicalDetails": "技术细节",
   "@technicalDetails": {},
-
   "messageTechnicalDetails": "消息技术细节",
   "@messageTechnicalDetails": {},
-
   "linkQuality": "链路质量",
   "@linkQuality": {},
-
   "delivery": "投递",
   "@delivery": {},
-
   "status": "状态",
   "@status": {},
-
-  "expectedAckTag": "预期确认标签",
+  "expectedAckTag": "预期的 ACK 标签",
   "@expectedAckTag": {},
-
-  "roundTrip": "往返",
+  "roundTrip": "往返时间",
   "@roundTrip": {},
-
   "retryAttempt": "重试尝试",
   "@retryAttempt": {},
-
   "floodFallback": "泛洪回退",
   "@floodFallback": {},
-
   "identity": "身份",
   "@identity": {},
-
   "messageId": "消息 ID",
   "@messageId": {},
-
-  "sender": "发件人",
+  "sender": "发送者",
   "@sender": {},
-
-  "senderKey": "发件人密钥",
+  "senderKey": "发送者密钥",
   "@senderKey": {},
-
-  "recipient": "收件人",
+  "recipient": "接收者",
   "@recipient": {},
-
-  "recipientKey": "收件人密钥",
+  "recipientKey": "接收者密钥",
   "@recipientKey": {},
-
   "voice": "语音",
   "@voice": {},
-
   "voiceId": "语音 ID",
   "@voiceId": {},
-
   "envelope": "信封",
   "@envelope": {},
-
   "sessionProgress": "会话进度",
   "@sessionProgress": {},
-
   "complete": "完成",
   "@complete": {},
-
-  "rawDump": "原始数据转储",
+  "rawDump": "原始数据",
   "@rawDump": {},
-
-  "cannotRetryMissingRecipient": "无法重试：缺少收件人信息",
+  "cannotRetryMissingRecipient": "无法重试：缺少接收者信息",
   "@cannotRetryMissingRecipient": {},
-
-  "voiceUnavailable": "语音目前不可用",
+  "voiceUnavailable": "当前语音不可用",
   "@voiceUnavailable": {},
-
   "requestingVoice": "正在请求语音",
   "@requestingVoice": {}
 }
