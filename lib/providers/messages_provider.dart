@@ -5,6 +5,8 @@ import '../models/contact.dart';
 import '../models/message_contact_location.dart';
 import '../models/message_reception_details.dart';
 import '../models/message_transfer_details.dart';
+import '../models/message_route_metadata.dart';
+import '../models/path_selection.dart';
 import '../models/sar_marker.dart';
 import '../models/map_drawing.dart';
 import '../services/message_storage_service.dart';
@@ -27,6 +29,7 @@ class MessagesProvider with ChangeNotifier {
   final Map<String, MessageContactLocation> _messageContactLocations = {};
   final Map<String, MessageReceptionDetails> _messageReceptionDetails = {};
   final Map<String, MessageTransferDetails> _messageTransferDetails = {};
+  final Map<String, MessageRouteMetadata> _messageRouteMetadata = {};
 
   // Track pending sent messages by expected ACK/TAG
   final Map<int, Message> _pendingSentMessages = {};
@@ -81,6 +84,25 @@ class MessagesProvider with ChangeNotifier {
 
   Future<void> Function({required Contact contact, required int failureStreak})?
   onDirectPathFailedCallback;
+  Future<bool> Function({
+    required String messageId,
+    required Contact contact,
+    required Message message,
+  })?
+  onFinalRouterFallbackCallback;
+  Future<void> Function({
+    required String messageId,
+    required Contact contact,
+    required Message message,
+  })?
+  onFinalDirectMessageFailureCallback;
+  void Function({
+    required String messageId,
+    required Contact contact,
+    required Message message,
+    required int roundTripTimeMs,
+  })?
+  onDirectMessageDeliveredCallback;
 
   String? Function(Uint8List? publicKey)? resolveContactNameCallback;
   String Function(int channelIdx)? resolveChannelNameCallback;
@@ -126,6 +148,30 @@ class MessagesProvider with ChangeNotifier {
   MessageTransferDetails? getMessageTransferDetails(String messageId) =>
       _messageTransferDetails[messageId];
 
+  MessageRouteMetadata? getMessageRouteMetadata(String messageId) =>
+      _messageRouteMetadata[messageId];
+
+  void updateMessageRouteSelection(
+    String messageId,
+    PathSelection selection, {
+    required bool routerFallbackAttempted,
+  }) {
+    _messageRouteMetadata[messageId] = MessageRouteMetadata.fromSelection(
+      selection,
+      routerFallbackAttempted: routerFallbackAttempted,
+    );
+
+    final index = _messages.indexWhere((message) => message.id == messageId);
+    if (index != -1) {
+      _messages[index] = _messages[index].copyWith(
+        usedFloodFallback: selection.usesFlood,
+      );
+    }
+
+    _persistMessages();
+    notifyListeners();
+  }
+
   /// Set localizations for notifications
   void setLocalizations(AppLocalizations localizations) {
     _localizations = localizations;
@@ -160,6 +206,8 @@ class MessagesProvider with ChangeNotifier {
           .loadMessageReceptionDetails();
       final storedTransferDetails = await _storageService
           .loadMessageTransferDetails();
+      final storedRouteMetadata = await _storageService
+          .loadMessageRouteMetadata();
       _messageContactLocations
         ..clear()
         ..addAll(storedContactLocations);
@@ -169,6 +217,9 @@ class MessagesProvider with ChangeNotifier {
       _messageTransferDetails
         ..clear()
         ..addAll(storedTransferDetails);
+      _messageRouteMetadata
+        ..clear()
+        ..addAll(storedRouteMetadata);
 
       // Add stored messages with enhancement to ensure SAR detection
       for (final message in storedMessages) {
@@ -688,6 +739,7 @@ class MessagesProvider with ChangeNotifier {
         messageContactLocations: _messageContactLocations,
         messageReceptionDetails: _messageReceptionDetails,
         messageTransferDetails: _messageTransferDetails,
+        messageRouteMetadata: _messageRouteMetadata,
       );
     } catch (e) {
       debugPrint('❌ [MessagesProvider] Error persisting messages: $e');
@@ -806,6 +858,7 @@ class MessagesProvider with ChangeNotifier {
       _messageContactLocations.remove(messageId);
       _messageReceptionDetails.remove(messageId);
       _messageTransferDetails.remove(messageId);
+      _messageRouteMetadata.remove(messageId);
 
       debugPrint('🗑️ [MessagesProvider] Message $messageId deleted');
 
@@ -837,6 +890,7 @@ class MessagesProvider with ChangeNotifier {
     _messageContactLocations.clear();
     _messageReceptionDetails.clear();
     _messageTransferDetails.clear();
+    _messageRouteMetadata.clear();
     _persistMessages();
     notifyListeners();
   }
@@ -854,6 +908,7 @@ class MessagesProvider with ChangeNotifier {
     _messageContactLocations.clear();
     _messageReceptionDetails.clear();
     _messageTransferDetails.clear();
+    _messageRouteMetadata.clear();
     _persistMessages();
     notifyListeners();
   }
@@ -1549,6 +1604,12 @@ class MessagesProvider with ChangeNotifier {
         final deliveredContact = _messageContactMap[message.id];
         if (deliveredContact != null) {
           _retryManager.recordDeliverySuccess(deliveredContact);
+          onDirectMessageDeliveredCallback?.call(
+            messageId: message.id,
+            contact: deliveredContact,
+            message: updatedMessage,
+            roundTripTimeMs: roundTripTimeMs,
+          );
         }
 
         debugPrint(
@@ -1592,6 +1653,12 @@ class MessagesProvider with ChangeNotifier {
           final deliveredContact = _messageContactMap[historicalMessageId];
           if (deliveredContact != null) {
             _retryManager.recordDeliverySuccess(deliveredContact);
+            onDirectMessageDeliveredCallback?.call(
+              messageId: historicalMessageId,
+              contact: deliveredContact,
+              message: _messages[historicalIndex],
+              roundTripTimeMs: roundTripTimeMs,
+            );
           }
           _persistMessages();
           notifyListeners();
@@ -1677,29 +1744,29 @@ class MessagesProvider with ChangeNotifier {
     debugPrint('   Contact has path: ${contact?.routeHasPath ?? false}');
     debugPrint('   Used flood fallback: ${message.usedFloodFallback}');
 
-    // Decision tree for retry/flood/fail
+    final routeMetadata = _messageRouteMetadata[messageId];
+    final routerFallbackAttempted =
+        routeMetadata?.routerFallbackAttempted ?? false;
+
+    // Decision tree for retry/final-router-fallback/fail
     if (contact != null && _retryManager.canRetry(message, contact)) {
-      // RETRY: Contact has path and retry attempts < 3
       _scheduleRetry(messageId, message, contact);
-    } else if (contact != null &&
-        _retryManager.shouldUseFloodFallback(message, contact)) {
-      // FLOOD FALLBACK: After 3 retries failed, try flood once
-      _sendWithFloodMode(messageId, message, contact);
+    } else if (contact != null && !routerFallbackAttempted) {
+      unawaited(_sendWithFinalRouterFallback(messageId, message, contact));
     } else {
-      // PERMANENTLY FAILED: No retry possible
       _markAsPermanentlyFailed(messageId, message);
     }
   }
 
-  /// Schedule a retry with progressive timeout
+  /// Schedule a retry with exponential backoff.
   void _scheduleRetry(String messageId, Message message, Contact contact) {
     final nextAttempt = message.retryAttempt + 1;
-    final timeout = _retryManager.getTimeoutForAttempt(message.retryAttempt);
+    final delayMs = _retryManager.getDelayForAttempt(message.retryAttempt);
 
     debugPrint(
-      '🔄 [MessagesProvider] Scheduling retry $nextAttempt/3 for message $messageId',
+      '🔄 [MessagesProvider] Scheduling retry $nextAttempt/${MessageRetryManager.maxRetryAttempts} for message $messageId',
     );
-    debugPrint('   Timeout: ${timeout}ms');
+    debugPrint('   Delay: ${delayMs}ms');
 
     // Update message with new retry attempt
     final index = _messages.indexWhere((m) => m.id == messageId);
@@ -1720,10 +1787,10 @@ class MessagesProvider with ChangeNotifier {
       // Track retry
       _retryManager.trackRetry(messageId, nextAttempt);
 
-      notifyListeners(); // Update UI to show "Retrying (X/3)..."
+      notifyListeners();
 
       // Schedule actual retry after delay
-      Timer(Duration(milliseconds: timeout), () async {
+      Timer(Duration(milliseconds: delayMs), () async {
         debugPrint(
           '⏰ [MessagesProvider] Executing retry $nextAttempt for message $messageId',
         );
@@ -1759,48 +1826,45 @@ class MessagesProvider with ChangeNotifier {
     }
   }
 
-  /// Send message with flood mode as last resort
-  Future<void> _sendWithFloodMode(
+  Future<void> _sendWithFinalRouterFallback(
     String messageId,
     Message message,
     Contact contact,
   ) async {
     debugPrint(
-      '🌊 [MessagesProvider] Trying flood mode for message $messageId',
+      '🛟 [MessagesProvider] Trying final router fallback for $messageId',
     );
 
     final index = _messages.indexWhere((m) => m.id == messageId);
     if (index != -1) {
       _messages[index] = message.copyWith(
-        usedFloodFallback: true,
         deliveryStatus: MessageDeliveryStatus.sending,
+        lastRetryAt: DateTime.now(),
       );
 
-      // Cancel old timeout timer
       _timeoutTimers[message.id]?.cancel();
       _timeoutTimers.remove(message.id);
       if (message.expectedAckTag != null) {
         _pendingSentMessages.remove(message.expectedAckTag);
       }
+      _clearAckHistoryForMessage(messageId);
 
       notifyListeners();
 
-      // Send with flood mode (no retry after this)
-      if (sendMessageCallback != null) {
-        final queued = await sendMessageCallback!(
-          contactPublicKey: contact.publicKey,
-          text: message.text,
-          messageId: messageId,
-          contact: contact,
-          retryAttempt: 0, // Reset attempt for flood
-        );
-        if (!queued) {
-          _markAsPermanentlyFailed(messageId, _messages[index]);
-        }
-      } else {
+      if (onFinalRouterFallbackCallback == null) {
         debugPrint(
-          '⚠️ [MessagesProvider] sendMessageCallback not set, cannot send flood',
+          '⚠️ [MessagesProvider] onFinalRouterFallbackCallback not set',
         );
+        _markAsPermanentlyFailed(messageId, _messages[index]);
+        return;
+      }
+
+      final queued = await onFinalRouterFallbackCallback!(
+        messageId: messageId,
+        contact: contact,
+        message: _messages[index],
+      );
+      if (!queued) {
         _markAsPermanentlyFailed(messageId, _messages[index]);
       }
 
@@ -1830,19 +1894,15 @@ class MessagesProvider with ChangeNotifier {
       _retryManager.clearRetry(messageId);
 
       final failedContact = _messageContactMap[messageId];
-      if (failedContact != null && failedContact.routeHasPath) {
-        final failureStreak = _retryManager.recordPathFailure(failedContact);
-        debugPrint(
-          '   Path failure streak for ${failedContact.advName}: $failureStreak',
+      if (failedContact != null &&
+          onFinalDirectMessageFailureCallback != null) {
+        unawaited(
+          onFinalDirectMessageFailureCallback!(
+            messageId: messageId,
+            contact: failedContact,
+            message: _messages[index],
+          ),
         );
-        if (failureStreak >= 2 && onDirectPathFailedCallback != null) {
-          unawaited(
-            onDirectPathFailedCallback!(
-              contact: failedContact,
-              failureStreak: failureStreak,
-            ),
-          );
-        }
       }
 
       _persistMessages();
@@ -1870,6 +1930,7 @@ class MessagesProvider with ChangeNotifier {
     }
     _clearAckHistoryForMessage(messageId);
     _retryManager.clearRetry(messageId);
+    _messageRouteMetadata.remove(messageId);
 
     _messages[index] = Message(
       id: message.id,

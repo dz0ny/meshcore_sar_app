@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/contact.dart';
+import '../../providers/app_provider.dart';
 import '../../services/route_hash_preferences.dart';
 
 class ContactRouteDialogResult {
@@ -133,6 +135,7 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final appProvider = context.watch<AppProvider>();
     final routeCandidates =
         widget.availableContacts
             .where((contact) => contact.isRepeater || contact.isRoom)
@@ -184,6 +187,11 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
               ),
             ],
             const SizedBox(height: 16),
+            _AutomationRoutingInfo(
+              autoRouteRotationEnabled: appProvider.autoRouteRotationEnabled,
+              clearPathOnMaxRetry: appProvider.clearPathOnMaxRetry,
+            ),
+            const SizedBox(height: 16),
             Text(
               'Pick hops from contacts',
               style: Theme.of(context).textTheme.labelLarge,
@@ -203,10 +211,6 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                       title: Text(candidate.displayName),
-                      subtitle: Text(
-                        '1B ${_tokenFor(candidate, 1)} • 2B ${_tokenFor(candidate, 2)} • 3B ${_tokenFor(candidate, 3)}',
-                        style: const TextStyle(fontFamily: 'monospace'),
-                      ),
                       trailing: TextButton(
                         onPressed: () => _appendHop(candidate),
                         child: Text(
@@ -244,6 +248,100 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AutomationRoutingInfo extends StatelessWidget {
+  final bool autoRouteRotationEnabled;
+  final bool clearPathOnMaxRetry;
+
+  const _AutomationRoutingInfo({
+    required this.autoRouteRotationEnabled,
+    required this.clearPathOnMaxRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, size: 18, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Automatic direct-send routing',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Room/contact sends keep one selected path for the whole send chain, retry up to 5 total attempts with 1s, 2s, 4s, and 8s backoff, then try one final nearest repeater if everything else fails.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Public and channel broadcasts are not affected by this automation.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _InfoChip(
+                label: autoRouteRotationEnabled
+                    ? 'Auto route rotation on'
+                    : 'Auto route rotation off',
+                icon: Icons.swap_horiz,
+              ),
+              _InfoChip(
+                label: clearPathOnMaxRetry
+                    ? 'Clear path on max retry on'
+                    : 'Clear path on max retry off',
+                icon: Icons.route,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+
+  const _InfoChip({required this.label, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: Theme.of(context).colorScheme.surface,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14),
+          const SizedBox(width: 6),
+          Text(label, style: Theme.of(context).textTheme.labelMedium),
+        ],
       ),
     );
   }

@@ -175,6 +175,12 @@ class ConnectionProvider with ChangeNotifier {
   Function(String messageId, int expectedAckTag, int suggestedTimeoutMs)?
   onMessageSent;
   Function(int ackCode, int roundTripTimeMs)? onMessageDelivered;
+  Future<Contact?> Function({
+    required String messageId,
+    required Contact contact,
+    required int retryAttempt,
+  })?
+  prepareDirectMessageSendCallback;
   Function(String messageId, int echoCount, int snrRaw, int rssiDbm)?
   onMessageEchoDetected;
   Function(Uint8List publicKeyPrefix, Uint8List statusData)? onStatusResponse;
@@ -1073,7 +1079,7 @@ class ConnectionProvider with ChangeNotifier {
   ///
   /// [messageId] - optional message ID to track delivery status
   /// [contact] - optional contact object for path status logging
-  /// [retryAttempt] - retry attempt number (0 = first send, 1-3 = retries)
+  /// [retryAttempt] - retry attempt number (0 = first send, >0 = retries)
   Future<bool> sendTextMessage({
     required Uint8List contactPublicKey,
     required String text,
@@ -1085,6 +1091,17 @@ class ConnectionProvider with ChangeNotifier {
       _error = 'Not connected to device';
       notifyListeners();
       return false;
+    }
+
+    var effectiveContact = contact;
+    if (messageId != null &&
+        effectiveContact != null &&
+        prepareDirectMessageSendCallback != null) {
+      effectiveContact = await prepareDirectMessageSendCallback!(
+        messageId: messageId,
+        contact: effectiveContact,
+        retryAttempt: retryAttempt,
+      );
     }
 
     // CRITICAL: Check firmware ACK limit (8 max in circular buffer)
@@ -1111,33 +1128,33 @@ class ConnectionProvider with ChangeNotifier {
 
     try {
       // Log path status and retry info
-      if (contact != null) {
+      if (effectiveContact != null) {
         if (retryAttempt > 0) {
           debugPrint(
-            '🔄 [ConnectionProvider] Sending message to ${contact.advName} (retry $retryAttempt/3)',
+            '🔄 [ConnectionProvider] Sending message to ${effectiveContact.advName} (retry $retryAttempt)',
           );
         } else {
           debugPrint(
-            '📤 [ConnectionProvider] Sending message to ${contact.advName}',
+            '📤 [ConnectionProvider] Sending message to ${effectiveContact.advName}',
           );
         }
-        debugPrint('   Type: ${contact.type.displayName}');
-        debugPrint('   Path status: ${contact.routeSummary}');
-        if (contact.routeHasPath) {
+        debugPrint('   Type: ${effectiveContact.type.displayName}');
+        debugPrint('   Path status: ${effectiveContact.routeSummary}');
+        if (effectiveContact.routeHasPath) {
           debugPrint(
-            '   ✅ Using learned path (${contact.routeHopCount} hop(s), ${contact.routeHashSize}-byte hashes)',
+            '   ✅ Using learned path (${effectiveContact.routeHopCount} hop(s), ${effectiveContact.routeHashSize}-byte hashes)',
           );
         } else {
           debugPrint('   ⚠️ No path available - will use flood mode');
         }
       } else if (retryAttempt > 0) {
         debugPrint(
-          '🔄 [ConnectionProvider] Sending message (retry $retryAttempt/3)',
+          '🔄 [ConnectionProvider] Sending message (retry $retryAttempt)',
         );
       }
 
       // Track pending operation for auto-recovery (if contact not found in radio)
-      if (contact != null) {
+      if (effectiveContact != null) {
         final operationId = contactPublicKey
             .sublist(0, 6)
             .map((b) => b.toRadixString(16).padLeft(2, '0'))
@@ -1146,7 +1163,7 @@ class ConnectionProvider with ChangeNotifier {
           contactPublicKey: contactPublicKey,
           text: text,
           messageId: messageId,
-          contact: contact,
+          contact: effectiveContact,
           retryAttempt: retryAttempt,
         );
         debugPrint(
@@ -1191,7 +1208,7 @@ class ConnectionProvider with ChangeNotifier {
 
       // Clear pending operation after successful send (no error)
       // If ERR_CODE_NOT_FOUND occurs, the operation will be recovered automatically
-      if (contact != null) {
+      if (effectiveContact != null) {
         final operationId = contactPublicKey
             .sublist(0, 6)
             .map((b) => b.toRadixString(16).padLeft(2, '0'))

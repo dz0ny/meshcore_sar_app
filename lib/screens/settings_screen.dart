@@ -21,6 +21,7 @@ import '../services/voice_bitrate_preferences.dart';
 import '../services/image_preferences.dart';
 import '../services/route_hash_preferences.dart';
 import '../services/image_codec_service.dart';
+import '../services/developer_mode_service.dart';
 import '../utils/sample_data_generator.dart';
 import '../utils/image_message_parser.dart';
 import '../utils/voice_message_parser.dart';
@@ -70,6 +71,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _fastLocationUpdatesEnabled = false;
   double _fastLocationMovementThresholdMeters = 10.0;
   int _fastLocationActiveCadenceSeconds = 10;
+  bool _isDeveloperModeEnabled = false;
+  int _versionTapCount = 0;
   final ImagePicker _imagePicker = ImagePicker();
   final LocationTrackingService _locationService = LocationTrackingService();
 
@@ -85,6 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadRouteHashSizePreference();
     _loadImagePreferences();
     _loadFastLocationSettings();
+    _loadDeveloperMode();
   }
 
   @override
@@ -112,6 +116,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _showRxTxIndicators = prefs.getBool('show_rx_tx_indicators') ?? true;
       });
     }
+  }
+
+  Future<void> _loadDeveloperMode() async {
+    final isEnabled = await DeveloperModeService.isEnabled();
+    if (!mounted) return;
+    setState(() {
+      _isDeveloperModeEnabled = isEnabled;
+    });
+  }
+
+  Future<void> _handleVersionTap() async {
+    if (_isDeveloperModeEnabled) {
+      await DeveloperModeService.setEnabled(false);
+      if (!mounted) return;
+      setState(() {
+        _isDeveloperModeEnabled = false;
+        _versionTapCount = 0;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Developer mode disabled')));
+      return;
+    }
+
+    final nextTapCount = _versionTapCount + 1;
+    if (nextTapCount >= 3) {
+      await DeveloperModeService.setEnabled(true);
+      if (!mounted) return;
+      setState(() {
+        _isDeveloperModeEnabled = true;
+        _versionTapCount = 0;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Developer mode enabled')));
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _versionTapCount = nextTapCount;
+    });
   }
 
   Future<void> _saveRxTxPreference(bool value) async {
@@ -929,6 +975,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
               trailing: const Icon(Icons.chevron_right),
               onTap: _showRouteHashSizeDialog,
             ),
+            Consumer<AppProvider>(
+              builder: (context, appProvider, child) => SwitchListTile(
+                secondary: const Icon(Icons.swap_horiz),
+                title: const Text('Auto route rotation'),
+                subtitle: const Text(
+                  'Rotate between best known direct paths and flood mode for room/contact sends',
+                ),
+                value: appProvider.autoRouteRotationEnabled,
+                onChanged: (value) async {
+                  await appProvider.toggleAutoRouteRotationEnabled(value);
+                },
+              ),
+            ),
+            Consumer<AppProvider>(
+              builder: (context, appProvider, child) => SwitchListTile(
+                secondary: const Icon(Icons.route),
+                title: const Text('Clear path on max retry'),
+                subtitle: const Text(
+                  'Clear the route only after all retries and final router fallback fail',
+                ),
+                value: appProvider.clearPathOnMaxRetry,
+                onChanged: (value) async {
+                  await appProvider.toggleClearPathOnMaxRetry(value);
+                },
+              ),
+            ),
             ListTile(
               leading: const Icon(Icons.delete_sweep, color: Colors.red),
               title: const Text(
@@ -1197,6 +1269,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ? '${_packageInfo!.version} (${_packageInfo!.buildNumber})'
                     : 'Loading...',
               ),
+              onTap: _handleVersionTap,
             ),
             ListTile(
               leading: const Icon(Icons.badge),

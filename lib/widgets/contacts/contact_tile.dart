@@ -96,10 +96,6 @@ class ContactTile extends StatelessWidget {
     void handleTap() {
       if (contact.type == ContactType.chat) {
         _showSetRouteDialog(context, contact);
-      } else if (contact.type == ContactType.repeater) {
-        _jumpToMapForRepeater(context, contact);
-      } else if (contact.type == ContactType.room && !contact.isPublicChannel) {
-        _showRoomLoginDialog(context, contact);
       } else {
         _showContactDetails(context, contact);
       }
@@ -305,23 +301,6 @@ class ContactTile extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => RoomLoginSheet(contact: contact),
     );
-  }
-
-  void _jumpToMapForRepeater(BuildContext context, Contact contact) {
-    final location = contact.displayLocation;
-    if (location != null) {
-      final mapProvider = context.read<MapProvider>();
-
-      // Navigate to map location
-      mapProvider.navigateToLocation(
-        location: LatLng(location.latitude, location.longitude),
-        zoom: 15.0,
-        animate: true,
-      );
-
-      // Switch to map tab using callback
-      onNavigateToMap?.call();
-    }
   }
 
   void _showDeleteConfirmation(BuildContext context, Contact contact) {

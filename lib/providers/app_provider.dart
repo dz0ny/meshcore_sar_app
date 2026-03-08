@@ -12,10 +12,15 @@ import 'image_provider.dart' as ip;
 import 'helpers/fragment_ack_wait_registry.dart';
 import 'helpers/session_metadata_restore.dart';
 import '../services/location_tracking_service.dart';
+import '../services/messaging_route_preferences.dart';
+import '../services/nearest_router_selector.dart';
 import '../services/packet_capture_storage_service.dart';
+import '../services/path_history_service.dart';
+import '../services/route_hash_preferences.dart';
 import '../models/contact.dart';
 import '../models/message.dart';
 import '../models/ble_packet_log.dart';
+import '../models/path_selection.dart';
 import '../models/message_reception_details.dart';
 import '../utils/drawing_message_parser.dart';
 import '../utils/raw_route_probe.dart';
@@ -24,6 +29,31 @@ import '../utils/image_message_parser.dart';
 import '../utils/media_swarm_protocol.dart';
 import '../utils/message_airtime_estimator.dart';
 import '../utils/fast_gps_packet.dart';
+
+class _DirectMessageRouteSession {
+  final PathSelection currentSelection;
+  final ParsedContactRoute? originalRoute;
+  final bool routerFallbackAttempted;
+
+  const _DirectMessageRouteSession({
+    required this.currentSelection,
+    required this.originalRoute,
+    required this.routerFallbackAttempted,
+  });
+
+  _DirectMessageRouteSession copyWith({
+    PathSelection? currentSelection,
+    ParsedContactRoute? originalRoute,
+    bool? routerFallbackAttempted,
+  }) {
+    return _DirectMessageRouteSession(
+      currentSelection: currentSelection ?? this.currentSelection,
+      originalRoute: originalRoute ?? this.originalRoute,
+      routerFallbackAttempted:
+          routerFallbackAttempted ?? this.routerFallbackAttempted,
+    );
+  }
+}
 
 /// Main App Provider - coordinates all other providers
 class AppProvider with ChangeNotifier {
@@ -62,6 +92,17 @@ class AppProvider with ChangeNotifier {
   bool get isVoiceLimiterEnabled => _isVoiceLimiterEnabled;
   bool _autoAddDiscoveredContacts = false;
   bool get autoAddDiscoveredContacts => _autoAddDiscoveredContacts;
+  bool _autoRouteRotationEnabled =
+      MessagingRoutePreferences.defaultAutoRouteRotationEnabled;
+  bool get autoRouteRotationEnabled => _autoRouteRotationEnabled;
+  bool _clearPathOnMaxRetry =
+      MessagingRoutePreferences.defaultClearPathOnMaxRetry;
+  bool get clearPathOnMaxRetry => _clearPathOnMaxRetry;
+  final PathHistoryService _pathHistoryService = PathHistoryService();
+  final NearestRouterSelector _nearestRouterSelector =
+      const NearestRouterSelector();
+  final Map<String, _DirectMessageRouteSession> _directMessageRouteSessions =
+      {};
 
   static const Duration _packetRetryDelay = Duration(milliseconds: 1200);
   static const Duration _mediaSwarmResponseWindow = Duration(seconds: 10);
@@ -101,6 +142,8 @@ class AppProvider with ChangeNotifier {
     _loadVoiceCompressorEnabled();
     _loadVoiceLimiterEnabled();
     _loadAutoAddDiscoveredContacts();
+    _loadMessagingRouteSettings();
+    unawaited(_pathHistoryService.initialize());
     _startPacketCapturePersistence();
     _syncDrawingsOnStartup(); // Sync drawings immediately after providers load
     _isInitialized = true;
@@ -409,6 +452,38 @@ class AppProvider with ChangeNotifier {
     }
   }
 
+  Future<void> _loadMessagingRouteSettings() async {
+    try {
+      _autoRouteRotationEnabled =
+          await MessagingRoutePreferences.getAutoRouteRotationEnabled();
+      _clearPathOnMaxRetry =
+          await MessagingRoutePreferences.getClearPathOnMaxRetry();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading messaging route settings: $e');
+    }
+  }
+
+  Future<void> toggleAutoRouteRotationEnabled(bool enabled) async {
+    try {
+      _autoRouteRotationEnabled = enabled;
+      await MessagingRoutePreferences.setAutoRouteRotationEnabled(enabled);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error saving auto route rotation setting: $e');
+    }
+  }
+
+  Future<void> toggleClearPathOnMaxRetry(bool enabled) async {
+    try {
+      _clearPathOnMaxRetry = enabled;
+      await MessagingRoutePreferences.setClearPathOnMaxRetry(enabled);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error saving clear path on max retry setting: $e');
+    }
+  }
+
   /// Initialize location tracking service
   Future<void> _initializeLocationTracking() async {
     try {
@@ -488,6 +563,7 @@ class AppProvider with ChangeNotifier {
         contact,
         devicePublicKey: connectionProvider.deviceInfo.publicKey,
       );
+      unawaited(_pathHistoryService.recordLearnedPath(contact));
 
       // Broadcast to SSE clients if server is running
       connectionProvider.broadcastContactToSseClients(contact);
@@ -500,6 +576,9 @@ class AppProvider with ChangeNotifier {
         contacts,
         devicePublicKey: connectionProvider.deviceInfo.publicKey,
       );
+      for (final contact in contacts) {
+        unawaited(_pathHistoryService.recordLearnedPath(contact));
+      }
       debugPrint('Received ${contacts.length} contacts');
 
       // Broadcast all contacts to SSE clients if server is running
@@ -1117,6 +1196,14 @@ class AppProvider with ChangeNotifier {
       messagesProvider.handleMessageEcho(messageId, echoCount, snrRaw, rssiDbm);
     };
 
+    connectionProvider.prepareDirectMessageSendCallback =
+        ({required messageId, required contact, required retryAttempt}) async {
+          return _prepareDirectMessageSend(
+            messageId: messageId,
+            contact: contact,
+          );
+        };
+
     // Wire up MessagesProvider's sendMessageCallback for retry logic
     messagesProvider.sendMessageCallback =
         ({
@@ -1134,32 +1221,274 @@ class AppProvider with ChangeNotifier {
             retryAttempt: retryAttempt,
           );
         };
-
-    messagesProvider.onDirectPathFailedCallback =
-        ({required contact, required failureStreak}) async {
-          debugPrint(
-            '🧭 [AppProvider] Clearing unhealthy path for ${contact.advName} after $failureStreak failed send chain(s)',
+    messagesProvider.onFinalRouterFallbackCallback =
+        ({required messageId, required contact, required message}) async {
+          return _sendWithFinalNearestRouterFallback(
+            messageId: messageId,
+            contact: contact,
+            message: message,
           );
-
-          contactsProvider.markPathUnhealthy(contact.publicKey);
-
-          if (!connectionProvider.deviceInfo.isConnected) {
-            return;
-          }
-
-          try {
-            await connectionProvider.resetPath(contact.publicKey);
-            Future.delayed(const Duration(milliseconds: 150), () {
-              if (connectionProvider.deviceInfo.isConnected) {
-                connectionProvider.getContact(contact.publicKey);
-              }
-            });
-          } catch (e) {
-            debugPrint(
-              '⚠️ [AppProvider] Failed to reset path for ${contact.advName}: $e',
-            );
-          }
         };
+    messagesProvider.onFinalDirectMessageFailureCallback =
+        ({required messageId, required contact, required message}) async {
+          await _handleDirectMessageFinalFailure(
+            messageId: messageId,
+            contact: contact,
+          );
+        };
+    messagesProvider.onDirectMessageDeliveredCallback =
+        ({
+          required messageId,
+          required contact,
+          required message,
+          required roundTripTimeMs,
+        }) {
+          _handleDirectMessageDelivered(
+            messageId: messageId,
+            contact: contact,
+            roundTripTimeMs: roundTripTimeMs,
+          );
+        };
+  }
+
+  Future<Contact> _prepareDirectMessageSend({
+    required String messageId,
+    required Contact contact,
+  }) async {
+    final latestContact =
+        contactsProvider.findContactByKey(contact.publicKey) ?? contact;
+    var session = _directMessageRouteSessions[messageId];
+    if (session == null) {
+      final selection = await _pathHistoryService.getSelectionForContact(
+        latestContact,
+        autoRouteRotationEnabled: _autoRouteRotationEnabled,
+      );
+      session = _DirectMessageRouteSession(
+        currentSelection: selection,
+        originalRoute: ContactRouteCodec.fromContact(latestContact),
+        routerFallbackAttempted: false,
+      );
+      _directMessageRouteSessions[messageId] = session;
+    }
+
+    await _applyPathSelection(
+      latestContact,
+      session.currentSelection,
+      messageId: messageId,
+      routerFallbackAttempted: session.routerFallbackAttempted,
+    );
+    return contactsProvider.findContactByKey(contact.publicKey) ??
+        latestContact;
+  }
+
+  Future<void> _applyPathSelection(
+    Contact contact,
+    PathSelection selection, {
+    required String messageId,
+    required bool routerFallbackAttempted,
+  }) async {
+    final previousRoute = ContactRouteCodec.fromContact(contact);
+
+    try {
+      if (selection.usesFlood) {
+        contactsProvider.resetContactRouteLocal(contact.publicKey);
+        if (connectionProvider.deviceInfo.isConnected) {
+          await connectionProvider.resetPath(contact.publicKey);
+        }
+      } else {
+        final pathDescriptor =
+            ((selection.hashSize - 1) << 6) | (selection.hopCount & 0x3F);
+        final signedDescriptor = ContactRouteCodec.toSignedDescriptor(
+          pathDescriptor,
+        );
+        final paddedPathBytes = Uint8List(ContactRouteCodec.maxPathBytes)
+          ..setRange(0, selection.pathBytes.length, selection.pathBytes);
+
+        contactsProvider.setContactRouteLocal(
+          contact.publicKey,
+          signedEncodedPathLen: signedDescriptor,
+          paddedPathBytes: paddedPathBytes,
+        );
+        if (connectionProvider.deviceInfo.isConnected) {
+          await connectionProvider.setContactRoute(
+            contact,
+            signedEncodedPathLen: signedDescriptor,
+            paddedPathBytes: paddedPathBytes,
+          );
+        }
+      }
+    } catch (error) {
+      _restoreRouteLocal(contact.publicKey, previousRoute);
+      rethrow;
+    }
+
+    messagesProvider.updateMessageRouteSelection(
+      messageId,
+      selection,
+      routerFallbackAttempted: routerFallbackAttempted,
+    );
+  }
+
+  void _restoreRouteLocal(Uint8List publicKey, ParsedContactRoute? route) {
+    if (route == null) {
+      contactsProvider.resetContactRouteLocal(publicKey);
+      return;
+    }
+
+    contactsProvider.setContactRouteLocal(
+      publicKey,
+      signedEncodedPathLen: route.signedEncodedPathLen,
+      paddedPathBytes: route.paddedPathBytes,
+    );
+  }
+
+  Future<void> _restoreRouteOnDevice(
+    Contact contact,
+    ParsedContactRoute? route,
+  ) async {
+    _restoreRouteLocal(contact.publicKey, route);
+    if (!connectionProvider.deviceInfo.isConnected) {
+      return;
+    }
+
+    if (route == null) {
+      await connectionProvider.resetPath(contact.publicKey);
+      return;
+    }
+
+    await connectionProvider.setContactRoute(
+      contact,
+      signedEncodedPathLen: route.signedEncodedPathLen,
+      paddedPathBytes: route.paddedPathBytes,
+    );
+  }
+
+  PathSelection _buildNearestRouterSelection(Contact repeater, int hashSize) {
+    return PathSelection(
+      mode: PathSelectionMode.nearestRouter,
+      pathBytes: Uint8List.fromList(repeater.publicKey.sublist(0, hashSize)),
+      hopCount: 1,
+      hashSize: hashSize,
+      relayName: repeater.advName,
+      relayKey6: _key6(repeater.publicKey),
+    );
+  }
+
+  Future<bool> _sendWithFinalNearestRouterFallback({
+    required String messageId,
+    required Contact contact,
+    required Message message,
+  }) async {
+    final latestContact =
+        contactsProvider.findContactByKey(contact.publicKey) ?? contact;
+    final session =
+        _directMessageRouteSessions[messageId] ??
+        _DirectMessageRouteSession(
+          currentSelection: latestContact.routeHasPath
+              ? PathSelection(
+                  mode: PathSelectionMode.directCurrent,
+                  pathBytes: Uint8List.fromList(latestContact.routePathBytes),
+                  hopCount: latestContact.routeHopCount,
+                  hashSize: latestContact.routeHashSize,
+                )
+              : PathSelection.flood(),
+          originalRoute: ContactRouteCodec.fromContact(latestContact),
+          routerFallbackAttempted: false,
+        );
+
+    await _pathHistoryService.recordPathResult(
+      latestContact.publicKeyHex,
+      session.currentSelection,
+      success: false,
+    );
+
+    final repeater = _nearestRouterSelector.select(
+      senderPosition: locationTrackingService.currentPosition,
+      repeaters: contactsProvider.repeaters,
+      recipient: latestContact,
+    );
+    if (repeater == null) {
+      return false;
+    }
+
+    final routeHashSize = await RouteHashPreferences.getHashSize();
+    final fallbackSelection = _buildNearestRouterSelection(
+      repeater,
+      routeHashSize,
+    );
+    _directMessageRouteSessions[messageId] = session.copyWith(
+      currentSelection: fallbackSelection,
+      routerFallbackAttempted: true,
+    );
+    messagesProvider.updateMessageRouteSelection(
+      messageId,
+      fallbackSelection,
+      routerFallbackAttempted: true,
+    );
+
+    return connectionProvider.sendTextMessage(
+      contactPublicKey: latestContact.publicKey,
+      text: message.text,
+      messageId: messageId,
+      contact: latestContact,
+      retryAttempt: message.retryAttempt + 1,
+    );
+  }
+
+  void _handleDirectMessageDelivered({
+    required String messageId,
+    required Contact contact,
+    required int roundTripTimeMs,
+  }) {
+    final session = _directMessageRouteSessions.remove(messageId);
+    if (session == null) {
+      return;
+    }
+
+    unawaited(
+      _pathHistoryService.recordPathResult(
+        contact.publicKeyHex,
+        session.currentSelection,
+        success: true,
+        roundTripTimeMs: roundTripTimeMs,
+      ),
+    );
+  }
+
+  Future<void> _handleDirectMessageFinalFailure({
+    required String messageId,
+    required Contact contact,
+  }) async {
+    final latestContact =
+        contactsProvider.findContactByKey(contact.publicKey) ?? contact;
+    final session = _directMessageRouteSessions.remove(messageId);
+    if (session != null) {
+      await _pathHistoryService.recordPathResult(
+        latestContact.publicKeyHex,
+        session.currentSelection,
+        success: false,
+      );
+      if (session.routerFallbackAttempted) {
+        await _restoreRouteOnDevice(latestContact, session.originalRoute);
+      }
+    }
+
+    if (_clearPathOnMaxRetry) {
+      contactsProvider.resetContactRouteLocal(latestContact.publicKey);
+      if (connectionProvider.deviceInfo.isConnected) {
+        await connectionProvider.resetPath(latestContact.publicKey);
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (connectionProvider.deviceInfo.isConnected) {
+            connectionProvider.getContact(latestContact.publicKey);
+          }
+        });
+      }
+    }
+  }
+
+  String _key6(Uint8List publicKey) {
+    final bytes = publicKey.sublist(0, math.min(6, publicKey.length));
+    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
   }
 
   /// Initialize the app (load contacts, sync time, etc.)

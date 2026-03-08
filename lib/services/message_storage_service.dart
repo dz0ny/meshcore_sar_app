@@ -5,6 +5,7 @@ import '../models/message.dart';
 import '../models/message_contact_location.dart';
 import '../models/message_reception_details.dart';
 import '../models/message_transfer_details.dart';
+import '../models/message_route_metadata.dart';
 import 'package:latlong2/latlong.dart';
 
 /// Service for persisting messages to local storage
@@ -16,6 +17,8 @@ class MessageStorageService {
       'stored_message_reception_details';
   static const String _messageTransferDetailsKey =
       'stored_message_transfer_details';
+  static const String _messageRouteMetadataKey =
+      'stored_message_route_metadata';
   static const int _maxStoredMessages = 1000; // Store up to 1000 messages
 
   /// Save messages to persistent storage
@@ -24,6 +27,7 @@ class MessageStorageService {
     Map<String, MessageContactLocation> messageContactLocations = const {},
     Map<String, MessageReceptionDetails> messageReceptionDetails = const {},
     Map<String, MessageTransferDetails> messageTransferDetails = const {},
+    Map<String, MessageRouteMetadata> messageRouteMetadata = const {},
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -44,6 +48,7 @@ class MessageStorageService {
       final locationJson = <String, dynamic>{};
       final receptionJson = <String, dynamic>{};
       final transferJson = <String, dynamic>{};
+      final routeMetadataJson = <String, dynamic>{};
       for (final entry in messageContactLocations.entries) {
         if (retainedMessageIds.contains(entry.key)) {
           locationJson[entry.key] = entry.value.toJson();
@@ -59,6 +64,11 @@ class MessageStorageService {
           transferJson[entry.key] = entry.value.toJson();
         }
       }
+      for (final entry in messageRouteMetadata.entries) {
+        if (retainedMessageIds.contains(entry.key)) {
+          routeMetadataJson[entry.key] = entry.value.toJson();
+        }
+      }
       await prefs.setString(
         _messageContactLocationsKey,
         jsonEncode(locationJson),
@@ -70,6 +80,10 @@ class MessageStorageService {
       await prefs.setString(
         _messageTransferDetailsKey,
         jsonEncode(transferJson),
+      );
+      await prefs.setString(
+        _messageRouteMetadataKey,
+        jsonEncode(routeMetadataJson),
       );
 
       debugPrint(
@@ -170,6 +184,32 @@ class MessageStorageService {
     }
   }
 
+  Future<Map<String, MessageRouteMetadata>> loadMessageRouteMetadata() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_messageRouteMetadataKey);
+      if (jsonString == null || jsonString.isEmpty) {
+        return const {};
+      }
+
+      final decoded = jsonDecode(jsonString);
+      if (decoded is! Map<String, dynamic>) {
+        return const {};
+      }
+
+      final result = <String, MessageRouteMetadata>{};
+      for (final entry in decoded.entries) {
+        final value = entry.value;
+        if (value is! Map<String, dynamic>) continue;
+        result[entry.key] = MessageRouteMetadata.fromJson(value);
+      }
+      return result;
+    } catch (e) {
+      debugPrint('❌ [MessageStorage] Error loading route metadata: $e');
+      return const {};
+    }
+  }
+
   /// Load messages from persistent storage
   Future<List<Message>> loadMessages() async {
     try {
@@ -206,6 +246,7 @@ class MessageStorageService {
       await prefs.remove(_messageContactLocationsKey);
       await prefs.remove(_messageReceptionDetailsKey);
       await prefs.remove(_messageTransferDetailsKey);
+      await prefs.remove(_messageRouteMetadataKey);
       debugPrint('✅ [MessageStorage] Cleared all stored messages');
     } catch (e) {
       debugPrint('❌ [MessageStorage] Error clearing messages: $e');

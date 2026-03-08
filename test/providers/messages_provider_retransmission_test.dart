@@ -4,7 +4,10 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore_sar_app/models/contact.dart';
 import 'package:meshcore_sar_app/models/message.dart';
+import 'package:meshcore_sar_app/models/path_selection.dart';
+import 'package:meshcore_sar_app/providers/helpers/message_retry_manager.dart';
 import 'package:meshcore_sar_app/providers/messages_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Contact _buildContact() {
   return Contact(
@@ -38,6 +41,10 @@ Message _buildDirectMessage(String id) {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
   group('MessagesProvider retransmission', () {
     test('direct messages become sent before delivery ACK arrives', () {
@@ -171,7 +178,11 @@ void main() {
         );
         expect(retryCalls, 0);
 
-        async.elapse(const Duration(seconds: 4));
+        async.elapse(const Duration(milliseconds: 998));
+        async.flushMicrotasks();
+        expect(retryCalls, 0);
+
+        async.elapse(const Duration(milliseconds: 1));
         async.flushMicrotasks();
 
         expect(retryCalls, 1);
@@ -237,68 +248,89 @@ void main() {
       expect(provider.messages.single.retryAttempt, 0);
     });
 
-    test('repeated max-retry failures request path reset', () async {
+    test(
+      'final router fallback runs after all normal retries are exhausted',
+      () async {
+        final provider = MessagesProvider();
+        final fallbackCalls = <String>[];
+        provider.onFinalRouterFallbackCallback =
+            ({required messageId, required contact, required message}) async {
+              fallbackCalls.add(messageId);
+              return true;
+            };
+
+        provider.addSentMessage(
+          _buildDirectMessage(
+            'm5',
+          ).copyWith(retryAttempt: MessageRetryManager.maxRetryAttempts),
+          contact: _buildContact(),
+        );
+
+        provider.markMessageFailed('m5');
+        await Future<void>.delayed(Duration.zero);
+
+        expect(fallbackCalls, ['m5']);
+        expect(
+          provider.messages.single.deliveryStatus,
+          MessageDeliveryStatus.sending,
+        );
+      },
+    );
+
+    test('final router fallback is not retried twice', () async {
       final provider = MessagesProvider();
-      final contact = _buildContact();
-      final resetRequests = <(String, int)>[];
-      provider.onDirectPathFailedCallback =
-          ({required contact, required failureStreak}) async {
-            resetRequests.add((contact.advName, failureStreak));
-          };
-
-      provider.addSentMessage(
-        _buildDirectMessage(
-          'm5',
-        ).copyWith(retryAttempt: 3, usedFloodFallback: true),
-        contact: contact,
-      );
-      provider.markMessageFailed('m5');
-
       provider.addSentMessage(
         _buildDirectMessage(
           'm6',
-        ).copyWith(retryAttempt: 3, usedFloodFallback: true),
-        contact: contact,
+        ).copyWith(retryAttempt: MessageRetryManager.maxRetryAttempts),
+        contact: _buildContact(),
       );
+      provider.updateMessageRouteSelection(
+        'm6',
+        PathSelection.flood(),
+        routerFallbackAttempted: true,
+      );
+
       provider.markMessageFailed('m6');
-
       await Future<void>.delayed(Duration.zero);
 
-      expect(resetRequests, [('Teammate', 2)]);
+      expect(
+        provider.messages.single.deliveryStatus,
+        MessageDeliveryStatus.failed,
+      );
     });
 
-    test('successful delivery clears path failure streak', () async {
-      final provider = MessagesProvider();
-      final contact = _buildContact();
-      final resetRequests = <int>[];
-      provider.onDirectPathFailedCallback =
-          ({required contact, required failureStreak}) async {
-            resetRequests.add(failureStreak);
-          };
+    test(
+      'final permanent failure callback runs after router fallback failure',
+      () async {
+        final provider = MessagesProvider();
+        final failedMessageIds = <String>[];
+        provider.onFinalDirectMessageFailureCallback =
+            ({required messageId, required contact, required message}) async {
+              failedMessageIds.add(messageId);
+            };
 
-      provider.addSentMessage(
-        _buildDirectMessage(
+        provider.addSentMessage(
+          _buildDirectMessage(
+            'm7',
+          ).copyWith(retryAttempt: MessageRetryManager.maxRetryAttempts),
+          contact: _buildContact(),
+        );
+        provider.updateMessageRouteSelection(
           'm7',
-        ).copyWith(retryAttempt: 3, usedFloodFallback: true),
-        contact: contact,
-      );
-      provider.markMessageFailed('m7');
+          PathSelection.flood(),
+          routerFallbackAttempted: true,
+        );
 
-      provider.addSentMessage(_buildDirectMessage('m8'), contact: contact);
-      provider.markMessageSent('m8', 123, 10);
-      provider.markMessageDelivered(123, 150);
+        provider.markMessageFailed('m7');
+        await Future<void>.delayed(Duration.zero);
 
-      provider.addSentMessage(
-        _buildDirectMessage(
-          'm9',
-        ).copyWith(retryAttempt: 3, usedFloodFallback: true),
-        contact: contact,
-      );
-      provider.markMessageFailed('m9');
-
-      await Future<void>.delayed(Duration.zero);
-
-      expect(resetRequests, isEmpty);
-    });
+        expect(failedMessageIds, ['m7']);
+        expect(
+          provider.messages.single.deliveryStatus,
+          MessageDeliveryStatus.failed,
+        );
+      },
+    );
   });
 }

@@ -23,6 +23,7 @@ import '../l10n/app_localizations.dart';
 import '../widgets/permission_request_dialog.dart';
 import '../widgets/connection_dialog.dart';
 import '../utils/battery_display_helper.dart';
+import '../services/developer_mode_service.dart';
 
 enum _HomeTab { messages, contacts, sensors, map }
 
@@ -55,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen>
   int _currentIndex = 0;
   bool _isMapFullscreen = false;
   bool _showRxTxIndicators = true;
+  bool _isDeveloperModeEnabled = false;
   bool _isMapEnabled = true;
   bool _isContactsEnabled = true;
   bool _isSensorsEnabled = false;
@@ -90,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen>
     // Initialize synchronously so first build always has a valid controller.
     _initTabController();
     _loadRxTxPreference();
+    _loadDeveloperModePreference();
 
     // Show permission dialog after the first frame if needed
     if (widget.shouldShowPermissionDialog) {
@@ -226,6 +229,14 @@ class _HomeScreenState extends State<HomeScreen>
         _showRxTxIndicators = prefs.getBool('show_rx_tx_indicators') ?? true;
       });
     }
+  }
+
+  Future<void> _loadDeveloperModePreference() async {
+    final isEnabled = await DeveloperModeService.isEnabled();
+    if (!mounted) return;
+    setState(() {
+      _isDeveloperModeEnabled = isEnabled;
+    });
   }
 
   @override
@@ -598,56 +609,67 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 PopupMenuButton(
                   icon: const Icon(Icons.more_vert),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      child: Row(
-                        children: [
-                          const Icon(Icons.radar),
-                          const SizedBox(width: 8),
-                          const Text('Spectrum Scan'),
-                        ],
-                      ),
-                      onTap: () {
-                        final navigator = Navigator.of(context);
-                        Future.delayed(Duration.zero, () {
-                          if (!mounted) return;
-                          navigator.push(
-                            MaterialPageRoute(
-                              builder: (context) => const SpectrumScanScreen(),
-                            ),
-                          );
-                        });
-                      },
-                    ),
-                    PopupMenuItem(
-                      child: Row(
-                        children: [
-                          const Icon(Icons.settings),
-                          const SizedBox(width: 8),
-                          Text(AppLocalizations.of(context)!.settings),
-                        ],
-                      ),
-                      onTap: () {
-                        // Capture context-dependent objects before async gap
-                        final navigator = Navigator.of(context);
-                        Future.delayed(Duration.zero, () async {
-                          if (!mounted) return;
-                          await navigator.push(
-                            MaterialPageRoute(
-                              builder: (context) => SettingsScreen(
-                                onThemeChanged: widget.onThemeChanged,
-                                onLocaleChanged: widget.onLocaleChanged,
-                                currentTheme: widget.currentTheme,
-                                currentLocale: widget.currentLocale,
+                  itemBuilder: (context) {
+                    final items = <PopupMenuEntry<void>>[];
+
+                    if (_isDeveloperModeEnabled) {
+                      items.add(
+                        PopupMenuItem(
+                          child: Row(
+                            children: [
+                              const Icon(Icons.radar),
+                              const SizedBox(width: 8),
+                              const Text('Spectrum Scan'),
+                            ],
+                          ),
+                          onTap: () {
+                            final navigator = Navigator.of(context);
+                            Future.delayed(Duration.zero, () {
+                              if (!mounted) return;
+                              navigator.push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SpectrumScanScreen(),
+                                ),
+                              );
+                            });
+                          },
+                        ),
+                      );
+                    }
+
+                    items.add(
+                      PopupMenuItem(
+                        child: Row(
+                          children: [
+                            const Icon(Icons.settings),
+                            const SizedBox(width: 8),
+                            Text(AppLocalizations.of(context)!.settings),
+                          ],
+                        ),
+                        onTap: () {
+                          final navigator = Navigator.of(context);
+                          Future.delayed(Duration.zero, () async {
+                            if (!mounted) return;
+                            await navigator.push(
+                              MaterialPageRoute(
+                                builder: (context) => SettingsScreen(
+                                  onThemeChanged: widget.onThemeChanged,
+                                  onLocaleChanged: widget.onLocaleChanged,
+                                  currentTheme: widget.currentTheme,
+                                  currentLocale: widget.currentLocale,
+                                ),
                               ),
-                            ),
-                          );
-                          // Reload preference when returning from settings
-                          _loadRxTxPreference();
-                        });
-                      },
-                    ),
-                  ],
+                            );
+                            _loadRxTxPreference();
+                            _loadDeveloperModePreference();
+                          });
+                        },
+                      ),
+                    );
+
+                    return items;
+                  },
                 ),
               ],
             ),

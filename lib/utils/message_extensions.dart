@@ -1,12 +1,17 @@
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import '../models/message.dart';
 import '../l10n/app_localizations.dart';
+import '../providers/messages_provider.dart';
 
 /// Extension for Message to provide localized delivery status
 extension MessageLocalization on Message {
   /// Get localized delivery status text
   String getLocalizedDeliveryStatus(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final routeMetadata = context
+        .read<MessagesProvider>()
+        .getMessageRouteMetadata(id);
 
     // For channel messages, show echo count instead of delivery status
     if (isChannelMessage && deliveryStatus == MessageDeliveryStatus.sent) {
@@ -26,29 +31,51 @@ extension MessageLocalization on Message {
       case MessageDeliveryStatus.sending:
         if (isContactMessage) {
           if (retryAttempt > 0) {
-            return '${l10n.pending} • ${l10n.retryAttempt} $retryAttempt/3';
+            final routeSuffix = routeMetadata != null
+                ? ' • ${routeMetadata.modeLabel}'
+                : '';
+            return '${l10n.pending} • ${l10n.retryAttempt} $retryAttempt/4$routeSuffix';
           }
-          return l10n.pending;
+          return routeMetadata == null
+              ? l10n.pending
+              : '${l10n.pending} • ${routeMetadata.modeLabel}';
         }
         return l10n.sending;
       case MessageDeliveryStatus.sent:
-        return l10n.sent;
+        return routeMetadata == null
+            ? l10n.sent
+            : '${l10n.sent} • ${routeMetadata.modeLabel}';
       case MessageDeliveryStatus.delivered:
         if (retryAttempt > 0 && roundTripTimeMs != null) {
-          return '${l10n.deliveredWithTime(roundTripTimeMs!)} • ${l10n.retryAttempt} $retryAttempt/3';
+          final routeSuffix = routeMetadata != null
+              ? ' • ${routeMetadata.modeLabel}'
+              : '';
+          return '${l10n.deliveredWithTime(roundTripTimeMs!)} • ${l10n.retryAttempt} $retryAttempt/4$routeSuffix';
         }
         if (retryAttempt > 0) {
-          return '${l10n.delivered} • ${l10n.retryAttempt} $retryAttempt/3';
+          final routeSuffix = routeMetadata != null
+              ? ' • ${routeMetadata.modeLabel}'
+              : '';
+          return '${l10n.delivered} • ${l10n.retryAttempt} $retryAttempt/4$routeSuffix';
         }
         if (roundTripTimeMs != null) {
-          return l10n.deliveredWithTime(roundTripTimeMs!);
+          return routeMetadata == null
+              ? l10n.deliveredWithTime(roundTripTimeMs!)
+              : '${l10n.deliveredWithTime(roundTripTimeMs!)} • ${routeMetadata.modeLabel}';
         }
-        return l10n.delivered;
+        return routeMetadata == null
+            ? l10n.delivered
+            : '${l10n.delivered} • ${routeMetadata.modeLabel}';
       case MessageDeliveryStatus.failed:
         if (retryAttempt > 0) {
-          return '${l10n.failed} • ${l10n.retryAttempt} $retryAttempt/3';
+          final routeSuffix = routeMetadata != null
+              ? ' • ${routeMetadata.modeLabel}'
+              : '';
+          return '${l10n.failed} • ${l10n.retryAttempt} $retryAttempt/4$routeSuffix';
         }
-        return l10n.failed;
+        return routeMetadata == null
+            ? l10n.failed
+            : '${l10n.failed} • ${routeMetadata.modeLabel}';
       case MessageDeliveryStatus.received:
         return '';
     }

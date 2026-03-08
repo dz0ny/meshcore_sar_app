@@ -5,15 +5,13 @@ import '../../models/contact.dart';
 
 /// Manages message retry state and logic
 ///
-/// This helper class centralizes retry logic for direct messages, implementing
-/// a progressive timeout strategy (4s, 8s, 12s) for messages sent to contacts
-/// with learned routing paths.
+/// This helper class centralizes retry logic for direct messages.
 ///
 /// IMPORTANT: Based on MeshCore firmware analysis:
 /// - Firmware calculates timeout based on path length and airtime
 /// - Direct mode: ~(path_len * airtime * 2) + margin
 /// - Flood mode: ~10-30 seconds for multi-hop
-/// - Our timeouts (4s, 8s, 12s) are conservative for direct paths
+/// - Our retry delays (1s, 2s, 4s, 8s) are app-level backoff timers
 /// - Firmware does NOT automatically retry - app must implement
 class MessageRetryManager {
   // Track retry state for each message ID
@@ -21,10 +19,10 @@ class MessageRetryManager {
   final Map<String, DateTime> _lastRetryTimes = {};
   final Map<String, int> _pathFailureStreaks = {};
 
-  // Progressive timeout values in milliseconds
-  // These are app-level timeouts, separate from firmware's suggested timeout
-  // Firmware timeout is for ACK arrival, these are for retry attempts
-  static const List<int> _timeouts = [4000, 8000, 12000];
+  static const int maxRetryAttempts = 4;
+
+  // Retry backoff values in milliseconds.
+  static const List<int> _retryDelays = [1000, 2000, 4000, 8000];
   static const int _defaultLoRaSf = 10;
   static const int _defaultLoRaCr = 5;
   static const int _defaultLoRaBwHz = 250000;
@@ -32,13 +30,12 @@ class MessageRetryManager {
   static const int _defaultLoRaCrcEnabled = 1;
   static const int _defaultLoRaExplicitHeader = 1;
 
-  /// Get timeout for a specific retry attempt (0-2)
-  /// Returns: 4000ms for attempt 0, 8000ms for attempt 1, 12000ms for attempt 2
-  int getTimeoutForAttempt(int attempt) {
-    if (attempt < 0 || attempt >= _timeouts.length) {
-      return _timeouts.last; // Default to last timeout if out of range
+  /// Get backoff delay for the next retry attempt.
+  int getDelayForAttempt(int attempt) {
+    if (attempt < 0 || attempt >= _retryDelays.length) {
+      return _retryDelays.last;
     }
-    return _timeouts[attempt];
+    return _retryDelays[attempt];
   }
 
   /// Calculate a conservative delivery-ACK timeout when firmware doesn't
@@ -65,43 +62,8 @@ class MessageRetryManager {
     return ((airtimeMs * (hopCount + 1) * 2) + 1500).clamp(4000, 20000);
   }
 
-  /// Check if a message is eligible for retry
-  ///
-  /// Returns true if:
-  /// - The message has retryAttempt < 3
-  /// - The contact has a learned path (contact.hasPath == true)
-  /// - The message hasn't used flood fallback yet
-  ///
-  /// Messages to contacts without paths should NOT retry (flood mode already broadcasts)
   bool canRetry(Message message, Contact contact) {
-    // Never retry if already tried flood mode
-    if (message.usedFloodFallback) {
-      return false;
-    }
-
-    // Never retry beyond 3 attempts
-    if (message.retryAttempt >= 3) {
-      return false;
-    }
-
-    // Only retry if contact has a learned path
-    // If no path, the device uses flood mode automatically - retrying won't help
-    return contact.routeHasPath;
-  }
-
-  /// Check if should fall back to flood mode
-  ///
-  /// Returns true if:
-  /// - Message has exhausted all 3 retry attempts with direct mode
-  /// - Contact HAS a learned path (so direct mode was used)
-  /// - Hasn't already used flood fallback
-  ///
-  /// IMPORTANT: Only contacts WITH paths need flood fallback.
-  /// Contacts without paths already use flood mode automatically.
-  bool shouldUseFloodFallback(Message message, Contact contact) {
-    return message.retryAttempt >= 3 &&
-        contact.routeHasPath &&
-        !message.usedFloodFallback;
+    return message.retryAttempt < maxRetryAttempts;
   }
 
   /// Track a retry attempt for a message

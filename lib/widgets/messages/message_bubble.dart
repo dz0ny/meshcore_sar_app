@@ -469,6 +469,9 @@ class _MessageBubbleState extends State<MessageBubble> {
     final retryCause = _retryCauseLabel(widget.message);
     final retryResult = _retryResultLabel(widget.message);
     final retryMode = _retryModeLabel(widget.message);
+    final routeMetadata = context
+        .read<MessagesProvider>()
+        .getMessageRouteMetadata(widget.message.id);
 
     final rawLines = <String>[
       'Message ID: ${widget.message.id}',
@@ -790,7 +793,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                               _detailRow(
                                 context,
                                 label: l10n.retryAttempt,
-                                value: '${widget.message.retryAttempt}/3',
+                                value: '${widget.message.retryAttempt}/4',
                               ),
                             if (widget.message.lastRetryAt != null)
                               _detailRow(
@@ -808,6 +811,20 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 context,
                                 label: l10n.floodFallback,
                                 value: l10n.yes,
+                              ),
+                            if (routeMetadata?.relayName case final relayName?)
+                              _detailRow(
+                                context,
+                                label: 'Relay',
+                                value: relayName,
+                              ),
+                            if (routeMetadata?.canonicalPath
+                                case final routePath?)
+                              _detailRow(
+                                context,
+                                label: 'Selected path',
+                                value: routePath,
+                                onCopy: () => copyField(routePath),
                               ),
                             if (retryResult != null)
                               _detailRow(
@@ -885,7 +902,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                               _detailRow(
                                 context,
                                 label: l10n.envelope,
-                                value: envelope != null ? 'VE3 compact' : l10n.unknown,
+                                value: envelope != null
+                                    ? 'VE3 compact'
+                                    : l10n.unknown,
                               ),
                               if (voiceSession != null)
                                 _detailRow(
@@ -1545,8 +1564,15 @@ class _MessageBubbleState extends State<MessageBubble> {
       return null;
     }
 
+    final routeMetadata = context
+        .read<MessagesProvider>()
+        .getMessageRouteMetadata(message.id);
+    if (routeMetadata != null) {
+      return routeMetadata.modeLabel;
+    }
+
     if (message.usedFloodFallback) {
-      return 'Flood fallback';
+      return 'Flood route';
     }
 
     if (message.retryAttempt > 0 || message.expectedAckTag != null) {
@@ -1561,9 +1587,17 @@ class _MessageBubbleState extends State<MessageBubble> {
       return null;
     }
 
+    final routeMetadata = context
+        .read<MessagesProvider>()
+        .getMessageRouteMetadata(message.id);
+    final routeLabel = routeMetadata?.modeLabel.toLowerCase();
+
     if (message.deliveryStatus == MessageDeliveryStatus.delivered) {
+      if (routeLabel != null) {
+        return 'Delivered via $routeLabel';
+      }
       if (message.usedFloodFallback) {
-        return 'Delivered after flood fallback';
+        return 'Delivered after flood route';
       }
       if (message.retryAttempt > 0) {
         return 'Delivered after retry';
@@ -1574,8 +1608,11 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
 
     if (message.deliveryStatus == MessageDeliveryStatus.sending) {
+      if (routeLabel != null) {
+        return '$routeLabel in progress';
+      }
       if (message.usedFloodFallback) {
-        return 'Flood fallback in progress';
+        return 'Flood route in progress';
       }
       if (message.retryAttempt > 0) {
         return 'Retry in progress';
@@ -1586,8 +1623,11 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
 
     if (message.deliveryStatus == MessageDeliveryStatus.failed) {
+      if (routeLabel != null) {
+        return 'Failed via $routeLabel';
+      }
       if (message.usedFloodFallback) {
-        return 'Failed after flood fallback';
+        return 'Failed after flood route';
       }
       if (message.retryAttempt > 0) {
         return 'Failed after retry attempts';

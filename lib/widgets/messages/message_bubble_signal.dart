@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/message.dart';
+import '../../models/path_selection.dart';
 import '../../models/message_reception_details.dart';
+import '../../providers/messages_provider.dart';
 
 IconData getDeliveryStatusIcon(MessageDeliveryStatus status) {
   switch (status) {
@@ -185,6 +188,9 @@ Widget buildSentDirectSignalStatus(
   required int roundTripTimeMs,
   required Duration txEstimate,
 }) {
+  final routeMetadata = context
+      .read<MessagesProvider>()
+      .getMessageRouteMetadata(message.id);
   final estimatedTransmitMs = sanitizeEstimatedTransmitMs(
     estimatedTransmitMs: txEstimate > Duration.zero
         ? txEstimate.inMilliseconds
@@ -230,7 +236,7 @@ Widget buildSentDirectSignalStatus(
         _techChip(
           context,
           icon: Icons.refresh,
-          label: 'retry ${message.retryAttempt}/3',
+          label: 'retry ${message.retryAttempt}/4',
           color: Colors.redAccent,
         ),
       if (message.suggestedTimeoutMs != null)
@@ -244,7 +250,7 @@ Widget buildSentDirectSignalStatus(
         _techChip(
           context,
           icon: Icons.waves,
-          label: 'flood fallback',
+          label: 'flood route',
           color: Colors.teal,
         )
       else if (message.expectedAckTag != null)
@@ -253,6 +259,17 @@ Widget buildSentDirectSignalStatus(
           icon: Icons.route,
           label: 'direct ACK',
           color: Colors.indigo,
+        ),
+      if (routeMetadata != null)
+        _techChip(
+          context,
+          icon: routeMetadata.mode == PathSelectionMode.nearestRouter
+              ? Icons.router
+              : Icons.alt_route,
+          label: routeMetadata.modeLabel,
+          color: routeMetadata.mode == PathSelectionMode.nearestRouter
+              ? Colors.deepPurple
+              : Colors.indigo,
         ),
     ],
   );
