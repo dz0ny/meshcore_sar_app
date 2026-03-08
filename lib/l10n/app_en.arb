@@ -1,104 +1,69 @@
 {
   "@@locale": "en",
-
   "appTitle": "MeshCore SAR",
   "@appTitle": {
     "description": "The application title"
   },
-
   "messages": "Messages",
   "@messages": {
     "description": "Messages tab label"
   },
-
   "contacts": "Contacts",
   "@contacts": {
     "description": "Contacts tab label"
   },
-
   "map": "Map",
   "@map": {
     "description": "Map tab label"
   },
-
   "settings": "Settings",
   "@settings": {
     "description": "Settings screen title"
   },
-
   "connect": "Connect",
   "@connect": {
     "description": "Connect button label"
   },
-
   "disconnect": "Disconnect",
   "@disconnect": {
     "description": "Disconnect button label"
   },
-
-  "scanningForDevices": "Scanning for devices...",
-  "@scanningForDevices": {
-    "description": "Text shown when scanning for BLE devices"
-  },
-
   "noDevicesFound": "No devices found",
   "@noDevicesFound": {
     "description": "Text shown when no BLE devices are found"
   },
-
   "scanAgain": "Scan Again",
   "@scanAgain": {
     "description": "Button to restart BLE scanning"
   },
-
   "tapToConnect": "Tap to connect",
   "@tapToConnect": {
     "description": "Subtitle text for device in scan list"
   },
-
   "deviceNotConnected": "Device not connected",
   "@deviceNotConnected": {
     "description": "Error message when device is not connected"
   },
-
   "locationPermissionDenied": "Location permission denied",
   "@locationPermissionDenied": {
     "description": "Error when location permission is denied"
   },
-
   "locationPermissionPermanentlyDenied": "Location permission permanently denied. Please enable in Settings.",
   "@locationPermissionPermanentlyDenied": {
     "description": "Error when location permission is permanently denied"
   },
-
   "locationPermissionRequired": "Location permission is required for GPS tracking and team coordination. You can enable it later in Settings.",
   "@locationPermissionRequired": {
     "description": "Message when location permission is needed"
   },
-
   "locationServicesDisabled": "Location services are disabled. Please enable them in Settings.",
   "@locationServicesDisabled": {
     "description": "Error when location services are disabled"
   },
-
   "failedToGetGpsLocation": "Failed to get GPS location",
   "@failedToGetGpsLocation": {
     "description": "Error when GPS location cannot be obtained"
   },
-
-  "advertisedAtLocation": "Advertised at {latitude}, {longitude}",
-  "@advertisedAtLocation": {
-    "description": "Success message showing advertised location",
-    "placeholders": {
-      "latitude": {
-        "type": "String"
-      },
-      "longitude": {
-        "type": "String"
-      }
-    }
-  },
-
   "failedToAdvertise": "Failed to advertise: {error}",
   "@failedToAdvertise": {
     "description": "Error message for failed advertisement",
@@ -108,355 +73,162 @@
       }
     }
   },
-
-  "reconnecting": "Reconnecting... ({attempt}/{max})",
-  "@reconnecting": {
-    "description": "Text shown during reconnection attempts",
-    "placeholders": {
-      "attempt": {
-        "type": "int"
-      },
-      "max": {
-        "type": "int"
-      }
-    }
-  },
-
   "cancelReconnection": "Cancel reconnection",
   "@cancelReconnection": {
     "description": "Tooltip for cancel reconnection button"
   },
-
-  "mapManagement": "Map Management",
-  "@mapManagement": {
-    "description": "Menu item for map management"
-  },
-
   "general": "General",
   "@general": {
     "description": "General settings section header"
   },
-
   "theme": "Theme",
   "@theme": {
     "description": "Theme setting label"
   },
-
   "chooseTheme": "Choose Theme",
   "@chooseTheme": {
     "description": "Theme selection dialog title"
   },
-
   "light": "Light",
   "@light": {
     "description": "Light theme option"
   },
-
   "dark": "Dark",
   "@dark": {
     "description": "Dark theme option"
   },
-
   "blueLightTheme": "Blue light theme",
   "@blueLightTheme": {
     "description": "Description for blue light theme"
   },
-
   "blueDarkTheme": "Blue dark theme",
   "@blueDarkTheme": {
     "description": "Description for blue dark theme"
   },
-
   "sarRed": "SAR Red",
   "@sarRed": {
     "description": "SAR Red theme option"
   },
-
   "alertEmergencyMode": "Alert/Emergency mode",
   "@alertEmergencyMode": {
     "description": "Description for SAR Red theme"
   },
-
   "sarGreen": "SAR Green",
   "@sarGreen": {
     "description": "SAR Green theme option"
   },
-
   "safeAllClearMode": "Safe/All Clear mode",
   "@safeAllClearMode": {
     "description": "Description for SAR Green theme"
   },
-
   "autoSystem": "Auto (System)",
   "@autoSystem": {
     "description": "Auto/System theme option"
   },
-
   "followSystemTheme": "Follow system theme",
   "@followSystemTheme": {
     "description": "Description for system theme"
   },
-
   "showRxTxIndicators": "Show RX/TX Indicators",
   "@showRxTxIndicators": {
     "description": "Setting to show RX/TX indicators"
   },
-
   "displayPacketActivity": "Display packet activity indicators in top bar",
   "@displayPacketActivity": {
     "description": "Description for RX/TX indicators setting"
   },
-
-  "simpleMode": "Simple Mode",
-  "@simpleMode": {
-    "description": "Setting to enable simple mode"
-  },
-
-  "simpleModeDescription": "Hide non-essential information in messages and contacts",
-  "@simpleModeDescription": {
-    "description": "Description for simple mode setting"
-  },
-
   "disableMap": "Disable Map",
   "@disableMap": {
     "description": "Setting to disable the map tab"
   },
-
   "disableMapDescription": "Hide the map tab to reduce battery usage",
   "@disableMapDescription": {
     "description": "Description for disable map setting"
   },
-
   "language": "Language",
   "@language": {
     "description": "Language setting label"
   },
-
   "chooseLanguage": "Choose Language",
   "@chooseLanguage": {
     "description": "Language selection dialog title"
   },
-
-  "english": "English",
-  "@english": {
-    "description": "English language option"
-  },
-
-  "slovenian": "Slovenian",
-  "@slovenian": {
-    "description": "Slovenian language option"
-  },
-
-  "croatian": "Croatian",
-  "@croatian": {
-    "description": "Croatian language option"
-  },
-
-  "german": "German",
-  "@german": {
-    "description": "German language option"
-  },
-
-  "spanish": "Spanish",
-  "@spanish": {
-    "description": "Spanish language option"
-  },
-
-  "french": "French",
-  "@french": {
-    "description": "French language option"
-  },
-
-  "italian": "Italian",
-  "@italian": {
-    "description": "Italian language option"
-  },
-
-  "locationBroadcasting": "Location Broadcasting",
-  "@locationBroadcasting": {
-    "description": "Location settings section header"
-  },
-
-  "autoLocationTracking": "Auto Location Tracking",
-  "@autoLocationTracking": {
-    "description": "Auto location tracking setting"
-  },
-
-  "automaticallyBroadcastPosition": "Automatically broadcast position updates",
-  "@automaticallyBroadcastPosition": {
-    "description": "Description for auto location tracking"
-  },
-
-  "configureTracking": "Configure Tracking",
-  "@configureTracking": {
-    "description": "Configure tracking button label"
-  },
-
-  "distanceAndTimeThresholds": "Distance and time thresholds",
-  "@distanceAndTimeThresholds": {
-    "description": "Description for tracking configuration"
-  },
-
-  "locationTrackingConfiguration": "Location Tracking Configuration",
-  "@locationTrackingConfiguration": {
-    "description": "Tracking configuration dialog title"
-  },
-
-  "configureWhenLocationBroadcasts": "Configure when location broadcasts are sent to the mesh network",
-  "@configureWhenLocationBroadcasts": {
-    "description": "Description for tracking configuration dialog"
-  },
-
-  "minimumDistance": "Minimum Distance",
-  "@minimumDistance": {
-    "description": "Minimum distance setting label"
-  },
-
-  "broadcastAfterMoving": "Broadcast only after moving {distance} meters",
-  "@broadcastAfterMoving": {
-    "description": "Description for minimum distance",
-    "placeholders": {
-      "distance": {
-        "type": "String"
-      }
-    }
-  },
-
-  "maximumDistance": "Maximum Distance",
-  "@maximumDistance": {
-    "description": "Maximum distance setting label"
-  },
-
-  "alwaysBroadcastAfterMoving": "Always broadcast after moving {distance} meters",
-  "@alwaysBroadcastAfterMoving": {
-    "description": "Description for maximum distance",
-    "placeholders": {
-      "distance": {
-        "type": "String"
-      }
-    }
-  },
-
-  "minimumTimeInterval": "Minimum Time Interval",
-  "@minimumTimeInterval": {
-    "description": "Minimum time interval setting label"
-  },
-
-  "alwaysBroadcastEvery": "Always broadcast every {duration}",
-  "@alwaysBroadcastEvery": {
-    "description": "Description for time interval",
-    "placeholders": {
-      "duration": {
-        "type": "String"
-      }
-    }
-  },
-
   "save": "Save",
   "@save": {
     "description": "Save button label"
   },
-
   "cancel": "Cancel",
   "@cancel": {
     "description": "Cancel button label"
   },
-
   "close": "Close",
   "@close": {
     "description": "Close button label"
   },
-
   "about": "About",
   "@about": {
     "description": "About section header"
   },
-
   "appVersion": "App Version",
   "@appVersion": {
     "description": "App version label"
   },
-
   "appName": "App Name",
   "@appName": {
     "description": "App name label"
   },
-
   "aboutMeshCoreSar": "About MeshCore SAR",
   "@aboutMeshCoreSar": {
     "description": "About dialog title"
   },
-
   "aboutDescription": "A Search & Rescue application designed for emergency response teams. Features include:\n\n• BLE mesh networking for device-to-device communication\n• Offline maps with multiple layer options\n• Real-time team member tracking\n• SAR tactical markers (found person, fire, staging)\n• Contact management and messaging\n• GPS tracking with compass heading\n• Map tile caching for offline use",
   "@aboutDescription": {
     "description": "About dialog description"
   },
-
   "technologiesUsed": "Technologies Used:",
   "@technologiesUsed": {
     "description": "Technologies used section title"
   },
-
   "technologiesList": "• Flutter for cross-platform development\n• BLE (Bluetooth Low Energy) for mesh networking\n• OpenStreetMap for mapping\n• Provider for state management\n• SharedPreferences for local storage",
   "@technologiesList": {
     "description": "List of technologies used"
   },
-
   "moreInfo": "More Info",
   "@moreInfo": {
     "description": "More info button label"
   },
-
-  "learnMoreAbout": "Learn more about MeshCore SAR",
-  "@learnMoreAbout": {
-    "description": "Learn more link description"
-  },
-
-  "developer": "Developer",
-  "@developer": {
-    "description": "Developer section header"
-  },
-
   "packageName": "Package Name",
   "@packageName": {
     "description": "Package name label"
   },
-
   "sampleData": "Sample Data",
   "@sampleData": {
     "description": "Sample data section header"
   },
-
   "sampleDataDescription": "Load or clear sample contacts, channel messages, and SAR markers for testing",
   "@sampleDataDescription": {
     "description": "Sample data section description"
   },
-
   "loadSampleData": "Load Sample Data",
   "@loadSampleData": {
     "description": "Load sample data button"
   },
-
   "clearAllData": "Clear All Data",
   "@clearAllData": {
     "description": "Clear all data button"
   },
-
   "clearAllDataConfirmTitle": "Clear All Data",
   "@clearAllDataConfirmTitle": {
     "description": "Clear data confirmation dialog title"
   },
-
   "clearAllDataConfirmMessage": "This will clear all contacts and SAR markers. Are you sure?",
   "@clearAllDataConfirmMessage": {
     "description": "Clear data confirmation message"
   },
-
   "clear": "Clear",
   "@clear": {
     "description": "Clear button label"
   },
-
   "loadedSampleData": "Loaded {teamCount} team members, {channelCount} channels, {sarCount} SAR markers, {messageCount} messages",
   "@loadedSampleData": {
     "description": "Success message after loading sample data",
@@ -475,7 +247,6 @@
       }
     }
   },
-
   "failedToLoadSampleData": "Failed to load sample data: {error}",
   "@failedToLoadSampleData": {
     "description": "Error message when sample data fails to load",
@@ -485,17 +256,14 @@
       }
     }
   },
-
   "allDataCleared": "All data cleared",
   "@allDataCleared": {
     "description": "Success message after clearing all data"
   },
-
   "failedToStartBackgroundTracking": "Failed to start background tracking. Check permissions and BLE connection.",
   "@failedToStartBackgroundTracking": {
     "description": "Error message when background tracking fails to start"
   },
-
   "locationBroadcast": "Location broadcast: {latitude}, {longitude}",
   "@locationBroadcast": {
     "description": "Success message for location broadcast",
@@ -508,57 +276,42 @@
       }
     }
   },
-
   "defaultPinInfo": "The default pin for devices without a screen is 123456. Trouble pairing? Forget the bluetooth device in system settings.",
   "@defaultPinInfo": {
     "description": "Information about default PIN for pairing"
   },
-
   "noMessagesYet": "No messages yet",
   "@noMessagesYet": {
     "description": "Empty state message when there are no messages"
   },
-
   "pullDownToSync": "Pull down to sync messages",
   "@pullDownToSync": {
     "description": "Instruction to pull down to refresh messages"
   },
-
   "deleteContact": "Delete Contact",
   "@deleteContact": {
     "description": "Delete contact action label"
   },
-
   "delete": "Delete",
   "@delete": {
     "description": "Delete button label"
   },
-
   "viewOnMap": "View on Map",
   "@viewOnMap": {
     "description": "Action to view contact location on map"
   },
-
   "refresh": "Refresh",
   "@refresh": {
     "description": "Refresh button label"
   },
-
-  "sendDirectMessage": "Send",
-  "@sendDirectMessage": {
-    "description": "Action to send direct message to contact"
-  },
-
   "resetPath": "Reset Path (Re-route)",
   "@resetPath": {
     "description": "Action to reset contact path for re-routing"
   },
-
   "publicKeyCopied": "Public key copied to clipboard",
   "@publicKeyCopied": {
     "description": "Success message when public key is copied"
   },
-
   "copiedToClipboard": "{label} copied to clipboard",
   "@copiedToClipboard": {
     "description": "Success message when a value is copied to clipboard",
@@ -568,12 +321,10 @@
       }
     }
   },
-
   "pleaseEnterPassword": "Please enter a password",
   "@pleaseEnterPassword": {
     "description": "Validation message for empty password field"
   },
-
   "failedToSyncContacts": "Failed to sync contacts: {error}",
   "@failedToSyncContacts": {
     "description": "Error message when contact sync fails",
@@ -583,17 +334,14 @@
       }
     }
   },
-
   "loggedInSuccessfully": "Logged in successfully! Waiting for room messages...",
   "@loggedInSuccessfully": {
     "description": "Success message after successful room login"
   },
-
   "loginFailed": "Login failed - incorrect password",
   "@loginFailed": {
     "description": "Error message when room login fails"
   },
-
   "loggingIn": "Logging in to {roomName}...",
   "@loggingIn": {
     "description": "Status message during room login process",
@@ -603,7 +351,6 @@
       }
     }
   },
-
   "failedToSendLogin": "Failed to send login: {error}",
   "@failedToSendLogin": {
     "description": "Error message when login command fails to send",
@@ -613,355 +360,239 @@
       }
     }
   },
-
   "lowLocationAccuracy": "Low Location Accuracy",
   "@lowLocationAccuracy": {
     "description": "Warning title for low GPS accuracy"
   },
-
   "continue_": "Continue",
   "@continue_": {
     "description": "Continue button label"
   },
-
   "sendSarMarker": "Send SAR marker",
   "@sendSarMarker": {
     "description": "Action to send SAR marker"
   },
-
   "deleteDrawing": "Delete Drawing",
   "@deleteDrawing": {
     "description": "Action to delete a map drawing"
   },
-
   "drawingTools": "Drawing Tools",
   "@drawingTools": {
     "description": "Drawing tools section or menu title"
   },
-
   "drawLine": "Draw Line",
   "@drawLine": {
     "description": "Map drawing mode: line"
   },
-
   "drawLineDesc": "Draw a freehand line on the map",
   "@drawLineDesc": {
     "description": "Description for line drawing mode"
   },
-
   "drawRectangle": "Draw Rectangle",
   "@drawRectangle": {
     "description": "Map drawing mode: rectangle"
   },
-
   "drawRectangleDesc": "Draw a rectangular area on the map",
   "@drawRectangleDesc": {
     "description": "Description for rectangle drawing mode"
   },
-
   "measureDistance": "Measure Distance",
   "@measureDistance": {
     "description": "Map drawing mode: measure distance"
   },
-
   "measureDistanceDesc": "Long press two points to measure",
   "@measureDistanceDesc": {
     "description": "Description for distance measurement mode"
   },
-
   "clearMeasurement": "Clear Measurement",
   "@clearMeasurement": {
     "description": "Tooltip to clear measurement"
   },
-
   "distanceLabel": "Distance: {distance}",
   "@distanceLabel": {
     "description": "Label showing measured distance",
     "placeholders": {
-      "distance": {"type": "String"}
+      "distance": {
+        "type": "String"
+      }
     }
   },
-
   "longPressForSecondPoint": "Long press for second point",
   "@longPressForSecondPoint": {
     "description": "Instruction when first measurement point is set"
   },
-
   "longPressToStartMeasurement": "Long press to set first point",
   "@longPressToStartMeasurement": {
     "description": "Instruction to start measurement"
   },
-
   "longPressToStartNewMeasurement": "Long press to start new measurement",
   "@longPressToStartNewMeasurement": {
     "description": "Instruction to restart measurement after completion"
   },
-
   "shareDrawings": "Share Drawings",
   "@shareDrawings": {
     "description": "Action to share drawings to network"
   },
-
   "clearAllDrawings": "Clear All Drawings",
   "@clearAllDrawings": {
     "description": "Action to clear all local drawings"
   },
-
   "completeLine": "Complete Line",
   "@completeLine": {
     "description": "Tooltip to complete drawing a line"
   },
-
   "broadcastDrawingsToTeam": "Broadcast {count} drawing{plural} to team",
   "@broadcastDrawingsToTeam": {
     "description": "Subtitle showing how many drawings will be broadcast",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
-
   "removeAllDrawings": "Remove all {count} drawing{plural}",
   "@removeAllDrawings": {
     "description": "Subtitle for remove all drawings action",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
-
   "deleteAllDrawingsConfirm": "Delete all {count} drawing{plural} from the map?",
   "@deleteAllDrawingsConfirm": {
     "description": "Confirmation dialog message for deleting all drawings",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
-
   "drawing": "Drawing",
   "@drawing": {
     "description": "Generic drawing label"
   },
-
   "shareDrawingsCount": "Share {count} Drawing{plural}",
   "@shareDrawingsCount": {
     "description": "Title for share drawings dialog",
     "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
-
-  "sentDrawingsToRoom": "Sent {count} map drawing{plural} to {roomName}",
-  "@sentDrawingsToRoom": {
-    "description": "System message when drawings are sent to room",
-    "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"},
-      "roomName": {"type": "String"}
-    }
-  },
-
-  "sharedDrawingsToRoom": "Shared {success}/{total} drawing{plural} to {roomName}",
-  "@sharedDrawingsToRoom": {
-    "description": "Snackbar message showing drawings shared to room",
-    "placeholders": {
-      "success": {"type": "int"},
-      "total": {"type": "int"},
-      "plural": {"type": "String"},
-      "roomName": {"type": "String"}
-    }
-  },
-
   "showReceivedDrawings": "Show Received Drawings",
   "@showReceivedDrawings": {
     "description": "Toggle to show/hide received drawings from other team members"
   },
-
   "showingAllDrawings": "Showing all drawings",
   "@showingAllDrawings": {
     "description": "Subtitle when received drawings are visible"
   },
-
   "showingOnlyYourDrawings": "Showing only your drawings",
   "@showingOnlyYourDrawings": {
     "description": "Subtitle when received drawings are hidden"
   },
-
   "showSarMarkers": "Show SAR Markers",
   "@showSarMarkers": {
     "description": "Toggle to show/hide SAR markers on map"
   },
-
   "showingSarMarkers": "Showing SAR markers",
   "@showingSarMarkers": {
     "description": "Subtitle when SAR markers are visible"
   },
-
   "hidingSarMarkers": "Hiding SAR markers",
   "@hidingSarMarkers": {
     "description": "Subtitle when SAR markers are hidden"
   },
-
   "clearAll": "Clear All",
   "@clearAll": {
     "description": "Clear all button label"
   },
-
-  "noLocalDrawings": "No local drawings to share",
-  "@noLocalDrawings": {
-    "description": "Message when there are no drawings to share"
-  },
-
   "publicChannel": "Public Channel",
   "@publicChannel": {
     "description": "Public channel option for sharing"
   },
-
   "broadcastToAll": "Broadcast to all nearby nodes (ephemeral)",
   "@broadcastToAll": {
     "description": "Description for public channel broadcast"
   },
-
   "storedPermanently": "Stored permanently in room",
   "@storedPermanently": {
     "description": "Description for room storage permanence"
   },
-
-  "drawingsSentToPublicChannel": "Sent {count} map drawing{plural} to Public Channel",
-  "@drawingsSentToPublicChannel": {
-    "description": "System message when drawings are sent to public channel",
-    "placeholders": {
-      "count": {"type": "int"},
-      "plural": {"type": "String"}
-    }
-  },
-
-  "drawingsSharedToPublicChannel": "Shared {success}/{total} drawings to Public Channel",
-  "@drawingsSharedToPublicChannel": {
-    "description": "Snackbar message showing success count for drawings shared to public channel",
-    "placeholders": {
-      "success": {"type": "int"},
-      "total": {"type": "int"}
-    }
-  },
-
   "notConnectedToDevice": "Not connected to device",
   "@notConnectedToDevice": {
     "description": "Error message when device is not connected for direct messaging"
   },
-
-  "directMessage": "Direct Message",
-  "@directMessage": {
-    "description": "Title for direct message sheet"
-  },
-
-  "directMessageSentTo": "Direct message sent to {contactName}",
-  "@directMessageSentTo": {
-    "description": "Success message after sending direct message",
-    "placeholders": {
-      "contactName": {
-        "type": "String"
-      }
-    }
-  },
-
-  "failedToSend": "Failed to send: {error}",
-  "@failedToSend": {
-    "description": "Error message when sending direct message fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "directMessageInfo": "This message will be sent directly to {contactName}. It will also appear in the main messages feed.",
-  "@directMessageInfo": {
-    "description": "Information about direct messaging behavior",
-    "placeholders": {
-      "contactName": {
-        "type": "String"
-      }
-    }
-  },
-
   "typeYourMessage": "Type your message...",
   "@typeYourMessage": {
     "description": "Placeholder text for message input field"
   },
-
   "quickLocationMarker": "Quick location marker",
   "@quickLocationMarker": {
     "description": "Subtitle for SAR marker sheet header"
   },
-
   "markerType": "Marker Type",
   "@markerType": {
     "description": "Label for marker type selection section"
   },
-
   "sendTo": "Send To",
   "@sendTo": {
     "description": "Label for destination selection section"
   },
-
   "noDestinationsAvailable": "No destinations available.",
   "@noDestinationsAvailable": {
     "description": "Warning when no rooms or channels exist"
   },
-
   "selectDestination": "Select destination...",
   "@selectDestination": {
     "description": "Placeholder for destination dropdown"
   },
-
   "ephemeralBroadcastInfo": "Ephemeral: Broadcast over-the-air only. Not stored - nodes must be online.",
   "@ephemeralBroadcastInfo": {
     "description": "Information about ephemeral channel broadcasts"
   },
-
   "persistentRoomInfo": "Persistent: Stored immutably in room. Synced automatically and preserved offline.",
   "@persistentRoomInfo": {
     "description": "Information about persistent room storage"
   },
-
   "location": "Location",
   "@location": {
     "description": "Label for location section"
   },
-
-  "myLocation": "My Location",
-  "@myLocation": {
-    "description": "Button label to insert current GPS location"
-  },
-
   "fromMap": "From Map",
   "@fromMap": {
     "description": "Badge showing location is from map tap"
   },
-
   "gettingLocation": "Getting location...",
   "@gettingLocation": {
     "description": "Loading message while fetching GPS location"
   },
-
   "locationError": "Location Error",
   "@locationError": {
     "description": "Title for location error messages"
   },
-
   "retry": "Retry",
   "@retry": {
     "description": "Retry button label"
   },
-
   "refreshLocation": "Refresh location",
   "@refreshLocation": {
     "description": "Tooltip for refresh location button"
   },
-
   "accuracyMeters": "Accuracy: ±{accuracy}m",
   "@accuracyMeters": {
     "description": "Display of GPS accuracy in meters",
@@ -971,17 +602,14 @@
       }
     }
   },
-
   "notesOptional": "Notes (optional)",
   "@notesOptional": {
     "description": "Label for optional notes field"
   },
-
   "addAdditionalInformation": "Add additional information...",
   "@addAdditionalInformation": {
     "description": "Placeholder for notes field"
   },
-
   "lowAccuracyWarning": "Location accuracy is ±{accuracy}m. This may not be accurate enough for SAR operations.\n\nContinue anyway?",
   "@lowAccuracyWarning": {
     "description": "Warning dialog content for low GPS accuracy",
@@ -991,37 +619,30 @@
       }
     }
   },
-
   "loginToRoom": "Login to Room",
   "@loginToRoom": {
     "description": "Title for room login dialog"
   },
-
   "enterPasswordInfo": "Enter the password to access this room. The password will be saved for future use.",
   "@enterPasswordInfo": {
     "description": "Information about room password"
   },
-
   "password": "Password",
   "@password": {
     "description": "Password field label"
   },
-
   "enterRoomPassword": "Enter room password",
   "@enterRoomPassword": {
     "description": "Password field hint"
   },
-
   "loggingInDots": "Logging in...",
   "@loggingInDots": {
     "description": "Button text while logging in"
   },
-
   "login": "Login",
   "@login": {
     "description": "Login button label"
   },
-
   "failedToAddRoom": "Failed to add room to device: {error}\n\nThe room may not have advertised yet.\nTry waiting for the room to broadcast.",
   "@failedToAddRoom": {
     "description": "Error message when adding room fails",
@@ -1031,57 +652,26 @@
       }
     }
   },
-
   "direct": "Direct",
   "@direct": {
     "description": "Direct routing indicator"
   },
-
   "flood": "Flood",
   "@flood": {
     "description": "Flood routing indicator"
   },
-
-  "admin": "Admin",
-  "@admin": {
-    "description": "Admin badge label"
-  },
-
   "loggedIn": "Logged In",
   "@loggedIn": {
     "description": "Logged in status badge"
   },
-
   "noGpsData": "No GPS data",
   "@noGpsData": {
     "description": "Message when GPS data is not available"
   },
-
   "distance": "Distance",
   "@distance": {
     "description": "Distance label"
   },
-
-  "pingingDirect": "Pinging {name} (direct via path)...",
-  "@pingingDirect": {
-    "description": "Status message for direct ping",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-
-  "pingingFlood": "Pinging {name} (flooding - no path)...",
-  "@pingingFlood": {
-    "description": "Status message for flood ping",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-
   "directPingTimeout": "Direct ping timeout - retrying {name} with flooding...",
   "@directPingTimeout": {
     "description": "Warning when direct ping times out",
@@ -1091,25 +681,6 @@
       }
     }
   },
-
-  "pingSuccessful": "Ping successful to {name}{fallback}",
-  "@pingSuccessful": {
-    "description": "Success message for ping",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "fallback": {
-        "type": "String"
-      }
-    }
-  },
-
-  "viaFloodingFallback": " (via flooding fallback)",
-  "@viaFloodingFallback": {
-    "description": "Suffix for ping success with fallback"
-  },
-
   "pingFailed": "Ping failed to {name} - no response received",
   "@pingFailed": {
     "description": "Error message when ping fails",
@@ -1119,7 +690,6 @@
       }
     }
   },
-
   "deleteContactConfirmation": "Are you sure you want to delete \"{name}\"?\n\nThis will remove the contact from both the app and the companion radio device.",
   "@deleteContactConfirmation": {
     "description": "Confirmation message for deleting contact",
@@ -1129,27 +699,6 @@
       }
     }
   },
-
-  "removingContact": "Removing {name}...",
-  "@removingContact": {
-    "description": "Status message while removing contact",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-
-  "contactRemoved": "Contact \"{name}\" removed",
-  "@contactRemoved": {
-    "description": "Success message after removing contact",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-
   "failedToRemoveContact": "Failed to remove contact: {error}",
   "@failedToRemoveContact": {
     "description": "Error message when contact removal fails",
@@ -1159,117 +708,86 @@
       }
     }
   },
-
   "type": "Type",
   "@type": {
     "description": "Contact type label"
   },
-
   "publicKey": "Public Key",
   "@publicKey": {
     "description": "Public key label"
   },
-
   "lastSeen": "Last Seen",
   "@lastSeen": {
     "description": "Last seen label"
   },
-
   "roomStatus": "Room Status",
   "@roomStatus": {
     "description": "Room status section header"
   },
-
   "loginStatus": "Login Status",
   "@loginStatus": {
     "description": "Login status label"
   },
-
   "notLoggedIn": "Not Logged In",
   "@notLoggedIn": {
     "description": "Not logged in status"
   },
-
   "adminAccess": "Admin Access",
   "@adminAccess": {
     "description": "Admin access label"
   },
-
   "yes": "Yes",
   "@yes": {
     "description": "Yes answer"
   },
-
   "no": "No",
   "@no": {
     "description": "No answer"
   },
-
   "permissions": "Permissions",
   "@permissions": {
     "description": "Permissions label"
   },
-
   "passwordSaved": "Password Saved",
   "@passwordSaved": {
     "description": "Password saved label"
   },
-
   "locationColon": "Location:",
   "@locationColon": {
     "description": "Location section header"
   },
-
   "telemetry": "Telemetry",
   "@telemetry": {
     "description": "Telemetry section header"
   },
-
-  "requestingTelemetry": "Requesting telemetry from {name}...",
-  "@requestingTelemetry": {
-    "description": "Status message while requesting telemetry",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-
   "voltage": "Voltage",
   "@voltage": {
     "description": "Voltage label"
   },
-
   "battery": "Battery",
   "@battery": {
     "description": "Battery label"
   },
-
   "temperature": "Temperature",
   "@temperature": {
     "description": "Temperature label"
   },
-
   "humidity": "Humidity",
   "@humidity": {
     "description": "Humidity label"
   },
-
   "pressure": "Pressure",
   "@pressure": {
     "description": "Pressure label"
   },
-
   "gpsTelemetry": "GPS (Telemetry)",
   "@gpsTelemetry": {
     "description": "GPS from telemetry label"
   },
-
   "updated": "Updated",
   "@updated": {
     "description": "Updated timestamp label"
   },
-
   "pathResetInfo": "Path reset for {name}. Next message will find a new route.",
   "@pathResetInfo": {
     "description": "Info message after path reset",
@@ -1279,102 +797,74 @@
       }
     }
   },
-
   "reLoginToRoom": "Re-Login to Room",
   "@reLoginToRoom": {
     "description": "Button to re-login to room"
   },
-
   "heading": "Heading",
   "@heading": {
     "description": "Compass heading label"
   },
-
   "elevation": "Elevation",
   "@elevation": {
     "description": "Elevation/altitude label"
   },
-
   "accuracy": "Accuracy",
   "@accuracy": {
     "description": "GPS accuracy label"
   },
-
-  "distance": "Distance",
-  "@distance": {
-    "description": "Distance label in compass"
-  },
-
   "bearing": "Bearing",
   "@bearing": {
     "description": "Bearing label in compass"
   },
-
   "direction": "Direction",
   "@direction": {
     "description": "Direction label in compass"
   },
-
   "filterMarkers": "Filter Markers",
   "@filterMarkers": {
     "description": "Title for filter markers dialog"
   },
-
   "filterMarkersTooltip": "Filter markers",
   "@filterMarkersTooltip": {
     "description": "Tooltip for filter button"
   },
-
   "contactsFilter": "Contacts",
   "@contactsFilter": {
     "description": "Filter option for contacts"
   },
-
   "repeatersFilter": "Repeaters",
   "@repeatersFilter": {
     "description": "Filter option for repeaters"
   },
-
   "sarMarkers": "SAR Markers",
   "@sarMarkers": {
     "description": "SAR markers section header"
   },
-
   "foundPerson": "Found Person",
   "@foundPerson": {
     "description": "Found person SAR marker type"
   },
-
   "fire": "Fire",
   "@fire": {
     "description": "Fire SAR marker type"
   },
-
   "stagingArea": "Staging Area",
   "@stagingArea": {
     "description": "Staging area SAR marker type"
   },
-
   "showAll": "Show All",
   "@showAll": {
     "description": "Button to show all filters"
   },
-
-  "nearbyContacts": "Nearby Contacts",
-  "@nearbyContacts": {
-    "description": "Title for nearby contacts list in compass"
-  },
-
   "locationUnavailable": "Location unavailable",
   "@locationUnavailable": {
     "description": "Message when GPS location is unavailable"
   },
-
   "ahead": "ahead",
   "@ahead": {
     "description": "Relative bearing direction - ahead"
   },
-
   "degreesRight": "{degrees}° right",
   "@degreesRight": {
     "description": "Relative bearing direction - right",
@@ -1384,7 +874,6 @@
       }
     }
   },
-
   "degreesLeft": "{degrees}° left",
   "@degreesLeft": {
     "description": "Relative bearing direction - left",
@@ -1394,7 +883,6 @@
       }
     }
   },
-
   "latLonFormat": "Lat: {latitude} Lon: {longitude}",
   "@latLonFormat": {
     "description": "Latitude and longitude display format",
@@ -1407,527 +895,118 @@
       }
     }
   },
-
   "noContactsYet": "No contacts yet",
   "@noContactsYet": {
     "description": "Empty state message when there are no contacts"
   },
-
   "connectToDeviceToLoadContacts": "Connect to a device to load contacts",
   "@connectToDeviceToLoadContacts": {
     "description": "Instruction to connect device to load contacts"
   },
-
   "teamMembers": "Team Members",
   "@teamMembers": {
     "description": "Section header for team members (chat contacts)"
   },
-
   "repeaters": "Repeaters",
   "@repeaters": {
     "description": "Section header for repeater nodes"
   },
-
   "rooms": "Rooms",
   "@rooms": {
     "description": "Section header for rooms"
   },
-
   "channels": "Channels",
   "@channels": {
     "description": "Section header for broadcast channels"
   },
-
-  "cacheStatistics": "Cache Statistics",
-  "@cacheStatistics": {
-    "description": "Title for cache statistics section"
-  },
-
-  "totalTiles": "Total Tiles",
-  "@totalTiles": {
-    "description": "Label for total number of cached tiles"
-  },
-
-  "cacheSize": "Cache Size",
-  "@cacheSize": {
-    "description": "Label for cache size in MB"
-  },
-
-  "storeName": "Store Name",
-  "@storeName": {
-    "description": "Label for cache store name"
-  },
-
-  "noCacheStatistics": "No cache statistics available",
-  "@noCacheStatistics": {
-    "description": "Message when cache statistics are unavailable"
-  },
-
-  "downloadRegion": "Download Region",
-  "@downloadRegion": {
-    "description": "Title for download region section"
-  },
-
-  "mapLayer": "Map Layer",
-  "@mapLayer": {
-    "description": "Label for map layer selection"
-  },
-
-  "regionBounds": "Region Bounds",
-  "@regionBounds": {
-    "description": "Title for region bounds input section"
-  },
-
-  "north": "North",
-  "@north": {
-    "description": "Label for north coordinate"
-  },
-
-  "south": "South",
-  "@south": {
-    "description": "Label for south coordinate"
-  },
-
-  "east": "East",
-  "@east": {
-    "description": "Label for east coordinate"
-  },
-
-  "west": "West",
-  "@west": {
-    "description": "Label for west coordinate"
-  },
-
-  "zoomLevels": "Zoom Levels",
-  "@zoomLevels": {
-    "description": "Title for zoom levels section"
-  },
-
-  "minZoom": "Min: {zoom}",
-  "@minZoom": {
-    "description": "Label for minimum zoom level",
-    "placeholders": {
-      "zoom": {
-        "type": "int"
-      }
-    }
-  },
-
-  "maxZoom": "Max: {zoom}",
-  "@maxZoom": {
-    "description": "Label for maximum zoom level",
-    "placeholders": {
-      "zoom": {
-        "type": "int"
-      }
-    }
-  },
-
-  "downloadingDots": "Downloading...",
-  "@downloadingDots": {
-    "description": "Status message during download"
-  },
-
-  "cancelDownload": "Cancel Download",
-  "@cancelDownload": {
-    "description": "Button to cancel download"
-  },
-
-  "downloadRegionButton": "Download Region",
-  "@downloadRegionButton": {
-    "description": "Button to start region download"
-  },
-
-  "downloadNote": "Note: Large regions or high zoom levels may take significant time and storage.",
-  "@downloadNote": {
-    "description": "Warning about download size and time"
-  },
-
-  "cacheManagement": "Cache Management",
-  "@cacheManagement": {
-    "description": "Title for cache management section"
-  },
-
-  "clearAllMaps": "Clear All Maps",
-  "@clearAllMaps": {
-    "description": "Button to clear all cached maps"
-  },
-
-  "clearMapsConfirmTitle": "Clear All Maps",
-  "@clearMapsConfirmTitle": {
-    "description": "Title for clear maps confirmation dialog"
-  },
-
-  "clearMapsConfirmMessage": "Are you sure you want to delete all downloaded maps? This action cannot be undone.",
-  "@clearMapsConfirmMessage": {
-    "description": "Confirmation message for clearing maps"
-  },
-
-  "mapDownloadCompleted": "Map download completed!",
-  "@mapDownloadCompleted": {
-    "description": "Success message after map download"
-  },
-
-  "cacheClearedSuccessfully": "Cache cleared successfully!",
-  "@cacheClearedSuccessfully": {
-    "description": "Success message after clearing cache"
-  },
-
-  "downloadCancelled": "Download cancelled",
-  "@downloadCancelled": {
-    "description": "Message when download is cancelled"
-  },
-
-  "startingDownload": "Starting download...",
-  "@startingDownload": {
-    "description": "Initial status when download begins"
-  },
-
-  "downloadingMapTiles": "Downloading map tiles...",
-  "@downloadingMapTiles": {
-    "description": "Status during tile download"
-  },
-
-  "downloadCompletedSuccessfully": "Download completed successfully!",
-  "@downloadCompletedSuccessfully": {
-    "description": "Status after successful download"
-  },
-
-  "cancellingDownload": "Cancelling download...",
-  "@cancellingDownload": {
-    "description": "Status while cancelling download"
-  },
-
-  "errorLoadingStats": "Error loading stats: {error}",
-  "@errorLoadingStats": {
-    "description": "Error message when loading cache stats fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "downloadFailed": "Download failed: {error}",
-  "@downloadFailed": {
-    "description": "Error message when download fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "cancelFailed": "Cancel failed: {error}",
-  "@cancelFailed": {
-    "description": "Error message when cancel fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "clearCacheFailed": "Clear cache failed: {error}",
-  "@clearCacheFailed": {
-    "description": "Error message when clearing cache fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "minZoomError": "Min zoom: {error}",
-  "@minZoomError": {
-    "description": "Validation error for minimum zoom",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "maxZoomError": "Max zoom: {error}",
-  "@maxZoomError": {
-    "description": "Validation error for maximum zoom",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "minZoomGreaterThanMax": "Minimum zoom must be less than or equal to maximum zoom",
-  "@minZoomGreaterThanMax": {
-    "description": "Validation error when min zoom > max zoom"
-  },
-
   "selectMapLayer": "Select Map Layer",
   "@selectMapLayer": {
     "description": "Title for map layer selection dialog"
   },
-
-  "mapOptions": "Map Options",
-  "@mapOptions": {
-    "description": "Title for map options dialog"
-  },
-
-  "showLegend": "Show Legend",
-  "@showLegend": {
-    "description": "Toggle for showing map legend"
-  },
-
-  "displayMarkerTypeCounts": "Display marker type counts",
-  "@displayMarkerTypeCounts": {
-    "description": "Description for show legend toggle"
-  },
-
-  "rotateMapWithHeading": "Rotate Map with Heading",
-  "@rotateMapWithHeading": {
-    "description": "Toggle for rotating map with compass heading"
-  },
-
-  "mapFollowsDirection": "Map follows your direction when moving",
-  "@mapFollowsDirection": {
-    "description": "Description for rotate map toggle"
-  },
-
-  "resetMapRotation": "Reset Rotation",
-  "@resetMapRotation": {
-    "description": "Button to reset map rotation to north"
-  },
-
-  "resetMapRotationTooltip": "Reset map to north",
-  "@resetMapRotationTooltip": {
-    "description": "Tooltip for reset rotation button"
-  },
-
-  "showMapDebugInfo": "Show Map Debug Info",
-  "@showMapDebugInfo": {
-    "description": "Toggle for showing map debug information"
-  },
-
-  "displayZoomLevelBounds": "Display zoom level and bounds",
-  "@displayZoomLevelBounds": {
-    "description": "Description for debug info toggle"
-  },
-
-  "fullscreenMode": "Fullscreen Mode",
-  "@fullscreenMode": {
-    "description": "Toggle for fullscreen map mode"
-  },
-
-  "hideUiFullMapView": "Hide all UI controls for full map view",
-  "@hideUiFullMapView": {
-    "description": "Description for fullscreen mode toggle"
-  },
-
   "openStreetMap": "OpenStreetMap",
   "@openStreetMap": {
     "description": "OpenStreetMap layer name"
   },
-
   "openTopoMap": "OpenTopoMap",
   "@openTopoMap": {
     "description": "OpenTopoMap layer name"
   },
-
   "esriSatellite": "ESRI Satellite",
   "@esriSatellite": {
     "description": "ESRI Satellite imagery layer name"
   },
-
   "googleHybrid": "Google Hybrid",
   "@googleHybrid": {
     "description": "Google Hybrid layer name (satellite + labels)"
   },
-
   "googleRoadmap": "Google Roadmap",
   "@googleRoadmap": {
     "description": "Google Roadmap layer name (street map)"
   },
-
   "googleTerrain": "Google Terrain",
   "@googleTerrain": {
     "description": "Google Terrain layer name (topographic)"
   },
-
-  "downloadVisibleArea": "Download visible area",
-  "@downloadVisibleArea": {
-    "description": "Tooltip for download visible area button"
-  },
-
-  "initializingMap": "Initializing map...",
-  "@initializingMap": {
-    "description": "Loading message for map initialization"
-  },
-
   "dragToPosition": "Drag to Position",
   "@dragToPosition": {
     "description": "Label when dragging a pin on map"
   },
-
   "createSarMarker": "Create SAR Marker",
   "@createSarMarker": {
     "description": "Label for creating SAR marker from pin"
   },
-
   "compass": "Compass",
   "@compass": {
     "description": "Compass title in detailed compass dialog"
   },
-
   "navigationAndContacts": "Navigation & Contacts",
   "@navigationAndContacts": {
     "description": "Subtitle for compass dialog"
   },
-
   "sarAlert": "SAR ALERT",
   "@sarAlert": {
     "description": "Label for SAR alert badge on messages"
   },
-
-  "messageSentToPublicChannel": "Message sent to public channel",
-  "@messageSentToPublicChannel": {
-    "description": "Success message when message is sent to public channel"
-  },
-
-  "pleaseSelectRoomToSendSar": "Please select a room to send SAR marker",
-  "@pleaseSelectRoomToSendSar": {
-    "description": "Error when no room is selected for SAR marker"
-  },
-
-  "failedToSendSarMarker": "Failed to send SAR marker: {error}",
-  "@failedToSendSarMarker": {
-    "description": "Error message when SAR marker fails to send",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "sarMarkerSentTo": "SAR marker sent to {roomName}",
-  "@sarMarkerSentTo": {
-    "description": "Success message when SAR marker is sent to room",
-    "placeholders": {
-      "roomName": {
-        "type": "String"
-      }
-    }
-  },
-
-  "notConnectedCannotSync": "Not connected - cannot sync messages",
-  "@notConnectedCannotSync": {
-    "description": "Warning when trying to sync messages while not connected"
-  },
-
-  "syncedMessageCount": "Synced {count} message(s)",
-  "@syncedMessageCount": {
-    "description": "Success message showing number of synced messages",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-
-  "noNewMessages": "No new messages",
-  "@noNewMessages": {
-    "description": "Info message when no new messages to sync"
-  },
-
-  "syncFailed": "Sync failed: {error}",
-  "@syncFailed": {
-    "description": "Error message when sync fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "failedToResendMessage": "Failed to resend message",
-  "@failedToResendMessage": {
-    "description": "Error when message retry fails"
-  },
-
-  "retryingMessage": "Retrying message...",
-  "@retryingMessage": {
-    "description": "Info message when retrying a failed message"
-  },
-
-  "retryFailed": "Retry failed: {error}",
-  "@retryFailed": {
-    "description": "Error message when retry fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
   "textCopiedToClipboard": "Text copied to clipboard",
   "@textCopiedToClipboard": {
     "description": "Success message when text is copied"
   },
-
   "cannotReplySenderMissing": "Cannot reply: sender information missing",
   "@cannotReplySenderMissing": {
     "description": "Error when sender info is missing for reply"
   },
-
   "cannotReplyContactNotFound": "Cannot reply: contact not found",
   "@cannotReplyContactNotFound": {
     "description": "Error when contact not found for reply"
   },
-
-  "messageDeleted": "Message deleted",
-  "@messageDeleted": {
-    "description": "Info message when message is deleted"
-  },
-
   "copyText": "Copy text",
   "@copyText": {
     "description": "Option to copy message text to clipboard"
   },
-
-  "textCopiedToClipboard": "Text copied to clipboard",
-  "@textCopiedToClipboard": {
-    "description": "Success message when text is copied"
-  },
-
   "saveAsTemplate": "Save as Template",
   "@saveAsTemplate": {
     "description": "Option to save SAR message as a reusable template"
   },
-
   "templateSaved": "Template saved successfully",
   "@templateSaved": {
     "description": "Success message when SAR template is saved"
   },
-
   "templateAlreadyExists": "Template with this emoji already exists",
   "@templateAlreadyExists": {
     "description": "Error message when trying to save duplicate template"
   },
-
   "deleteMessage": "Delete message",
   "@deleteMessage": {
     "description": "Dialog title for deleting a message"
   },
-
   "deleteMessageConfirmation": "Are you sure you want to delete this message?",
   "@deleteMessageConfirmation": {
     "description": "Confirmation text for message deletion"
   },
-
   "shareLocation": "Share location",
   "@shareLocation": {
     "description": "Option to share SAR marker location"
   },
-
   "shareLocationText": "{markerInfo}\n\nCoordinates: {lat}, {lon}\n\nGoogle Maps: {url}",
   "@shareLocationText": {
     "description": "Formatted text for sharing SAR marker location",
@@ -1946,27 +1025,14 @@
       }
     }
   },
-
   "sarLocationShare": "SAR Location",
   "@sarLocationShare": {
     "description": "Subject line when sharing SAR marker location"
   },
-
-  "locationShared": "Location shared",
-  "@locationShared": {
-    "description": "Success message when location is shared"
-  },
-
-  "refreshedContacts": "Refreshed contacts",
-  "@refreshedContacts": {
-    "description": "Success message when contacts are refreshed"
-  },
-
   "justNow": "Just now",
   "@justNow": {
     "description": "Time indicator for very recent activity"
   },
-
   "minutesAgo": "{minutes}m ago",
   "@minutesAgo": {
     "description": "Time indicator for minutes ago",
@@ -1976,7 +1042,6 @@
       }
     }
   },
-
   "hoursAgo": "{hours}h ago",
   "@hoursAgo": {
     "description": "Time indicator for hours ago",
@@ -1986,7 +1051,6 @@
       }
     }
   },
-
   "daysAgo": "{days}d ago",
   "@daysAgo": {
     "description": "Time indicator for days ago",
@@ -1996,7 +1060,6 @@
       }
     }
   },
-
   "secondsAgo": "{seconds}s ago",
   "@secondsAgo": {
     "description": "Time indicator for seconds ago",
@@ -2006,22 +1069,18 @@
       }
     }
   },
-
   "sending": "Sending...",
   "@sending": {
     "description": "Delivery status: sending"
   },
-
   "sent": "Sent",
   "@sent": {
     "description": "Delivery status: sent"
   },
-
   "delivered": "Delivered",
   "@delivered": {
     "description": "Delivery status: delivered"
   },
-
   "deliveredWithTime": "Delivered ({time}ms)",
   "@deliveredWithTime": {
     "description": "Delivery status with round-trip time",
@@ -2031,17 +1090,14 @@
       }
     }
   },
-
   "failed": "Failed",
   "@failed": {
     "description": "Delivery status: failed"
   },
-
   "broadcast": "Broadcast",
   "@broadcast": {
     "description": "Delivery status for channel messages (no echoes yet)"
   },
-
   "deliveredToContacts": "Delivered to {delivered}/{total} contacts",
   "@deliveredToContacts": {
     "description": "Grouped message delivery count",
@@ -2054,225 +1110,87 @@
       }
     }
   },
-
   "allDelivered": "All delivered",
   "@allDelivered": {
     "description": "Status when all recipients received the message"
   },
-
   "recipientDetails": "Recipient Details",
   "@recipientDetails": {
     "description": "Header for expandable recipient list"
   },
-
   "pending": "Pending",
   "@pending": {
     "description": "Delivery status: pending/waiting"
   },
-
   "sarMarkerFoundPerson": "Found Person",
   "@sarMarkerFoundPerson": {
     "description": "SAR marker type: found person"
   },
-
   "sarMarkerFire": "Fire Location",
   "@sarMarkerFire": {
     "description": "SAR marker type: fire"
   },
-
   "sarMarkerStagingArea": "Staging Area",
   "@sarMarkerStagingArea": {
     "description": "SAR marker type: staging area"
   },
-
   "sarMarkerObject": "Object Found",
   "@sarMarkerObject": {
     "description": "SAR marker type: object"
   },
-
   "from": "From",
   "@from": {
     "description": "Sender label in notifications"
   },
-
   "coordinates": "Coordinates",
   "@coordinates": {
     "description": "Coordinates label"
   },
-
   "tapToViewOnMap": "Tap to view on map",
   "@tapToViewOnMap": {
     "description": "Notification action text"
   },
-  
   "radioSettings": "Radio Settings",
   "@radioSettings": {
     "description": "Section title for radio settings"
   },
-
   "frequencyMHz": "Frequency (MHz)",
   "@frequencyMHz": {
     "description": "Label for radio frequency field"
   },
-
   "frequencyExample": "e.g., 869.618",
   "@frequencyExample": {
     "description": "Helper text example for frequency"
   },
-
   "bandwidth": "Bandwidth",
   "@bandwidth": {
     "description": "Label for bandwidth dropdown"
   },
-
   "spreadingFactor": "Spreading Factor",
   "@spreadingFactor": {
     "description": "Label for spreading factor dropdown"
   },
-
   "codingRate": "Coding Rate",
   "@codingRate": {
     "description": "Label for coding rate dropdown"
   },
-
   "txPowerDbm": "TX Power (dBm)",
   "@txPowerDbm": {
     "description": "Label for TX power field"
   },
-
   "maxPowerDbm": "Max: {power} dBm",
   "@maxPowerDbm": {
     "description": "Helper text showing maximum TX power",
     "placeholders": {
-      "power": { "type": "int" }
+      "power": {
+        "type": "int"
+      }
     }
   },
-
   "you": "You",
   "@you": {
     "description": "Label for the current user in message bubbles"
   },
-
-  "offlineVectorMaps": "Offline Vector Maps",
-  "@offlineVectorMaps": {
-    "description": "Title for offline vector maps section"
-  },
-
-  "offlineVectorMapsDescription": "Import and manage offline vector map tiles (MBTiles format) for use without internet connection",
-  "@offlineVectorMapsDescription": {
-    "description": "Description for offline vector maps section"
-  },
-
-  "importMbtiles": "Import MBTiles File",
-  "@importMbtiles": {
-    "description": "Button to import MBTiles file"
-  },
-
-  "importMbtilesNote": "Supports MBTiles files with vector tiles (PBF/MVT format). Geofabrik extracts work great!",
-  "@importMbtilesNote": {
-    "description": "Note about supported MBTiles file types"
-  },
-
-  "noMbtilesFiles": "No offline vector maps found",
-  "@noMbtilesFiles": {
-    "description": "Message when no MBTiles files are available"
-  },
-
-  "mbtilesImportedSuccessfully": "MBTiles file imported successfully",
-  "@mbtilesImportedSuccessfully": {
-    "description": "Success message after importing MBTiles file"
-  },
-
-  "failedToImportMbtiles": "Failed to import MBTiles file",
-  "@failedToImportMbtiles": {
-    "description": "Error message when MBTiles import fails"
-  },
-
-  "deleteMbtilesConfirmTitle": "Delete Offline Map",
-  "@deleteMbtilesConfirmTitle": {
-    "description": "Title for delete MBTiles confirmation dialog"
-  },
-
-  "deleteMbtilesConfirmMessage": "Are you sure you want to delete \"{name}\"? This will permanently remove the offline map.",
-  "@deleteMbtilesConfirmMessage": {
-    "description": "Confirmation message for deleting MBTiles file",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-
-  "mbtilesDeletedSuccessfully": "Offline map deleted successfully",
-  "@mbtilesDeletedSuccessfully": {
-    "description": "Success message after deleting MBTiles file"
-  },
-
-  "failedToDeleteMbtiles": "Failed to delete offline map",
-  "@failedToDeleteMbtiles": {
-    "description": "Error message when MBTiles deletion fails"
-  },
-
-  "importExportCachedTiles": "Import/Export Cached Tiles",
-  "@importExportCachedTiles": {
-    "description": "Title for import/export section"
-  },
-
-  "importExportDescription": "Backup, share, and restore downloaded map tiles between devices",
-  "@importExportDescription": {
-    "description": "Description for import/export functionality"
-  },
-
-  "exportTilesToFile": "Export Tiles to File",
-  "@exportTilesToFile": {
-    "description": "Button to export tiles to archive file"
-  },
-
-  "importTilesFromFile": "Import Tiles from File",
-  "@importTilesFromFile": {
-    "description": "Button to import tiles from archive file"
-  },
-
-  "selectExportLocation": "Select Export Location",
-  "@selectExportLocation": {
-    "description": "Title for export file picker"
-  },
-
-  "selectImportFile": "Select Tile Archive",
-  "@selectImportFile": {
-    "description": "Title for import file picker"
-  },
-
-  "exportingTiles": "Exporting tiles...",
-  "@exportingTiles": {
-    "description": "Status message during export"
-  },
-
-  "importingTiles": "Importing tiles...",
-  "@importingTiles": {
-    "description": "Status message during import"
-  },
-
-  "exportSuccess": "Exported {count} tiles successfully",
-  "@exportSuccess": {
-    "description": "Success message after export",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-
-  "importSuccess": "Imported {count} stores successfully",
-  "@importSuccess": {
-    "description": "Success message after import",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-
   "exportFailed": "Export failed: {error}",
   "@exportFailed": {
     "description": "Error message when export fails",
@@ -2282,7 +1200,6 @@
       }
     }
   },
-
   "importFailed": "Import failed: {error}",
   "@importFailed": {
     "description": "Error message when import fails",
@@ -2292,217 +1209,74 @@
       }
     }
   },
-
-  "exportNote": "Creates a compressed archive (.fmtc) file that can be shared and imported on other devices.",
-  "@exportNote": {
-    "description": "Note about export functionality"
-  },
-
-  "importNote": "Imports map tiles from a previously exported archive file. Tiles will be merged with existing cache.",
-  "@importNote": {
-    "description": "Note about import functionality"
-  },
-
-  "noTilesToExport": "No tiles available to export",
-  "@noTilesToExport": {
-    "description": "Message when cache is empty"
-  },
-
-  "archiveContainsStores": "Archive contains {count} stores",
-  "@archiveContainsStores": {
-    "description": "Information about archive contents",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-
-  "vectorTiles": "Vector Tiles",
-  "@vectorTiles": {
-    "description": "Label for vector tile type"
-  },
-
-  "schema": "Schema",
-  "@schema": {
-    "description": "Label for vector tile schema"
-  },
-
   "unknown": "Unknown",
   "@unknown": {
     "description": "Unknown value label"
   },
-
-  "bounds": "Bounds",
-  "@bounds": {
-    "description": "Label for geographic bounds"
-  },
-
   "onlineLayers": "Online Layers",
   "@onlineLayers": {
     "description": "Section header for online map layers"
   },
-
-  "offlineLayers": "Offline Layers",
-  "@offlineLayers": {
-    "description": "Section header for offline map layers (MBTiles)"
-  },
-
   "locationTrail": "Location Trail",
   "@locationTrail": {
     "description": "Location trail title"
   },
-
   "showTrailOnMap": "Show Trail on Map",
   "@showTrailOnMap": {
     "description": "Toggle to show/hide trail on map"
   },
-
   "trailVisible": "Trail is visible on the map",
   "@trailVisible": {
     "description": "Trail visibility status - visible"
   },
-
   "trailHiddenRecording": "Trail is hidden (still recording)",
   "@trailHiddenRecording": {
     "description": "Trail visibility status - hidden but recording"
   },
-
-  "distance": "Distance",
-  "@distance": {
-    "description": "Distance label"
-  },
-
   "duration": "Duration",
   "@duration": {
     "description": "Duration label"
   },
-
   "points": "Points",
   "@points": {
     "description": "Trail points count label"
   },
-
   "clearTrail": "Clear Trail",
   "@clearTrail": {
     "description": "Button to clear location trail"
   },
-
   "clearTrailQuestion": "Clear Trail?",
   "@clearTrailQuestion": {
     "description": "Confirmation dialog title"
   },
-
   "clearTrailConfirmation": "Are you sure you want to clear the current location trail? This action cannot be undone.",
   "@clearTrailConfirmation": {
     "description": "Confirmation dialog message"
   },
-
   "noTrailRecorded": "No trail recorded yet",
   "@noTrailRecorded": {
     "description": "Message when no trail exists"
   },
-
   "startTrackingToRecord": "Start location tracking to record your trail",
   "@startTrackingToRecord": {
     "description": "Instructions to start trail recording"
   },
-
   "trailControls": "Trail Controls",
   "@trailControls": {
     "description": "Trail controls tooltip"
   },
-
-  "exportTrailToGpx": "Export Trail to GPX",
-  "@exportTrailToGpx": {
-    "description": "Button label to export trail to GPX file"
-  },
-
-  "importTrailFromGpx": "Import Trail from GPX",
-  "@importTrailFromGpx": {
-    "description": "Button label to import trail from GPX file"
-  },
-
-  "trailExportedSuccessfully": "Trail exported successfully!",
-  "@trailExportedSuccessfully": {
-    "description": "Success message when trail is exported"
-  },
-
-  "failedToExportTrail": "Failed to export trail",
-  "@failedToExportTrail": {
-    "description": "Error message when trail export fails"
-  },
-
-  "failedToImportTrail": "Failed to import trail: {error}",
-  "@failedToImportTrail": {
-    "description": "Error message when trail import fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "importTrail": "Import Trail",
-  "@importTrail": {
-    "description": "Import trail dialog title"
-  },
-
-  "importTrailQuestion": "Import trail with {pointCount} points?\n\nYou can replace your current trail or view it alongside.",
-  "@importTrailQuestion": {
-    "description": "Import trail confirmation dialog content",
-    "placeholders": {
-      "pointCount": {
-        "type": "int"
-      }
-    }
-  },
-
-  "viewAlongside": "View Alongside",
-  "@viewAlongside": {
-    "description": "Button to import trail alongside current trail"
-  },
-
-  "replaceCurrent": "Replace Current",
-  "@replaceCurrent": {
-    "description": "Button to replace current trail with imported trail"
-  },
-
-  "trailImported": "Trail imported! ({pointCount} points)",
-  "@trailImported": {
-    "description": "Success message when trail is imported",
-    "placeholders": {
-      "pointCount": {
-        "type": "int"
-      }
-    }
-  },
-
-  "trailReplaced": "Trail replaced! ({pointCount} points)",
-  "@trailReplaced": {
-    "description": "Success message when trail is replaced",
-    "placeholders": {
-      "pointCount": {
-        "type": "int"
-      }
-    }
-  },
-
   "contactTrails": "Contact Trails",
   "@contactTrails": {
     "description": "Contact trails section header"
   },
-
   "showAllContactTrails": "Show All Contact Trails",
   "@showAllContactTrails": {
     "description": "Toggle label to show all contact trails"
   },
-
   "noContactsWithLocationHistory": "No contacts with location history",
   "@noContactsWithLocationHistory": {
     "description": "Subtitle when no contacts have trails"
   },
-
   "showingTrailsForContacts": "Showing trails for {count} contacts",
   "@showingTrailsForContacts": {
     "description": "Subtitle showing number of contacts with trails",
@@ -2512,117 +1286,94 @@
       }
     }
   },
-
   "individualContactTrails": "Individual Contact Trails",
   "@individualContactTrails": {
     "description": "Expansion tile title for individual contact trails"
   },
-
   "deviceInformation": "Device Information",
   "@deviceInformation": {
     "description": "Device information section header"
   },
-
   "bleName": "BLE Name",
   "@bleName": {
     "description": "Bluetooth Low Energy device name label"
   },
-
   "meshName": "Mesh Name",
   "@meshName": {
     "description": "Mesh network name label"
   },
-
   "notSet": "Not set",
   "@notSet": {
     "description": "Label when a value is not set"
   },
-
   "model": "Model",
   "@model": {
     "description": "Device model label"
   },
-
   "version": "Version",
   "@version": {
     "description": "Version label"
   },
-
   "buildDate": "Build Date",
   "@buildDate": {
     "description": "Firmware build date label"
   },
-
   "firmware": "Firmware",
   "@firmware": {
     "description": "Firmware label"
   },
-
   "maxContacts": "Max Contacts",
   "@maxContacts": {
     "description": "Maximum contacts capacity label"
   },
-
   "maxChannels": "Max Channels",
   "@maxChannels": {
     "description": "Maximum channels capacity label"
   },
-
   "publicInfo": "Public Info",
   "@publicInfo": {
     "description": "Public information section header"
   },
-
   "meshNetworkName": "Mesh Network Name",
   "@meshNetworkName": {
     "description": "Mesh network name field label"
   },
-
   "nameBroadcastInMesh": "Name broadcast in mesh advertisements",
   "@nameBroadcastInMesh": {
     "description": "Helper text for mesh network name field"
   },
-
   "telemetryAndLocationSharing": "Telemetry & Location Sharing",
   "@telemetryAndLocationSharing": {
     "description": "Telemetry and location sharing toggle label"
   },
-
   "lat": "Lat",
   "@lat": {
     "description": "Latitude field label (short form)"
   },
-
   "lon": "Lon",
   "@lon": {
     "description": "Longitude field label (short form)"
   },
-
   "useCurrentLocation": "Use current location",
   "@useCurrentLocation": {
     "description": "Tooltip for use current location button"
   },
-
   "noneUnknown": "None/Unknown",
   "@noneUnknown": {
     "description": "Device type: none or unknown"
   },
-
   "chatNode": "Chat Node",
   "@chatNode": {
     "description": "Device type: chat node"
   },
-
   "repeater": "Repeater",
   "@repeater": {
     "description": "Device type: repeater"
   },
-
   "roomChannel": "Room/Channel",
   "@roomChannel": {
     "description": "Device type: room or channel"
   },
-
   "typeNumber": "Type {number}",
   "@typeNumber": {
     "description": "Generic device type with number",
@@ -2632,7 +1383,6 @@
       }
     }
   },
-
   "copiedToClipboardShort": "Copied {label} to clipboard",
   "@copiedToClipboardShort": {
     "description": "Short success message when copying to clipboard",
@@ -2642,7 +1392,6 @@
       }
     }
   },
-
   "failedToSave": "Failed to save: {error}",
   "@failedToSave": {
     "description": "Generic error message for save failures",
@@ -2652,7 +1401,6 @@
       }
     }
   },
-
   "failedToGetLocation": "Failed to get location: {error}",
   "@failedToGetLocation": {
     "description": "Error message when getting location fails",
@@ -2662,87 +1410,70 @@
       }
     }
   },
-
   "sarTemplates": "SAR Templates",
   "@sarTemplates": {
     "description": "SAR templates menu title"
   },
-
   "manageSarTemplates": "Manage cursor on target templates",
   "@manageSarTemplates": {
     "description": "Subtitle for SAR templates settings"
   },
-
   "addTemplate": "Add Template",
   "@addTemplate": {
     "description": "Button to add new SAR template"
   },
-
   "editTemplate": "Edit Template",
   "@editTemplate": {
     "description": "Dialog title for editing template"
   },
-
   "deleteTemplate": "Delete Template",
   "@deleteTemplate": {
     "description": "Action to delete template"
   },
-
   "templateName": "Template Name",
   "@templateName": {
     "description": "Label for template name field"
   },
-
   "templateNameHint": "e.g. Found Person",
   "@templateNameHint": {
     "description": "Hint text for template name"
   },
-
   "templateEmoji": "Emoji",
   "@templateEmoji": {
     "description": "Label for template emoji field"
   },
-
   "emojiRequired": "Emoji is required",
   "@emojiRequired": {
     "description": "Validation error when emoji field is empty"
   },
-
   "nameRequired": "Name is required",
   "@nameRequired": {
     "description": "Validation error when name field is empty"
   },
-
   "templateDescription": "Description (Optional)",
   "@templateDescription": {
     "description": "Label for template description field"
   },
-
   "templateDescriptionHint": "Add additional context...",
   "@templateDescriptionHint": {
     "description": "Hint text for template description"
   },
-
   "templateColor": "Color",
   "@templateColor": {
     "description": "Label for template color picker"
   },
-
   "previewFormat": "Preview (SAR Message Format)",
   "@previewFormat": {
     "description": "Label for format preview"
   },
-
   "importFromClipboard": "Import",
   "@importFromClipboard": {
     "description": "Button to import templates from clipboard"
   },
-
   "exportToClipboard": "Export",
   "@exportToClipboard": {
     "description": "Button to export templates to clipboard"
   },
-
   "deleteTemplateConfirmation": "Delete template '{name}'?",
   "@deleteTemplateConfirmation": {
     "description": "Confirmation message for template deletion",
@@ -2752,22 +1483,18 @@
       }
     }
   },
-
   "templateAdded": "Template added",
   "@templateAdded": {
     "description": "Success message when template is added"
   },
-
   "templateUpdated": "Template updated",
   "@templateUpdated": {
     "description": "Success message when template is updated"
   },
-
   "templateDeleted": "Template deleted",
   "@templateDeleted": {
     "description": "Success message when template is deleted"
   },
-
   "templatesImported": "{count, plural, =0{No templates imported} =1{Imported 1 template} other{Imported {count} templates}}",
   "@templatesImported": {
     "description": "Success message after importing templates",
@@ -2777,7 +1504,6 @@
       }
     }
   },
-
   "templatesExported": "{count, plural, =1{Exported 1 template to clipboard} other{Exported {count} templates to clipboard}}",
   "@templatesExported": {
     "description": "Success message after exporting templates",
@@ -2787,570 +1513,390 @@
       }
     }
   },
-
-  "importFailed": "Import failed: {error}",
-  "@importFailed": {
-    "description": "Error message when import fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
-  "exportFailed": "Export failed: {error}",
-  "@exportFailed": {
-    "description": "Error message when export fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-
   "resetToDefaults": "Reset to Defaults",
   "@resetToDefaults": {
     "description": "Action to reset templates to defaults"
   },
-
   "resetToDefaultsConfirmation": "This will delete all custom templates and restore the 4 default templates. Continue?",
   "@resetToDefaultsConfirmation": {
     "description": "Confirmation message for reset to defaults"
   },
-
   "reset": "Reset",
   "@reset": {
     "description": "Reset button label"
   },
-
   "resetComplete": "Templates reset to defaults",
   "@resetComplete": {
     "description": "Success message after reset"
   },
-
   "noTemplates": "No templates available",
   "@noTemplates": {
     "description": "Message when no templates exist"
   },
-
   "tapAddToCreate": "Tap + to create your first template",
   "@tapAddToCreate": {
     "description": "Helper text when no templates exist"
   },
-
   "ok": "OK",
   "@ok": {
     "description": "OK button label"
   },
-
-  "delete": "Delete",
-  "@delete": {
-    "description": "Delete button label"
-  },
-
   "permissionsSection": "Permissions",
   "@permissionsSection": {
     "description": "Permissions section header"
   },
-
   "locationPermission": "Location Permission",
   "@locationPermission": {
     "description": "Location permission label"
   },
-
   "checking": "Checking...",
   "@checking": {
     "description": "Loading state indicator"
   },
-
   "locationPermissionGrantedAlways": "Granted (Always)",
   "@locationPermissionGrantedAlways": {
     "description": "Location permission status: granted always"
   },
-
   "locationPermissionGrantedWhileInUse": "Granted (While In Use)",
   "@locationPermissionGrantedWhileInUse": {
     "description": "Location permission status: granted while in use"
   },
-
   "locationPermissionDeniedTapToRequest": "Denied - Tap to request",
   "@locationPermissionDeniedTapToRequest": {
     "description": "Location permission status: denied, user can request"
   },
-
   "locationPermissionPermanentlyDeniedOpenSettings": "Permanently Denied - Open Settings",
   "@locationPermissionPermanentlyDeniedOpenSettings": {
     "description": "Location permission status: permanently denied"
   },
-
   "locationPermissionDialogContent": "Location permission is permanently denied. Please enable it in your device settings to use GPS tracking and location sharing features.",
   "@locationPermissionDialogContent": {
     "description": "Content for location permission dialog when permanently denied"
   },
-
   "openSettings": "Open Settings",
   "@openSettings": {
     "description": "Button to open device settings"
   },
-
   "locationPermissionGranted": "Location permission granted!",
   "@locationPermissionGranted": {
     "description": "Success message when location permission is granted"
   },
-
   "locationPermissionRequiredForGps": "Location permission is required for GPS tracking and location sharing.",
   "@locationPermissionRequiredForGps": {
     "description": "Info message about location permission requirement"
   },
-
   "locationPermissionAlreadyGranted": "Location permission is already granted.",
   "@locationPermissionAlreadyGranted": {
     "description": "Info message when permission is already granted"
   },
-
   "sarNavyBlue": "SAR Navy Blue",
   "@sarNavyBlue": {
     "description": "SAR Navy Blue theme name"
   },
-
   "sarNavyBlueDescription": "Professional/Operations Mode",
   "@sarNavyBlueDescription": {
     "description": "Description for SAR Navy Blue theme"
   },
-
   "selectRecipient": "Select Recipient",
   "@selectRecipient": {
     "description": "Title for recipient selector sheet"
   },
-
   "broadcastToAllNearby": "Broadcast to all nearby",
   "@broadcastToAllNearby": {
     "description": "Subtitle for public channel option"
   },
-
   "searchRecipients": "Search recipients...",
   "@searchRecipients": {
     "description": "Placeholder text for recipient search field"
   },
-
   "noContactsFound": "No contacts found",
   "@noContactsFound": {
     "description": "Message when no contacts match search"
   },
-
   "noRoomsFound": "No rooms found",
   "@noRoomsFound": {
     "description": "Message when no rooms match search"
   },
-
-  "noContactsOrRoomsAvailable": "No contacts or rooms available",
-  "@noContactsOrRoomsAvailable": {
-    "description": "Message when no contacts or rooms exist"
-  },
-
   "noRecipientsAvailable": "No recipients available",
   "@noRecipientsAvailable": {
     "description": "Message when no recipients exist (contacts, rooms, or channels)"
   },
-
   "noChannelsFound": "No channels found",
   "@noChannelsFound": {
     "description": "Message when no channels match the search"
   },
-
-  "messagesWillBeSentToPublicChannel": "Messages will be sent to public channel",
-  "@messagesWillBeSentToPublicChannel": {
-    "description": "Info message when only public channel is available"
-  },
-
   "newMessage": "New message",
   "@newMessage": {
     "description": "Notification title for new message"
   },
-
   "channel": "Channel",
   "@channel": {
     "description": "Channel label in notifications"
   },
-
   "samplePoliceLead": "Police Lead",
   "@samplePoliceLead": {
     "description": "Sample team member name"
   },
-
   "sampleDroneOperator": "Drone Operator",
   "@sampleDroneOperator": {
     "description": "Sample team member name"
   },
-
   "sampleFirefighterAlpha": "Firefighter",
   "@sampleFirefighterAlpha": {
     "description": "Sample team member name"
   },
-
   "sampleMedicCharlie": "Medic",
   "@sampleMedicCharlie": {
     "description": "Sample team member name"
   },
-
   "sampleCommandDelta": "Command",
   "@sampleCommandDelta": {
     "description": "Sample team member name"
   },
-
   "sampleFireEngine": "Fire Engine",
   "@sampleFireEngine": {
     "description": "Sample team member name"
   },
-
   "sampleAirSupport": "Air Support",
   "@sampleAirSupport": {
     "description": "Sample team member name"
   },
-
   "sampleBaseCoordinator": "Base Coordinator",
   "@sampleBaseCoordinator": {
     "description": "Sample team member name"
   },
-
   "channelEmergency": "Emergency",
   "@channelEmergency": {
     "description": "Emergency channel name"
   },
-
   "channelCoordination": "Coordination",
   "@channelCoordination": {
     "description": "Coordination channel name"
   },
-
   "channelUpdates": "Updates",
   "@channelUpdates": {
     "description": "Updates channel name"
   },
-
   "sampleTeamMember": "Sample Team Member",
   "@sampleTeamMember": {
     "description": "Sample sender name"
   },
-
   "sampleScout": "Sample Scout",
   "@sampleScout": {
     "description": "Sample sender name"
   },
-
   "sampleBase": "Sample Base",
   "@sampleBase": {
     "description": "Sample sender name"
   },
-
   "sampleSearcher": "Sample Searcher",
   "@sampleSearcher": {
     "description": "Sample sender name"
   },
-
   "sampleObjectBackpack": " Backpack found - blue color",
   "@sampleObjectBackpack": {
     "description": "Sample object note"
   },
-
   "sampleObjectVehicle": " Vehicle abandoned - check for owner",
   "@sampleObjectVehicle": {
     "description": "Sample object note"
   },
-
   "sampleObjectCamping": " Camping equipment discovered",
   "@sampleObjectCamping": {
     "description": "Sample object note"
   },
-
   "sampleObjectTrailMarker": " Trail marker found off-path",
   "@sampleObjectTrailMarker": {
     "description": "Sample object note"
   },
-
   "sampleMsgAllTeamsCheckIn": "All teams check in",
   "@sampleMsgAllTeamsCheckIn": {
     "description": "Sample channel message"
   },
-
   "sampleMsgWeatherUpdate": "Weather update: Clear skies, temp 18°C",
   "@sampleMsgWeatherUpdate": {
     "description": "Sample channel message"
   },
-
   "sampleMsgBaseCamp": "Base camp established at staging area",
   "@sampleMsgBaseCamp": {
     "description": "Sample channel message"
   },
-
   "sampleMsgTeamAlpha": "Team moving to sector 2",
   "@sampleMsgTeamAlpha": {
     "description": "Sample channel message"
   },
-
   "sampleMsgRadioCheck": "Radio check - all stations respond",
   "@sampleMsgRadioCheck": {
     "description": "Sample channel message"
   },
-
   "sampleMsgWaterSupply": "Water supply available at checkpoint 3",
   "@sampleMsgWaterSupply": {
     "description": "Sample channel message"
   },
-
   "sampleMsgTeamBravo": "Team reporting: sector 1 clear",
   "@sampleMsgTeamBravo": {
     "description": "Sample channel message"
   },
-
   "sampleMsgEtaRallyPoint": "ETA to rally point: 15 minutes",
   "@sampleMsgEtaRallyPoint": {
     "description": "Sample channel message"
   },
-
   "sampleMsgSupplyDrop": "Supply drop confirmed for 14:00",
   "@sampleMsgSupplyDrop": {
     "description": "Sample channel message"
   },
-
   "sampleMsgDroneSurvey": "Drone survey completed - no findings",
   "@sampleMsgDroneSurvey": {
     "description": "Sample channel message"
   },
-
   "sampleMsgTeamCharlie": "Team requesting backup",
   "@sampleMsgTeamCharlie": {
     "description": "Sample channel message"
   },
-
   "sampleMsgRadioDiscipline": "All units: maintain radio discipline",
   "@sampleMsgRadioDiscipline": {
     "description": "Sample channel message"
   },
-
   "sampleMsgUrgentMedical": "URGENT: Medical assistance needed at sector 4",
   "@sampleMsgUrgentMedical": {
     "description": "Sample emergency message"
   },
-
   "sampleMsgAdultMale": " Adult male, conscious",
   "@sampleMsgAdultMale": {
     "description": "Sample emergency message note"
   },
-
   "sampleMsgFireSpotted": "Fire spotted - coordinates incoming",
   "@sampleMsgFireSpotted": {
     "description": "Sample emergency message"
   },
-
   "sampleMsgSpreadingRapidly": " Spreading rapidly!",
   "@sampleMsgSpreadingRapidly": {
     "description": "Sample emergency message note"
   },
-
   "sampleMsgPriorityHelicopter": "PRIORITY: Need helicopter support",
   "@sampleMsgPriorityHelicopter": {
     "description": "Sample emergency message"
   },
-
   "sampleMsgMedicalTeamEnRoute": "Medical team en route to your location",
   "@sampleMsgMedicalTeamEnRoute": {
     "description": "Sample emergency message"
   },
-
   "sampleMsgEvacHelicopter": "Evac helicopter ETA 10 minutes",
   "@sampleMsgEvacHelicopter": {
     "description": "Sample emergency message"
   },
-
   "sampleMsgEmergencyResolved": "Emergency resolved - all clear",
   "@sampleMsgEmergencyResolved": {
     "description": "Sample emergency message"
   },
-
   "sampleMsgEmergencyStagingArea": " Emergency staging area",
   "@sampleMsgEmergencyStagingArea": {
     "description": "Sample emergency message note"
   },
-
   "sampleMsgEmergencyServices": "Emergency services notified and responding",
   "@sampleMsgEmergencyServices": {
     "description": "Sample emergency message"
   },
-
   "sampleAlphaTeamLead": "Team Lead",
   "@sampleAlphaTeamLead": {
     "description": "Sample team name"
   },
-
   "sampleBravoScout": "Scout",
   "@sampleBravoScout": {
     "description": "Sample team name"
   },
-
   "sampleCharlieMedic": "Medic",
   "@sampleCharlieMedic": {
     "description": "Sample team name"
   },
-
   "sampleDeltaNavigator": "Navigator",
   "@sampleDeltaNavigator": {
     "description": "Sample team name"
   },
-
   "sampleEchoSupport": "Support",
   "@sampleEchoSupport": {
     "description": "Sample team name"
   },
-
   "sampleBaseCommand": "Base Command",
   "@sampleBaseCommand": {
     "description": "Sample team name"
   },
-
   "sampleFieldCoordinator": "Field Coordinator",
   "@sampleFieldCoordinator": {
     "description": "Sample team name"
   },
-
   "sampleMedicalTeam": "Medical Team",
   "@sampleMedicalTeam": {
     "description": "Sample team name"
   },
-
   "mapDrawing": "Map Drawing",
   "@mapDrawing": {
     "description": "Label for map drawing messages"
   },
-
   "navigateToDrawing": "Navigate to Drawing",
   "@navigateToDrawing": {
     "description": "Option to navigate to drawing on map"
   },
-
   "copyCoordinates": "Copy Coordinates",
   "@copyCoordinates": {
     "description": "Option to copy coordinates to clipboard"
   },
-
   "hideFromMap": "Hide from Map",
   "@hideFromMap": {
     "description": "Option to hide drawing from map"
   },
-
   "lineDrawing": "Line Drawing",
   "@lineDrawing": {
     "description": "Label for line type drawings"
   },
-
   "rectangleDrawing": "Rectangle Drawing",
   "@rectangleDrawing": {
     "description": "Label for rectangle type drawings"
   },
-
-  "coordinatesCopiedToClipboard": "Coordinates copied to clipboard",
-  "@coordinatesCopiedToClipboard": {
-    "description": "Success message when coordinates are copied"
-  },
-
   "manualCoordinates": "Manual Coordinates",
   "@manualCoordinates": {
     "description": "Label for manual coordinate input toggle"
   },
-
   "enterCoordinatesManually": "Enter coordinates manually",
   "@enterCoordinatesManually": {
     "description": "Description for manual coordinate input option"
   },
-
   "latitudeLabel": "Latitude",
   "@latitudeLabel": {
     "description": "Label for latitude input field"
   },
-
   "longitudeLabel": "Longitude",
   "@longitudeLabel": {
     "description": "Label for longitude input field"
   },
-
-  "invalidLatitude": "Invalid latitude (-90 to 90)",
-  "@invalidLatitude": {
-    "description": "Error message for invalid latitude value"
-  },
-
-  "invalidLongitude": "Invalid longitude (-180 to 180)",
-  "@invalidLongitude": {
-    "description": "Error message for invalid longitude value"
-  },
-
   "exampleCoordinates": "Example: 46.0569, 14.5058",
   "@exampleCoordinates": {
     "description": "Example coordinate format hint"
   },
-
-  "drawingShared": "Map Drawing",
-  "@drawingShared": {
-    "description": "Label for shared drawing notifications"
-  },
-
-  "drawingHidden": "Drawing hidden from map",
-  "@drawingHidden": {
-    "description": "Success message when drawing is hidden"
-  },
-
-  "alreadyShared": "{count, plural, =1{1 already shared} other{{count} already shared}}",
-  "@alreadyShared": {
-    "description": "Message showing how many drawings were already shared",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-
-  "newDrawingsShared": "Shared {count} new drawing{plural}",
-  "@newDrawingsShared": {
-    "description": "Success message after sharing new drawings",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "plural": {
-        "type": "String"
-      }
-    }
-  },
-
   "shareDrawing": "Share Drawing",
   "@shareDrawing": {
     "description": "Title for share single drawing dialog"
   },
-
   "shareWithAllNearbyDevices": "Share with all nearby devices",
   "@shareWithAllNearbyDevices": {
     "description": "Subtitle for public channel sharing option"
   },
-
   "shareToRoom": "Share to Room",
   "@shareToRoom": {
     "description": "Header for room sharing section"
   },
-
   "sendToPersistentStorage": "Send to persistent room storage",
   "@sendToPersistentStorage": {
     "description": "Subtitle for room sharing option"
   },
-
   "deleteDrawingConfirm": "Are you sure you want to delete this drawing?",
   "@deleteDrawingConfirm": {
     "description": "Confirmation message for deleting a single drawing"
   },
-
   "drawingDeleted": "Drawing deleted",
   "@drawingDeleted": {
     "description": "Success message after deleting a drawing"
   },
-
   "yourDrawingsCount": "Your Drawings ({count})",
   "@yourDrawingsCount": {
     "description": "Header showing count of user's drawings",
@@ -3360,197 +1906,150 @@
       }
     }
   },
-
   "shared": "Shared",
   "@shared": {
     "description": "Status label for shared drawings"
   },
-
   "line": "Line",
   "@line": {
     "description": "Line drawing type label"
   },
-
   "rectangle": "Rectangle",
   "@rectangle": {
     "description": "Rectangle drawing type label"
   },
-
   "updateAvailable": "Update Available",
   "@updateAvailable": {
     "description": "Title for update dialog when new version is available"
   },
-
   "currentVersion": "Current",
   "@currentVersion": {
     "description": "Label for current app version"
   },
-
   "latestVersion": "Latest",
   "@latestVersion": {
     "description": "Label for latest available app version"
   },
-
   "downloadUpdate": "Download",
   "@downloadUpdate": {
     "description": "Button to download app update"
   },
-
   "updateLater": "Later",
   "@updateLater": {
     "description": "Button to dismiss update dialog"
   },
-
   "cadastralParcels": "Cadastral Parcels",
   "@cadastralParcels": {
     "description": "Label for cadastral parcels WMS overlay layer"
   },
-
   "forestRoads": "Forest Roads",
   "@forestRoads": {
     "description": "Label for forest roads WMS overlay layer"
   },
-
-  "showCadastralParcels": "Show Cadastral Parcels",
-  "@showCadastralParcels": {
-    "description": "Tooltip for cadastral parcels overlay toggle button"
-  },
-
-  "showForestRoads": "Show Forest Roads",
-  "@showForestRoads": {
-    "description": "Tooltip for forest roads overlay toggle button"
-  },
-
   "wmsOverlays": "WMS Overlays",
   "@wmsOverlays": {
     "description": "Section header for WMS overlay layers in layer selector"
   },
-
   "hikingTrails": "Hiking Trails",
   "@hikingTrails": {
     "description": "Label for hiking/mountain trails WMS overlay layer"
   },
-
   "mainRoads": "Main Roads",
   "@mainRoads": {
     "description": "Label for main roads WMS overlay layer"
   },
-
   "houseNumbers": "House Numbers",
   "@houseNumbers": {
     "description": "Label for house numbers WMS overlay layer"
   },
-
   "fireHazardZones": "Fire Hazard Zones",
   "@fireHazardZones": {
     "description": "Label for fire hazard risk zones WMS overlay layer"
   },
-
   "historicalFires": "Historical Fires",
   "@historicalFires": {
     "description": "Label for historical forest fires WMS overlay layer"
   },
-
   "firebreaks": "Firebreaks",
   "@firebreaks": {
     "description": "Label for firebreaks WMS overlay layer"
   },
-
   "krasFireZones": "Kras Fire Zones",
   "@krasFireZones": {
     "description": "Label for Kras fire zones WMS overlay layer"
   },
-
   "placeNames": "Place Names",
   "@placeNames": {
     "description": "Label for geographic place names WMS overlay layer"
   },
-
   "municipalityBorders": "Municipality Borders",
   "@municipalityBorders": {
     "description": "Label for municipality borders WMS overlay layer"
   },
-
   "topographicMap": "Topographic Map 1:25000",
   "@topographicMap": {
     "description": "Label for DTK25 topographic base map layer"
   },
-
   "recentMessages": "Recent Messages",
   "@recentMessages": {
     "description": "Header for recent messages overlay on map in fullscreen mode"
   },
-
   "addChannel": "Add Channel",
   "@addChannel": {
     "description": "Button to add a new channel"
   },
-
   "channelName": "Channel Name",
   "@channelName": {
     "description": "Label for channel name field"
   },
-
   "channelNameHint": "e.g., Rescue Team Alpha",
   "@channelNameHint": {
     "description": "Hint for channel name field"
   },
-
   "channelSecret": "Channel Secret",
   "@channelSecret": {
     "description": "Label for channel secret field"
   },
-
   "channelSecretHint": "Shared password for this channel",
   "@channelSecretHint": {
     "description": "Hint for channel secret field"
   },
-
   "channelSecretHelp": "This secret must be shared with all team members who need access to this channel",
   "@channelSecretHelp": {
     "description": "Help text explaining channel secret"
   },
-
   "channelTypesInfo": "Hash channels (#team): Secret auto-generated from name. Same name = same channel across devices.\n\nPrivate channels: Use explicit secret. Only those with the secret can join.",
   "@channelTypesInfo": {
     "description": "Information banner explaining hash and private channel types"
   },
-
   "hashChannelInfo": "Hash channel: Secret will be auto-generated from the channel name. Anyone using the same name will join the same channel.",
   "@hashChannelInfo": {
     "description": "Help text for hash channels (# prefix)"
   },
-
   "channelNameRequired": "Channel name is required",
   "@channelNameRequired": {
     "description": "Validation error for empty channel name"
   },
-
   "channelNameTooLong": "Channel name must be 31 characters or less",
   "@channelNameTooLong": {
     "description": "Validation error for channel name too long"
   },
-
   "channelSecretRequired": "Channel secret is required",
   "@channelSecretRequired": {
     "description": "Validation error for empty channel secret"
   },
-
   "channelSecretTooLong": "Channel secret must be 32 characters or less",
   "@channelSecretTooLong": {
     "description": "Validation error for channel secret too long"
   },
-
   "invalidAsciiCharacters": "Only ASCII characters are allowed",
   "@invalidAsciiCharacters": {
     "description": "Validation error for non-ASCII characters"
   },
-
   "channelCreatedSuccessfully": "Channel created successfully",
   "@channelCreatedSuccessfully": {
     "description": "Success message after creating channel"
   },
-
   "channelCreationFailed": "Failed to create channel: {error}",
   "@channelCreationFailed": {
     "description": "Error message when channel creation fails",
@@ -3560,12 +2059,10 @@
       }
     }
   },
-
   "deleteChannel": "Delete Channel",
   "@deleteChannel": {
     "description": "Delete channel button/menu item"
   },
-
   "deleteChannelConfirmation": "Are you sure you want to delete channel \"{channelName}\"? This action cannot be undone.",
   "@deleteChannelConfirmation": {
     "description": "Confirmation dialog when deleting a channel",
@@ -3575,12 +2072,10 @@
       }
     }
   },
-
   "channelDeletedSuccessfully": "Channel deleted successfully",
   "@channelDeletedSuccessfully": {
     "description": "Success message after deleting channel"
   },
-
   "channelDeletionFailed": "Failed to delete channel: {error}",
   "@channelDeletionFailed": {
     "description": "Error message when channel deletion fails",
@@ -3590,182 +2085,126 @@
       }
     }
   },
-
-  "allChannelSlotsInUse": "All channel slots are in use (maximum 39 custom channels)",
-  "@allChannelSlotsInUse": {
-    "description": "Error when no channel slots available"
-  },
-
   "createChannel": "Create Channel",
   "@createChannel": {
     "description": "Button text for creating a channel"
   },
-
   "wizardBack": "Back",
   "@wizardBack": {
     "description": "Wizard back button text"
   },
-
   "wizardSkip": "Skip",
   "@wizardSkip": {
     "description": "Wizard skip button text"
   },
-
   "wizardNext": "Next",
   "@wizardNext": {
     "description": "Wizard next button text"
   },
-
   "wizardGetStarted": "Get Started",
   "@wizardGetStarted": {
     "description": "Wizard final button text to complete onboarding"
   },
-
   "wizardWelcomeTitle": "Welcome to MeshCore SAR",
   "@wizardWelcomeTitle": {
     "description": "Welcome wizard first page title"
   },
-
   "wizardWelcomeDescription": "A powerful off-grid communication tool for search and rescue operations. Connect with your team using mesh radio technology when traditional networks are unavailable.",
   "@wizardWelcomeDescription": {
     "description": "Welcome wizard first page description"
   },
-
   "wizardConnectingTitle": "Connecting to Your Radio",
   "@wizardConnectingTitle": {
     "description": "Wizard connecting page title"
   },
-
   "wizardConnectingDescription": "Connect your smartphone to a MeshCore radio device via Bluetooth to start communicating off-grid.",
   "@wizardConnectingDescription": {
     "description": "Wizard connecting page description"
   },
-
   "wizardConnectingFeature1": "Scan for nearby MeshCore devices",
   "@wizardConnectingFeature1": {
     "description": "Wizard connecting feature 1"
   },
-
   "wizardConnectingFeature2": "Pair with your radio via Bluetooth",
   "@wizardConnectingFeature2": {
     "description": "Wizard connecting feature 2"
   },
-
   "wizardConnectingFeature3": "Works completely offline - no internet required",
   "@wizardConnectingFeature3": {
     "description": "Wizard connecting feature 3"
   },
-
-  "wizardSimpleModeTitle": "Simple Mode",
-  "@wizardSimpleModeTitle": {
-    "description": "Wizard simple mode page title"
-  },
-
-  "wizardSimpleModeDescription": "New to mesh networking? Enable Simple Mode for a streamlined interface with essential features only.",
-  "@wizardSimpleModeDescription": {
-    "description": "Wizard simple mode page description"
-  },
-
-  "wizardSimpleModeFeature1": "Beginner-friendly interface with core functions",
-  "@wizardSimpleModeFeature1": {
-    "description": "Wizard simple mode feature 1"
-  },
-
-  "wizardSimpleModeFeature2": "Switch to Advanced Mode anytime in Settings",
-  "@wizardSimpleModeFeature2": {
-    "description": "Wizard simple mode feature 2"
-  },
-
   "wizardChannelTitle": "Channels",
   "@wizardChannelTitle": {
     "description": "Wizard channel page title"
   },
-
   "wizardChannelDescription": "Broadcast messages to everyone on a channel, perfect for team-wide announcements and coordination.",
   "@wizardChannelDescription": {
     "description": "Wizard channel page description"
   },
-
   "wizardChannelFeature1": "Public Channel for general team communication",
   "@wizardChannelFeature1": {
     "description": "Wizard channel feature 1"
   },
-
   "wizardChannelFeature2": "Create custom channels for specific groups",
   "@wizardChannelFeature2": {
     "description": "Wizard channel feature 2"
   },
-
   "wizardChannelFeature3": "Messages are automatically relayed by the mesh",
   "@wizardChannelFeature3": {
     "description": "Wizard channel feature 3"
   },
-
   "wizardContactsTitle": "Contacts",
   "@wizardContactsTitle": {
     "description": "Wizard contacts page title"
   },
-
   "wizardContactsDescription": "Your team members appear automatically as they join the mesh network. Send them direct messages or view their location.",
   "@wizardContactsDescription": {
     "description": "Wizard contacts page description"
   },
-
   "wizardContactsFeature1": "Contacts discovered automatically",
   "@wizardContactsFeature1": {
     "description": "Wizard contacts feature 1"
   },
-
   "wizardContactsFeature2": "Send private direct messages",
   "@wizardContactsFeature2": {
     "description": "Wizard contacts feature 2"
   },
-
   "wizardContactsFeature3": "View battery level and last seen time",
   "@wizardContactsFeature3": {
     "description": "Wizard contacts feature 3"
   },
-
   "wizardMapTitle": "Map & Location",
   "@wizardMapTitle": {
     "description": "Wizard map page title"
   },
-
   "wizardMapDescription": "Track your team in real-time and mark important locations for search and rescue operations.",
   "@wizardMapDescription": {
     "description": "Wizard map page description"
   },
-
   "wizardMapFeature1": "SAR markers for found persons, fires, and staging areas",
   "@wizardMapFeature1": {
     "description": "Wizard map feature 1"
   },
-
   "wizardMapFeature2": "Real-time GPS tracking of team members",
   "@wizardMapFeature2": {
     "description": "Wizard map feature 2"
   },
-
   "wizardMapFeature3": "Download offline maps for remote areas",
   "@wizardMapFeature3": {
     "description": "Wizard map feature 3"
   },
-
   "wizardMapFeature4": "Draw shapes and share tactical information",
   "@wizardMapFeature4": {
     "description": "Wizard map feature 4"
   },
-
   "viewWelcomeTutorial": "View Welcome Tutorial",
   "@viewWelcomeTutorial": {
     "description": "Settings option to re-show welcome wizard"
   },
-
   "allTeamContacts": "All Team Contacts",
   "@allTeamContacts": {
     "description": "Destination option to send SAR marker to all team contacts"
   },
-
   "directMessagesInfo": "Direct messages with ACKs. Sent to {count} team members.",
   "@directMessagesInfo": {
     "description": "Information about sending to all contacts",
@@ -3775,7 +2214,6 @@
       }
     }
   },
-
   "sarMarkerSentToContacts": "SAR marker sent to {count} contacts",
   "@sarMarkerSentToContacts": {
     "description": "Success message after sending SAR marker to all contacts",
@@ -3785,85 +2223,83 @@
       }
     }
   },
-
   "noContactsAvailable": "No team contacts available",
   "@noContactsAvailable": {
     "description": "Message when there are no chat contacts to send to"
-  }
-,
-
+  },
   "reply": "Reply",
-  "@reply": {},
-
+  "@reply": {
+  },
   "technicalDetails": "Technical details",
-  "@technicalDetails": {},
-
+  "@technicalDetails": {
+  },
   "messageTechnicalDetails": "Message technical details",
-  "@messageTechnicalDetails": {},
-
+  "@messageTechnicalDetails": {
+  },
   "linkQuality": "Link quality",
-  "@linkQuality": {},
-
+  "@linkQuality": {
+  },
   "delivery": "Delivery",
-  "@delivery": {},
-
+  "@delivery": {
+  },
   "status": "Status",
-  "@status": {},
-
+  "@status": {
+  },
   "expectedAckTag": "Expected ACK tag",
-  "@expectedAckTag": {},
-
+  "@expectedAckTag": {
+  },
   "roundTrip": "Round-trip",
-  "@roundTrip": {},
-
+  "@roundTrip": {
+  },
   "retryAttempt": "Retry attempt",
-  "@retryAttempt": {},
-
+  "@retryAttempt": {
+  },
   "floodFallback": "Flood fallback",
-  "@floodFallback": {},
-
+  "@floodFallback": {
+  },
   "identity": "Identity",
-  "@identity": {},
-
+  "@identity": {
+  },
   "messageId": "Message ID",
-  "@messageId": {},
-
+  "@messageId": {
+  },
   "sender": "Sender",
-  "@sender": {},
-
+  "@sender": {
+  },
   "senderKey": "Sender key",
-  "@senderKey": {},
-
+  "@senderKey": {
+  },
   "recipient": "Recipient",
-  "@recipient": {},
-
+  "@recipient": {
+  },
   "recipientKey": "Recipient key",
-  "@recipientKey": {},
-
+  "@recipientKey": {
+  },
   "voice": "Voice",
-  "@voice": {},
-
+  "@voice": {
+  },
   "voiceId": "Voice ID",
-  "@voiceId": {},
-
+  "@voiceId": {
+  },
   "envelope": "Envelope",
-  "@envelope": {},
-
+  "@envelope": {
+  },
   "sessionProgress": "Session progress",
-  "@sessionProgress": {},
-
+  "@sessionProgress": {
+  },
   "complete": "Complete",
-  "@complete": {},
-
+  "@complete": {
+  },
   "rawDump": "Raw dump",
-  "@rawDump": {},
-
+  "@rawDump": {
+  },
   "cannotRetryMissingRecipient": "Cannot retry: recipient information missing",
-  "@cannotRetryMissingRecipient": {},
-
+  "@cannotRetryMissingRecipient": {
+  },
   "voiceUnavailable": "Voice unavailable right now",
-  "@voiceUnavailable": {},
-
+  "@voiceUnavailable": {
+  },
   "requestingVoice": "Requesting voice",
-  "@requestingVoice": {}
+  "@requestingVoice": {
+  }
 }

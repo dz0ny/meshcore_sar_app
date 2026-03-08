@@ -30,9 +30,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get disconnect => 'Prekini';
 
   @override
-  String get scanningForDevices => 'Skeniranje uređaja...';
-
-  @override
   String get noDevicesFound => 'Nisu pronađeni uređaji';
 
   @override
@@ -63,25 +60,12 @@ class AppLocalizationsHr extends AppLocalizations {
   String get failedToGetGpsLocation => 'Neuspjelo dobivanje GPS lokacije';
 
   @override
-  String advertisedAtLocation(String latitude, String longitude) {
-    return 'Objavljeno na $latitude, $longitude';
-  }
-
-  @override
   String failedToAdvertise(String error) {
     return 'Neuspjela objava: $error';
   }
 
   @override
-  String reconnecting(int attempt, int max) {
-    return 'Ponovno povezivanje... ($attempt/$max)';
-  }
-
-  @override
   String get cancelReconnection => 'Otkaži ponovno povezivanje';
-
-  @override
-  String get mapManagement => 'Upravljanje kartom';
 
   @override
   String get general => 'Općenito';
@@ -130,13 +114,6 @@ class AppLocalizationsHr extends AppLocalizations {
       'Prikaži indikatore aktivnosti paketa u gornjoj traci';
 
   @override
-  String get simpleMode => 'Jednostavni način';
-
-  @override
-  String get simpleModeDescription =>
-      'Sakrij nevažne informacije u porukama i kontaktima';
-
-  @override
   String get disableMap => 'Onemogući kartu';
 
   @override
@@ -147,74 +124,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get chooseLanguage => 'Odaberite jezik';
-
-  @override
-  String get english => 'Engleski';
-
-  @override
-  String get slovenian => 'Slovenski';
-
-  @override
-  String get croatian => 'Hrvatski';
-
-  @override
-  String get german => 'Njemački';
-
-  @override
-  String get spanish => 'Španjolski';
-
-  @override
-  String get french => 'Francuski';
-
-  @override
-  String get italian => 'Talijanski';
-
-  @override
-  String get locationBroadcasting => 'Emitiranje lokacije';
-
-  @override
-  String get autoLocationTracking => 'Automatsko praćenje lokacije';
-
-  @override
-  String get automaticallyBroadcastPosition =>
-      'Automatski emitiraj ažuriranja pozicije';
-
-  @override
-  String get configureTracking => 'Konfiguriraj praćenje';
-
-  @override
-  String get distanceAndTimeThresholds => 'Pragovi udaljenosti i vremena';
-
-  @override
-  String get locationTrackingConfiguration => 'Konfiguracija praćenja lokacije';
-
-  @override
-  String get configureWhenLocationBroadcasts =>
-      'Konfigurirajte kada se emitiranja lokacije šalju u mesh mrežu';
-
-  @override
-  String get minimumDistance => 'Minimalna udaljenost';
-
-  @override
-  String broadcastAfterMoving(String distance) {
-    return 'Emitiraj tek nakon pomicanja $distance metara';
-  }
-
-  @override
-  String get maximumDistance => 'Maksimalna udaljenost';
-
-  @override
-  String alwaysBroadcastAfterMoving(String distance) {
-    return 'Uvijek emitiraj nakon pomicanja $distance metara';
-  }
-
-  @override
-  String get minimumTimeInterval => 'Minimalni vremenski interval';
-
-  @override
-  String alwaysBroadcastEvery(String duration) {
-    return 'Uvijek emitiraj svakih $duration';
-  }
 
   @override
   String get save => 'Spremi';
@@ -250,12 +159,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get moreInfo => 'Više informacija';
-
-  @override
-  String get learnMoreAbout => 'Saznajte više o MeshCore SAR-u';
-
-  @override
-  String get developer => 'Programer';
 
   @override
   String get packageName => 'Ime paketa';
@@ -331,9 +234,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get refresh => 'Osvježi';
-
-  @override
-  String get sendDirectMessage => 'Pošalji';
 
   @override
   String get resetPath => 'Resetiraj put (preusmjeri)';
@@ -454,21 +354,6 @@ class AppLocalizationsHr extends AppLocalizations {
   }
 
   @override
-  String sentDrawingsToRoom(int count, String plural, String roomName) {
-    return 'Poslano $count crtež$plural karte u $roomName';
-  }
-
-  @override
-  String sharedDrawingsToRoom(
-    int success,
-    int total,
-    String plural,
-    String roomName,
-  ) {
-    return 'Podijeljeno $success/$total crtež$plural u $roomName';
-  }
-
-  @override
   String get showReceivedDrawings => 'Prikaži primljene crteže';
 
   @override
@@ -490,9 +375,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get clearAll => 'Očisti sve';
 
   @override
-  String get noLocalDrawings => 'Nema lokalnih crteža za dijeljenje';
-
-  @override
   String get publicChannel => 'Javni kanal';
 
   @override
@@ -502,35 +384,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get storedPermanently => 'Trajno pohranjeno u sobi';
 
   @override
-  String drawingsSentToPublicChannel(int count, String plural) {
-    return 'Poslano $count crtež$plural na javni kanal';
-  }
-
-  @override
-  String drawingsSharedToPublicChannel(int success, int total) {
-    return 'Podijeljeno $success/$total crteža na javni kanal';
-  }
-
-  @override
   String get notConnectedToDevice => 'Nije povezano s uređajem';
-
-  @override
-  String get directMessage => 'Izravna poruka';
-
-  @override
-  String directMessageSentTo(String contactName) {
-    return 'Izravna poruka poslana $contactName';
-  }
-
-  @override
-  String failedToSend(String error) {
-    return 'Neuspjelo slanje: $error';
-  }
-
-  @override
-  String directMessageInfo(String contactName) {
-    return 'Ova poruka će biti poslana izravno $contactName. Također će se prikazati u glavnom feedu poruka.';
-  }
 
   @override
   String get typeYourMessage => 'Upišite svoju poruku...';
@@ -560,9 +414,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get location => 'Lokacija';
-
-  @override
-  String get myLocation => 'Moja lokacija';
 
   @override
   String get fromMap => 'S karte';
@@ -626,9 +477,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get flood => 'Preplavljanje';
 
   @override
-  String get admin => 'Administrator';
-
-  @override
   String get loggedIn => 'Prijavljen';
 
   @override
@@ -638,27 +486,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get distance => 'Udaljenost';
 
   @override
-  String pingingDirect(String name) {
-    return 'Pingiranje $name (izravno putem puta)...';
-  }
-
-  @override
-  String pingingFlood(String name) {
-    return 'Pingiranje $name (preplavljanje - nema puta)...';
-  }
-
-  @override
   String directPingTimeout(String name) {
     return 'Istek izravnog pinga - ponovni pokušaj $name s preplavljanjem...';
   }
-
-  @override
-  String pingSuccessful(String name, String fallback) {
-    return 'Ping uspješan prema $name$fallback';
-  }
-
-  @override
-  String get viaFloodingFallback => ' (putem rezervnog preplavljanja)';
 
   @override
   String pingFailed(String name) {
@@ -668,16 +498,6 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String deleteContactConfirmation(String name) {
     return 'Jeste li sigurni da želite izbrisati \"$name\"?\n\nOvo će ukloniti kontakt iz aplikacije i pratećeg radio uređaja.';
-  }
-
-  @override
-  String removingContact(String name) {
-    return 'Uklanjanje $name...';
-  }
-
-  @override
-  String contactRemoved(String name) {
-    return 'Kontakt \"$name\" uklonjen';
   }
 
   @override
@@ -723,11 +543,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get telemetry => 'Telemetrija';
-
-  @override
-  String requestingTelemetry(String name) {
-    return 'Zahtijevanje telemetrije od $name...';
-  }
 
   @override
   String get voltage => 'Napon';
@@ -801,9 +616,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get showAll => 'Prikaži sve';
 
   @override
-  String get nearbyContacts => 'Obližnji kontakti';
-
-  @override
   String get locationUnavailable => 'Lokacija nije dostupna';
 
   @override
@@ -844,172 +656,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get channels => 'Kanali';
 
   @override
-  String get cacheStatistics => 'Statistika predmemorije';
-
-  @override
-  String get totalTiles => 'Ukupno pločica';
-
-  @override
-  String get cacheSize => 'Veličina predmemorije';
-
-  @override
-  String get storeName => 'Naziv spremišta';
-
-  @override
-  String get noCacheStatistics => 'Statistika predmemorije nije dostupna';
-
-  @override
-  String get downloadRegion => 'Preuzmi regiju';
-
-  @override
-  String get mapLayer => 'Sloj karte';
-
-  @override
-  String get regionBounds => 'Granice regije';
-
-  @override
-  String get north => 'Sjever';
-
-  @override
-  String get south => 'Jug';
-
-  @override
-  String get east => 'Istok';
-
-  @override
-  String get west => 'Zapad';
-
-  @override
-  String get zoomLevels => 'Razine zumiranja';
-
-  @override
-  String minZoom(int zoom) {
-    return 'Min: $zoom';
-  }
-
-  @override
-  String maxZoom(int zoom) {
-    return 'Maks: $zoom';
-  }
-
-  @override
-  String get downloadingDots => 'Preuzimanje...';
-
-  @override
-  String get cancelDownload => 'Otkaži preuzimanje';
-
-  @override
-  String get downloadRegionButton => 'Preuzmi regiju';
-
-  @override
-  String get downloadNote =>
-      'Napomena: Velike regije ili visoke razine zumiranja mogu zahtijevati značajno vrijeme i prostor za pohranu.';
-
-  @override
-  String get cacheManagement => 'Upravljanje predmemorijom';
-
-  @override
-  String get clearAllMaps => 'Očisti sve karte';
-
-  @override
-  String get clearMapsConfirmTitle => 'Očisti sve karte';
-
-  @override
-  String get clearMapsConfirmMessage =>
-      'Jeste li sigurni da želite izbrisati sve preuzete karte? Ova radnja se ne može poništiti.';
-
-  @override
-  String get mapDownloadCompleted => 'Preuzimanje karte završeno!';
-
-  @override
-  String get cacheClearedSuccessfully => 'Predmemorija uspješno očišćena!';
-
-  @override
-  String get downloadCancelled => 'Preuzimanje otkazano';
-
-  @override
-  String get startingDownload => 'Pokretanje preuzimanja...';
-
-  @override
-  String get downloadingMapTiles => 'Preuzimanje pločica karte...';
-
-  @override
-  String get downloadCompletedSuccessfully => 'Preuzimanje uspješno završeno!';
-
-  @override
-  String get cancellingDownload => 'Otkazivanje preuzimanja...';
-
-  @override
-  String errorLoadingStats(String error) {
-    return 'Greška pri učitavanju statistike: $error';
-  }
-
-  @override
-  String downloadFailed(String error) {
-    return 'Preuzimanje nije uspjelo: $error';
-  }
-
-  @override
-  String cancelFailed(String error) {
-    return 'Otkazivanje nije uspjelo: $error';
-  }
-
-  @override
-  String clearCacheFailed(String error) {
-    return 'Čišćenje predmemorije nije uspjelo: $error';
-  }
-
-  @override
-  String minZoomError(String error) {
-    return 'Min zumiranje: $error';
-  }
-
-  @override
-  String maxZoomError(String error) {
-    return 'Maks zumiranje: $error';
-  }
-
-  @override
-  String get minZoomGreaterThanMax =>
-      'Minimalno zumiranje mora biti manje ili jednako maksimalnom zumiranju';
-
-  @override
   String get selectMapLayer => 'Odaberite sloj karte';
-
-  @override
-  String get mapOptions => 'Opcije karte';
-
-  @override
-  String get showLegend => 'Prikaži legendu';
-
-  @override
-  String get displayMarkerTypeCounts => 'Prikaži broj vrsta markera';
-
-  @override
-  String get rotateMapWithHeading => 'Rotiraj kartu sa smjerom';
-
-  @override
-  String get mapFollowsDirection => 'Karta slijedi vaš smjer pri kretanju';
-
-  @override
-  String get resetMapRotation => 'Resetiraj rotaciju';
-
-  @override
-  String get resetMapRotationTooltip => 'Vrati kartu na sjever';
-
-  @override
-  String get showMapDebugInfo =>
-      'Prikaži informacije za otklanjanje pogrešaka karte';
-
-  @override
-  String get displayZoomLevelBounds => 'Prikaži razinu zumiranja i granice';
-
-  @override
-  String get fullscreenMode => 'Način cijelog zaslona';
-
-  @override
-  String get hideUiFullMapView =>
-      'Sakrij sve UI kontrole za prikaz cijele karte';
 
   @override
   String get openStreetMap => 'OpenStreetMap';
@@ -1030,12 +677,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get googleTerrain => 'Google teren';
 
   @override
-  String get downloadVisibleArea => 'Preuzmi vidljivo područje';
-
-  @override
-  String get initializingMap => 'Inicijalizacija karte...';
-
-  @override
   String get dragToPosition => 'Povuci na poziciju';
 
   @override
@@ -1051,51 +692,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get sarAlert => 'SAR UZBUNA';
 
   @override
-  String get messageSentToPublicChannel => 'Poruka poslana na javni kanal';
-
-  @override
-  String get pleaseSelectRoomToSendSar =>
-      'Molimo odaberite sobu za slanje SAR markera';
-
-  @override
-  String failedToSendSarMarker(String error) {
-    return 'Neuspjelo slanje SAR markera: $error';
-  }
-
-  @override
-  String sarMarkerSentTo(String roomName) {
-    return 'SAR marker poslan u $roomName';
-  }
-
-  @override
-  String get notConnectedCannotSync =>
-      'Nije povezano - ne može se sinkronizirati poruke';
-
-  @override
-  String syncedMessageCount(int count) {
-    return 'Sinkronizirano $count poruka';
-  }
-
-  @override
-  String get noNewMessages => 'Nema novih poruka';
-
-  @override
-  String syncFailed(String error) {
-    return 'Sinkronizacija nije uspjela: $error';
-  }
-
-  @override
-  String get failedToResendMessage => 'Neuspjelo ponovno slanje poruke';
-
-  @override
-  String get retryingMessage => 'Ponovni pokušaj slanja poruke...';
-
-  @override
-  String retryFailed(String error) {
-    return 'Ponovni pokušaj nije uspio: $error';
-  }
-
-  @override
   String get textCopiedToClipboard => 'Tekst kopiran u međuspremnik';
 
   @override
@@ -1105,9 +701,6 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get cannotReplyContactNotFound =>
       'Ne mogu odgovoriti: kontakt nije pronađen';
-
-  @override
-  String get messageDeleted => 'Poruka izbrisana';
 
   @override
   String get copyText => 'Kopiraj tekst';
@@ -1143,12 +736,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get sarLocationShare => 'SAR Lokacija';
-
-  @override
-  String get locationShared => 'Lokacija podijeljena';
-
-  @override
-  String get refreshedContacts => 'Kontakti osvježeni';
 
   @override
   String get justNow => 'Upravo sada';
@@ -1258,78 +845,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get you => 'Ti';
 
   @override
-  String get offlineVectorMaps => 'Offline vektorske karte';
-
-  @override
-  String get offlineVectorMapsDescription =>
-      'Uvezite i upravljajte offline vektorskim pločicama karata (MBTiles format) za upotrebu bez internetske veze';
-
-  @override
-  String get importMbtiles => 'Uvezi MBTiles datoteku';
-
-  @override
-  String get importMbtilesNote =>
-      'Podržava MBTiles datoteke s vektorskim pločicama (PBF/MVT format). Geofabrik izvodi odlično rade!';
-
-  @override
-  String get noMbtilesFiles => 'Nisu pronađene offline vektorske karte';
-
-  @override
-  String get mbtilesImportedSuccessfully => 'MBTiles datoteka uspješno uvezena';
-
-  @override
-  String get failedToImportMbtiles => 'Neuspjeli uvoz MBTiles datoteke';
-
-  @override
-  String get deleteMbtilesConfirmTitle => 'Izbriši offline kartu';
-
-  @override
-  String deleteMbtilesConfirmMessage(String name) {
-    return 'Jeste li sigurni da želite izbrisati \"$name\"? Ovo će trajno ukloniti offline kartu.';
-  }
-
-  @override
-  String get mbtilesDeletedSuccessfully => 'Offline karta uspješno izbrisana';
-
-  @override
-  String get failedToDeleteMbtiles => 'Neuspjelo brisanje offline karte';
-
-  @override
-  String get importExportCachedTiles => 'Uvoz/Izvoz predmemoriranih pločica';
-
-  @override
-  String get importExportDescription =>
-      'Sigurnosno kopirajte, dijelite i vraćajte preuzete pločice karte između uređaja';
-
-  @override
-  String get exportTilesToFile => 'Izvezi pločice u datoteku';
-
-  @override
-  String get importTilesFromFile => 'Uvezi pločice iz datoteke';
-
-  @override
-  String get selectExportLocation => 'Odaberite lokaciju izvoza';
-
-  @override
-  String get selectImportFile => 'Odaberite arhivu pločica';
-
-  @override
-  String get exportingTiles => 'Izvažanje pločica...';
-
-  @override
-  String get importingTiles => 'Uvažanje pločica...';
-
-  @override
-  String exportSuccess(int count) {
-    return 'Uspješno izvezeno $count pločica';
-  }
-
-  @override
-  String importSuccess(int count) {
-    return 'Uspješno uvezeno $count skladišta';
-  }
-
-  @override
   String exportFailed(String error) {
     return 'Izvoz nije uspio: $error';
   }
@@ -1340,38 +855,10 @@ class AppLocalizationsHr extends AppLocalizations {
   }
 
   @override
-  String get exportNote =>
-      'Stvara komprimiranu arhivsku datoteku (.fmtc) koju možete dijeliti i uvesti na drugim uređajima.';
-
-  @override
-  String get importNote =>
-      'Uvozi pločice karte iz prethodno izvezene arhivske datoteke. Pločice će biti spojene s postojećom predmemorijom.';
-
-  @override
-  String get noTilesToExport => 'Nema pločica za izvoz';
-
-  @override
-  String archiveContainsStores(int count) {
-    return 'Arhiva sadrži $count skladišta';
-  }
-
-  @override
-  String get vectorTiles => 'Vektorske pločice';
-
-  @override
-  String get schema => 'Shema';
-
-  @override
   String get unknown => 'Nepoznato';
 
   @override
-  String get bounds => 'Granice';
-
-  @override
   String get onlineLayers => 'Mrežni slojevi';
-
-  @override
-  String get offlineLayers => 'Offline slojevi';
 
   @override
   String get locationTrail => 'Putanja lokacije';
@@ -1410,47 +897,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get trailControls => 'Upravljanje putanjom';
-
-  @override
-  String get exportTrailToGpx => 'Izvezi putanju u GPX';
-
-  @override
-  String get importTrailFromGpx => 'Uvezi putanju iz GPX';
-
-  @override
-  String get trailExportedSuccessfully => 'Putanja uspješno izvezena!';
-
-  @override
-  String get failedToExportTrail => 'Izvoz putanje nije uspio';
-
-  @override
-  String failedToImportTrail(String error) {
-    return 'Uvoz putanje nije uspio: $error';
-  }
-
-  @override
-  String get importTrail => 'Uvezi putanju';
-
-  @override
-  String importTrailQuestion(int pointCount) {
-    return 'Uvezi putanju s $pointCount točaka?\n\nMožete zamijeniti trenutnu putanju ili je prikazati zajedno.';
-  }
-
-  @override
-  String get viewAlongside => 'Prikaži zajedno';
-
-  @override
-  String get replaceCurrent => 'Zamijeni trenutnu';
-
-  @override
-  String trailImported(int pointCount) {
-    return 'Putanja uvezena! ($pointCount točaka)';
-  }
-
-  @override
-  String trailReplaced(int pointCount) {
-    return 'Putanja zamijenjena! ($pointCount točaka)';
-  }
 
   @override
   String get contactTrails => 'Putanje kontakata';
@@ -1724,17 +1170,10 @@ class AppLocalizationsHr extends AppLocalizations {
   String get noRoomsFound => 'Nema soba';
 
   @override
-  String get noContactsOrRoomsAvailable => 'Nema dostupnih kontakata ili soba';
-
-  @override
   String get noRecipientsAvailable => 'Nema dostupnih primatelja';
 
   @override
   String get noChannelsFound => 'Nije pronađen nijedan kanal';
-
-  @override
-  String get messagesWillBeSentToPublicChannel =>
-      'Poruke će biti poslane na javni kanal';
 
   @override
   String get newMessage => 'Nova poruka';
@@ -1916,10 +1355,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get rectangleDrawing => 'Pravokutni crtež';
 
   @override
-  String get coordinatesCopiedToClipboard =>
-      'Koordinate kopirane u međuspremnik';
-
-  @override
   String get manualCoordinates => 'Ručne koordinate';
 
   @override
@@ -1932,35 +1367,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get longitudeLabel => 'Geografska dužina';
 
   @override
-  String get invalidLatitude => 'Nevažeća geografska širina (-90 do 90)';
-
-  @override
-  String get invalidLongitude => 'Nevažeća geografska dužina (-180 do 180)';
-
-  @override
   String get exampleCoordinates => 'Primjer: 46.0569, 14.5058';
-
-  @override
-  String get drawingShared => 'Crtež podijeljen';
-
-  @override
-  String get drawingHidden => 'Crtež sakriven s karte';
-
-  @override
-  String alreadyShared(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count već podijeljeno',
-      one: '1 već podijeljeno',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String newDrawingsShared(int count, String plural) {
-    return 'Podijeljeno $count novi$plural crtež$plural';
-  }
 
   @override
   String get shareDrawing => 'Podijeli crtež';
@@ -2016,12 +1423,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get forestRoads => 'Šumske ceste';
-
-  @override
-  String get showCadastralParcels => 'Prikaži katastarske čestice';
-
-  @override
-  String get showForestRoads => 'Prikaži šumske ceste';
 
   @override
   String get wmsOverlays => 'WMS prekrivanja';
@@ -2127,10 +1528,6 @@ class AppLocalizationsHr extends AppLocalizations {
   }
 
   @override
-  String get allChannelSlotsInUse =>
-      'Svi slotovi kanala su zauzeti (maksimalno 39 prilagođenih kanala)';
-
-  @override
   String get createChannel => 'Kreiraj kanal';
 
   @override
@@ -2169,21 +1566,6 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get wizardConnectingFeature3 =>
       'Radi potpuno izvan mreže — internet nije potreban';
-
-  @override
-  String get wizardSimpleModeTitle => 'Jednostavan način';
-
-  @override
-  String get wizardSimpleModeDescription =>
-      'Prvi put koristite mesh mrežu? Uključite jednostavan način za pojednostavljeno sučelje s osnovnim funkcijama.';
-
-  @override
-  String get wizardSimpleModeFeature1 =>
-      'Sučelje prilagođeno početnicima s osnovnim funkcijama';
-
-  @override
-  String get wizardSimpleModeFeature2 =>
-      'U svakom trenutku prebacite na napredni način u Postavkama';
 
   @override
   String get wizardChannelTitle => 'Kanali';

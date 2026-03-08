@@ -30,9 +30,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get disconnect => 'Déconnecter';
 
   @override
-  String get scanningForDevices => 'Recherche d\'appareils...';
-
-  @override
   String get noDevicesFound => 'Aucun appareil trouvé';
 
   @override
@@ -64,25 +61,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Échec de l\'obtention de la position GPS';
 
   @override
-  String advertisedAtLocation(String latitude, String longitude) {
-    return 'Annoncé à $latitude, $longitude';
-  }
-
-  @override
   String failedToAdvertise(String error) {
     return 'Échec de l\'annonce : $error';
   }
 
   @override
-  String reconnecting(int attempt, int max) {
-    return 'Reconnexion... ($attempt/$max)';
-  }
-
-  @override
   String get cancelReconnection => 'Annuler la reconnexion';
-
-  @override
-  String get mapManagement => 'Gestion des cartes';
 
   @override
   String get general => 'Général';
@@ -131,13 +115,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher les indicateurs d\'activité des paquets dans la barre supérieure';
 
   @override
-  String get simpleMode => 'Mode Simple';
-
-  @override
-  String get simpleModeDescription =>
-      'Masquer les informations non essentielles dans les messages et les contacts';
-
-  @override
   String get disableMap => 'Désactiver la carte';
 
   @override
@@ -149,75 +126,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chooseLanguage => 'Choisir la langue';
-
-  @override
-  String get english => 'Anglais';
-
-  @override
-  String get slovenian => 'Slovène';
-
-  @override
-  String get croatian => 'Croate';
-
-  @override
-  String get german => 'Allemand';
-
-  @override
-  String get spanish => 'Espagnol';
-
-  @override
-  String get french => 'Français';
-
-  @override
-  String get italian => 'Italien';
-
-  @override
-  String get locationBroadcasting => 'Diffusion de position';
-
-  @override
-  String get autoLocationTracking => 'Suivi automatique de position';
-
-  @override
-  String get automaticallyBroadcastPosition =>
-      'Diffuser automatiquement les mises à jour de position';
-
-  @override
-  String get configureTracking => 'Configurer le suivi';
-
-  @override
-  String get distanceAndTimeThresholds => 'Seuils de distance et de temps';
-
-  @override
-  String get locationTrackingConfiguration =>
-      'Configuration du suivi de position';
-
-  @override
-  String get configureWhenLocationBroadcasts =>
-      'Configurer quand les diffusions de position sont envoyées au réseau maillé';
-
-  @override
-  String get minimumDistance => 'Distance minimale';
-
-  @override
-  String broadcastAfterMoving(String distance) {
-    return 'Diffuser uniquement après un déplacement de $distance mètres';
-  }
-
-  @override
-  String get maximumDistance => 'Distance maximale';
-
-  @override
-  String alwaysBroadcastAfterMoving(String distance) {
-    return 'Toujours diffuser après un déplacement de $distance mètres';
-  }
-
-  @override
-  String get minimumTimeInterval => 'Intervalle de temps minimal';
-
-  @override
-  String alwaysBroadcastEvery(String duration) {
-    return 'Toujours diffuser toutes les $duration';
-  }
 
   @override
   String get save => 'Enregistrer';
@@ -253,12 +161,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get moreInfo => 'Plus d\'infos';
-
-  @override
-  String get learnMoreAbout => 'En savoir plus sur MeshCore SAR';
-
-  @override
-  String get developer => 'Développeur';
 
   @override
   String get packageName => 'Nom du package';
@@ -335,9 +237,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get refresh => 'Actualiser';
-
-  @override
-  String get sendDirectMessage => 'Envoyer';
 
   @override
   String get resetPath => 'Réinitialiser le chemin (Re-router)';
@@ -460,21 +359,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String sentDrawingsToRoom(int count, String plural, String roomName) {
-    return '$count dessin$plural de carte envoyé$plural à $roomName';
-  }
-
-  @override
-  String sharedDrawingsToRoom(
-    int success,
-    int total,
-    String plural,
-    String roomName,
-  ) {
-    return '$success/$total dessin$plural partagé$plural avec $roomName';
-  }
-
-  @override
   String get showReceivedDrawings => 'Afficher les dessins reçus';
 
   @override
@@ -496,9 +380,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get clearAll => 'Tout effacer';
 
   @override
-  String get noLocalDrawings => 'Aucun dessin local à partager';
-
-  @override
   String get publicChannel => 'Canal public';
 
   @override
@@ -509,35 +390,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get storedPermanently => 'Stocké de manière permanente dans le salon';
 
   @override
-  String drawingsSentToPublicChannel(int count, String plural) {
-    return '$count dessin$plural de carte envoyé au Canal Public';
-  }
-
-  @override
-  String drawingsSharedToPublicChannel(int success, int total) {
-    return '$success/$total dessins partagés sur le Canal Public';
-  }
-
-  @override
   String get notConnectedToDevice => 'Non connecté à l\'appareil';
-
-  @override
-  String get directMessage => 'Message direct';
-
-  @override
-  String directMessageSentTo(String contactName) {
-    return 'Message direct envoyé à $contactName';
-  }
-
-  @override
-  String failedToSend(String error) {
-    return 'Échec de l\'envoi : $error';
-  }
-
-  @override
-  String directMessageInfo(String contactName) {
-    return 'Ce message sera envoyé directement à $contactName. Il apparaîtra également dans le fil de messages principal.';
-  }
 
   @override
   String get typeYourMessage => 'Saisissez votre message...';
@@ -567,9 +420,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get location => 'Position';
-
-  @override
-  String get myLocation => 'Ma position';
 
   @override
   String get fromMap => 'Depuis la carte';
@@ -634,9 +484,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get flood => 'Inondation';
 
   @override
-  String get admin => 'Admin';
-
-  @override
   String get loggedIn => 'Connecté';
 
   @override
@@ -646,27 +493,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get distance => 'Distance';
 
   @override
-  String pingingDirect(String name) {
-    return 'Ping de $name (direct via chemin)...';
-  }
-
-  @override
-  String pingingFlood(String name) {
-    return 'Ping de $name (inondation - pas de chemin)...';
-  }
-
-  @override
   String directPingTimeout(String name) {
     return 'Délai d\'attente du ping direct - nouvelle tentative de $name avec inondation...';
   }
-
-  @override
-  String pingSuccessful(String name, String fallback) {
-    return 'Ping réussi vers $name$fallback';
-  }
-
-  @override
-  String get viaFloodingFallback => ' (via repli par inondation)';
 
   @override
   String pingFailed(String name) {
@@ -676,16 +505,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String deleteContactConfirmation(String name) {
     return 'Êtes-vous sûr de vouloir supprimer \"$name\" ?\n\nCela supprimera le contact de l\'application et de l\'appareil radio compagnon.';
-  }
-
-  @override
-  String removingContact(String name) {
-    return 'Suppression de $name...';
-  }
-
-  @override
-  String contactRemoved(String name) {
-    return 'Contact \"$name\" supprimé';
   }
 
   @override
@@ -731,11 +550,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get telemetry => 'Télémétrie';
-
-  @override
-  String requestingTelemetry(String name) {
-    return 'Demande de télémétrie à $name...';
-  }
 
   @override
   String get voltage => 'Tension';
@@ -809,9 +623,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get showAll => 'Tout afficher';
 
   @override
-  String get nearbyContacts => 'Contacts à proximité';
-
-  @override
   String get locationUnavailable => 'Position non disponible';
 
   @override
@@ -852,175 +663,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get channels => 'Canaux';
 
   @override
-  String get cacheStatistics => 'Statistiques du cache';
-
-  @override
-  String get totalTiles => 'Total de tuiles';
-
-  @override
-  String get cacheSize => 'Taille du cache';
-
-  @override
-  String get storeName => 'Nom du magasin';
-
-  @override
-  String get noCacheStatistics => 'Aucune statistique de cache disponible';
-
-  @override
-  String get downloadRegion => 'Télécharger une région';
-
-  @override
-  String get mapLayer => 'Couche de carte';
-
-  @override
-  String get regionBounds => 'Limites de la région';
-
-  @override
-  String get north => 'Nord';
-
-  @override
-  String get south => 'Sud';
-
-  @override
-  String get east => 'Est';
-
-  @override
-  String get west => 'Ouest';
-
-  @override
-  String get zoomLevels => 'Niveaux de zoom';
-
-  @override
-  String minZoom(int zoom) {
-    return 'Min : $zoom';
-  }
-
-  @override
-  String maxZoom(int zoom) {
-    return 'Max : $zoom';
-  }
-
-  @override
-  String get downloadingDots => 'Téléchargement...';
-
-  @override
-  String get cancelDownload => 'Annuler le téléchargement';
-
-  @override
-  String get downloadRegionButton => 'Télécharger la région';
-
-  @override
-  String get downloadNote =>
-      'Remarque : Les grandes régions ou les niveaux de zoom élevés peuvent nécessiter beaucoup de temps et d\'espace de stockage.';
-
-  @override
-  String get cacheManagement => 'Gestion du cache';
-
-  @override
-  String get clearAllMaps => 'Effacer toutes les cartes';
-
-  @override
-  String get clearMapsConfirmTitle => 'Effacer toutes les cartes';
-
-  @override
-  String get clearMapsConfirmMessage =>
-      'Êtes-vous sûr de vouloir supprimer toutes les cartes téléchargées ? Cette action ne peut pas être annulée.';
-
-  @override
-  String get mapDownloadCompleted => 'Téléchargement de la carte terminé !';
-
-  @override
-  String get cacheClearedSuccessfully => 'Cache effacé avec succès !';
-
-  @override
-  String get downloadCancelled => 'Téléchargement annulé';
-
-  @override
-  String get startingDownload => 'Démarrage du téléchargement...';
-
-  @override
-  String get downloadingMapTiles => 'Téléchargement des tuiles de carte...';
-
-  @override
-  String get downloadCompletedSuccessfully =>
-      'Téléchargement terminé avec succès !';
-
-  @override
-  String get cancellingDownload => 'Annulation du téléchargement...';
-
-  @override
-  String errorLoadingStats(String error) {
-    return 'Erreur de chargement des statistiques : $error';
-  }
-
-  @override
-  String downloadFailed(String error) {
-    return 'Échec du téléchargement : $error';
-  }
-
-  @override
-  String cancelFailed(String error) {
-    return 'Échec de l\'annulation : $error';
-  }
-
-  @override
-  String clearCacheFailed(String error) {
-    return 'Échec de l\'effacement du cache : $error';
-  }
-
-  @override
-  String minZoomError(String error) {
-    return 'Zoom min : $error';
-  }
-
-  @override
-  String maxZoomError(String error) {
-    return 'Zoom max : $error';
-  }
-
-  @override
-  String get minZoomGreaterThanMax =>
-      'Le zoom minimal doit être inférieur ou égal au zoom maximal';
-
-  @override
   String get selectMapLayer => 'Sélectionner la couche de carte';
-
-  @override
-  String get mapOptions => 'Options de carte';
-
-  @override
-  String get showLegend => 'Afficher la légende';
-
-  @override
-  String get displayMarkerTypeCounts =>
-      'Afficher les décomptes des types de marqueurs';
-
-  @override
-  String get rotateMapWithHeading => 'Faire pivoter la carte avec le cap';
-
-  @override
-  String get mapFollowsDirection =>
-      'La carte suit votre direction lorsque vous vous déplacez';
-
-  @override
-  String get resetMapRotation => 'Réinitialiser la rotation';
-
-  @override
-  String get resetMapRotationTooltip => 'Réinitialiser la carte vers le nord';
-
-  @override
-  String get showMapDebugInfo => 'Afficher les infos de débogage de la carte';
-
-  @override
-  String get displayZoomLevelBounds =>
-      'Afficher le niveau de zoom et les limites';
-
-  @override
-  String get fullscreenMode => 'Mode plein écran';
-
-  @override
-  String get hideUiFullMapView =>
-      'Masquer tous les contrôles d\'interface pour une vue de carte complète';
 
   @override
   String get openStreetMap => 'OpenStreetMap';
@@ -1041,12 +684,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get googleTerrain => 'Google Terrain';
 
   @override
-  String get downloadVisibleArea => 'Télécharger la zone visible';
-
-  @override
-  String get initializingMap => 'Initialisation de la carte...';
-
-  @override
   String get dragToPosition => 'Faire glisser vers la position';
 
   @override
@@ -1062,51 +699,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sarAlert => 'ALERTE SAR';
 
   @override
-  String get messageSentToPublicChannel => 'Message envoyé au canal public';
-
-  @override
-  String get pleaseSelectRoomToSendSar =>
-      'Veuillez sélectionner un salon pour envoyer le marqueur SAR';
-
-  @override
-  String failedToSendSarMarker(String error) {
-    return 'Échec de l\'envoi du marqueur SAR : $error';
-  }
-
-  @override
-  String sarMarkerSentTo(String roomName) {
-    return 'Marqueur SAR envoyé à $roomName';
-  }
-
-  @override
-  String get notConnectedCannotSync =>
-      'Non connecté - impossible de synchroniser les messages';
-
-  @override
-  String syncedMessageCount(int count) {
-    return 'Synchronisé $count message(s)';
-  }
-
-  @override
-  String get noNewMessages => 'Aucun nouveau message';
-
-  @override
-  String syncFailed(String error) {
-    return 'Échec de la synchronisation : $error';
-  }
-
-  @override
-  String get failedToResendMessage => 'Échec du renvoi du message';
-
-  @override
-  String get retryingMessage => 'Nouvelle tentative de message...';
-
-  @override
-  String retryFailed(String error) {
-    return 'Échec de la nouvelle tentative : $error';
-  }
-
-  @override
   String get textCopiedToClipboard => 'Texte copié dans le presse-papiers';
 
   @override
@@ -1116,9 +708,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get cannotReplyContactNotFound =>
       'Impossible de répondre : contact non trouvé';
-
-  @override
-  String get messageDeleted => 'Message supprimé';
 
   @override
   String get copyText => 'Copier le texte';
@@ -1154,12 +743,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sarLocationShare => 'Position SAR';
-
-  @override
-  String get locationShared => 'Position partagée';
-
-  @override
-  String get refreshedContacts => 'Contacts actualisés';
 
   @override
   String get justNow => 'À l\'instant';
@@ -1269,83 +852,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get you => 'Vous';
 
   @override
-  String get offlineVectorMaps => 'Cartes vectorielles hors ligne';
-
-  @override
-  String get offlineVectorMapsDescription =>
-      'Importer et gérer les tuiles de cartes vectorielles hors ligne (format MBTiles) pour une utilisation sans connexion Internet';
-
-  @override
-  String get importMbtiles => 'Importer un fichier MBTiles';
-
-  @override
-  String get importMbtilesNote =>
-      'Prend en charge les fichiers MBTiles avec tuiles vectorielles (format PBF/MVT). Les extraits Geofabrik fonctionnent très bien !';
-
-  @override
-  String get noMbtilesFiles => 'Aucune carte vectorielle hors ligne trouvée';
-
-  @override
-  String get mbtilesImportedSuccessfully =>
-      'Fichier MBTiles importé avec succès';
-
-  @override
-  String get failedToImportMbtiles =>
-      'Échec de l\'importation du fichier MBTiles';
-
-  @override
-  String get deleteMbtilesConfirmTitle => 'Supprimer la carte hors ligne';
-
-  @override
-  String deleteMbtilesConfirmMessage(String name) {
-    return 'Êtes-vous sûr de vouloir supprimer \"$name\" ? Cela supprimera définitivement la carte hors ligne.';
-  }
-
-  @override
-  String get mbtilesDeletedSuccessfully =>
-      'Carte hors ligne supprimée avec succès';
-
-  @override
-  String get failedToDeleteMbtiles =>
-      'Échec de la suppression de la carte hors ligne';
-
-  @override
-  String get importExportCachedTiles => 'Importer/Exporter les tuiles en cache';
-
-  @override
-  String get importExportDescription =>
-      'Sauvegarder, partager et restaurer les tuiles de carte téléchargées entre appareils';
-
-  @override
-  String get exportTilesToFile => 'Exporter les tuiles vers fichier';
-
-  @override
-  String get importTilesFromFile => 'Importer les tuiles depuis fichier';
-
-  @override
-  String get selectExportLocation =>
-      'Sélectionner l\'emplacement d\'exportation';
-
-  @override
-  String get selectImportFile => 'Sélectionner l\'archive de tuiles';
-
-  @override
-  String get exportingTiles => 'Exportation des tuiles...';
-
-  @override
-  String get importingTiles => 'Importation des tuiles...';
-
-  @override
-  String exportSuccess(int count) {
-    return '$count tuiles exportées avec succès';
-  }
-
-  @override
-  String importSuccess(int count) {
-    return '$count magasins importés avec succès';
-  }
-
-  @override
   String exportFailed(String error) {
     return 'Export failed: $error';
   }
@@ -1356,38 +862,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get exportNote =>
-      'Crée un fichier d\'archive compressé (.fmtc) qui peut être partagé et importé sur d\'autres appareils.';
-
-  @override
-  String get importNote =>
-      'Importe les tuiles de carte depuis un fichier d\'archive précédemment exporté. Les tuiles seront fusionnées avec le cache existant.';
-
-  @override
-  String get noTilesToExport => 'Aucune tuile à exporter';
-
-  @override
-  String archiveContainsStores(int count) {
-    return 'L\'archive contient $count magasins';
-  }
-
-  @override
-  String get vectorTiles => 'Tuiles vectorielles';
-
-  @override
-  String get schema => 'Schéma';
-
-  @override
   String get unknown => 'Inconnu';
 
   @override
-  String get bounds => 'Limites';
-
-  @override
   String get onlineLayers => 'Couches en ligne';
-
-  @override
-  String get offlineLayers => 'Couches hors ligne';
 
   @override
   String get locationTrail => 'Trace de déplacement';
@@ -1427,47 +905,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trailControls => 'Contrôles de la trace';
-
-  @override
-  String get exportTrailToGpx => 'Exporter la trace vers GPX';
-
-  @override
-  String get importTrailFromGpx => 'Importer la trace depuis GPX';
-
-  @override
-  String get trailExportedSuccessfully => 'Trace exportée avec succès!';
-
-  @override
-  String get failedToExportTrail => 'Échec de l\'exportation de la trace';
-
-  @override
-  String failedToImportTrail(String error) {
-    return 'Échec de l\'importation de la trace: $error';
-  }
-
-  @override
-  String get importTrail => 'Importer la trace';
-
-  @override
-  String importTrailQuestion(int pointCount) {
-    return 'Importer la trace avec $pointCount points?\n\nVous pouvez remplacer votre trace actuelle ou l\'afficher à côté.';
-  }
-
-  @override
-  String get viewAlongside => 'Afficher à côté';
-
-  @override
-  String get replaceCurrent => 'Remplacer l\'actuel';
-
-  @override
-  String trailImported(int pointCount) {
-    return 'Trace importée! ($pointCount points)';
-  }
-
-  @override
-  String trailReplaced(int pointCount) {
-    return 'Trace remplacée! ($pointCount points)';
-  }
 
   @override
   String get contactTrails => 'Traces des contacts';
@@ -1742,17 +1179,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noRoomsFound => 'Aucune salle trouvée';
 
   @override
-  String get noContactsOrRoomsAvailable => 'Aucun contact ou salle disponible';
-
-  @override
   String get noRecipientsAvailable => 'Aucun destinataire disponible';
 
   @override
   String get noChannelsFound => 'Aucun canal trouvé';
-
-  @override
-  String get messagesWillBeSentToPublicChannel =>
-      'Les messages seront envoyés au canal public';
 
   @override
   String get newMessage => 'Nouveau message';
@@ -1941,10 +1371,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rectangleDrawing => 'Rectangle';
 
   @override
-  String get coordinatesCopiedToClipboard =>
-      'Coordonnées copiées dans le presse-papiers';
-
-  @override
   String get manualCoordinates => 'Coordonnées Manuelles';
 
   @override
@@ -1957,29 +1383,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get longitudeLabel => 'Longitude';
 
   @override
-  String get invalidLatitude => 'Latitude invalide (-90 à 90)';
-
-  @override
-  String get invalidLongitude => 'Longitude invalide (-180 à 180)';
-
-  @override
   String get exampleCoordinates => 'Exemple: 46.0569, 14.5058';
-
-  @override
-  String get drawingShared => 'Dessin de Carte';
-
-  @override
-  String get drawingHidden => 'Dessin masqué de la carte';
-
-  @override
-  String alreadyShared(int count) {
-    return '$count déjà partagé';
-  }
-
-  @override
-  String newDrawingsShared(int count, String plural) {
-    return '$count nouveau(x) dessin(s) partagé(s)';
-  }
 
   @override
   String get shareDrawing => 'Partager le Dessin';
@@ -2036,12 +1440,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get forestRoads => 'Chemins Forestiers';
-
-  @override
-  String get showCadastralParcels => 'Afficher les parcelles cadastrales';
-
-  @override
-  String get showForestRoads => 'Afficher les chemins forestiers';
 
   @override
   String get wmsOverlays => 'Superpositions WMS';
@@ -2149,10 +1547,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get allChannelSlotsInUse =>
-      'Tous les emplacements de canaux sont utilisés (maximum 39 canaux personnalisés)';
-
-  @override
   String get createChannel => 'Créer un Canal';
 
   @override
@@ -2192,21 +1586,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get wizardConnectingFeature3 =>
       'Fonctionne entièrement hors ligne - aucun internet requis';
-
-  @override
-  String get wizardSimpleModeTitle => 'Mode Simple';
-
-  @override
-  String get wizardSimpleModeDescription =>
-      'Nouveau dans les réseaux maillés ? Activez le mode simple pour une interface simplifiée avec seulement les fonctions essentielles.';
-
-  @override
-  String get wizardSimpleModeFeature1 =>
-      'Interface conviviale pour débutants avec les fonctions principales';
-
-  @override
-  String get wizardSimpleModeFeature2 =>
-      'Passer en mode avancé à tout moment dans les paramètres';
 
   @override
   String get wizardChannelTitle => 'Canaux';

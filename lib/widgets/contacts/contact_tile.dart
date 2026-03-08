@@ -76,31 +76,6 @@ class ContactTile extends StatelessWidget {
     final roomLoginState = contact.type == ContactType.room
         ? connectionProvider.getRoomLoginState(contact.publicKeyPrefix)
         : null;
-    final trailing = contact.isChannel && !contact.isPublicChannel
-        ? PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value == 'delete') {
-                _showDeleteChannelDialog(context, contact);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    const Icon(Icons.delete, color: Colors.red, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      AppLocalizations.of(context)!.deleteChannel,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          )
-        : null;
     void handleTap() => _handlePrimaryTap(context, contact);
 
     final onLongPress = isPingInProgress
@@ -285,10 +260,6 @@ class ContactTile extends StatelessWidget {
                               ),
                             ),
                           ],
-                          if (trailing != null) ...[
-                            const SizedBox(width: 2),
-                            trailing,
-                          ],
                         ],
                       ),
                       subtitleWidget,
@@ -304,7 +275,7 @@ class ContactTile extends StatelessWidget {
   }
 
   void _handlePrimaryTap(BuildContext context, Contact contact) {
-    if (contact.isChannel) {
+    if (contact.type == ContactType.repeater) {
       _showContactDetails(context, contact);
       return;
     }
@@ -315,6 +286,10 @@ class ContactTile extends StatelessWidget {
   void _showContactActionSheet(BuildContext context, Contact contact) {
     final l10n = AppLocalizations.of(context)!;
     final canMessage =
+        contact.type == ContactType.chat ||
+        contact.type == ContactType.room ||
+        contact.type == ContactType.channel;
+    final canSetPath =
         contact.type == ContactType.chat || contact.type == ContactType.room;
 
     showModalBottomSheet(
@@ -337,23 +312,28 @@ class ContactTile extends StatelessWidget {
                       await _openMessagesForContact(context, contact);
                     },
             ),
-            ListTile(
-              leading: const Icon(Icons.alt_route),
-              title: const Text('Set path'),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _showSetRouteDialog(context, contact);
-              },
-            ),
+            if (canSetPath)
+              ListTile(
+                leading: const Icon(Icons.alt_route),
+                title: const Text('Set path'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showSetRouteDialog(context, contact);
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
               title: Text(
-                l10n.deleteContact,
+                contact.isChannel ? l10n.deleteChannel : l10n.deleteContact,
                 style: const TextStyle(color: Colors.red),
               ),
               onTap: () {
                 Navigator.pop(sheetContext);
-                _showDeleteConfirmation(context, contact);
+                if (contact.isChannel) {
+                  _showDeleteChannelDialog(context, contact);
+                } else {
+                  _showDeleteConfirmation(context, contact);
+                }
               },
             ),
           ],
@@ -367,7 +347,9 @@ class ContactTile extends StatelessWidget {
     Contact contact,
   ) async {
     final messagesProvider = context.read<MessagesProvider>();
-    final destinationType = contact.type == ContactType.room
+    final destinationType = contact.type == ContactType.channel
+        ? MessageDestinationPreferences.destinationTypeChannel
+        : contact.type == ContactType.room
         ? MessageDestinationPreferences.destinationTypeRoom
         : MessageDestinationPreferences.destinationTypeContact;
 
@@ -903,11 +885,23 @@ class ContactTile extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          onPressed: () =>
-                              _showDeleteConfirmation(context, contact),
+                          onPressed: () {
+                            if (contact.isChannel) {
+                              _showDeleteChannelDialog(
+                                context,
+                                contact,
+                                closeDetailsSheetOnDelete: true,
+                              );
+                              return;
+                            }
+
+                            _showDeleteConfirmation(context, contact);
+                          },
                           icon: const Icon(Icons.delete_outline),
                           label: Text(
-                            AppLocalizations.of(context)!.deleteContact,
+                            contact.isChannel
+                                ? AppLocalizations.of(context)!.deleteChannel
+                                : AppLocalizations.of(context)!.deleteContact,
                           ),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1257,7 +1251,11 @@ class ContactTile extends StatelessWidget {
   }
 
   /// Show delete channel confirmation dialog
-  void _showDeleteChannelDialog(BuildContext context, Contact contact) {
+  void _showDeleteChannelDialog(
+    BuildContext context,
+    Contact contact, {
+    bool closeDetailsSheetOnDelete = false,
+  }) {
     final l10n = AppLocalizations.of(context)!;
 
     showDialog(
@@ -1273,6 +1271,9 @@ class ContactTile extends StatelessWidget {
           TextButton(
             onPressed: () async {
               Navigator.of(dialogContext).pop();
+              if (closeDetailsSheetOnDelete) {
+                Navigator.of(context).pop();
+              }
 
               try {
                 // Extract channel index from pseudo public key

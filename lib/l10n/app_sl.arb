@@ -1,679 +1,229 @@
 {
   "@@locale": "sl",
-
   "appTitle": "MeshCore SAR",
-
   "messages": "Sporočila",
-
   "contacts": "Stiki",
-
   "map": "Zemljevid",
-
   "settings": "Nastavitve",
-
   "connect": "Poveži",
-
   "disconnect": "Prekini",
-
-  "scanningForDevices": "Iskanje naprav...",
-
   "noDevicesFound": "Ni najdenih naprav",
-
   "scanAgain": "Ponovi iskanje",
-
   "tapToConnect": "Tapnite za povezavo",
-
   "deviceNotConnected": "Naprava ni povezana",
-
   "locationPermissionDenied": "Dovoljenje za lokacijo zavrnjeno",
-
   "locationPermissionPermanentlyDenied": "Dovoljenje za lokacijo trajno zavrnjeno. Prosimo, omogočite v Nastavitvah.",
-
   "locationPermissionRequired": "Dovoljenje za lokacijo je potrebno za GPS sledenje in usklajevanje ekipe. Lahko ga omogočite kasneje v Nastavitvah.",
-
   "locationServicesDisabled": "Lokacijske storitve so onemogočene. Prosimo, omogočite jih v Nastavitvah.",
-
   "failedToGetGpsLocation": "Pridobitev GPS lokacije ni uspela",
-
-  "advertisedAtLocation": "Objavljeno na {latitude}, {longitude}",
-
   "failedToAdvertise": "Objava ni uspela: {error}",
-
-  "reconnecting": "Ponovno povezovanje... ({attempt}/{max})",
-
   "cancelReconnection": "Prekliči ponovno povezovanje",
-
-  "mapManagement": "Upravljanje zemljevida",
-
   "general": "Splošno",
-
   "theme": "Tema",
-
   "chooseTheme": "Izberite temo",
-
   "light": "Svetla",
-
   "dark": "Temna",
-
   "blueLightTheme": "Modra svetla tema",
-
   "blueDarkTheme": "Modra temna tema",
-
   "sarRed": "SAR rdeča",
-
   "alertEmergencyMode": "Način opozorila/nujni primer",
-
   "sarGreen": "SAR zelena",
-
   "safeAllClearMode": "Način varno/vse jasno",
-
   "autoSystem": "Samodejno (Sistem)",
-
   "followSystemTheme": "Sledi sistemski temi",
-
   "showRxTxIndicators": "Prikaži RX/TX kazalnike",
-
   "displayPacketActivity": "Prikaži kazalnike aktivnosti paketov v zgornji vrstici",
-
-  "simpleMode": "Preprost način",
-
-  "simpleModeDescription": "Skrij nepomembne informacije v sporočilih in kontaktih",
-
   "disableMap": "Onemogoči zemljevid",
-
   "disableMapDescription": "Skrij zavihek z zemljevidom za varčevanje z baterijo",
-
   "language": "Jezik",
-
   "chooseLanguage": "Izberite jezik",
-
-  "english": "Angleščina",
-
-  "slovenian": "Slovenščina",
-
-  "croatian": "Hrvaščina",
-
-  "german": "Nemščina",
-
-  "spanish": "Španščina",
-
-  "french": "Francoščina",
-
-  "italian": "Italijanščina",
-
-  "locationBroadcasting": "Oddajanje lokacije",
-
-  "autoLocationTracking": "Samodejno sledenje lokaciji",
-
-  "automaticallyBroadcastPosition": "Samodejno oddajaj posodobitve položaja",
-
-  "configureTracking": "Konfiguriraj sledenje",
-
-  "distanceAndTimeThresholds": "Pragovi razdalje in časa",
-
-  "locationTrackingConfiguration": "Konfiguracija sledenja lokaciji",
-
-  "configureWhenLocationBroadcasts": "Konfigurirajte, kdaj se oddajanja lokacije pošiljajo v omrežje mesh",
-
-  "minimumDistance": "Minimalna razdalja",
-
-  "broadcastAfterMoving": "Oddajaj šele po premiku {distance} metrov",
-
-  "maximumDistance": "Maksimalna razdalja",
-
-  "alwaysBroadcastAfterMoving": "Vedno oddajaj po premiku {distance} metrov",
-
-  "minimumTimeInterval": "Minimalni časovni interval",
-
-  "alwaysBroadcastEvery": "Vedno oddajaj vsakih {duration}",
-
   "save": "Shrani",
-
   "cancel": "Prekliči",
-
   "close": "Zapri",
-
   "about": "O aplikaciji",
-
   "appVersion": "Različica aplikacije",
-
   "appName": "Ime aplikacije",
-
   "aboutMeshCoreSar": "O MeshCore SAR",
-
   "aboutDescription": "Aplikacija za iskanje in reševanje, zasnovana za ekipe za odzivanje v nujnih primerih. Funkcije vključujejo:\n\n• BLE mesh omrežje za komunikacijo naprava-naprava\n• Brez povezave delujejo zemljevidi z več sloji\n• Sledenje članov ekipe v realnem času\n• SAR taktični označevalci (najdena oseba, ogenj, zbirališče)\n• Upravljanje stikov in sporočanje\n• GPS sledenje s kompasno smerjo\n• Predpomnenje ploščic zemljevida za uporabo brez povezave",
-
   "technologiesUsed": "Uporabljene tehnologije:",
-
   "technologiesList": "• Flutter za večplatformni razvoj\n• BLE (Bluetooth Low Energy) za mesh omrežje\n• OpenStreetMap za kartografijo\n• Provider za upravljanje stanja\n• SharedPreferences za lokalno shranjevanje",
-
   "moreInfo": "Več informacij",
-
-  "learnMoreAbout": "Več o MeshCore SAR",
-
-  "developer": "Razvijalec",
-
   "packageName": "Ime paketa",
-
   "sampleData": "Vzorčni podatki",
-
   "sampleDataDescription": "Naložite ali počistite vzorčne stike, sporočila kanalov in SAR označevalce za testiranje",
-
   "loadSampleData": "Naloži vzorec",
-
   "clearAllData": "Počisti vse podatke",
-
   "clearAllDataConfirmTitle": "Počisti vse podatke",
-
   "clearAllDataConfirmMessage": "To bo počistilo vse stike in SAR označevalce. Ste prepričani?",
-
   "clear": "Počisti",
-
   "loadedSampleData": "Naloženih {teamCount} članov ekipe, {channelCount} kanalov, {sarCount} SAR označevalcev, {messageCount} sporočil",
-
   "failedToLoadSampleData": "Nalaganje vzorčnih podatkov ni uspelo: {error}",
-
   "allDataCleared": "Vsi podatki počiščeni",
-
   "failedToStartBackgroundTracking": "Zagon sledenja v ozadju ni uspel. Preverite dovoljenja in BLE povezavo.",
-
   "locationBroadcast": "Oddajanje lokacije: {latitude}, {longitude}",
-
   "defaultPinInfo": "Privzeta PIN koda za naprave brez zaslona je 123456. Težave s seznanitvijo? Pozabite napravo Bluetooth v sistemskih nastavitvah.",
-
   "noMessagesYet": "Še ni sporočil",
-
   "pullDownToSync": "Potegnite navzdol za sinhronizacijo",
-
   "deleteContact": "Izbriši stik",
-
   "delete": "Izbriši",
-
-  
-
   "viewOnMap": "Poglej na zemljevidu",
-
   "refresh": "Osveži",
-
-  "sendDirectMessage": "Pošlji",
-
   "resetPath": "Ponastavi pot (preusmeri)",
-
   "publicKeyCopied": "Javni ključ kopiran v odložišče",
-
   "copiedToClipboard": "{label} kopirano v odložišče",
-
   "pleaseEnterPassword": "Prosimo, vnesite geslo",
-
   "failedToSyncContacts": "Sinhronizacija stikov ni uspela: {error}",
-
   "loggedInSuccessfully": "Uspešno prijavljen! Čakanje na sporočila sobe...",
-
   "loginFailed": "Prijava ni uspela - nepravilno geslo",
-
   "loggingIn": "Prijavljanje v {roomName}...",
-
   "failedToSendLogin": "Pošiljanje prijave ni uspelo: {error}",
-
   "lowLocationAccuracy": "Nizka natančnost lokacije",
-
   "continue_": "Nadaljuj",
-
   "sendSarMarker": "Pošlji SAR označevalec",
-
   "deleteDrawing": "Izbriši risbo",
-
   "drawingTools": "Orodja za risanje",
-
   "drawLine": "Nariši črto",
-
   "drawLineDesc": "Nariši prosto črto na zemljevidu",
-
   "drawRectangle": "Nariši pravokotnik",
-
   "drawRectangleDesc": "Nariši pravokotno področje na zemljevidu",
-
   "measureDistance": "Meri razdaljo",
-
   "measureDistanceDesc": "Dolg pritisk na dve točki za merjenje",
-
   "clearMeasurement": "Počisti meritev",
-
   "distanceLabel": "Razdalja: {distance}",
-
   "longPressForSecondPoint": "Dolg pritisk za drugo točko",
-
   "longPressToStartMeasurement": "Dolg pritisk za prvo točko",
-
   "longPressToStartNewMeasurement": "Dolg pritisk za novo meritev",
-
   "shareDrawings": "Deli risbe",
-
   "clearAllDrawings": "Počisti vse risbe",
-
   "completeLine": "Dokonč črto",
-
   "broadcastDrawingsToTeam": "Oddaj {count} risb{plural} ekipi",
-
   "removeAllDrawings": "Odstrani vseh {count} risb{plural}",
-
   "deleteAllDrawingsConfirm": "Izbriši vseh {count} risb{plural} z zemljevida?",
-
   "drawing": "Risanje",
-
   "shareDrawingsCount": "Deli {count} risb{plural}",
-
-  "sentDrawingsToRoom": "Poslanih {count} risb{plural} karte v {roomName}",
-
-  "sharedDrawingsToRoom": "Deljeno {success}/{total} risb{plural} v {roomName}",
-
   "showReceivedDrawings": "Prikaži prejete risbe",
-
   "showingAllDrawings": "Prikazujem vse risbe",
-
   "showingOnlyYourDrawings": "Prikazujem samo vaše risbe",
-
   "showSarMarkers": "Prikaži SAR označevalce",
-
   "showingSarMarkers": "Prikazujem SAR označevalce",
-
   "hidingSarMarkers": "Skrivam SAR označevalce",
-
   "clearAll": "Počisti vse",
-
-  "noLocalDrawings": "Ni lokalnih risb za deljenje",
-
   "publicChannel": "Javni kanal",
-
   "broadcastToAll": "Oddajaj vsem bližnjim vozliščem (začasno)",
-
   "storedPermanently": "Trajno shranjeno v sobi",
-
-  "drawingsSentToPublicChannel": "Poslano {count} risb{plural} na javni kanal",
-
-  "drawingsSharedToPublicChannel": "Deljeno {success}/{total} risb na javni kanal",
-
   "notConnectedToDevice": "Ni povezano z napravo",
-
-  "directMessage": "Neposredno sporočilo",
-
-  "directMessageSentTo": "Neposredno sporočilo poslano {contactName}",
-
-  "failedToSend": "Pošiljanje ni uspelo: {error}",
-
-  "directMessageInfo": "To sporočilo bo poslano neposredno {contactName}. Prikazalo se bo tudi v glavnem viru sporočil.",
-
   "typeYourMessage": "Vnesite svoje sporočilo...",
-
   "quickLocationMarker": "Hitri označevalec lokacije",
-
   "markerType": "Vrsta označevalca",
-
   "sendTo": "Pošlji na",
-
   "noDestinationsAvailable": "Ni dostopnih ciljev.",
-
   "selectDestination": "Izberite cilj...",
-
   "ephemeralBroadcastInfo": "Začasno: Samo oddajanje. Ni shranjeno - vozlišča morajo biti povezana.",
-
   "persistentRoomInfo": "Trajno: Nespremenljivo shranjeno v sobi. Samodejno sinhronizirano in ohranjeno brez povezave.",
-
   "location": "Lokacija",
-
-  "myLocation": "Moja lokacija",
-
   "fromMap": "Z zemljevida",
-
   "gettingLocation": "Pridobivanje lokacije...",
-
   "locationError": "Napaka lokacije",
-
   "retry": "Poskusi znova",
-
   "refreshLocation": "Osveži lokacijo",
-
   "accuracyMeters": "Natančnost: ±{accuracy}m",
-
   "notesOptional": "Opombe (neobvezno)",
-
   "addAdditionalInformation": "Dodajte dodatne informacije...",
-
   "lowAccuracyWarning": "Natančnost lokacije je ±{accuracy}m. To morda ni dovolj natančno za SAR operacije.\n\nVseeno nadaljuj?",
-
   "loginToRoom": "Prijava v sobo",
-
   "enterPasswordInfo": "Vnesite geslo za dostop do te sobe. Geslo bo shranjeno za prihodnjo uporabo.",
-
   "password": "Geslo",
-
   "enterRoomPassword": "Vnesite geslo sobe",
-
   "loggingInDots": "Prijavljanje...",
-
   "login": "Prijava",
-
   "failedToAddRoom": "Dodajanje sobe v napravo ni uspelo: {error}\n\nSoba morda še ni oglašena.\nPoskusite počakati, da soba odda.",
-
   "direct": "Neposredno",
-
   "flood": "Razpršitev",
-
-  "admin": "Administrator",
-
   "loggedIn": "Prijavljen",
-
   "noGpsData": "Ni GPS podatkov",
-
-  
-
-  "pingingDirect": "Pinganje {name} (neposredno preko poti)...",
-
-  "pingingFlood": "Pinganje {name} (razpršitev - brez poti)...",
-
   "directPingTimeout": "Časovna omejitev neposrednega pinga - ponovni poskus {name} z razprševanjem...",
-
-  "pingSuccessful": "Ping uspešen do {name}{fallback}",
-
-  "viaFloodingFallback": " (preko rezervnega razprševanja)",
-
   "pingFailed": "Ping neuspešen do {name} - odgovor ni prejet",
-
   "deleteContactConfirmation": "Ste prepričani, da želite izbrisati \"{name}\"?\n\nTo bo odstranilo stik iz aplikacije in spremljevalne radijske naprave.",
-
-  "removingContact": "Odstranjevanje {name}...",
-
-  "contactRemoved": "Stik \"{name}\" odstranjen",
-
   "failedToRemoveContact": "Odstranjevanje stika ni uspelo: {error}",
-
   "type": "Vrsta",
-
   "publicKey": "Javni ključ",
-
   "lastSeen": "Nazadnje viden",
-
   "roomStatus": "Status sobe",
-
   "loginStatus": "Status prijave",
-
   "notLoggedIn": "Ni prijavljen",
-
   "adminAccess": "Administratorski dostop",
-
   "yes": "Da",
-
   "no": "Ne",
-
   "permissions": "Dovoljenja",
-
   "passwordSaved": "Geslo shranjeno",
-
   "locationColon": "Lokacija:",
-
   "telemetry": "Telemetrija",
-
-  "requestingTelemetry": "Zahtevanje telemetrije od {name}...",
-
   "voltage": "Napetost",
-
   "battery": "Baterija",
-
   "temperature": "Temperatura",
-
   "humidity": "Vlažnost",
-
   "pressure": "Tlak",
-
   "gpsTelemetry": "GPS (Telemetrija)",
-
   "updated": "Posodobljeno",
-
   "pathResetInfo": "Pot ponastavljena za {name}. Naslednje sporočilo bo našlo novo pot.",
-
   "reLoginToRoom": "Ponovna prijava v sobo",
-
   "heading": "Smer",
-
   "elevation": "Nadmorska višina",
-
   "accuracy": "Natančnost",
-
   "distance": "Razdalja",
-
-  
-
   "bearing": "Azimut",
-
   "direction": "Smer",
-
   "filterMarkers": "Filtriraj označevalce",
-
   "filterMarkersTooltip": "Filtriraj označevalce",
-
   "contactsFilter": "Stiki",
-
   "repeatersFilter": "Ponavljalniki",
-
   "sarMarkers": "SAR označevalci",
-
   "foundPerson": "Najdena oseba",
-
   "fire": "Ogenj",
-
   "stagingArea": "Zbirališče",
-
   "showAll": "Prikaži vse",
-
-  "nearbyContacts": "Bližnji stiki",
-
   "locationUnavailable": "Lokacija ni na voljo",
-
   "ahead": "naravnost",
-
   "degreesRight": "{degrees}° desno",
-
   "degreesLeft": "{degrees}° levo",
-
   "latLonFormat": "Šir: {latitude} Dolž: {longitude}",
-
   "noContactsYet": "Še ni stikov",
-
   "connectToDeviceToLoadContacts": "Povežite se z napravo za nalaganje stikov",
-
   "teamMembers": "Člani ekipe",
-
   "repeaters": "Ponavljalniki",
-
   "rooms": "Sobe",
-
   "channels": "Kanali",
-
-  "cacheStatistics": "Statistika predpomnilnika",
-
-  "totalTiles": "Skupaj ploščic",
-
-  "cacheSize": "Velikost predpomnilnika",
-
-  "storeName": "Ime skladišča",
-
-  "noCacheStatistics": "Statistika predpomnilnika ni na voljo",
-
-  "downloadRegion": "Prenesi regijo",
-
-  "mapLayer": "Sloj zemljevida",
-
-  "regionBounds": "Meje regije",
-
-  "north": "Sever",
-
-  "south": "Jug",
-
-  "east": "Vzhod",
-
-  "west": "Zahod",
-
-  "zoomLevels": "Nivoji povečave",
-
-  "minZoom": "Min: {zoom}",
-
-  "maxZoom": "Maks: {zoom}",
-
-  "downloadingDots": "Prenašanje...",
-
-  "cancelDownload": "Prekliči prenos",
-
-  "downloadRegionButton": "Prenesi regijo",
-
-  "downloadNote": "Opomba: Velike regije ali visoki nivoji povečave lahko zahtevajo veliko časa in prostora za shranjevanje.",
-
-  "cacheManagement": "Upravljanje predpomnilnika",
-
-  "clearAllMaps": "Počisti vse zemljevide",
-
-  "clearMapsConfirmTitle": "Počisti vse zemljevide",
-
-  "clearMapsConfirmMessage": "Ste prepričani, da želite izbrisati vse prenesene zemljevide? Tega dejanja ni mogoče razveljaviti.",
-
-  "mapDownloadCompleted": "Prenos zemljevida končan!",
-
-  "cacheClearedSuccessfully": "Predpomnilnik uspešno počiščen!",
-
-  "downloadCancelled": "Prenos preklican",
-
-  "startingDownload": "Začetek prenosa...",
-
-  "downloadingMapTiles": "Prenašanje ploščic zemljevida...",
-
-  "downloadCompletedSuccessfully": "Prenos uspešno končan!",
-
-  "cancellingDownload": "Preklic prenosa...",
-
-  "errorLoadingStats": "Napaka pri nalaganju statistike: {error}",
-
-  "downloadFailed": "Prenos ni uspel: {error}",
-
-  "cancelFailed": "Preklic ni uspel: {error}",
-
-  "clearCacheFailed": "Čiščenje predpomnilnika ni uspelo: {error}",
-
-  "minZoomError": "Min povečava: {error}",
-
-  "maxZoomError": "Maks povečava: {error}",
-
-  "minZoomGreaterThanMax": "Minimalna povečava mora biti manjša ali enaka maksimalni povečavi",
-
   "selectMapLayer": "Izberite sloj zemljevida",
-
-  "mapOptions": "Možnosti zemljevida",
-
-  "showLegend": "Prikaži legendo",
-
-  "displayMarkerTypeCounts": "Prikaži število vrst označevalcev",
-
-  "rotateMapWithHeading": "Rotiraj zemljevid s smerjo",
-
-  "mapFollowsDirection": "Zemljevid sledi vaši smeri pri gibanju",
-
-  "resetMapRotation": "Ponastavi rotacijo",
-
-  "resetMapRotationTooltip": "Ponastavi zemljevid na sever",
-
-  "showMapDebugInfo": "Prikaži informacije za razhroščevanje zemljevida",
-
-  "displayZoomLevelBounds": "Prikaži nivo povečave in meje",
-
-  "fullscreenMode": "Način celozaslonskega prikaza",
-
-  "hideUiFullMapView": "Skrij vse UI kontrole za poln prikaz zemljevida",
-
   "openStreetMap": "OpenStreetMap",
-
   "openTopoMap": "OpenTopoMap",
-
   "esriSatellite": "ESRI satelit",
-
   "googleHybrid": "Google hibridni zemljevid",
-
   "googleRoadmap": "Google cestni zemljevid",
-
   "googleTerrain": "Google teren",
-
-  "downloadVisibleArea": "Prenesi vidno območje",
-
-  "initializingMap": "Inicializacija zemljevida...",
-
   "dragToPosition": "Povleci na položaj",
-
   "createSarMarker": "Ustvari SAR označevalec",
-
   "compass": "Kompas",
-
   "navigationAndContacts": "Navigacija in stiki",
-
   "sarAlert": "SAR ALARM",
-
   "justNow": "Pravkar",
-
   "minutesAgo": "pred {minutes}m",
-
   "hoursAgo": "pred {hours}h",
-
   "daysAgo": "pred {days}d",
-
   "secondsAgo": "pred {seconds}s",
-
   "sending": "Pošiljanje...",
-
   "sent": "Poslano",
-
   "delivered": "Dostavljeno",
-
   "deliveredWithTime": "Dostavljeno ({time}ms)",
-
   "failed": "Neuspešno",
-
   "broadcast": "Oddajano",
-
   "deliveredToContacts": "Dostavljeno {delivered}/{total} stikom",
-
   "allDelivered": "Vse dostavljeno",
-
   "recipientDetails": "Podrobnosti prejemnikov",
-
   "pending": "V čakanju",
-
-  "messageSentToPublicChannel": "Sporočilo poslano na javni kanal",
-
-  "pleaseSelectRoomToSendSar": "Prosimo, izberite sobo za pošiljanje SAR označevalca",
-
-  "failedToSendSarMarker": "Pošiljanje SAR označevalca ni uspelo: {error}",
-
-  "sarMarkerSentTo": "SAR označevalec poslan v {roomName}",
-
-  "notConnectedCannotSync": "Ni povezano - sporočil ni mogoče sinhronizirati",
-
-  "syncedMessageCount": "Sinhronizirano {count} sporočil",
-
-  "noNewMessages": "Ni novih sporočil",
-
-  "syncFailed": "Sinhronizacija ni uspela: {error}",
-
-  "failedToResendMessage": "Ponovno pošiljanje sporočila ni uspelo",
-
-  "retryingMessage": "Ponovni poskus pošiljanja sporočila...",
-
-  "retryFailed": "Ponovni poskus ni uspel: {error}",
-
   "textCopiedToClipboard": "Besedilo kopirano v odložišče",
-
   "cannotReplySenderMissing": "Ni mogoče odgovoriti: informacije o pošiljatelju manjkajo",
-
   "cannotReplyContactNotFound": "Ni mogoče odgovoriti: stik ni najden",
-
-  "messageDeleted": "Sporočilo izbrisano",
   "copyText": "Kopiraj besedilo",
-  "textCopiedToClipboard": "Besedilo kopirano v odložišče",
   "saveAsTemplate": "Shrani kot predlogo",
   "templateSaved": "Predloga uspešno shranjena",
   "templateAlreadyExists": "Predloga s tem emojijem že obstaja",
@@ -682,24 +232,13 @@
   "shareLocation": "Deli lokacijo",
   "shareLocationText": "{markerInfo}\n\nKoordinate: {lat}, {lon}\n\nGoogle Maps: {url}",
   "sarLocationShare": "SAR Lokacija",
-  "locationShared": "Lokacija deljena",
-
-  "refreshedContacts": "Stiki osveženi",
-
   "sarMarkerFoundPerson": "Najdena oseba",
-
   "sarMarkerFire": "Lokacija ognja",
-
   "sarMarkerStagingArea": "Zbirališče",
-
   "sarMarkerObject": "Najden predmet",
-
   "from": "Od",
-
   "coordinates": "Koordinate",
-
   "tapToViewOnMap": "Tapnite za prikaz na zemljevidu",
-
   "radioSettings": "Nastavitve radia",
   "frequencyMHz": "Frekvenca (MHz)",
   "frequencyExample": "npr. 869.618",
@@ -708,181 +247,53 @@
   "codingRate": "Razmerje kodiranja",
   "txPowerDbm": "Izhodna moč (dBm)",
   "maxPowerDbm": "Največ: {power} dBm",
-
   "you": "Ti",
-
-  "offlineVectorMaps": "Brezpovezni vektorski zemljevidi",
-
-  "offlineVectorMapsDescription": "Uvozite in upravljajte brezpovezne vektorske ploščice zemljevidov (format MBTiles) za uporabo brez internetne povezave",
-
-  "importMbtiles": "Uvozi MBTiles datoteko",
-
-  "importMbtilesNote": "Podpira MBTiles datoteke z vektorskimi ploščicami (format PBF/MVT). Geofabrik izvozi odlično delujejo!",
-
-  "noMbtilesFiles": "Ni najdenih brezpoveznih vektorskih zemljevidov",
-
-  "mbtilesImportedSuccessfully": "MBTiles datoteka uspešno uvožena",
-
-  "failedToImportMbtiles": "Uvoz MBTiles datoteke ni uspel",
-
-  "deleteMbtilesConfirmTitle": "Izbriši brezpovezni zemljevid",
-
-  "deleteMbtilesConfirmMessage": "Ste prepričani, da želite izbrisati \"{name}\"? To bo trajno odstranilo brezpovezni zemljevid.",
-
-  "mbtilesDeletedSuccessfully": "Brezpovezni zemljevid uspešno izbrisan",
-
-  "failedToDeleteMbtiles": "Brisanje brezpoveznega zemljevida ni uspelo",
-
-  "importExportCachedTiles": "Uvoz/Izvoz predpomnjenih ploščic",
-
-  "importExportDescription": "Varnostno kopirajte, delite in obnovite prenesene ploščice zemljevida med napravami",
-
-  "exportTilesToFile": "Izvozi ploščice v datoteko",
-
-  "importTilesFromFile": "Uvozi ploščice iz datoteke",
-
-  "selectExportLocation": "Izberi lokacijo izvoza",
-
-  "selectImportFile": "Izberi arhiv ploščic",
-
-  "exportingTiles": "Izvažanje ploščic...",
-
-  "importingTiles": "Uvažanje ploščic...",
-
-  "exportSuccess": "Uspešno izvoženih {count} ploščic",
-
-  "importSuccess": "Uspešno uvoženih {count} skladišč",
-
   "exportFailed": "Izvoz ni uspel: {error}",
-
   "importFailed": "Uvoz ni uspel: {error}",
-
-  "exportNote": "Ustvari stisnjeno arhivsko datoteko (.fmtc), ki jo lahko delite in uvozite na drugih napravah.",
-
-  "importNote": "Uvozi ploščice zemljevida iz predhodno izvožene arhivske datoteke. Ploščice bodo združene z obstoječim predpomnilnikom.",
-
-  "noTilesToExport": "Ni ploščic za izvoz",
-
-  "archiveContainsStores": "Arhiv vsebuje {count} skladišč",
-
-  "vectorTiles": "Vektorske ploščice",
-
-  "schema": "Shema",
-
   "unknown": "Neznano",
-
-  "bounds": "Meje",
-
   "onlineLayers": "Spletne plasti",
-
-  "offlineLayers": "Brezpovezne plasti",
-
   "locationTrail": "Sledilna pot",
-
   "showTrailOnMap": "Prikaži pot na zemljevidu",
-
   "trailVisible": "Pot je vidna na zemljevidu",
-
   "trailHiddenRecording": "Pot je skrita (še se snema)",
-
   "duration": "Trajanje",
-
   "points": "Točke",
-
   "clearTrail": "Počisti pot",
-
   "clearTrailQuestion": "Počisti pot?",
-
   "clearTrailConfirmation": "Ste prepričani, da želite počistiti trenutno sledilno pot? Tega dejanja ni mogoče razveljaviti.",
-
   "noTrailRecorded": "Še ni posnete poti",
-
   "startTrackingToRecord": "Začnite sledenje lokacije za snemanje poti",
-
   "trailControls": "Nadzor poti",
-
-  "exportTrailToGpx": "Izvozi pot v GPX",
-
-  "importTrailFromGpx": "Uvozi pot iz GPX",
-
-  "trailExportedSuccessfully": "Pot uspešno izvožena!",
-
-  "failedToExportTrail": "Izvoz poti ni uspel",
-
-  "failedToImportTrail": "Uvoz poti ni uspel: {error}",
-
-  "importTrail": "Uvozi pot",
-
-  "importTrailQuestion": "Uvozi pot s {pointCount} točkami?\n\nLahko zamenjate trenutno pot ali jo prikažete skupaj.",
-
-  "viewAlongside": "Prikaži skupaj",
-
-  "replaceCurrent": "Zamenjaj trenutno",
-
-  "trailImported": "Pot uvožena! ({pointCount} točk)",
-
-  "trailReplaced": "Pot zamenjana! ({pointCount} točk)",
-
   "contactTrails": "Poti stikov",
-
   "showAllContactTrails": "Prikaži vse poti stikov",
-
   "noContactsWithLocationHistory": "Ni stikov z zgodovino lokacije",
-
   "showingTrailsForContacts": "Prikazujem poti za {count} stikov",
-
   "individualContactTrails": "Posamezne poti stikov",
-
   "deviceInformation": "Informacije o napravi",
-
   "bleName": "BLE ime",
-
   "meshName": "Mesh ime",
-
   "notSet": "Ni nastavljeno",
-
   "model": "Model",
-
   "version": "Različica",
-
   "buildDate": "Datum izdelave",
-
   "firmware": "Vdelana programska oprema",
-
   "maxContacts": "Maks. stikov",
-
   "maxChannels": "Maks. kanalov",
-
   "publicInfo": "Javne informacije",
-
   "meshNetworkName": "Ime mesh omrežja",
-
   "nameBroadcastInMesh": "Ime, ki se oddaja v mesh oglasih",
-
   "telemetryAndLocationSharing": "Telemetrija in deljenje lokacije",
-
   "lat": "Šir",
-
   "lon": "Dolž",
-
   "useCurrentLocation": "Uporabi trenutno lokacijo",
-
   "noneUnknown": "Brez/Neznano",
-
   "chatNode": "Vozlišče za klepet",
-
   "repeater": "Ponavljalnik",
-
   "roomChannel": "Soba/Kanal",
-
   "typeNumber": "Tip {number}",
-
   "copiedToClipboardShort": "Kopirano {label} v odložišče",
-
   "failedToSave": "Shranjevanje ni uspelo: {error}",
-
   "failedToGetLocation": "Pridobivanje lokacije ni uspelo: {error}",
-
   "sarTemplates": "SAR predloge",
   "manageSarTemplates": "Upravljanje SAR predlog",
   "addTemplate": "Dodaj predlogo",
@@ -905,8 +316,6 @@
   "templateDeleted": "Predloga izbrisana",
   "templatesImported": "{count, plural, =0{Ni uvoženih predlog} =1{Uvožena 1 predloga} other{Uvoženih {count} predlog}}",
   "templatesExported": "{count, plural, =1{Izvožena 1 predloga v odložišče} other{Izvoženih {count} predlog v odložišče}}",
-  "importFailed": "Uvoz ni uspel: {error}",
-  "exportFailed": "Izvoz ni uspel: {error}",
   "resetToDefaults": "Ponastavi na privzeto",
   "resetToDefaultsConfirmation": "To bo izbrisalo vse prilagojene predloge in obnovilo 4 privzete predloge. Nadaljevati?",
   "reset": "Ponastavi",
@@ -914,7 +323,6 @@
   "noTemplates": "Ni razpoložljivih predlog",
   "tapAddToCreate": "Tapnite + za ustvarjanje prve predloge",
   "ok": "OK",
-
   "permissionsSection": "Dovoljenja",
   "locationPermission": "Dovoljenje za lokacijo",
   "checking": "Preverjanje...",
@@ -929,19 +337,15 @@
   "locationPermissionAlreadyGranted": "Dovoljenje za lokacijo je že odobreno.",
   "sarNavyBlue": "SAR Mornarska Modra",
   "sarNavyBlueDescription": "Profesionalni/Operativni Način",
-
   "selectRecipient": "Izberi prejemnika",
   "broadcastToAllNearby": "Oddajaj vsem v bližini",
   "searchRecipients": "Išči prejemnike...",
   "noContactsFound": "Ni kontaktov",
   "noRoomsFound": "Ni sob",
-  "noContactsOrRoomsAvailable": "Ni na voljo kontaktov ali sob",
   "noRecipientsAvailable": "Ni na voljo prejemnikov",
   "noChannelsFound": "Ni najdenih kanalov",
-  "messagesWillBeSentToPublicChannel": "Sporočila bodo poslana na javni kanal",
   "newMessage": "Novo sporočilo",
   "channel": "Kanal",
-
   "samplePoliceLead": "Vodja Policije",
   "sampleDroneOperator": "Operater Drona",
   "sampleFirefighterAlpha": "Gasilec",
@@ -991,28 +395,17 @@
   "sampleBaseCommand": "Poveljstvo Baze",
   "sampleFieldCoordinator": "Terenski Koordinator",
   "sampleMedicalTeam": "Medicinska Ekipa",
-
   "mapDrawing": "Risba zemljevida",
   "navigateToDrawing": "Navigiraj do risbe",
   "copyCoordinates": "Kopiraj koordinate",
   "hideFromMap": "Skrij z zemljevida",
   "lineDrawing": "Linijska risba",
   "rectangleDrawing": "Pravokotna risba",
-  "coordinatesCopiedToClipboard": "Koordinate kopirane v odložišče",
-
   "manualCoordinates": "Ročne koordinate",
   "enterCoordinatesManually": "Ročno vnesite koordinate",
   "latitudeLabel": "Geografska širina",
   "longitudeLabel": "Geografska dolžina",
-  "invalidLatitude": "Neveljavna geografska širina (-90 do 90)",
-  "invalidLongitude": "Neveljavna geografska dolžina (-180 do 180)",
   "exampleCoordinates": "Primer: 46.0569, 14.5058",
-
-  "drawingShared": "Risba deljena",
-  "drawingHidden": "Risba skrita z zemljevida",
-  "alreadyShared": "{count, plural, =1{1 že deljeno} other{{count} že deljeno}}",
-  "newDrawingsShared": "Deljeno {count} nov{plural} risb{plural}",
-  
   "shareDrawing": "Deli risbo",
   "shareWithAllNearbyDevices": "Deli z vsemi bližnjimi napravami",
   "shareToRoom": "Deli v Sobo",
@@ -1023,19 +416,14 @@
   "shared": "Deljeno",
   "line": "Črta",
   "rectangle": "Pravokotnik",
-
   "updateAvailable": "Na voljo je posodobitev",
   "currentVersion": "Trenutna različica",
   "latestVersion": "Najnovejša različica",
   "downloadUpdate": "Prenesi posodobitev",
   "updateLater": "Kasneje",
-
   "cadastralParcels": "Katastrske parcele",
   "forestRoads": "Gozdne ceste",
-  "showCadastralParcels": "Prikaži katastrske parcele",
-  "showForestRoads": "Prikaži gozdne ceste",
   "wmsOverlays": "WMS prekrivanja",
-
   "hikingTrails": "Planinske poti",
   "mainRoads": "Glavne ceste",
   "houseNumbers": "Hišne številke",
@@ -1046,9 +434,7 @@
   "placeNames": "Zemljepisna imena",
   "municipalityBorders": "Občinske meje",
   "topographicMap": "Topografska karta 1:25000",
-
   "recentMessages": "Nedavna sporočila",
-
   "addChannel": "Dodaj kanal",
   "channelName": "Ime kanala",
   "channelNameHint": "npr. Reševalna ekipa Alfa",
@@ -1068,9 +454,7 @@
   "deleteChannelConfirmation": "Ali ste prepričani, da želite izbrisati kanal \"{channelName}\"? Tega dejanja ni mogoče razveljaviti.",
   "channelDeletedSuccessfully": "Kanal uspešno izbrisan",
   "channelDeletionFailed": "Neuspešno brisanje kanala: {error}",
-  "allChannelSlotsInUse": "Vsa mesta za kanale so zasedena (maksimalno 39 prilagojenih kanalov)",
   "createChannel": "Ustvari kanal",
-
   "wizardBack": "Nazaj",
   "wizardSkip": "Preskoči",
   "wizardNext": "Naprej",
@@ -1082,10 +466,6 @@
   "wizardConnectingFeature1": "Poišče bližnje naprave MeshCore",
   "wizardConnectingFeature2": "Seznanitev z radijsko napravo prek Bluetootha",
   "wizardConnectingFeature3": "Deluje povsem brez povezave — internet ni potreben",
-  "wizardSimpleModeTitle": "Preprost način",
-  "wizardSimpleModeDescription": "Ste novi v mesh omrežju? Vključite preprost način za poenostavljen vmesnik z osnovnimi funkcijami.",
-  "wizardSimpleModeFeature1": "Vmesnik, prilagojen začetnikom, z osnovnimi funkcijami",
-  "wizardSimpleModeFeature2": "Na napredni način lahko kadarkoli preklopite v nastavitvah",
   "wizardChannelTitle": "Kanali",
   "wizardChannelDescription": "Pošiljajte sporočila vsem na kanalu — idealno za obvestila in koordinacijo ekipe.",
   "wizardChannelFeature1": "Javni kanal za splošno komunikacijo ekipe",
@@ -1106,56 +486,30 @@
   "allTeamContacts": "Vsi stiki ekipe",
   "directMessagesInfo": "Neposredna sporočila s potrditvami. Poslano {count} članom ekipe.",
   "sarMarkerSentToContacts": "SAR označevalec poslan {count} stikom",
-  "noContactsAvailable": "Ni razpoložljivih stikov ekipe"
-,
-
+  "noContactsAvailable": "Ni razpoložljivih stikov ekipe",
   "reply": "Odgovori",
-
   "technicalDetails": "Tehnični podrobnosti",
-
   "messageTechnicalDetails": "Tehnični podrobnosti sporočila",
-
   "linkQuality": "Kakovost povezave",
-
   "delivery": "Dostava",
-
   "status": "Status",
-
   "expectedAckTag": "Pričakovana oznaka ACK",
-
   "roundTrip": "Povratna pot",
-
   "retryAttempt": "Poskus ponovnega pošiljanja",
-
   "floodFallback": "Flood rezerva",
-
   "identity": "Identiteta",
-
   "messageId": "ID sporočila",
-
   "sender": "Pošiljatelj",
-
   "senderKey": "Ključ pošiljatelja",
-
   "recipient": "Prejemnik",
-
   "recipientKey": "Ključ prejemnika",
-
   "voice": "Glas",
-
   "voiceId": "ID glasu",
-
   "envelope": "Ovojnica",
-
   "sessionProgress": "Napredek seje",
-
   "complete": "Dokončano",
-
   "rawDump": "Surovi izpis",
-
   "cannotRetryMissingRecipient": "Ponovnega pošiljanja ni mogoče: informacije o prejemniku manjkajo",
-
   "voiceUnavailable": "Glas trenutno ni na voljo",
-
   "requestingVoice": "Zahteva za glasom"
 }

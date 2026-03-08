@@ -156,12 +156,6 @@ abstract class AppLocalizations {
   /// **'Disconnect'**
   String get disconnect;
 
-  /// Text shown when scanning for BLE devices
-  ///
-  /// In en, this message translates to:
-  /// **'Scanning for devices...'**
-  String get scanningForDevices;
-
   /// Text shown when no BLE devices are found
   ///
   /// In en, this message translates to:
@@ -216,35 +210,17 @@ abstract class AppLocalizations {
   /// **'Failed to get GPS location'**
   String get failedToGetGpsLocation;
 
-  /// Success message showing advertised location
-  ///
-  /// In en, this message translates to:
-  /// **'Advertised at {latitude}, {longitude}'**
-  String advertisedAtLocation(String latitude, String longitude);
-
   /// Error message for failed advertisement
   ///
   /// In en, this message translates to:
   /// **'Failed to advertise: {error}'**
   String failedToAdvertise(String error);
 
-  /// Text shown during reconnection attempts
-  ///
-  /// In en, this message translates to:
-  /// **'Reconnecting... ({attempt}/{max})'**
-  String reconnecting(int attempt, int max);
-
   /// Tooltip for cancel reconnection button
   ///
   /// In en, this message translates to:
   /// **'Cancel reconnection'**
   String get cancelReconnection;
-
-  /// Menu item for map management
-  ///
-  /// In en, this message translates to:
-  /// **'Map Management'**
-  String get mapManagement;
 
   /// General settings section header
   ///
@@ -336,18 +312,6 @@ abstract class AppLocalizations {
   /// **'Display packet activity indicators in top bar'**
   String get displayPacketActivity;
 
-  /// Setting to enable simple mode
-  ///
-  /// In en, this message translates to:
-  /// **'Simple Mode'**
-  String get simpleMode;
-
-  /// Description for simple mode setting
-  ///
-  /// In en, this message translates to:
-  /// **'Hide non-essential information in messages and contacts'**
-  String get simpleModeDescription;
-
   /// Setting to disable the map tab
   ///
   /// In en, this message translates to:
@@ -371,126 +335,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose Language'**
   String get chooseLanguage;
-
-  /// English language option
-  ///
-  /// In en, this message translates to:
-  /// **'English'**
-  String get english;
-
-  /// Slovenian language option
-  ///
-  /// In en, this message translates to:
-  /// **'Slovenian'**
-  String get slovenian;
-
-  /// Croatian language option
-  ///
-  /// In en, this message translates to:
-  /// **'Croatian'**
-  String get croatian;
-
-  /// German language option
-  ///
-  /// In en, this message translates to:
-  /// **'German'**
-  String get german;
-
-  /// Spanish language option
-  ///
-  /// In en, this message translates to:
-  /// **'Spanish'**
-  String get spanish;
-
-  /// French language option
-  ///
-  /// In en, this message translates to:
-  /// **'French'**
-  String get french;
-
-  /// Italian language option
-  ///
-  /// In en, this message translates to:
-  /// **'Italian'**
-  String get italian;
-
-  /// Location settings section header
-  ///
-  /// In en, this message translates to:
-  /// **'Location Broadcasting'**
-  String get locationBroadcasting;
-
-  /// Auto location tracking setting
-  ///
-  /// In en, this message translates to:
-  /// **'Auto Location Tracking'**
-  String get autoLocationTracking;
-
-  /// Description for auto location tracking
-  ///
-  /// In en, this message translates to:
-  /// **'Automatically broadcast position updates'**
-  String get automaticallyBroadcastPosition;
-
-  /// Configure tracking button label
-  ///
-  /// In en, this message translates to:
-  /// **'Configure Tracking'**
-  String get configureTracking;
-
-  /// Description for tracking configuration
-  ///
-  /// In en, this message translates to:
-  /// **'Distance and time thresholds'**
-  String get distanceAndTimeThresholds;
-
-  /// Tracking configuration dialog title
-  ///
-  /// In en, this message translates to:
-  /// **'Location Tracking Configuration'**
-  String get locationTrackingConfiguration;
-
-  /// Description for tracking configuration dialog
-  ///
-  /// In en, this message translates to:
-  /// **'Configure when location broadcasts are sent to the mesh network'**
-  String get configureWhenLocationBroadcasts;
-
-  /// Minimum distance setting label
-  ///
-  /// In en, this message translates to:
-  /// **'Minimum Distance'**
-  String get minimumDistance;
-
-  /// Description for minimum distance
-  ///
-  /// In en, this message translates to:
-  /// **'Broadcast only after moving {distance} meters'**
-  String broadcastAfterMoving(String distance);
-
-  /// Maximum distance setting label
-  ///
-  /// In en, this message translates to:
-  /// **'Maximum Distance'**
-  String get maximumDistance;
-
-  /// Description for maximum distance
-  ///
-  /// In en, this message translates to:
-  /// **'Always broadcast after moving {distance} meters'**
-  String alwaysBroadcastAfterMoving(String distance);
-
-  /// Minimum time interval setting label
-  ///
-  /// In en, this message translates to:
-  /// **'Minimum Time Interval'**
-  String get minimumTimeInterval;
-
-  /// Description for time interval
-  ///
-  /// In en, this message translates to:
-  /// **'Always broadcast every {duration}'**
-  String alwaysBroadcastEvery(String duration);
 
   /// Save button label
   ///
@@ -557,18 +401,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More Info'**
   String get moreInfo;
-
-  /// Learn more link description
-  ///
-  /// In en, this message translates to:
-  /// **'Learn more about MeshCore SAR'**
-  String get learnMoreAbout;
-
-  /// Developer section header
-  ///
-  /// In en, this message translates to:
-  /// **'Developer'**
-  String get developer;
 
   /// Package name label
   ///
@@ -694,12 +526,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Refresh'**
   String get refresh;
-
-  /// Action to send direct message to contact
-  ///
-  /// In en, this message translates to:
-  /// **'Send'**
-  String get sendDirectMessage;
 
   /// Action to reset contact path for re-routing
   ///
@@ -899,23 +725,6 @@ abstract class AppLocalizations {
   /// **'Share {count} Drawing{plural}'**
   String shareDrawingsCount(int count, String plural);
 
-  /// System message when drawings are sent to room
-  ///
-  /// In en, this message translates to:
-  /// **'Sent {count} map drawing{plural} to {roomName}'**
-  String sentDrawingsToRoom(int count, String plural, String roomName);
-
-  /// Snackbar message showing drawings shared to room
-  ///
-  /// In en, this message translates to:
-  /// **'Shared {success}/{total} drawing{plural} to {roomName}'**
-  String sharedDrawingsToRoom(
-    int success,
-    int total,
-    String plural,
-    String roomName,
-  );
-
   /// Toggle to show/hide received drawings from other team members
   ///
   /// In en, this message translates to:
@@ -958,12 +767,6 @@ abstract class AppLocalizations {
   /// **'Clear All'**
   String get clearAll;
 
-  /// Message when there are no drawings to share
-  ///
-  /// In en, this message translates to:
-  /// **'No local drawings to share'**
-  String get noLocalDrawings;
-
   /// Public channel option for sharing
   ///
   /// In en, this message translates to:
@@ -982,47 +785,11 @@ abstract class AppLocalizations {
   /// **'Stored permanently in room'**
   String get storedPermanently;
 
-  /// System message when drawings are sent to public channel
-  ///
-  /// In en, this message translates to:
-  /// **'Sent {count} map drawing{plural} to Public Channel'**
-  String drawingsSentToPublicChannel(int count, String plural);
-
-  /// Snackbar message showing success count for drawings shared to public channel
-  ///
-  /// In en, this message translates to:
-  /// **'Shared {success}/{total} drawings to Public Channel'**
-  String drawingsSharedToPublicChannel(int success, int total);
-
   /// Error message when device is not connected for direct messaging
   ///
   /// In en, this message translates to:
   /// **'Not connected to device'**
   String get notConnectedToDevice;
-
-  /// Title for direct message sheet
-  ///
-  /// In en, this message translates to:
-  /// **'Direct Message'**
-  String get directMessage;
-
-  /// Success message after sending direct message
-  ///
-  /// In en, this message translates to:
-  /// **'Direct message sent to {contactName}'**
-  String directMessageSentTo(String contactName);
-
-  /// Error message when sending direct message fails
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to send: {error}'**
-  String failedToSend(String error);
-
-  /// Information about direct messaging behavior
-  ///
-  /// In en, this message translates to:
-  /// **'This message will be sent directly to {contactName}. It will also appear in the main messages feed.'**
-  String directMessageInfo(String contactName);
 
   /// Placeholder text for message input field
   ///
@@ -1077,12 +844,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location'**
   String get location;
-
-  /// Button label to insert current GPS location
-  ///
-  /// In en, this message translates to:
-  /// **'My Location'**
-  String get myLocation;
 
   /// Badge showing location is from map tap
   ///
@@ -1192,12 +953,6 @@ abstract class AppLocalizations {
   /// **'Flood'**
   String get flood;
 
-  /// Admin badge label
-  ///
-  /// In en, this message translates to:
-  /// **'Admin'**
-  String get admin;
-
   /// Logged in status badge
   ///
   /// In en, this message translates to:
@@ -1216,35 +971,11 @@ abstract class AppLocalizations {
   /// **'Distance'**
   String get distance;
 
-  /// Status message for direct ping
-  ///
-  /// In en, this message translates to:
-  /// **'Pinging {name} (direct via path)...'**
-  String pingingDirect(String name);
-
-  /// Status message for flood ping
-  ///
-  /// In en, this message translates to:
-  /// **'Pinging {name} (flooding - no path)...'**
-  String pingingFlood(String name);
-
   /// Warning when direct ping times out
   ///
   /// In en, this message translates to:
   /// **'Direct ping timeout - retrying {name} with flooding...'**
   String directPingTimeout(String name);
-
-  /// Success message for ping
-  ///
-  /// In en, this message translates to:
-  /// **'Ping successful to {name}{fallback}'**
-  String pingSuccessful(String name, String fallback);
-
-  /// Suffix for ping success with fallback
-  ///
-  /// In en, this message translates to:
-  /// **' (via flooding fallback)'**
-  String get viaFloodingFallback;
 
   /// Error message when ping fails
   ///
@@ -1257,18 +988,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to delete \"{name}\"?\n\nThis will remove the contact from both the app and the companion radio device.'**
   String deleteContactConfirmation(String name);
-
-  /// Status message while removing contact
-  ///
-  /// In en, this message translates to:
-  /// **'Removing {name}...'**
-  String removingContact(String name);
-
-  /// Success message after removing contact
-  ///
-  /// In en, this message translates to:
-  /// **'Contact \"{name}\" removed'**
-  String contactRemoved(String name);
 
   /// Error message when contact removal fails
   ///
@@ -1353,12 +1072,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Telemetry'**
   String get telemetry;
-
-  /// Status message while requesting telemetry
-  ///
-  /// In en, this message translates to:
-  /// **'Requesting telemetry from {name}...'**
-  String requestingTelemetry(String name);
 
   /// Voltage label
   ///
@@ -1498,12 +1211,6 @@ abstract class AppLocalizations {
   /// **'Show All'**
   String get showAll;
 
-  /// Title for nearby contacts list in compass
-  ///
-  /// In en, this message translates to:
-  /// **'Nearby Contacts'**
-  String get nearbyContacts;
-
   /// Message when GPS location is unavailable
   ///
   /// In en, this message translates to:
@@ -1570,299 +1277,11 @@ abstract class AppLocalizations {
   /// **'Channels'**
   String get channels;
 
-  /// Title for cache statistics section
-  ///
-  /// In en, this message translates to:
-  /// **'Cache Statistics'**
-  String get cacheStatistics;
-
-  /// Label for total number of cached tiles
-  ///
-  /// In en, this message translates to:
-  /// **'Total Tiles'**
-  String get totalTiles;
-
-  /// Label for cache size in MB
-  ///
-  /// In en, this message translates to:
-  /// **'Cache Size'**
-  String get cacheSize;
-
-  /// Label for cache store name
-  ///
-  /// In en, this message translates to:
-  /// **'Store Name'**
-  String get storeName;
-
-  /// Message when cache statistics are unavailable
-  ///
-  /// In en, this message translates to:
-  /// **'No cache statistics available'**
-  String get noCacheStatistics;
-
-  /// Title for download region section
-  ///
-  /// In en, this message translates to:
-  /// **'Download Region'**
-  String get downloadRegion;
-
-  /// Label for map layer selection
-  ///
-  /// In en, this message translates to:
-  /// **'Map Layer'**
-  String get mapLayer;
-
-  /// Title for region bounds input section
-  ///
-  /// In en, this message translates to:
-  /// **'Region Bounds'**
-  String get regionBounds;
-
-  /// Label for north coordinate
-  ///
-  /// In en, this message translates to:
-  /// **'North'**
-  String get north;
-
-  /// Label for south coordinate
-  ///
-  /// In en, this message translates to:
-  /// **'South'**
-  String get south;
-
-  /// Label for east coordinate
-  ///
-  /// In en, this message translates to:
-  /// **'East'**
-  String get east;
-
-  /// Label for west coordinate
-  ///
-  /// In en, this message translates to:
-  /// **'West'**
-  String get west;
-
-  /// Title for zoom levels section
-  ///
-  /// In en, this message translates to:
-  /// **'Zoom Levels'**
-  String get zoomLevels;
-
-  /// Label for minimum zoom level
-  ///
-  /// In en, this message translates to:
-  /// **'Min: {zoom}'**
-  String minZoom(int zoom);
-
-  /// Label for maximum zoom level
-  ///
-  /// In en, this message translates to:
-  /// **'Max: {zoom}'**
-  String maxZoom(int zoom);
-
-  /// Status message during download
-  ///
-  /// In en, this message translates to:
-  /// **'Downloading...'**
-  String get downloadingDots;
-
-  /// Button to cancel download
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel Download'**
-  String get cancelDownload;
-
-  /// Button to start region download
-  ///
-  /// In en, this message translates to:
-  /// **'Download Region'**
-  String get downloadRegionButton;
-
-  /// Warning about download size and time
-  ///
-  /// In en, this message translates to:
-  /// **'Note: Large regions or high zoom levels may take significant time and storage.'**
-  String get downloadNote;
-
-  /// Title for cache management section
-  ///
-  /// In en, this message translates to:
-  /// **'Cache Management'**
-  String get cacheManagement;
-
-  /// Button to clear all cached maps
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All Maps'**
-  String get clearAllMaps;
-
-  /// Title for clear maps confirmation dialog
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All Maps'**
-  String get clearMapsConfirmTitle;
-
-  /// Confirmation message for clearing maps
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete all downloaded maps? This action cannot be undone.'**
-  String get clearMapsConfirmMessage;
-
-  /// Success message after map download
-  ///
-  /// In en, this message translates to:
-  /// **'Map download completed!'**
-  String get mapDownloadCompleted;
-
-  /// Success message after clearing cache
-  ///
-  /// In en, this message translates to:
-  /// **'Cache cleared successfully!'**
-  String get cacheClearedSuccessfully;
-
-  /// Message when download is cancelled
-  ///
-  /// In en, this message translates to:
-  /// **'Download cancelled'**
-  String get downloadCancelled;
-
-  /// Initial status when download begins
-  ///
-  /// In en, this message translates to:
-  /// **'Starting download...'**
-  String get startingDownload;
-
-  /// Status during tile download
-  ///
-  /// In en, this message translates to:
-  /// **'Downloading map tiles...'**
-  String get downloadingMapTiles;
-
-  /// Status after successful download
-  ///
-  /// In en, this message translates to:
-  /// **'Download completed successfully!'**
-  String get downloadCompletedSuccessfully;
-
-  /// Status while cancelling download
-  ///
-  /// In en, this message translates to:
-  /// **'Cancelling download...'**
-  String get cancellingDownload;
-
-  /// Error message when loading cache stats fails
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading stats: {error}'**
-  String errorLoadingStats(String error);
-
-  /// Error message when download fails
-  ///
-  /// In en, this message translates to:
-  /// **'Download failed: {error}'**
-  String downloadFailed(String error);
-
-  /// Error message when cancel fails
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel failed: {error}'**
-  String cancelFailed(String error);
-
-  /// Error message when clearing cache fails
-  ///
-  /// In en, this message translates to:
-  /// **'Clear cache failed: {error}'**
-  String clearCacheFailed(String error);
-
-  /// Validation error for minimum zoom
-  ///
-  /// In en, this message translates to:
-  /// **'Min zoom: {error}'**
-  String minZoomError(String error);
-
-  /// Validation error for maximum zoom
-  ///
-  /// In en, this message translates to:
-  /// **'Max zoom: {error}'**
-  String maxZoomError(String error);
-
-  /// Validation error when min zoom > max zoom
-  ///
-  /// In en, this message translates to:
-  /// **'Minimum zoom must be less than or equal to maximum zoom'**
-  String get minZoomGreaterThanMax;
-
   /// Title for map layer selection dialog
   ///
   /// In en, this message translates to:
   /// **'Select Map Layer'**
   String get selectMapLayer;
-
-  /// Title for map options dialog
-  ///
-  /// In en, this message translates to:
-  /// **'Map Options'**
-  String get mapOptions;
-
-  /// Toggle for showing map legend
-  ///
-  /// In en, this message translates to:
-  /// **'Show Legend'**
-  String get showLegend;
-
-  /// Description for show legend toggle
-  ///
-  /// In en, this message translates to:
-  /// **'Display marker type counts'**
-  String get displayMarkerTypeCounts;
-
-  /// Toggle for rotating map with compass heading
-  ///
-  /// In en, this message translates to:
-  /// **'Rotate Map with Heading'**
-  String get rotateMapWithHeading;
-
-  /// Description for rotate map toggle
-  ///
-  /// In en, this message translates to:
-  /// **'Map follows your direction when moving'**
-  String get mapFollowsDirection;
-
-  /// Button to reset map rotation to north
-  ///
-  /// In en, this message translates to:
-  /// **'Reset Rotation'**
-  String get resetMapRotation;
-
-  /// Tooltip for reset rotation button
-  ///
-  /// In en, this message translates to:
-  /// **'Reset map to north'**
-  String get resetMapRotationTooltip;
-
-  /// Toggle for showing map debug information
-  ///
-  /// In en, this message translates to:
-  /// **'Show Map Debug Info'**
-  String get showMapDebugInfo;
-
-  /// Description for debug info toggle
-  ///
-  /// In en, this message translates to:
-  /// **'Display zoom level and bounds'**
-  String get displayZoomLevelBounds;
-
-  /// Toggle for fullscreen map mode
-  ///
-  /// In en, this message translates to:
-  /// **'Fullscreen Mode'**
-  String get fullscreenMode;
-
-  /// Description for fullscreen mode toggle
-  ///
-  /// In en, this message translates to:
-  /// **'Hide all UI controls for full map view'**
-  String get hideUiFullMapView;
 
   /// OpenStreetMap layer name
   ///
@@ -1900,18 +1319,6 @@ abstract class AppLocalizations {
   /// **'Google Terrain'**
   String get googleTerrain;
 
-  /// Tooltip for download visible area button
-  ///
-  /// In en, this message translates to:
-  /// **'Download visible area'**
-  String get downloadVisibleArea;
-
-  /// Loading message for map initialization
-  ///
-  /// In en, this message translates to:
-  /// **'Initializing map...'**
-  String get initializingMap;
-
   /// Label when dragging a pin on map
   ///
   /// In en, this message translates to:
@@ -1942,72 +1349,6 @@ abstract class AppLocalizations {
   /// **'SAR ALERT'**
   String get sarAlert;
 
-  /// Success message when message is sent to public channel
-  ///
-  /// In en, this message translates to:
-  /// **'Message sent to public channel'**
-  String get messageSentToPublicChannel;
-
-  /// Error when no room is selected for SAR marker
-  ///
-  /// In en, this message translates to:
-  /// **'Please select a room to send SAR marker'**
-  String get pleaseSelectRoomToSendSar;
-
-  /// Error message when SAR marker fails to send
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to send SAR marker: {error}'**
-  String failedToSendSarMarker(String error);
-
-  /// Success message when SAR marker is sent to room
-  ///
-  /// In en, this message translates to:
-  /// **'SAR marker sent to {roomName}'**
-  String sarMarkerSentTo(String roomName);
-
-  /// Warning when trying to sync messages while not connected
-  ///
-  /// In en, this message translates to:
-  /// **'Not connected - cannot sync messages'**
-  String get notConnectedCannotSync;
-
-  /// Success message showing number of synced messages
-  ///
-  /// In en, this message translates to:
-  /// **'Synced {count} message(s)'**
-  String syncedMessageCount(int count);
-
-  /// Info message when no new messages to sync
-  ///
-  /// In en, this message translates to:
-  /// **'No new messages'**
-  String get noNewMessages;
-
-  /// Error message when sync fails
-  ///
-  /// In en, this message translates to:
-  /// **'Sync failed: {error}'**
-  String syncFailed(String error);
-
-  /// Error when message retry fails
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to resend message'**
-  String get failedToResendMessage;
-
-  /// Info message when retrying a failed message
-  ///
-  /// In en, this message translates to:
-  /// **'Retrying message...'**
-  String get retryingMessage;
-
-  /// Error message when retry fails
-  ///
-  /// In en, this message translates to:
-  /// **'Retry failed: {error}'**
-  String retryFailed(String error);
-
   /// Success message when text is copied
   ///
   /// In en, this message translates to:
@@ -2025,12 +1366,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cannot reply: contact not found'**
   String get cannotReplyContactNotFound;
-
-  /// Info message when message is deleted
-  ///
-  /// In en, this message translates to:
-  /// **'Message deleted'**
-  String get messageDeleted;
 
   /// Option to copy message text to clipboard
   ///
@@ -2090,18 +1425,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SAR Location'**
   String get sarLocationShare;
-
-  /// Success message when location is shared
-  ///
-  /// In en, this message translates to:
-  /// **'Location shared'**
-  String get locationShared;
-
-  /// Success message when contacts are refreshed
-  ///
-  /// In en, this message translates to:
-  /// **'Refreshed contacts'**
-  String get refreshedContacts;
 
   /// Time indicator for very recent activity
   ///
@@ -2289,132 +1612,6 @@ abstract class AppLocalizations {
   /// **'You'**
   String get you;
 
-  /// Title for offline vector maps section
-  ///
-  /// In en, this message translates to:
-  /// **'Offline Vector Maps'**
-  String get offlineVectorMaps;
-
-  /// Description for offline vector maps section
-  ///
-  /// In en, this message translates to:
-  /// **'Import and manage offline vector map tiles (MBTiles format) for use without internet connection'**
-  String get offlineVectorMapsDescription;
-
-  /// Button to import MBTiles file
-  ///
-  /// In en, this message translates to:
-  /// **'Import MBTiles File'**
-  String get importMbtiles;
-
-  /// Note about supported MBTiles file types
-  ///
-  /// In en, this message translates to:
-  /// **'Supports MBTiles files with vector tiles (PBF/MVT format). Geofabrik extracts work great!'**
-  String get importMbtilesNote;
-
-  /// Message when no MBTiles files are available
-  ///
-  /// In en, this message translates to:
-  /// **'No offline vector maps found'**
-  String get noMbtilesFiles;
-
-  /// Success message after importing MBTiles file
-  ///
-  /// In en, this message translates to:
-  /// **'MBTiles file imported successfully'**
-  String get mbtilesImportedSuccessfully;
-
-  /// Error message when MBTiles import fails
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to import MBTiles file'**
-  String get failedToImportMbtiles;
-
-  /// Title for delete MBTiles confirmation dialog
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Offline Map'**
-  String get deleteMbtilesConfirmTitle;
-
-  /// Confirmation message for deleting MBTiles file
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete \"{name}\"? This will permanently remove the offline map.'**
-  String deleteMbtilesConfirmMessage(String name);
-
-  /// Success message after deleting MBTiles file
-  ///
-  /// In en, this message translates to:
-  /// **'Offline map deleted successfully'**
-  String get mbtilesDeletedSuccessfully;
-
-  /// Error message when MBTiles deletion fails
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to delete offline map'**
-  String get failedToDeleteMbtiles;
-
-  /// Title for import/export section
-  ///
-  /// In en, this message translates to:
-  /// **'Import/Export Cached Tiles'**
-  String get importExportCachedTiles;
-
-  /// Description for import/export functionality
-  ///
-  /// In en, this message translates to:
-  /// **'Backup, share, and restore downloaded map tiles between devices'**
-  String get importExportDescription;
-
-  /// Button to export tiles to archive file
-  ///
-  /// In en, this message translates to:
-  /// **'Export Tiles to File'**
-  String get exportTilesToFile;
-
-  /// Button to import tiles from archive file
-  ///
-  /// In en, this message translates to:
-  /// **'Import Tiles from File'**
-  String get importTilesFromFile;
-
-  /// Title for export file picker
-  ///
-  /// In en, this message translates to:
-  /// **'Select Export Location'**
-  String get selectExportLocation;
-
-  /// Title for import file picker
-  ///
-  /// In en, this message translates to:
-  /// **'Select Tile Archive'**
-  String get selectImportFile;
-
-  /// Status message during export
-  ///
-  /// In en, this message translates to:
-  /// **'Exporting tiles...'**
-  String get exportingTiles;
-
-  /// Status message during import
-  ///
-  /// In en, this message translates to:
-  /// **'Importing tiles...'**
-  String get importingTiles;
-
-  /// Success message after export
-  ///
-  /// In en, this message translates to:
-  /// **'Exported {count} tiles successfully'**
-  String exportSuccess(int count);
-
-  /// Success message after import
-  ///
-  /// In en, this message translates to:
-  /// **'Imported {count} stores successfully'**
-  String importSuccess(int count);
-
   /// Error message when export fails
   ///
   /// In en, this message translates to:
@@ -2427,65 +1624,17 @@ abstract class AppLocalizations {
   /// **'Import failed: {error}'**
   String importFailed(String error);
 
-  /// Note about export functionality
-  ///
-  /// In en, this message translates to:
-  /// **'Creates a compressed archive (.fmtc) file that can be shared and imported on other devices.'**
-  String get exportNote;
-
-  /// Note about import functionality
-  ///
-  /// In en, this message translates to:
-  /// **'Imports map tiles from a previously exported archive file. Tiles will be merged with existing cache.'**
-  String get importNote;
-
-  /// Message when cache is empty
-  ///
-  /// In en, this message translates to:
-  /// **'No tiles available to export'**
-  String get noTilesToExport;
-
-  /// Information about archive contents
-  ///
-  /// In en, this message translates to:
-  /// **'Archive contains {count} stores'**
-  String archiveContainsStores(int count);
-
-  /// Label for vector tile type
-  ///
-  /// In en, this message translates to:
-  /// **'Vector Tiles'**
-  String get vectorTiles;
-
-  /// Label for vector tile schema
-  ///
-  /// In en, this message translates to:
-  /// **'Schema'**
-  String get schema;
-
   /// Unknown value label
   ///
   /// In en, this message translates to:
   /// **'Unknown'**
   String get unknown;
 
-  /// Label for geographic bounds
-  ///
-  /// In en, this message translates to:
-  /// **'Bounds'**
-  String get bounds;
-
   /// Section header for online map layers
   ///
   /// In en, this message translates to:
   /// **'Online Layers'**
   String get onlineLayers;
-
-  /// Section header for offline map layers (MBTiles)
-  ///
-  /// In en, this message translates to:
-  /// **'Offline Layers'**
-  String get offlineLayers;
 
   /// Location trail title
   ///
@@ -2558,72 +1707,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trail Controls'**
   String get trailControls;
-
-  /// Button label to export trail to GPX file
-  ///
-  /// In en, this message translates to:
-  /// **'Export Trail to GPX'**
-  String get exportTrailToGpx;
-
-  /// Button label to import trail from GPX file
-  ///
-  /// In en, this message translates to:
-  /// **'Import Trail from GPX'**
-  String get importTrailFromGpx;
-
-  /// Success message when trail is exported
-  ///
-  /// In en, this message translates to:
-  /// **'Trail exported successfully!'**
-  String get trailExportedSuccessfully;
-
-  /// Error message when trail export fails
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to export trail'**
-  String get failedToExportTrail;
-
-  /// Error message when trail import fails
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to import trail: {error}'**
-  String failedToImportTrail(String error);
-
-  /// Import trail dialog title
-  ///
-  /// In en, this message translates to:
-  /// **'Import Trail'**
-  String get importTrail;
-
-  /// Import trail confirmation dialog content
-  ///
-  /// In en, this message translates to:
-  /// **'Import trail with {pointCount} points?\n\nYou can replace your current trail or view it alongside.'**
-  String importTrailQuestion(int pointCount);
-
-  /// Button to import trail alongside current trail
-  ///
-  /// In en, this message translates to:
-  /// **'View Alongside'**
-  String get viewAlongside;
-
-  /// Button to replace current trail with imported trail
-  ///
-  /// In en, this message translates to:
-  /// **'Replace Current'**
-  String get replaceCurrent;
-
-  /// Success message when trail is imported
-  ///
-  /// In en, this message translates to:
-  /// **'Trail imported! ({pointCount} points)'**
-  String trailImported(int pointCount);
-
-  /// Success message when trail is replaced
-  ///
-  /// In en, this message translates to:
-  /// **'Trail replaced! ({pointCount} points)'**
-  String trailReplaced(int pointCount);
 
   /// Contact trails section header
   ///
@@ -3093,12 +2176,6 @@ abstract class AppLocalizations {
   /// **'No rooms found'**
   String get noRoomsFound;
 
-  /// Message when no contacts or rooms exist
-  ///
-  /// In en, this message translates to:
-  /// **'No contacts or rooms available'**
-  String get noContactsOrRoomsAvailable;
-
   /// Message when no recipients exist (contacts, rooms, or channels)
   ///
   /// In en, this message translates to:
@@ -3110,12 +2187,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No channels found'**
   String get noChannelsFound;
-
-  /// Info message when only public channel is available
-  ///
-  /// In en, this message translates to:
-  /// **'Messages will be sent to public channel'**
-  String get messagesWillBeSentToPublicChannel;
 
   /// Notification title for new message
   ///
@@ -3459,12 +2530,6 @@ abstract class AppLocalizations {
   /// **'Rectangle Drawing'**
   String get rectangleDrawing;
 
-  /// Success message when coordinates are copied
-  ///
-  /// In en, this message translates to:
-  /// **'Coordinates copied to clipboard'**
-  String get coordinatesCopiedToClipboard;
-
   /// Label for manual coordinate input toggle
   ///
   /// In en, this message translates to:
@@ -3489,47 +2554,11 @@ abstract class AppLocalizations {
   /// **'Longitude'**
   String get longitudeLabel;
 
-  /// Error message for invalid latitude value
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid latitude (-90 to 90)'**
-  String get invalidLatitude;
-
-  /// Error message for invalid longitude value
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid longitude (-180 to 180)'**
-  String get invalidLongitude;
-
   /// Example coordinate format hint
   ///
   /// In en, this message translates to:
   /// **'Example: 46.0569, 14.5058'**
   String get exampleCoordinates;
-
-  /// Label for shared drawing notifications
-  ///
-  /// In en, this message translates to:
-  /// **'Map Drawing'**
-  String get drawingShared;
-
-  /// Success message when drawing is hidden
-  ///
-  /// In en, this message translates to:
-  /// **'Drawing hidden from map'**
-  String get drawingHidden;
-
-  /// Message showing how many drawings were already shared
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 already shared} other{{count} already shared}}'**
-  String alreadyShared(int count);
-
-  /// Success message after sharing new drawings
-  ///
-  /// In en, this message translates to:
-  /// **'Shared {count} new drawing{plural}'**
-  String newDrawingsShared(int count, String plural);
 
   /// Title for share single drawing dialog
   ///
@@ -3632,18 +2661,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Forest Roads'**
   String get forestRoads;
-
-  /// Tooltip for cadastral parcels overlay toggle button
-  ///
-  /// In en, this message translates to:
-  /// **'Show Cadastral Parcels'**
-  String get showCadastralParcels;
-
-  /// Tooltip for forest roads overlay toggle button
-  ///
-  /// In en, this message translates to:
-  /// **'Show Forest Roads'**
-  String get showForestRoads;
 
   /// Section header for WMS overlay layers in layer selector
   ///
@@ -3831,12 +2848,6 @@ abstract class AppLocalizations {
   /// **'Failed to delete channel: {error}'**
   String channelDeletionFailed(String error);
 
-  /// Error when no channel slots available
-  ///
-  /// In en, this message translates to:
-  /// **'All channel slots are in use (maximum 39 custom channels)'**
-  String get allChannelSlotsInUse;
-
   /// Button text for creating a channel
   ///
   /// In en, this message translates to:
@@ -3908,30 +2919,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Works completely offline - no internet required'**
   String get wizardConnectingFeature3;
-
-  /// Wizard simple mode page title
-  ///
-  /// In en, this message translates to:
-  /// **'Simple Mode'**
-  String get wizardSimpleModeTitle;
-
-  /// Wizard simple mode page description
-  ///
-  /// In en, this message translates to:
-  /// **'New to mesh networking? Enable Simple Mode for a streamlined interface with essential features only.'**
-  String get wizardSimpleModeDescription;
-
-  /// Wizard simple mode feature 1
-  ///
-  /// In en, this message translates to:
-  /// **'Beginner-friendly interface with core functions'**
-  String get wizardSimpleModeFeature1;
-
-  /// Wizard simple mode feature 2
-  ///
-  /// In en, this message translates to:
-  /// **'Switch to Advanced Mode anytime in Settings'**
-  String get wizardSimpleModeFeature2;
 
   /// Wizard channel page title
   ///

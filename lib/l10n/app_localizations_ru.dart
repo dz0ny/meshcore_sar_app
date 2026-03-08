@@ -30,9 +30,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get disconnect => 'Отключить';
 
   @override
-  String get scanningForDevices => 'Поиск устройств...';
-
-  @override
   String get noDevicesFound => 'Устройства не найдены';
 
   @override
@@ -63,25 +60,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get failedToGetGpsLocation => 'Не удалось получить GPS-координаты';
 
   @override
-  String advertisedAtLocation(String latitude, String longitude) {
-    return 'Транслируется в $latitude, $longitude';
-  }
-
-  @override
   String failedToAdvertise(String error) {
     return 'Ошибка трансляции: $error';
   }
 
   @override
-  String reconnecting(int attempt, int max) {
-    return 'Переподключение... ($attempt/$max)';
-  }
-
-  @override
   String get cancelReconnection => 'Отменить переподключение';
-
-  @override
-  String get mapManagement => 'Управление картой';
 
   @override
   String get general => 'Основные';
@@ -130,13 +114,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Отображать активность пакетов в верхней панели';
 
   @override
-  String get simpleMode => 'Простой режим';
-
-  @override
-  String get simpleModeDescription =>
-      'Скрыть второстепенную информацию в сообщениях и контактах';
-
-  @override
   String get disableMap => 'Отключить карту';
 
   @override
@@ -148,75 +125,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get chooseLanguage => 'Выбрать язык';
-
-  @override
-  String get english => 'Английский';
-
-  @override
-  String get slovenian => 'Словенский';
-
-  @override
-  String get croatian => 'Хорватский';
-
-  @override
-  String get german => 'Немецкий';
-
-  @override
-  String get spanish => 'Испанский';
-
-  @override
-  String get french => 'Французский';
-
-  @override
-  String get italian => 'Итальянский';
-
-  @override
-  String get locationBroadcasting => 'Трансляция местоположения';
-
-  @override
-  String get autoLocationTracking => 'Авто-отслеживание геолокации';
-
-  @override
-  String get automaticallyBroadcastPosition =>
-      'Автоматически транслировать обновления позиции';
-
-  @override
-  String get configureTracking => 'Настроить отслеживание';
-
-  @override
-  String get distanceAndTimeThresholds => 'Пороги расстояния и времени';
-
-  @override
-  String get locationTrackingConfiguration =>
-      'Настройка отслеживания геолокации';
-
-  @override
-  String get configureWhenLocationBroadcasts =>
-      'Настройте условия отправки обновлений геолокации в mesh-сеть';
-
-  @override
-  String get minimumDistance => 'Минимальное расстояние';
-
-  @override
-  String broadcastAfterMoving(String distance) {
-    return 'Транслировать только после перемещения на $distance м';
-  }
-
-  @override
-  String get maximumDistance => 'Максимальное расстояние';
-
-  @override
-  String alwaysBroadcastAfterMoving(String distance) {
-    return 'Всегда транслировать после перемещения на $distance м';
-  }
-
-  @override
-  String get minimumTimeInterval => 'Минимальный интервал времени';
-
-  @override
-  String alwaysBroadcastEvery(String duration) {
-    return 'Всегда транслировать каждые $duration';
-  }
 
   @override
   String get save => 'Сохранить';
@@ -252,12 +160,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get moreInfo => 'Подробнее';
-
-  @override
-  String get learnMoreAbout => 'Узнать больше о MeshCore SAR';
-
-  @override
-  String get developer => 'Разработчик';
 
   @override
   String get packageName => 'Имя пакета';
@@ -333,9 +235,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get refresh => 'Обновить';
-
-  @override
-  String get sendDirectMessage => 'Отправить';
 
   @override
   String get resetPath => 'Сбросить маршрут (перепроложить)';
@@ -458,21 +357,6 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String sentDrawingsToRoom(int count, String plural, String roomName) {
-    return 'Отправлено $count рисун$plural в $roomName';
-  }
-
-  @override
-  String sharedDrawingsToRoom(
-    int success,
-    int total,
-    String plural,
-    String roomName,
-  ) {
-    return 'Передано $success/$total рисун$plural в $roomName';
-  }
-
-  @override
   String get showReceivedDrawings => 'Показать полученные рисунки';
 
   @override
@@ -494,9 +378,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get clearAll => 'Очистить всё';
 
   @override
-  String get noLocalDrawings => 'Нет локальных рисунков для отправки';
-
-  @override
   String get publicChannel => 'Публичный канал';
 
   @override
@@ -506,35 +387,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get storedPermanently => 'Сохранено постоянно в комнате';
 
   @override
-  String drawingsSentToPublicChannel(int count, String plural) {
-    return 'Отправлено $count рисун$plural в публичный канал';
-  }
-
-  @override
-  String drawingsSharedToPublicChannel(int success, int total) {
-    return 'Передано $success/$total рисунков в публичный канал';
-  }
-
-  @override
   String get notConnectedToDevice => 'Устройство не подключено';
-
-  @override
-  String get directMessage => 'Личное сообщение';
-
-  @override
-  String directMessageSentTo(String contactName) {
-    return 'Личное сообщение отправлено $contactName';
-  }
-
-  @override
-  String failedToSend(String error) {
-    return 'Не удалось отправить: $error';
-  }
-
-  @override
-  String directMessageInfo(String contactName) {
-    return 'Это сообщение будет отправлено напрямую $contactName. Оно также появится в общей ленте сообщений.';
-  }
 
   @override
   String get typeYourMessage => 'Введите сообщение...';
@@ -564,9 +417,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get location => 'Местоположение';
-
-  @override
-  String get myLocation => 'Моё местоположение';
 
   @override
   String get fromMap => 'С карты';
@@ -631,9 +481,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get flood => 'Широковещательно';
 
   @override
-  String get admin => 'Администратор';
-
-  @override
   String get loggedIn => 'Вход выполнен';
 
   @override
@@ -643,27 +490,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get distance => 'Расстояние';
 
   @override
-  String pingingDirect(String name) {
-    return 'Пинг $name (напрямую по маршруту)...';
-  }
-
-  @override
-  String pingingFlood(String name) {
-    return 'Пинг $name (широковещательно — нет маршрута)...';
-  }
-
-  @override
   String directPingTimeout(String name) {
     return 'Таймаут прямого пинга — повтор $name широковещательно...';
   }
-
-  @override
-  String pingSuccessful(String name, String fallback) {
-    return 'Пинг успешен: $name$fallback';
-  }
-
-  @override
-  String get viaFloodingFallback => ' (через широковещательный резерв)';
 
   @override
   String pingFailed(String name) {
@@ -673,16 +502,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String deleteContactConfirmation(String name) {
     return 'Вы уверены, что хотите удалить \"$name\"?\n\nЭто удалит контакт как из приложения, так и с сопряжённого радиоустройства.';
-  }
-
-  @override
-  String removingContact(String name) {
-    return 'Удаление $name...';
-  }
-
-  @override
-  String contactRemoved(String name) {
-    return 'Контакт \"$name\" удалён';
   }
 
   @override
@@ -728,11 +547,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get telemetry => 'Телеметрия';
-
-  @override
-  String requestingTelemetry(String name) {
-    return 'Запрос телеметрии от $name...';
-  }
 
   @override
   String get voltage => 'Напряжение';
@@ -806,9 +620,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get showAll => 'Показать все';
 
   @override
-  String get nearbyContacts => 'Ближайшие контакты';
-
-  @override
   String get locationUnavailable => 'Местоположение недоступно';
 
   @override
@@ -849,171 +660,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get channels => 'Каналы';
 
   @override
-  String get cacheStatistics => 'Статистика кэша';
-
-  @override
-  String get totalTiles => 'Всего тайлов';
-
-  @override
-  String get cacheSize => 'Размер кэша';
-
-  @override
-  String get storeName => 'Имя хранилища';
-
-  @override
-  String get noCacheStatistics => 'Статистика кэша недоступна';
-
-  @override
-  String get downloadRegion => 'Скачать регион';
-
-  @override
-  String get mapLayer => 'Слой карты';
-
-  @override
-  String get regionBounds => 'Границы региона';
-
-  @override
-  String get north => 'Север';
-
-  @override
-  String get south => 'Юг';
-
-  @override
-  String get east => 'Восток';
-
-  @override
-  String get west => 'Запад';
-
-  @override
-  String get zoomLevels => 'Уровни масштаба';
-
-  @override
-  String minZoom(int zoom) {
-    return 'Мин: $zoom';
-  }
-
-  @override
-  String maxZoom(int zoom) {
-    return 'Макс: $zoom';
-  }
-
-  @override
-  String get downloadingDots => 'Загрузка...';
-
-  @override
-  String get cancelDownload => 'Отменить загрузку';
-
-  @override
-  String get downloadRegionButton => 'Скачать регион';
-
-  @override
-  String get downloadNote =>
-      'Внимание: большие регионы или высокие уровни масштаба могут потребовать значительного времени и места.';
-
-  @override
-  String get cacheManagement => 'Управление кэшем';
-
-  @override
-  String get clearAllMaps => 'Очистить все карты';
-
-  @override
-  String get clearMapsConfirmTitle => 'Очистить все карты';
-
-  @override
-  String get clearMapsConfirmMessage =>
-      'Вы уверены, что хотите удалить все загруженные карты? Это действие нельзя отменить.';
-
-  @override
-  String get mapDownloadCompleted => 'Загрузка карты завершена!';
-
-  @override
-  String get cacheClearedSuccessfully => 'Кэш успешно очищен!';
-
-  @override
-  String get downloadCancelled => 'Загрузка отменена';
-
-  @override
-  String get startingDownload => 'Начало загрузки...';
-
-  @override
-  String get downloadingMapTiles => 'Загрузка тайлов карты...';
-
-  @override
-  String get downloadCompletedSuccessfully => 'Загрузка успешно завершена!';
-
-  @override
-  String get cancellingDownload => 'Отмена загрузки...';
-
-  @override
-  String errorLoadingStats(String error) {
-    return 'Ошибка загрузки статистики: $error';
-  }
-
-  @override
-  String downloadFailed(String error) {
-    return 'Ошибка загрузки: $error';
-  }
-
-  @override
-  String cancelFailed(String error) {
-    return 'Ошибка отмены: $error';
-  }
-
-  @override
-  String clearCacheFailed(String error) {
-    return 'Ошибка очистки кэша: $error';
-  }
-
-  @override
-  String minZoomError(String error) {
-    return 'Мин. масштаб: $error';
-  }
-
-  @override
-  String maxZoomError(String error) {
-    return 'Макс. масштаб: $error';
-  }
-
-  @override
-  String get minZoomGreaterThanMax =>
-      'Минимальный масштаб должен быть меньше или равен максимальному';
-
-  @override
   String get selectMapLayer => 'Выбрать слой карты';
-
-  @override
-  String get mapOptions => 'Параметры карты';
-
-  @override
-  String get showLegend => 'Показать легенду';
-
-  @override
-  String get displayMarkerTypeCounts => 'Отображать счётчики типов маркеров';
-
-  @override
-  String get rotateMapWithHeading => 'Поворачивать карту по курсу';
-
-  @override
-  String get mapFollowsDirection => 'Карта следует вашему направлению движения';
-
-  @override
-  String get resetMapRotation => 'Сбросить поворот';
-
-  @override
-  String get resetMapRotationTooltip => 'Вернуть карту на север';
-
-  @override
-  String get showMapDebugInfo => 'Показать отладочную информацию карты';
-
-  @override
-  String get displayZoomLevelBounds => 'Отображать уровень масштаба и границы';
-
-  @override
-  String get fullscreenMode => 'Полноэкранный режим';
-
-  @override
-  String get hideUiFullMapView =>
-      'Скрыть все элементы интерфейса для полного вида карты';
 
   @override
   String get openStreetMap => 'OpenStreetMap';
@@ -1034,12 +681,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get googleTerrain => 'Google Рельеф';
 
   @override
-  String get downloadVisibleArea => 'Скачать видимую область';
-
-  @override
-  String get initializingMap => 'Инициализация карты...';
-
-  @override
   String get dragToPosition => 'Перетащите для позиционирования';
 
   @override
@@ -1055,52 +696,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sarAlert => 'ТРЕВОГА SAR';
 
   @override
-  String get messageSentToPublicChannel =>
-      'Сообщение отправлено в публичный канал';
-
-  @override
-  String get pleaseSelectRoomToSendSar =>
-      'Пожалуйста, выберите комнату для отправки маркера SAR';
-
-  @override
-  String failedToSendSarMarker(String error) {
-    return 'Не удалось отправить маркер SAR: $error';
-  }
-
-  @override
-  String sarMarkerSentTo(String roomName) {
-    return 'Маркер SAR отправлен в $roomName';
-  }
-
-  @override
-  String get notConnectedCannotSync =>
-      'Нет подключения — синхронизация невозможна';
-
-  @override
-  String syncedMessageCount(int count) {
-    return 'Синхронизировано $count сообщение(й)';
-  }
-
-  @override
-  String get noNewMessages => 'Новых сообщений нет';
-
-  @override
-  String syncFailed(String error) {
-    return 'Синхронизация не удалась: $error';
-  }
-
-  @override
-  String get failedToResendMessage => 'Не удалось повторно отправить сообщение';
-
-  @override
-  String get retryingMessage => 'Повторная отправка сообщения...';
-
-  @override
-  String retryFailed(String error) {
-    return 'Повтор не удался: $error';
-  }
-
-  @override
   String get textCopiedToClipboard => 'Текст скопирован в буфер обмена';
 
   @override
@@ -1110,9 +705,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get cannotReplyContactNotFound =>
       'Не удаётся ответить: контакт не найден';
-
-  @override
-  String get messageDeleted => 'Сообщение удалено';
 
   @override
   String get copyText => 'Копировать текст';
@@ -1148,12 +740,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get sarLocationShare => 'Местоположение SAR';
-
-  @override
-  String get locationShared => 'Местоположение передано';
-
-  @override
-  String get refreshedContacts => 'Контакты обновлены';
 
   @override
   String get justNow => 'Только что';
@@ -1263,78 +849,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get you => 'Вы';
 
   @override
-  String get offlineVectorMaps => 'Офлайн-векторные карты';
-
-  @override
-  String get offlineVectorMapsDescription =>
-      'Импортируйте офлайн-векторные тайлы карт (формат MBTiles) для использования без интернета';
-
-  @override
-  String get importMbtiles => 'Импортировать файл MBTiles';
-
-  @override
-  String get importMbtilesNote =>
-      'Поддерживаются файлы MBTiles с векторными тайлами (формат PBF/MVT). Отлично подходят выгрузки Geofabrik!';
-
-  @override
-  String get noMbtilesFiles => 'Офлайн-векторные карты не найдены';
-
-  @override
-  String get mbtilesImportedSuccessfully => 'Файл MBTiles успешно импортирован';
-
-  @override
-  String get failedToImportMbtiles => 'Не удалось импортировать файл MBTiles';
-
-  @override
-  String get deleteMbtilesConfirmTitle => 'Удалить офлайн-карту';
-
-  @override
-  String deleteMbtilesConfirmMessage(String name) {
-    return 'Вы уверены, что хотите удалить \"$name\"? Офлайн-карта будет удалена безвозвратно.';
-  }
-
-  @override
-  String get mbtilesDeletedSuccessfully => 'Офлайн-карта успешно удалена';
-
-  @override
-  String get failedToDeleteMbtiles => 'Не удалось удалить офлайн-карту';
-
-  @override
-  String get importExportCachedTiles => 'Импорт/Экспорт кэшированных тайлов';
-
-  @override
-  String get importExportDescription =>
-      'Резервное копирование, обмен и восстановление загруженных тайлов карт между устройствами';
-
-  @override
-  String get exportTilesToFile => 'Экспортировать тайлы в файл';
-
-  @override
-  String get importTilesFromFile => 'Импортировать тайлы из файла';
-
-  @override
-  String get selectExportLocation => 'Выберите место для экспорта';
-
-  @override
-  String get selectImportFile => 'Выберите архив тайлов';
-
-  @override
-  String get exportingTiles => 'Экспорт тайлов...';
-
-  @override
-  String get importingTiles => 'Импорт тайлов...';
-
-  @override
-  String exportSuccess(int count) {
-    return 'Экспортировано $count тайлов';
-  }
-
-  @override
-  String importSuccess(int count) {
-    return 'Импортировано $count хранилищ';
-  }
-
-  @override
   String exportFailed(String error) {
     return 'Ошибка экспорта: $error';
   }
@@ -1345,38 +859,10 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get exportNote =>
-      'Создаёт сжатый архив (.fmtc), которым можно поделиться и импортировать на других устройствах.';
-
-  @override
-  String get importNote =>
-      'Импортирует тайлы карт из ранее экспортированного архива. Тайлы будут объединены с существующим кэшем.';
-
-  @override
-  String get noTilesToExport => 'Нет доступных тайлов для экспорта';
-
-  @override
-  String archiveContainsStores(int count) {
-    return 'Архив содержит $count хранилищ';
-  }
-
-  @override
-  String get vectorTiles => 'Векторные тайлы';
-
-  @override
-  String get schema => 'Схема';
-
-  @override
   String get unknown => 'Неизвестно';
 
   @override
-  String get bounds => 'Границы';
-
-  @override
   String get onlineLayers => 'Онлайн-слои';
-
-  @override
-  String get offlineLayers => 'Офлайн-слои';
 
   @override
   String get locationTrail => 'Трек местоположения';
@@ -1415,47 +901,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get trailControls => 'Управление треком';
-
-  @override
-  String get exportTrailToGpx => 'Экспортировать трек в GPX';
-
-  @override
-  String get importTrailFromGpx => 'Импортировать трек из GPX';
-
-  @override
-  String get trailExportedSuccessfully => 'Трек успешно экспортирован!';
-
-  @override
-  String get failedToExportTrail => 'Не удалось экспортировать трек';
-
-  @override
-  String failedToImportTrail(String error) {
-    return 'Не удалось импортировать трек: $error';
-  }
-
-  @override
-  String get importTrail => 'Импортировать трек';
-
-  @override
-  String importTrailQuestion(int pointCount) {
-    return 'Импортировать трек из $pointCount точек?\n\nВы можете заменить текущий трек или просмотреть его рядом.';
-  }
-
-  @override
-  String get viewAlongside => 'Просмотреть рядом';
-
-  @override
-  String get replaceCurrent => 'Заменить текущий';
-
-  @override
-  String trailImported(int pointCount) {
-    return 'Трек импортирован! ($pointCount точек)';
-  }
-
-  @override
-  String trailReplaced(int pointCount) {
-    return 'Трек заменён! ($pointCount точек)';
-  }
 
   @override
   String get contactTrails => 'Треки контактов';
@@ -1730,17 +1175,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noRoomsFound => 'Комнаты не найдены';
 
   @override
-  String get noContactsOrRoomsAvailable => 'Нет доступных контактов или комнат';
-
-  @override
   String get noRecipientsAvailable => 'Нет доступных получателей';
 
   @override
   String get noChannelsFound => 'Каналы не найдены';
-
-  @override
-  String get messagesWillBeSentToPublicChannel =>
-      'Сообщения будут отправлены в публичный канал';
 
   @override
   String get newMessage => 'Новое сообщение';
@@ -1923,10 +1361,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get rectangleDrawing => 'Прямоугольник';
 
   @override
-  String get coordinatesCopiedToClipboard =>
-      'Координаты скопированы в буфер обмена';
-
-  @override
   String get manualCoordinates => 'Ввод координат вручную';
 
   @override
@@ -1939,35 +1373,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get longitudeLabel => 'Долгота';
 
   @override
-  String get invalidLatitude => 'Неверная широта (от -90 до 90)';
-
-  @override
-  String get invalidLongitude => 'Неверная долгота (от -180 до 180)';
-
-  @override
   String get exampleCoordinates => 'Пример: 55.7558, 37.6173';
-
-  @override
-  String get drawingShared => 'Рисунок на карте';
-
-  @override
-  String get drawingHidden => 'Рисунок скрыт с карты';
-
-  @override
-  String alreadyShared(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count уже передано',
-      one: '1 уже передан',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String newDrawingsShared(int count, String plural) {
-    return 'Передано $count новых рисунк$plural';
-  }
 
   @override
   String get shareDrawing => 'Поделиться рисунком';
@@ -2024,12 +1430,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get forestRoads => 'Лесные дороги';
-
-  @override
-  String get showCadastralParcels => 'Показать кадастровые участки';
-
-  @override
-  String get showForestRoads => 'Показать лесные дороги';
 
   @override
   String get wmsOverlays => 'WMS-наложения';
@@ -2136,10 +1536,6 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get allChannelSlotsInUse =>
-      'Все слоты каналов заняты (максимум 39 пользовательских каналов)';
-
-  @override
   String get createChannel => 'Создать канал';
 
   @override
@@ -2178,21 +1574,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get wizardConnectingFeature3 =>
       'Работает полностью офлайн — интернет не нужен';
-
-  @override
-  String get wizardSimpleModeTitle => 'Простой режим';
-
-  @override
-  String get wizardSimpleModeDescription =>
-      'Впервые работаете с mesh-сетью? Включите простой режим для упрощённого интерфейса с основными функциями.';
-
-  @override
-  String get wizardSimpleModeFeature1 =>
-      'Удобный для новичков интерфейс с основными функциями';
-
-  @override
-  String get wizardSimpleModeFeature2 =>
-      'Переключиться в расширенный режим можно в любое время в настройках';
 
   @override
   String get wizardChannelTitle => 'Каналы';
