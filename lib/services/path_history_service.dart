@@ -113,15 +113,16 @@ class PathHistoryService {
     await initialize();
     await recordLearnedPath(contact);
 
+    if (contact.routeHasPath && contact.routeHopCount > 0) {
+      return PathSelection(
+        mode: PathSelectionMode.directCurrent,
+        pathBytes: Uint8List.fromList(contact.routePathBytes),
+        hopCount: contact.routeHopCount,
+        hashSize: contact.routeHashSize,
+      );
+    }
+
     if (!autoRouteRotationEnabled) {
-      if (contact.routeHasPath && contact.routeHopCount > 0) {
-        return PathSelection(
-          mode: PathSelectionMode.directCurrent,
-          pathBytes: Uint8List.fromList(contact.routePathBytes),
-          hopCount: contact.routeHopCount,
-          hashSize: contact.routeHashSize,
-        );
-      }
       return PathSelection.flood();
     }
 

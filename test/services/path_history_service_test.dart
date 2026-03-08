@@ -31,6 +31,21 @@ Contact _buildContact({
   );
 }
 
+Contact _buildContactWithoutRoute({required int seed}) {
+  return Contact(
+    publicKey: Uint8List.fromList(List<int>.generate(32, (i) => i + seed)),
+    type: ContactType.chat,
+    flags: 0,
+    outPathLen: -1,
+    outPath: Uint8List(0),
+    advName: 'Contact $seed',
+    lastAdvert: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    advLat: 0,
+    advLon: 0,
+    lastMod: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  );
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -40,12 +55,7 @@ void main() {
 
   test('auto rotation ranks best paths before flood', () async {
     final service = PathHistoryService();
-    final contact = _buildContact(
-      seed: 0,
-      pathBytes: [0xAA, 0xBB],
-      hopCount: 2,
-      hashSize: 1,
-    );
+    final contact = _buildContactWithoutRoute(seed: 0);
     final best = PathSelection(
       mode: PathSelectionMode.directHistorical,
       pathBytes: Uint8List.fromList([0xAA, 0xBB]),
@@ -105,20 +115,43 @@ void main() {
     expect(secondPick.mode, PathSelectionMode.flood);
   });
 
+  test(
+    'current learned route is reused first even with rotation enabled',
+    () async {
+      final service = PathHistoryService();
+      final contact = _buildContact(
+        seed: 9,
+        pathBytes: [0xAA, 0xBB, 0xCC],
+        hopCount: 1,
+        hashSize: 3,
+      );
+
+      await service.initialize();
+      await service.recordPathResult(
+        contact.publicKeyHex,
+        PathSelection(
+          mode: PathSelectionMode.directHistorical,
+          pathBytes: Uint8List.fromList([0x11, 0x22, 0x33]),
+          hopCount: 1,
+          hashSize: 3,
+        ),
+        success: true,
+        roundTripTimeMs: 90,
+      );
+
+      final selection = await service.getSelectionForContact(
+        contact,
+        autoRouteRotationEnabled: true,
+      );
+
+      expect(selection.mode, PathSelectionMode.directCurrent);
+      expect(selection.canonicalPath, 'AABBCC');
+    },
+  );
+
   test('no history falls back to flood', () async {
     final service = PathHistoryService();
-    final contact = Contact(
-      publicKey: Uint8List.fromList(List<int>.generate(32, (i) => i)),
-      type: ContactType.chat,
-      flags: 0,
-      outPathLen: -1,
-      outPath: Uint8List(0),
-      advName: 'No Route',
-      lastAdvert: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      advLat: 0,
-      advLon: 0,
-      lastMod: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-    );
+    final contact = _buildContactWithoutRoute(seed: 0);
 
     final selection = await service.getSelectionForContact(
       contact,
