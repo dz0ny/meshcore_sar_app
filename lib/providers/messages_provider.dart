@@ -765,14 +765,14 @@ class MessagesProvider with ChangeNotifier {
       final seconds = (voiceEnvelope.durationMs / 1000).ceil();
       final summary =
           'Voice message - ${voiceEnvelope.mode.label} - ${seconds}s - ${voiceEnvelope.total} packets';
-      return isChannelMessage ? '$senderName\n$summary' : summary;
+      return summary;
     }
 
     final imageEnvelope = ImageEnvelope.tryParse(message.text);
     if (imageEnvelope != null) {
       final summary =
           'Image - ${imageEnvelope.format.label} - ${imageEnvelope.width}x${imageEnvelope.height} - ${_formatBytes(imageEnvelope.sizeBytes)}';
-      return isChannelMessage ? '$senderName\n$summary' : summary;
+      return summary;
     }
 
     if (!isChannelMessage && message.recipientPublicKey != null) {
@@ -783,10 +783,6 @@ class MessagesProvider with ChangeNotifier {
       if (recipientName != 'Unknown') {
         return 'To: $recipientName\n${message.text}';
       }
-    }
-
-    if (isChannelMessage) {
-      return '$senderName\n${message.text}';
     }
 
     return message.text;
