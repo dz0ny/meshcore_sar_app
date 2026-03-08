@@ -59,6 +59,7 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
   int _selectedHashSize = RouteHashPreferences.defaultHashSize;
   ParsedContactRoute? _parsedRoute;
   String? _errorText;
+  bool _showRoutingInfo = false;
 
   @override
   void initState() {
@@ -188,6 +189,12 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
             ],
             const SizedBox(height: 16),
             _AutomationRoutingInfo(
+              isExpanded: _showRoutingInfo,
+              onToggle: () {
+                setState(() {
+                  _showRoutingInfo = !_showRoutingInfo;
+                });
+              },
               autoRouteRotationEnabled: appProvider.autoRouteRotationEnabled,
               clearPathOnMaxRetry: appProvider.clearPathOnMaxRetry,
             ),
@@ -254,10 +261,14 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
 }
 
 class _AutomationRoutingInfo extends StatelessWidget {
+  final bool isExpanded;
+  final VoidCallback onToggle;
   final bool autoRouteRotationEnabled;
   final bool clearPathOnMaxRetry;
 
   const _AutomationRoutingInfo({
+    required this.isExpanded,
+    required this.onToggle,
     required this.autoRouteRotationEnabled,
     required this.clearPathOnMaxRetry,
   });
@@ -276,45 +287,70 @@ class _AutomationRoutingInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.info_outline, size: 18, color: colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Automatic direct-send routing',
-                style: Theme.of(context).textTheme.titleSmall,
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: onToggle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Automatic direct-send routing',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  Icon(
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                    color: colorScheme.primary,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Room/contact sends keep one selected path for the whole send chain, retry up to 5 total attempts with 1s, 2s, 4s, and 8s backoff, then try one final nearest repeater if everything else fails.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Public and channel broadcasts are not affected by this automation.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _InfoChip(
-                label: autoRouteRotationEnabled
-                    ? 'Auto route rotation on'
-                    : 'Auto route rotation off',
-                icon: Icons.swap_horiz,
-              ),
-              _InfoChip(
-                label: clearPathOnMaxRetry
-                    ? 'Clear path on max retry on'
-                    : 'Clear path on max retry off',
-                icon: Icons.route,
-              ),
-            ],
-          ),
+          if (isExpanded) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Room/contact sends keep one selected path for the whole send chain, retry up to 5 total attempts with 1s, 2s, 4s, and 8s backoff, then try one final nearest repeater if everything else fails.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Public and channel broadcasts are not affected by this automation.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _InfoChip(
+                  label: autoRouteRotationEnabled
+                      ? 'Auto route rotation on'
+                      : 'Auto route rotation off',
+                  icon: Icons.swap_horiz,
+                ),
+                _InfoChip(
+                  label: clearPathOnMaxRetry
+                      ? 'Clear path on max retry on'
+                      : 'Clear path on max retry off',
+                  icon: Icons.route,
+                ),
+              ],
+            ),
+          ] else ...[
+            const SizedBox(height: 6),
+            Text(
+              'Shows retry, rotation, and final repeater fallback behavior.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ],
       ),
     );
