@@ -128,10 +128,19 @@ class _MessagesTabState extends State<MessagesTab> {
   void _checkForNavigationRequest() {
     final messagesProvider = context.read<MessagesProvider>();
     final targetMessageId = messagesProvider.targetMessageId;
+    final targetDestinationType = messagesProvider.targetDestinationType;
 
     if (targetMessageId != null) {
       _scrollToMessage(targetMessageId);
       messagesProvider.clearMessageNavigation();
+    }
+
+    if (targetDestinationType != null) {
+      _applyPendingDestination(
+        type: targetDestinationType,
+        recipientPublicKeyHex: messagesProvider.targetRecipientPublicKeyHex,
+      );
+      messagesProvider.clearDestinationNavigation();
     }
   }
 
@@ -304,6 +313,23 @@ class _MessagesTabState extends State<MessagesTab> {
     if (!mounted) return;
   }
 
+  Future<void> _applyPendingDestination({
+    required String type,
+    String? recipientPublicKeyHex,
+  }) async {
+    Contact? recipient;
+    if (recipientPublicKeyHex != null) {
+      final contactsProvider = context.read<ContactsProvider>();
+      recipient = contactsProvider.contacts.where((contact) {
+        return contact.publicKeyHex == recipientPublicKeyHex;
+      }).firstOrNull;
+    }
+
+    await _onRecipientSelected(type, recipient);
+    if (!mounted) return;
+    _focusNode.requestFocus();
+  }
+
   Future<void> _replyToMessage(Message message) async {
     final l10n = AppLocalizations.of(context)!;
     final contactsProvider = context.read<ContactsProvider>();
@@ -351,7 +377,9 @@ class _MessagesTabState extends State<MessagesTab> {
 
   /// Get icon for current destination type
   IconData _getDestinationIcon() {
-    if (_destinationType ==
+    if (_destinationType == MessageDestinationPreferences.destinationTypeAll) {
+      return Icons.all_inbox;
+    } else if (_destinationType ==
         MessageDestinationPreferences.destinationTypeChannel) {
       return Icons.public;
     } else if (_destinationType ==
@@ -363,6 +391,9 @@ class _MessagesTabState extends State<MessagesTab> {
   }
 
   String _getDestinationLabel() {
+    if (_destinationType == MessageDestinationPreferences.destinationTypeAll) {
+      return AppLocalizations.of(context)!.showAll;
+    }
     if (_destinationType ==
             MessageDestinationPreferences.destinationTypeChannel &&
         _selectedRecipient != null) {
@@ -385,6 +416,12 @@ class _MessagesTabState extends State<MessagesTab> {
     if (!connectionProvider.deviceInfo.isConnected) {
       if (!mounted) return;
       ToastLogger.error(context, 'Not connected to device');
+      return;
+    }
+
+    if (_destinationType == MessageDestinationPreferences.destinationTypeAll) {
+      if (!mounted) return;
+      ToastLogger.error(context, 'Select a channel, contact, or room first');
       return;
     }
 
@@ -1153,6 +1190,15 @@ class _MessagesTabState extends State<MessagesTab> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: const Icon(Icons.search),
+                title: const Text('Search messages'),
+                onTap: () async {
+                  await _runAfterSheetDismissal(sheetContext, () async {
+                    _showFilteredMessageSearch();
+                  });
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.add_location_alt),
                 title: Text(AppLocalizations.of(context)!.sendSarMarker),
                 onTap: () async {
@@ -1217,6 +1263,116 @@ class _MessagesTabState extends State<MessagesTab> {
         );
       },
     );
+  }
+
+  void _showFilteredMessageSearch() {
+    final messagesProvider = context.read<MessagesProvider>();
+    final scopedMessages = _getFilteredMessages(messagesProvider);
+    final searchController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final query = searchController.text.trim().toLowerCase();
+            final matches = query.isEmpty
+                ? scopedMessages
+                : scopedMessages.where((message) {
+                    return message.text.toLowerCase().contains(query) ||
+                        (message.senderName?.toLowerCase().contains(query) ??
+                            false);
+                  }).toList();
+
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+                ),
+                child: SizedBox(
+                  height: MediaQuery.of(sheetContext).size.height * 0.72,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                        child: TextField(
+                          controller: searchController,
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            hintText: 'Search in current filter',
+                            prefixIcon: const Icon(Icons.search),
+                            suffixIcon: searchController.text.isEmpty
+                                ? null
+                                : IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      searchController.clear();
+                                      setModalState(() {});
+                                    },
+                                  ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          onChanged: (_) => setModalState(() {}),
+                        ),
+                      ),
+                      Expanded(
+                        child: matches.isEmpty
+                            ? Center(
+                                child: Text(
+                                  query.isEmpty
+                                      ? 'No messages in this filter'
+                                      : 'No matches in this filter',
+                                ),
+                              )
+                            : ListView.separated(
+                                itemCount: matches.length,
+                                separatorBuilder: (_, _) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (context, index) {
+                                  final message = matches[index];
+                                  final title =
+                                      message.senderName?.trim().isNotEmpty ==
+                                          true
+                                      ? message.senderName!
+                                      : message.isSentMessage
+                                      ? 'You'
+                                      : _getDestinationLabel();
+
+                                  return ListTile(
+                                    title: Text(
+                                      title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    subtitle: Text(
+                                      message.text,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(sheetContext);
+                                      _scrollToMessage(message.id);
+                                    },
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).whenComplete(searchController.dispose);
   }
 
   Widget _buildDestinationAvatar(BuildContext context) {
@@ -1484,17 +1640,18 @@ class _MessagesTabState extends State<MessagesTab> {
     List<Message> filteredMessages;
 
     // If channel destination is selected, filter by selected channel.
-    if (_destinationType ==
+    if (_destinationType == MessageDestinationPreferences.destinationTypeAll) {
+      filteredMessages = allMessages;
+    } else if (_destinationType ==
         MessageDestinationPreferences.destinationTypeChannel) {
       final selectedChannelIdx = _selectedRecipient?.publicKey[1] ?? 0;
-      if (selectedChannelIdx == 0) {
-        // Public channel view keeps showing all messages (current app behavior).
-        filteredMessages = allMessages;
-      } else {
-        filteredMessages = allMessages
-            .where((message) => message.channelIdx == selectedChannelIdx)
-            .toList();
-      }
+      filteredMessages = allMessages
+          .where(
+            (message) =>
+                message.isChannelMessage &&
+                (message.channelIdx ?? 0) == selectedChannelIdx,
+          )
+          .toList();
     }
     // If a contact or room is selected, filter by recipient/sender prefixes.
     else if ((_destinationType ==
@@ -1503,6 +1660,10 @@ class _MessagesTabState extends State<MessagesTab> {
                 MessageDestinationPreferences.destinationTypeRoom) &&
         _selectedRecipient != null) {
       filteredMessages = allMessages.where((message) {
+        if (!message.isContactMessage) {
+          return false;
+        }
+
         // Include messages sent TO this recipient
         if (message.recipientPublicKey != null &&
             message.recipientPublicKey!.length >= 6 &&

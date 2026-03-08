@@ -8,6 +8,8 @@ import '../../models/room_login_state.dart';
 import '../../providers/connection_provider.dart';
 import '../../providers/contacts_provider.dart';
 import '../../providers/map_provider.dart';
+import '../../providers/messages_provider.dart';
+import '../../services/message_destination_preferences.dart';
 import 'contact_route_dialog.dart';
 import 'room_login_sheet.dart';
 import '../common/contact_avatar.dart';
@@ -21,6 +23,7 @@ class ContactTile extends StatelessWidget {
   final double Function(double, double, double, double)? calculateDistance;
   final String Function(double)? formatDistance;
   final VoidCallback? onNavigateToMap;
+  final VoidCallback? onNavigateToMessages;
   final int messageCount;
   final int unreadMessageCount;
 
@@ -31,6 +34,7 @@ class ContactTile extends StatelessWidget {
     this.calculateDistance,
     this.formatDistance,
     this.onNavigateToMap,
+    this.onNavigateToMessages,
     this.messageCount = 0,
     this.unreadMessageCount = 0,
   });
@@ -97,13 +101,7 @@ class ContactTile extends StatelessWidget {
             ],
           )
         : null;
-    void handleTap() {
-      if (contact.type == ContactType.chat) {
-        _showSetRouteDialog(context, contact);
-      } else {
-        _showContactDetails(context, contact);
-      }
-    }
+    void handleTap() => _handlePrimaryTap(context, contact);
 
     final onLongPress = isPingInProgress
         ? null
@@ -303,6 +301,85 @@ class ContactTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _handlePrimaryTap(BuildContext context, Contact contact) {
+    if (contact.isChannel) {
+      _showContactDetails(context, contact);
+      return;
+    }
+
+    _showContactActionSheet(context, contact);
+  }
+
+  void _showContactActionSheet(BuildContext context, Contact contact) {
+    final l10n = AppLocalizations.of(context)!;
+    final canMessage =
+        contact.type == ContactType.chat || contact.type == ContactType.room;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.message_outlined),
+              title: Text(l10n.messages),
+              enabled: canMessage,
+              onTap: !canMessage
+                  ? null
+                  : () async {
+                      Navigator.pop(sheetContext);
+                      await _openMessagesForContact(context, contact);
+                    },
+            ),
+            ListTile(
+              leading: const Icon(Icons.alt_route),
+              title: const Text('Set path'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showSetRouteDialog(context, contact);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: Text(
+                l10n.deleteContact,
+                style: const TextStyle(color: Colors.red),
+              ),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showDeleteConfirmation(context, contact);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMessagesForContact(
+    BuildContext context,
+    Contact contact,
+  ) async {
+    final messagesProvider = context.read<MessagesProvider>();
+    final destinationType = contact.type == ContactType.room
+        ? MessageDestinationPreferences.destinationTypeRoom
+        : MessageDestinationPreferences.destinationTypeContact;
+
+    await MessageDestinationPreferences.setDestination(
+      destinationType,
+      recipientPublicKey: contact.publicKeyHex,
+    );
+    messagesProvider.navigateToDestination(
+      destinationType,
+      recipientPublicKeyHex: contact.publicKeyHex,
+    );
+    onNavigateToMessages?.call();
   }
 
   void _showRoomLoginDialog(BuildContext context, Contact contact) {

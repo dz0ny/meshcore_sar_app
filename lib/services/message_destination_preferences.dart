@@ -7,6 +7,7 @@ class MessageDestinationPreferences {
   static const String _recipientPublicKeyKey = 'message_recipient_public_key';
 
   /// Destination types
+  static const String destinationTypeAll = 'all';
   static const String destinationTypeChannel = 'channel';
   static const String destinationTypeContact = 'contact';
   static const String destinationTypeRoom = 'room';
@@ -24,14 +25,11 @@ class MessageDestinationPreferences {
 
     final publicKey = prefs.getString(_recipientPublicKeyKey);
 
-    return {
-      'type': type,
-      'publicKey': ?publicKey,
-    };
+    return {'type': type, 'publicKey': ?publicKey};
   }
 
   /// Save the selected destination
-  /// [type] - one of: destinationTypeChannel, destinationTypeContact, destinationTypeRoom
+  /// [type] - one of: destinationTypeAll, destinationTypeChannel, destinationTypeContact, destinationTypeRoom
   /// [recipientPublicKey] - hex string of recipient's public key (required for contact/room)
   static Future<void> setDestination(
     String type, {
@@ -58,6 +56,8 @@ class MessageDestinationPreferences {
   /// Get display name for destination type
   static String getDestinationTypeName(String type) {
     switch (type) {
+      case destinationTypeAll:
+        return 'All';
       case destinationTypeChannel:
         return 'Channel';
       case destinationTypeContact:

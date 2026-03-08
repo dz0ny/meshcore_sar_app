@@ -47,7 +47,7 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
 
   bool _isSelected(String type, Contact? contact) {
     if (widget.currentDestinationType != type) return false;
-    if (contact == null) return false;
+    if (contact == null) return widget.currentRecipientPublicKey == null;
     return contact.publicKeyHex == widget.currentRecipientPublicKey;
   }
 
@@ -138,6 +138,18 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
             child: ListView(
               shrinkWrap: true,
               children: [
+                _buildOptionTile(
+                  context: context,
+                  icon: Icons.all_inbox,
+                  title: l10n.showAll,
+                  subtitle: 'All messages',
+                  isSelected: _isSelected('all', null),
+                  onTap: () {
+                    widget.onSelect('all', null);
+                    Navigator.pop(context);
+                  },
+                ),
+                const Divider(),
                 // Channels section
                 if (widget.channels.isNotEmpty) ...[
                   Padding(
@@ -319,6 +331,50 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
   }) {
     return ListTile(
       leading: ContactAvatar(contact: contact, radius: 20, displayName: title),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(fontSize: 12, fontFamily: 'monospace').copyWith(
+          color: Theme.of(
+            context,
+          ).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+        ),
+      ),
+      trailing: isSelected
+          ? Icon(
+              Icons.check_circle,
+              color: Theme.of(context).colorScheme.primary,
+            )
+          : null,
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildOptionTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: CircleAvatar(
+        radius: 20,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+      ),
       title: Row(
         children: [
           Expanded(

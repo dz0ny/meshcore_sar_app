@@ -62,6 +62,8 @@ class MessagesProvider with ChangeNotifier {
 
   // Navigation state for message highlighting/scrolling
   String? _targetMessageId;
+  String? _targetDestinationType;
+  String? _targetRecipientPublicKeyHex;
 
   // Helper function to compare Uint8List for equality
   bool _listEquals(Uint8List a, Uint8List b) {
@@ -183,9 +185,23 @@ class MessagesProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String? get targetDestinationType => _targetDestinationType;
+  String? get targetRecipientPublicKeyHex => _targetRecipientPublicKeyHex;
+
+  void navigateToDestination(String type, {String? recipientPublicKeyHex}) {
+    _targetDestinationType = type;
+    _targetRecipientPublicKeyHex = recipientPublicKeyHex;
+    notifyListeners();
+  }
+
   /// Clear message navigation state
   void clearMessageNavigation() {
     _targetMessageId = null;
+  }
+
+  void clearDestinationNavigation() {
+    _targetDestinationType = null;
+    _targetRecipientPublicKeyHex = null;
   }
 
   /// Get count of unread messages (excluding sent messages and system messages)

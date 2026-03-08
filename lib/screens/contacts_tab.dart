@@ -13,8 +13,13 @@ import '../widgets/contacts/add_channel_dialog.dart';
 
 class ContactsTab extends StatefulWidget {
   final VoidCallback? onNavigateToMap;
+  final VoidCallback? onNavigateToMessages;
 
-  const ContactsTab({super.key, this.onNavigateToMap});
+  const ContactsTab({
+    super.key,
+    this.onNavigateToMap,
+    this.onNavigateToMessages,
+  });
 
   @override
   State<ContactsTab> createState() => _ContactsTabState();
@@ -285,6 +290,7 @@ class _ContactsTabState extends State<ContactsTab> {
                       calculateDistance: _calculateDistanceInMeters,
                       formatDistance: _formatDistance,
                       onNavigateToMap: widget.onNavigateToMap,
+                      onNavigateToMessages: widget.onNavigateToMessages,
                       messageCount: messagesProvider
                           .getMessageCountForDestination(contact),
                       unreadMessageCount: messagesProvider
@@ -308,6 +314,7 @@ class _ContactsTabState extends State<ContactsTab> {
                       calculateDistance: _calculateDistanceInMeters,
                       formatDistance: _formatDistance,
                       onNavigateToMap: widget.onNavigateToMap,
+                      onNavigateToMessages: widget.onNavigateToMessages,
                       messageCount: messagesProvider
                           .getMessageCountForDestination(contact),
                       unreadMessageCount: messagesProvider
@@ -331,6 +338,7 @@ class _ContactsTabState extends State<ContactsTab> {
                       calculateDistance: _calculateDistanceInMeters,
                       formatDistance: _formatDistance,
                       onNavigateToMap: widget.onNavigateToMap,
+                      onNavigateToMessages: widget.onNavigateToMessages,
                       messageCount: messagesProvider
                           .getMessageCountForDestination(contact),
                       unreadMessageCount: messagesProvider
@@ -354,6 +362,7 @@ class _ContactsTabState extends State<ContactsTab> {
                       calculateDistance: _calculateDistanceInMeters,
                       formatDistance: _formatDistance,
                       onNavigateToMap: widget.onNavigateToMap,
+                      onNavigateToMessages: widget.onNavigateToMessages,
                       messageCount: messagesProvider
                           .getMessageCountForDestination(contact),
                       unreadMessageCount: messagesProvider

@@ -688,6 +688,7 @@ class _HomeScreenState extends State<HomeScreen>
                 onNavigateToMap: _isMapEnabled
                     ? () => _navigateToTab(_HomeTab.map)
                     : null,
+                onNavigateToMessages: () => _navigateToTab(_HomeTab.messages),
               );
             case _HomeTab.sensors:
               return const SensorsTab();
