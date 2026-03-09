@@ -61,6 +61,9 @@ class PacketCaptureStorageService {
   File? _file;
 
   Future<File> _resolveFile() async {
+    if (kIsWeb) {
+      throw UnsupportedError('Packet capture file storage is not supported on web');
+    }
     if (_file != null) return _file!;
     final dir = await getApplicationSupportDirectory();
     final file = File('${dir.path}/$_fileName');
@@ -73,6 +76,7 @@ class PacketCaptureStorageService {
 
   Future<void> appendLogs(List<BlePacketLog> logs) async {
     if (logs.isEmpty) return;
+    if (kIsWeb) return;
     try {
       final file = await _resolveFile();
       final sink = file.openWrite(mode: FileMode.append);
@@ -98,6 +102,7 @@ class PacketCaptureStorageService {
   }
 
   Future<List<StoredPacketCapture>> loadRecent({int limit = 500}) async {
+    if (kIsWeb) return const [];
     try {
       final file = await _resolveFile();
       if (!await file.exists()) return const [];
@@ -116,6 +121,7 @@ class PacketCaptureStorageService {
   }
 
   Future<int> count() async {
+    if (kIsWeb) return 0;
     try {
       final file = await _resolveFile();
       if (!await file.exists()) return 0;
@@ -127,6 +133,7 @@ class PacketCaptureStorageService {
   }
 
   Future<void> clear() async {
+    if (kIsWeb) return;
     try {
       final file = await _resolveFile();
       if (await file.exists()) {
