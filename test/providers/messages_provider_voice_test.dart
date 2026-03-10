@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  Contact _buildContact({
+  Contact buildContact({
     required List<int> prefix,
     required ContactType type,
     String name = 'Test Contact',
@@ -218,12 +218,12 @@ void main() {
 
     test('marks only the selected contact destination as read', () {
       final provider = MessagesProvider();
-      final alice = _buildContact(
+      final alice = buildContact(
         prefix: [0x10, 0x11, 0x12, 0x13, 0x14, 0x15],
         type: ContactType.chat,
         name: 'Alice',
       );
-      final bob = _buildContact(
+      final bob = buildContact(
         prefix: [0x20, 0x21, 0x22, 0x23, 0x24, 0x25],
         type: ContactType.chat,
         name: 'Bob',

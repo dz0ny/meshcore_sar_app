@@ -14,6 +14,7 @@ import 'messages_tab.dart';
 import 'contacts_tab.dart';
 import 'sensors_tab.dart';
 import 'map_tab.dart';
+import 'repeaters_map_screen.dart';
 import 'settings_screen.dart';
 import 'device_config_screen.dart';
 import 'packet_log_screen.dart';
@@ -645,6 +646,31 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       );
                     }
+
+                    items.add(
+                      PopupMenuItem(
+                        child: const Row(
+                          children: [
+                            Icon(Icons.router_outlined),
+                            SizedBox(width: 8),
+                            Text('Repeaters Map'),
+                          ],
+                        ),
+                        onTap: () {
+                          final navigator = Navigator.of(context);
+                          Future.delayed(Duration.zero, () {
+                            if (!mounted) return;
+                            navigator.push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const RepeatersMapScreen(),
+                                fullscreenDialog: true,
+                              ),
+                            );
+                          });
+                        },
+                      ),
+                    );
 
                     items.add(
                       PopupMenuItem(

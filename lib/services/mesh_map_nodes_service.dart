@@ -35,6 +35,7 @@ class MeshMapNode {
 class MeshMapNodesService {
   static const String _nodesEndpoint =
       'https://api.meshcore.nz/api/v1/map/nodes';
+  static const int repeaterType = 1;
   static const Duration _cacheTtl = Duration(hours: 24);
   static const Duration traceCacheTtl = _cacheTtl;
   static const Duration traceTimeout = Duration(seconds: 30);
@@ -181,6 +182,8 @@ class MeshMapNodesService {
     _cachedAt = DateTime.fromMillisecondsSinceEpoch(cachedAtMs);
     return _cachedAt;
   }
+
+  static bool isRepeater(MeshMapNode node) => node.type == repeaterType;
 
   static Future<void> _storeCache(
     List<MeshMapNode> nodes, {
