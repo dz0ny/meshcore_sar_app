@@ -1,4 +1,7 @@
-import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'dart:async';
+
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +22,7 @@ import 'services/voice_codec_service.dart';
 import 'services/voice_player_service.dart';
 import 'services/notification_service.dart';
 import 'services/locale_preferences.dart';
+import 'services/mesh_map_nodes_service.dart';
 import 'services/update_checker_service.dart';
 import 'services/wizard_preferences.dart';
 import 'screens/home_screen.dart';
@@ -69,6 +73,9 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
     // Check for app updates (Android only) - runs in background
     // Shows notification if update is available
     _checkForUpdates();
+
+    // Refresh remote mesh node cache in background when the app starts.
+    unawaited(MeshMapNodesService.syncInBackgroundIfStale());
 
     setState(() {
       _wizardCompleted = wizardCompleted;

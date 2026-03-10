@@ -1,5 +1,6 @@
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_avif/flutter_avif.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,6 +16,7 @@ import '../providers/app_provider.dart';
 import '../providers/connection_provider.dart';
 import '../services/location_tracking_service.dart';
 import '../services/locale_preferences.dart';
+import '../services/mesh_map_nodes_service.dart';
 import '../services/update_checker_service.dart';
 import '../services/voice_codec_service.dart';
 import '../services/voice_bitrate_preferences.dart';
@@ -72,6 +74,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double _fastLocationMovementThresholdMeters = 10.0;
   int _fastLocationActiveCadenceSeconds = 10;
   bool _isDeveloperModeEnabled = false;
+  DateTime? _onlineTraceCacheUpdatedAt;
+  bool _isClearingOnlineTraceCache = false;
   int _versionTapCount = 0;
   final ImagePicker _imagePicker = ImagePicker();
   final LocationTrackingService _locationService = LocationTrackingService();
@@ -89,6 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadImagePreferences();
     _loadFastLocationSettings();
     _loadDeveloperMode();
+    _loadOnlineTraceCacheStatus();
   }
 
   @override
@@ -123,6 +128,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     setState(() {
       _isDeveloperModeEnabled = isEnabled;
+    });
+  }
+
+  Future<void> _loadOnlineTraceCacheStatus() async {
+    final cachedAt = await MeshMapNodesService.cachedAt();
+    if (!mounted) return;
+    setState(() {
+      _onlineTraceCacheUpdatedAt = cachedAt;
     });
   }
 
@@ -829,6 +842,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _clearOnlineTraceCache() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear online trace database'),
+        content: const Text(
+          'This removes the cached online node database used as a trace fallback.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(AppLocalizations.of(context)!.clear),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      _isClearingOnlineTraceCache = true;
+    });
+
+    await MeshMapNodesService.clearCache();
+
+    if (!mounted) return;
+    setState(() {
+      _onlineTraceCacheUpdatedAt = null;
+      _isClearingOnlineTraceCache = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Online trace database cleared'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+  }
+
+  String _onlineTraceCacheSubtitle() {
+    final cachedAt = _onlineTraceCacheUpdatedAt;
+    if (cachedAt == null) {
+      return 'No cached online database. Refresh runs in background when internet is available.';
+    }
+
+    final expiresAt = cachedAt.add(MeshMapNodesService.traceCacheTtl);
+    return 'Last synced ${_formatDateTime(cachedAt)}. Cached for 24 hours until ${_formatDateTime(expiresAt)}.';
+  }
+
+  String _formatDateTime(DateTime value) {
+    final local = value.toLocal();
+    String two(int part) => part.toString().padLeft(2, '0');
+    return '${local.year}-${two(local.month)}-${two(local.day)} ${two(local.hour)}:${two(local.minute)}';
+  }
+
   Future<void> _showRouteHashSizeDialog() async {
     final selected = await showDialog<int>(
       context: context,
@@ -1044,6 +1117,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
+            ),
+          ]),
+
+          _buildSectionHeader('Tracing'),
+          _buildSettingsCard([
+            ListTile(
+              leading: const Icon(Icons.cloud_sync),
+              title: const Text('Online trace database'),
+              subtitle: Text(_onlineTraceCacheSubtitle()),
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.delete_sweep,
+                color: _isClearingOnlineTraceCache ? null : Colors.red,
+              ),
+              title: Text(
+                'Clear online trace database',
+                style: TextStyle(
+                  color: _isClearingOnlineTraceCache ? null : Colors.red,
+                ),
+              ),
+              subtitle: const Text(
+                'Remove the 24-hour cached fallback used when local route matches are incomplete',
+              ),
+              enabled: !_isClearingOnlineTraceCache,
+              trailing: _isClearingOnlineTraceCache
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : null,
+              onTap: _isClearingOnlineTraceCache
+                  ? null
+                  : _clearOnlineTraceCache,
             ),
           ]),
 

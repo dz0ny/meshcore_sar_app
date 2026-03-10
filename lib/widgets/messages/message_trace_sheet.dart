@@ -1,6 +1,7 @@
 // ignore_for_file: use_null_aware_elements
 
 import 'dart:math' as math;
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:latlong2/latlong.dart';
@@ -60,7 +61,13 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
       return trace;
     }
 
-    final remoteNodes = await MeshMapNodesService.fetchNodes(
+    unawaited(
+      MeshMapNodesService.syncInBackgroundIfStale(
+        cacheTtl: MeshMapNodesService.traceCacheTtl,
+      ),
+    );
+
+    final remoteNodes = await MeshMapNodesService.loadCachedNodes(
       cacheTtl: MeshMapNodesService.traceCacheTtl,
     );
     trace = _buildTraceResult(

@@ -24,6 +24,7 @@ import '../widgets/permission_request_dialog.dart';
 import '../widgets/connection_dialog.dart';
 import '../utils/battery_display_helper.dart';
 import '../services/developer_mode_service.dart';
+import '../services/mesh_map_nodes_service.dart';
 
 enum _HomeTab { messages, contacts, sensors, map }
 
@@ -93,6 +94,7 @@ class _HomeScreenState extends State<HomeScreen>
     _initTabController();
     _loadRxTxPreference();
     _loadDeveloperModePreference();
+    MeshMapNodesService.syncInBackgroundIfStale();
 
     // Show permission dialog after the first frame if needed
     if (widget.shouldShowPermissionDialog) {
@@ -219,6 +221,9 @@ class _HomeScreenState extends State<HomeScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _lifecycleState = state;
     _syncFastLocationUiState();
+    if (state == AppLifecycleState.resumed) {
+      MeshMapNodesService.syncInBackgroundIfStale();
+    }
   }
 
   Future<void> _loadRxTxPreference() async {
@@ -388,10 +393,14 @@ class _HomeScreenState extends State<HomeScreen>
     required int count,
     required bool isActive,
     required Color activeColor,
+    bool compact = false,
   }) {
     final color = isActive ? activeColor : Colors.grey;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 7 : 8,
+        vertical: compact ? 4 : 5,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
@@ -400,15 +409,15 @@ class _HomeScreenState extends State<HomeScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 7,
-            height: 7,
+            width: compact ? 6 : 7,
+            height: compact ? 6 : 7,
             decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: compact ? 5 : 6),
           Text(
             '$label:$count',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: compact ? 10 : 11,
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -1036,17 +1045,19 @@ class _HomeScreenState extends State<HomeScreen>
                             txActive: provider.txActivity,
                           )
                         : Container(
+                            constraints: const BoxConstraints(minHeight: 48),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
+                              horizontal: 8,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.surfaceContainerHigh
                                   .withValues(alpha: 0.85),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(22),
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 _buildActivityBadge(
@@ -1054,13 +1065,15 @@ class _HomeScreenState extends State<HomeScreen>
                                   count: provider.rxPacketCount,
                                   isActive: provider.rxActivity,
                                   activeColor: Colors.green,
+                                  compact: true,
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 4),
                                 _buildActivityBadge(
                                   label: 'TX',
                                   count: provider.txPacketCount,
                                   isActive: provider.txActivity,
                                   activeColor: Colors.blue,
+                                  compact: true,
                                 ),
                               ],
                             ),

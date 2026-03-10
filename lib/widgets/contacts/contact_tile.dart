@@ -49,6 +49,7 @@ class ContactTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isChannel = contact.type == ContactType.channel;
     final location = contact.displayLocation;
     // Calculate distance if both positions are available
     String? distanceText;
@@ -115,33 +116,33 @@ class ContactTile extends StatelessWidget {
           : colorScheme.onSurfaceVariant,
       fontWeight: FontWeight.w600,
     );
-    final subtitleWidget = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (location != null) ...[
-          const SizedBox(height: 2),
-          _buildLocationLine(
-            context,
-            latitude: location.latitude,
-            longitude: location.longitude,
-            distanceText: distanceText,
-          ),
-          if (contact.type != ContactType.channel) ...[
-            const SizedBox(height: 6),
-            Row(children: [_buildRoutePill(context, contact)]),
-          ],
-        ] else
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              AppLocalizations.of(context)!.noGpsData,
-              style: Theme.of(
-                context,
-              ).textTheme.labelSmall?.copyWith(color: Colors.grey),
-            ),
-          ),
-      ],
-    );
+    final Widget? subtitleWidget = isChannel
+        ? null
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (location != null) ...[
+                const SizedBox(height: 2),
+                _buildLocationLine(
+                  context,
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                  distanceText: distanceText,
+                ),
+                const SizedBox(height: 6),
+                Row(children: [_buildRoutePill(context, contact)]),
+              ] else
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    AppLocalizations.of(context)!.noGpsData,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelSmall?.copyWith(color: Colors.grey),
+                  ),
+                ),
+            ],
+          );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -238,7 +239,8 @@ class ContactTile extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(timeAgoText, style: timeAgoStyle),
+                          if (!isChannel)
+                            Text(timeAgoText, style: timeAgoStyle),
                           if (isPingInProgress) ...[
                             const SizedBox(width: 6),
                             SizedBox(
@@ -252,7 +254,7 @@ class ContactTile extends StatelessWidget {
                           ],
                         ],
                       ),
-                      subtitleWidget,
+                      ?subtitleWidget,
                     ],
                   ),
                 ),
@@ -276,7 +278,8 @@ class ContactTile extends StatelessWidget {
         contact.type == ContactType.channel;
     final canSetPath =
         contact.type == ContactType.chat || contact.type == ContactType.room;
-    final canAddToSensors = contact.type == ContactType.chat ||
+    final canAddToSensors =
+        contact.type == ContactType.chat ||
         contact.type == ContactType.repeater;
     final sensorsProvider = context.read<SensorsProvider>();
     final isInSensors = sensorsProvider.isWatched(contact.publicKeyHex);
@@ -384,7 +387,10 @@ class ContactTile extends StatelessWidget {
     onNavigateToMap?.call();
   }
 
-  Future<void> _addContactToSensors(BuildContext context, Contact contact) async {
+  Future<void> _addContactToSensors(
+    BuildContext context,
+    Contact contact,
+  ) async {
     await context.read<SensorsProvider>().addSensor(contact);
     if (!context.mounted) {
       return;

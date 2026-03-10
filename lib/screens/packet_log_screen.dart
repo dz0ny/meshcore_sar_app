@@ -8,6 +8,7 @@ import 'package:meshcore_client/meshcore_client.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/connection_provider.dart';
 import '../providers/contacts_provider.dart';
+import '../services/mesh_map_nodes_service.dart';
 import '../services/route_hash_preferences.dart';
 import '../utils/log_rx_route_decoder.dart';
 
@@ -746,22 +747,31 @@ class _DecodedRouteSection extends StatelessWidget {
         connectionProvider.deviceInfo.selfName ??
         connectionProvider.deviceInfo.displayName;
 
-    return FutureBuilder<int>(
-      future: RouteHashPreferences.getHashSize(),
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait<dynamic>([
+        RouteHashPreferences.getHashSize(),
+        MeshMapNodesService.loadCachedNodes(
+          cacheTtl: MeshMapNodesService.traceCacheTtl,
+        ),
+      ]),
       builder: (context, snapshot) {
         final decodedRoute = LogRxRouteDecoder.decode(
           log.rawData,
-          preferredHashSize: snapshot.data,
+          preferredHashSize: snapshot.data?.first as int?,
         );
         if (decodedRoute == null) {
           return const SizedBox.shrink();
         }
 
+        final cachedNodes = snapshot.hasData
+            ? snapshot.data![1] as List<MeshMapNode>
+            : const <MeshMapNode>[];
         final resolvedPath = decodedRoute.hopHashes
             .map(
-              (hashHex) => LogRxRouteDecoder.resolveHash(
+              (hashHex) => _resolveHashWithFallback(
                 hashHex,
                 contacts: contacts,
+                cachedNodes: cachedNodes,
                 ownPublicKey: ownPublicKey,
                 ownName: ownName,
               ),
@@ -775,6 +785,41 @@ class _DecodedRouteSection extends StatelessWidget {
           originalSender: originalSender,
         );
       },
+    );
+  }
+
+  ResolvedNodeHash _resolveHashWithFallback(
+    String hashHex, {
+    required List<Contact> contacts,
+    required List<MeshMapNode> cachedNodes,
+    required Uint8List? ownPublicKey,
+    required String? ownName,
+  }) {
+    final localResolved = LogRxRouteDecoder.resolveHash(
+      hashHex,
+      contacts: contacts,
+      ownPublicKey: ownPublicKey,
+      ownName: ownName,
+    );
+    if (localResolved.matchCount > 0 || localResolved.isOwnNode) {
+      return localResolved;
+    }
+
+    final normalizedHashHex = hashHex.toLowerCase();
+    final matches = cachedNodes
+        .where((node) => node.publicKey.startsWith(normalizedHashHex))
+        .toList();
+    if (matches.isEmpty) {
+      return localResolved;
+    }
+
+    matches.sort((a, b) => b.updatedAtMs.compareTo(a.updatedAtMs));
+    return ResolvedNodeHash(
+      hashHex: normalizedHashHex,
+      label: matches.first.name,
+      isOwnNode: false,
+      isUniqueMatch: matches.length == 1,
+      matchCount: matches.length,
     );
   }
 }

@@ -7,6 +7,7 @@ import '../models/contact.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/connection_provider.dart';
+import '../utils/contact_grouping.dart';
 import '../widgets/contacts/contact_tile.dart';
 import '../widgets/contacts/add_channel_dialog.dart';
 
@@ -27,6 +28,7 @@ class ContactsTab extends StatefulWidget {
 class _ContactsTabState extends State<ContactsTab> {
   Position? _currentPosition;
   final Set<String> _resolvingAdvertKeys = <String>{};
+  ContactSortMode _sortMode = ContactSortMode.lastSeen;
 
   @override
   void initState() {
@@ -125,20 +127,22 @@ class _ContactsTabState extends State<ContactsTab> {
     return l10n.daysAgo(diff.inDays);
   }
 
-  List<Contact> _sortContactsByDistance(List<Contact> contacts) {
+  List<Contact> _sortContacts(List<Contact> contacts) {
     final sorted = List<Contact>.from(contacts);
 
     sorted.sort((a, b) {
-      final distanceA = _distanceFromCurrentPosition(a);
-      final distanceB = _distanceFromCurrentPosition(b);
+      if (_sortMode == ContactSortMode.distance) {
+        final distanceA = _distanceFromCurrentPosition(a);
+        final distanceB = _distanceFromCurrentPosition(b);
 
-      if (distanceA != null && distanceB != null) {
-        final distanceCompare = distanceA.compareTo(distanceB);
-        if (distanceCompare != 0) return distanceCompare;
-      } else if (distanceA != null) {
-        return -1;
-      } else if (distanceB != null) {
-        return 1;
+        if (distanceA != null && distanceB != null) {
+          final distanceCompare = distanceA.compareTo(distanceB);
+          if (distanceCompare != 0) return distanceCompare;
+        } else if (distanceA != null) {
+          return -1;
+        } else if (distanceB != null) {
+          return 1;
+        }
       }
 
       return b.lastSeenTime.compareTo(a.lastSeenTime);
@@ -208,12 +212,10 @@ class _ContactsTabState extends State<ContactsTab> {
     return Scaffold(
       body: Consumer<ContactsProvider>(
         builder: (context, contactsProvider, child) {
-          final chatContacts = _sortContactsByDistance(
-            contactsProvider.chatContacts,
-          );
-          final repeaters = _sortContactsByDistance(contactsProvider.repeaters);
-          final rooms = _sortContactsByDistance(contactsProvider.rooms);
-          final channels = _sortContactsByDistance(contactsProvider.channels);
+          final chatContacts = _sortContacts(contactsProvider.chatContacts);
+          final repeaters = _sortContacts(contactsProvider.repeaters);
+          final rooms = _sortContacts(contactsProvider.rooms);
+          final channels = _sortContacts(contactsProvider.channels);
           final pendingAdverts = contactsProvider.pendingAdverts;
 
           // Check if there are any displayable contacts
@@ -255,6 +257,17 @@ class _ContactsTabState extends State<ContactsTab> {
             child: ListView(
               padding: const EdgeInsets.all(8),
               children: [
+                _SortModeSwitcher(
+                  sortMode: _sortMode,
+                  lastSeenLabel: l10n.lastSeen,
+                  distanceLabel: l10n.distance,
+                  onChanged: (sortMode) {
+                    setState(() {
+                      _sortMode = sortMode;
+                    });
+                  },
+                ),
+
                 // Pending adverts (public key only; quick resolve)
                 if (pendingAdverts.isNotEmpty) ...[
                   _SectionHeader(
@@ -283,16 +296,7 @@ class _ContactsTabState extends State<ContactsTab> {
                     count: chatContacts.length,
                     icon: Icons.people,
                   ),
-                  ...chatContacts.map(
-                    (contact) => ContactTile(
-                      contact: contact,
-                      currentPosition: _currentPosition,
-                      calculateDistance: _calculateDistanceInMeters,
-                      formatDistance: _formatDistance,
-                      onNavigateToMap: widget.onNavigateToMap,
-                      onNavigateToMessages: widget.onNavigateToMessages,
-                    ),
-                  ),
+                  ..._buildContactSectionItems(chatContacts),
                   const Divider(height: 32),
                 ],
 
@@ -303,16 +307,7 @@ class _ContactsTabState extends State<ContactsTab> {
                     count: repeaters.length,
                     icon: Icons.router,
                   ),
-                  ...repeaters.map(
-                    (contact) => ContactTile(
-                      contact: contact,
-                      currentPosition: _currentPosition,
-                      calculateDistance: _calculateDistanceInMeters,
-                      formatDistance: _formatDistance,
-                      onNavigateToMap: widget.onNavigateToMap,
-                      onNavigateToMessages: widget.onNavigateToMessages,
-                    ),
-                  ),
+                  ..._buildContactSectionItems(repeaters),
                   const Divider(height: 32),
                 ],
 
@@ -323,16 +318,7 @@ class _ContactsTabState extends State<ContactsTab> {
                     count: rooms.length,
                     icon: Icons.tag,
                   ),
-                  ...rooms.map(
-                    (contact) => ContactTile(
-                      contact: contact,
-                      currentPosition: _currentPosition,
-                      calculateDistance: _calculateDistanceInMeters,
-                      formatDistance: _formatDistance,
-                      onNavigateToMap: widget.onNavigateToMap,
-                      onNavigateToMessages: widget.onNavigateToMessages,
-                    ),
-                  ),
+                  ..._buildContactSectionItems(rooms),
                   const Divider(height: 32),
                 ],
 
@@ -343,16 +329,7 @@ class _ContactsTabState extends State<ContactsTab> {
                   icon: Icons.broadcast_on_personal,
                 ),
                 if (channels.isNotEmpty) ...[
-                  ...channels.map(
-                    (contact) => ContactTile(
-                      contact: contact,
-                      currentPosition: _currentPosition,
-                      calculateDistance: _calculateDistanceInMeters,
-                      formatDistance: _formatDistance,
-                      onNavigateToMap: widget.onNavigateToMap,
-                      onNavigateToMessages: widget.onNavigateToMessages,
-                    ),
-                  ),
+                  ..._buildContactSectionItems(channels),
                 ],
 
                 // Add Channel Button (visible in both simple and advanced mode, only show when connected)
@@ -381,7 +358,36 @@ class _ContactsTabState extends State<ContactsTab> {
       ),
     );
   }
+
+  List<Widget> _buildContactSectionItems(List<Contact> contacts) {
+    final items = ContactGrouping.buildItemsFromSorted(contacts);
+
+    return items.map((item) {
+      if (item.isGroup) {
+        return _InferredContactGroupCard(
+          label: item.group!.label,
+          contacts: item.group!.contacts,
+          currentPosition: _currentPosition,
+          calculateDistance: _calculateDistanceInMeters,
+          formatDistance: _formatDistance,
+          onNavigateToMap: widget.onNavigateToMap,
+          onNavigateToMessages: widget.onNavigateToMessages,
+        );
+      }
+
+      return ContactTile(
+        contact: item.contact!,
+        currentPosition: _currentPosition,
+        calculateDistance: _calculateDistanceInMeters,
+        formatDistance: _formatDistance,
+        onNavigateToMap: widget.onNavigateToMap,
+        onNavigateToMessages: widget.onNavigateToMessages,
+      );
+    }).toList();
+  }
 }
+
+enum ContactSortMode { lastSeen, distance }
 
 class _PendingAdvertTile extends StatelessWidget {
   final PendingAdvert advert;
@@ -461,6 +467,138 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _InferredContactGroupCard extends StatelessWidget {
+  final String label;
+  final List<Contact> contacts;
+  final Position? currentPosition;
+  final double Function(double, double, double, double) calculateDistance;
+  final String Function(double) formatDistance;
+  final VoidCallback? onNavigateToMap;
+  final VoidCallback? onNavigateToMessages;
+
+  const _InferredContactGroupCard({
+    required this.label,
+    required this.contacts,
+    required this.currentPosition,
+    required this.calculateDistance,
+    required this.formatDistance,
+    required this.onNavigateToMap,
+    required this.onNavigateToMessages,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.folder_copy_outlined,
+                  size: 18,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    contacts.length.toString(),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ...contacts.map(
+              (contact) => ContactTile(
+                contact: contact,
+                currentPosition: currentPosition,
+                calculateDistance: calculateDistance,
+                formatDistance: formatDistance,
+                onNavigateToMap: onNavigateToMap,
+                onNavigateToMessages: onNavigateToMessages,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SortModeSwitcher extends StatelessWidget {
+  final ContactSortMode sortMode;
+  final String lastSeenLabel;
+  final String distanceLabel;
+  final ValueChanged<ContactSortMode> onChanged;
+
+  const _SortModeSwitcher({
+    required this.sortMode,
+    required this.lastSeenLabel,
+    required this.distanceLabel,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: SegmentedButton<ContactSortMode>(
+          segments: [
+            ButtonSegment<ContactSortMode>(
+              value: ContactSortMode.lastSeen,
+              label: Text(lastSeenLabel),
+              icon: const Icon(Icons.schedule),
+            ),
+            ButtonSegment<ContactSortMode>(
+              value: ContactSortMode.distance,
+              label: Text(distanceLabel),
+              icon: const Icon(Icons.near_me),
+            ),
+          ],
+          selected: {sortMode},
+          onSelectionChanged: (selection) {
+            final selected = selection.isEmpty ? null : selection.first;
+            if (selected != null) {
+              onChanged(selected);
+            }
+          },
+          showSelectedIcon: false,
+        ),
       ),
     );
   }
