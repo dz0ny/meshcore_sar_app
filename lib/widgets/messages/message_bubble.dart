@@ -68,6 +68,7 @@ class MessageBubble extends StatefulWidget {
 }
 
 class _MessageBubbleState extends State<MessageBubble> {
+  static final RegExp _mentionPattern = RegExp(r'@\[(.+?)\]');
   bool _isExpanded = false;
   bool _showReceivedStats = false;
 
@@ -93,6 +94,72 @@ class _MessageBubbleState extends State<MessageBubble> {
     setState(() {
       _isExpanded = !_isExpanded;
     });
+  }
+
+  Widget _buildMessageTextContent(String text, TextStyle? baseBodyStyle) {
+    final matches = _mentionPattern.allMatches(text).toList();
+    if (matches.isEmpty) {
+      return Text(text, style: baseBodyStyle);
+    }
+
+    final textColor =
+        baseBodyStyle?.color ?? Theme.of(context).colorScheme.onSurface;
+    final backgroundColor = Theme.of(
+      context,
+    ).colorScheme.primary.withValues(alpha: 0.12);
+    final borderColor = Theme.of(
+      context,
+    ).colorScheme.primary.withValues(alpha: 0.25);
+
+    final spans = <InlineSpan>[];
+    var cursor = 0;
+
+    for (final match in matches) {
+      if (match.start > cursor) {
+        spans.add(
+          TextSpan(
+            text: text.substring(cursor, match.start),
+            style: baseBodyStyle,
+          ),
+        );
+      }
+
+      final mentionName = match.group(1)?.trim() ?? '';
+      if (mentionName.isNotEmpty) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: borderColor),
+              ),
+              child: Text(
+                '@$mentionName',
+                style: baseBodyStyle?.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ),
+        );
+      } else {
+        spans.add(TextSpan(text: match.group(0), style: baseBodyStyle));
+      }
+
+      cursor = match.end;
+    }
+
+    if (cursor < text.length) {
+      spans.add(TextSpan(text: text.substring(cursor), style: baseBodyStyle));
+    }
+
+    return Text.rich(TextSpan(children: spans, style: baseBodyStyle));
   }
 
   void _handleBubbleTap({required bool isSarMarker, required bool isDrawing}) {
@@ -2229,7 +2296,10 @@ class _MessageBubbleState extends State<MessageBubble> {
                     );
 
                     if (drawing == null) {
-                      return Text(message.text, style: baseBodyStyle);
+                      return _buildMessageTextContent(
+                        message.text,
+                        baseBodyStyle,
+                      );
                     }
 
                     final String drawingTypeLabel;
@@ -2315,7 +2385,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 )
               // Regular message content
               else if (!message.isDrawing || widget.isCompact)
-                Text(message.text, style: baseBodyStyle),
+                _buildMessageTextContent(message.text, baseBodyStyle),
 
               if (!widget.isCompact &&
                   !isSarMarker &&

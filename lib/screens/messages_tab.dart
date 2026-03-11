@@ -338,9 +338,35 @@ class _MessagesTabState extends State<MessagesTab> {
     _focusNode.requestFocus();
   }
 
+  void _insertReplyMention(String displayName) {
+    final trimmedName = displayName.trim();
+    if (trimmedName.isEmpty) return;
+
+    final mention = '@[$trimmedName] ';
+    final value = _textController.value;
+    final selection = value.selection;
+    final hasSelection =
+        selection.isValid &&
+        selection.start >= 0 &&
+        selection.end >= selection.start;
+
+    final start = hasSelection ? selection.start : value.text.length;
+    final end = hasSelection ? selection.end : value.text.length;
+    final nextText = value.text.replaceRange(start, end, mention);
+    final nextOffset = start + mention.length;
+
+    _textController.value = value.copyWith(
+      text: nextText,
+      selection: TextSelection.collapsed(offset: nextOffset),
+      composing: TextRange.empty,
+    );
+    _enforceMessageByteLimit();
+  }
+
   Future<void> _replyToMessage(Message message) async {
     final l10n = AppLocalizations.of(context)!;
     final contactsProvider = context.read<ContactsProvider>();
+    Contact? senderContact;
 
     String destinationType;
     Contact? recipient;
@@ -359,6 +385,11 @@ class _MessagesTabState extends State<MessagesTab> {
           ToastLogger.error(context, l10n.cannotReplyContactNotFound);
           return;
         }
+      }
+
+      final senderPrefix = message.senderPublicKeyPrefix;
+      if (senderPrefix != null && senderPrefix.length >= 6) {
+        senderContact = contactsProvider.findContactByPrefix(senderPrefix);
       }
     } else {
       final senderPrefix = message.senderPublicKeyPrefix;
@@ -380,6 +411,9 @@ class _MessagesTabState extends State<MessagesTab> {
 
     await _onRecipientSelected(destinationType, recipient);
     if (!mounted) return;
+    if (message.isChannelMessage && senderContact != null) {
+      _insertReplyMention(senderContact.displayName);
+    }
     _focusNode.requestFocus();
   }
 
