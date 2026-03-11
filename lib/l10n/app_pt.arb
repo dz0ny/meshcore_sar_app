@@ -2309,7 +2309,7 @@
   "wizardNetworkTitle": "Contatos, salas e repetidores",
   "wizardNetworkDescription": "A guia Contatos organiza a rede que você descobre e as rotas aprendidas ao longo do tempo.",
   "wizardNetworkFeature1": "Revise membros da equipe, repetidores, salas, canais e anúncios pendentes em uma única lista.",
-  "wizardNetworkFeature2": "Use smart ping, login em salas, caminhos aprendidos e ferramentas de redefinição de rota quando a conectividade ficar confusa.",
+  "wizardNetworkFeature2": "Use ping inteligente, login em salas, caminhos aprendidos e ferramentas de redefinição de rota quando a conectividade ficar confusa.",
   "wizardNetworkFeature3": "Crie canais e gerencie destinos de rede sem sair do aplicativo.",
   "wizardMapOpsTitle": "Mapa, trilhas e geometria compartilhada",
   "wizardMapOpsDescription": "O mapa do aplicativo está ligado diretamente às mensagens, ao rastreamento e às sobreposições SAR, em vez de ser um visualizador separado.",

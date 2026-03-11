@@ -1856,7 +1856,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get wizardNetworkFeature2 =>
-      'Use smart ping, login em salas, caminhos aprendidos e ferramentas de redefinição de rota quando a conectividade ficar confusa.';
+      'Use ping inteligente, login em salas, caminhos aprendidos e ferramentas de redefinição de rota quando a conectividade ficar confusa.';
 
   @override
   String get wizardNetworkFeature3 =>
