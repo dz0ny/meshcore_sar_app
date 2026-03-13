@@ -92,6 +92,7 @@ class ConnectionProvider with ChangeNotifier {
   bool get isScanning => _isScanning;
   bool _isSpectrumScanActive = false;
   bool get isSpectrumScanActive => _isSpectrumScanActive;
+  final Set<int> _pendingDeletedChannelIndices = <int>{};
 
   String? _error;
   String? get error => _error;
@@ -903,6 +904,22 @@ class ConnectionProvider with ChangeNotifier {
     return message.contains('0x1f') && message.contains('timed out');
   }
 
+  bool shouldTreatChannelInfoAsDeleted(
+    int channelIdx,
+    String channelName,
+    Uint8List secret,
+  ) {
+    final isEmptyInfo =
+        channelIdx != 0 &&
+        channelName.isEmpty &&
+        secret.every((byte) => byte == 0);
+    if (!isEmptyInfo) {
+      return false;
+    }
+
+    return _pendingDeletedChannelIndices.remove(channelIdx);
+  }
+
   Future<int?> findNextEmptyChannelSlot() async {
     if (!_activeService.isConnected) {
       throw Exception('Not connected to device');
@@ -915,58 +932,35 @@ class ConnectionProvider with ChangeNotifier {
       final maxChannels = _deviceInfo.maxChannels ?? 40;
       final maxCustomChannels = maxChannels > 0 ? maxChannels - 1 : 0;
 
-      // Match meshcore-open: trust the current synced channel list first and
-      // pick the first missing slot rather than probing every slot on-device.
-      if (getChannelInfo != null) {
-        final usedIndices = <int>{};
-        for (int i = 1; i < maxChannels; i++) {
-          final channel = getChannelInfo!(i);
-          if (channel == null) {
-            continue;
-          }
-
-          if (_channelSlotIsOccupied(channel)) {
-            usedIndices.add(i);
-          }
-        }
-
-        for (int i = 1; i < maxChannels; i++) {
-          if (!usedIndices.contains(i)) {
-            debugPrint('   ✅ Found empty slot from synced channels: $i');
-            return i;
-          }
-        }
-
-        debugPrint(
-          '   ⚠️  Synced channels report all custom slots occupied ($maxCustomChannels total)',
-        );
+      // Match meshcore-open: choose the first missing slot from the synced
+      // channel set and avoid speculative per-slot probing that can overwrite
+      // an existing channel when device state is delayed or transient.
+      if (getChannelInfo == null) {
+        throw Exception('Channel state is unavailable');
       }
 
-      // Check each slot starting from 1 (skip 0 = public channel)
+      final usedIndices = <int>{};
       for (int i = 1; i < maxChannels; i++) {
-        // First check cache
-        if (getChannelInfo != null) {
-          final channel = getChannelInfo!(i);
-          if (channel != null && _channelSlotIsOccupied(channel)) {
-            final channelName = (channel as dynamic).name as String?;
-            final label = (channelName != null && channelName.isNotEmpty)
-                ? channelName
-                : 'Channel $i';
-            debugPrint('   ⏭️  Slot $i occupied: "$label"');
-            continue; // Skip occupied slots
-          }
+        final channel = getChannelInfo!(i);
+        if (channel == null) {
+          continue;
         }
 
-        // Slot appears empty in cache, verify by querying device
-        debugPrint('   🔍 Checking slot $i...');
-        final isEmpty = await isChannelSlotEmpty(i);
-        if (isEmpty) {
-          debugPrint('   ✅ Found empty slot: $i');
+        if (_channelSlotIsOccupied(channel)) {
+          usedIndices.add(i);
+        }
+      }
+
+      for (int i = 1; i < maxChannels; i++) {
+        if (!usedIndices.contains(i)) {
+          debugPrint('   ✅ Found empty slot from synced channels: $i');
           return i;
         }
       }
 
-      debugPrint('   ❌ All slots (1-${maxChannels - 1}) are in use');
+      debugPrint(
+        '   ❌ Synced channels report all custom slots occupied ($maxCustomChannels total)',
+      );
       return null;
     } catch (e) {
       debugPrint('❌ [Provider] Failed to find empty channel slot: $e');
@@ -998,12 +992,16 @@ class ConnectionProvider with ChangeNotifier {
 
       // Determine channel type
       final bool isHashChannel = channelName.startsWith('#');
+      final maxChannels = _deviceInfo.maxChannels ?? 40;
+
+      // Refresh channel state before choosing a slot so we match meshcore-open's
+      // "pick first missing slot from the synced list" behavior.
+      await _activeService.syncAllChannels(maxChannels: maxChannels);
 
       // Match meshcore-open behavior:
       // - deterministic hash channels (#name) cannot be duplicated
       // - private channels always use the next empty slot, even if the name matches
       if (getChannelInfo != null) {
-        final maxChannels = _deviceInfo.maxChannels ?? 40;
         for (int i = 1; i < maxChannels; i++) {
           final channel = getChannelInfo!(i);
           if (channel != null) {
@@ -1028,7 +1026,6 @@ class ConnectionProvider with ChangeNotifier {
       }
 
       // Find next empty slot for any new channel.
-      final maxChannels = _deviceInfo.maxChannels ?? 40;
       final maxCustomChannels = maxChannels > 0 ? maxChannels - 1 : 0;
       final emptySlot = await findNextEmptyChannelSlot();
       if (emptySlot == null) {
@@ -1107,6 +1104,7 @@ class ConnectionProvider with ChangeNotifier {
 
     try {
       debugPrint('🗑️  [Provider] Deleting channel in slot $channelIdx...');
+      _pendingDeletedChannelIndices.add(channelIdx);
 
       // Delete channel on device (sets empty name and zeroed secret)
       await _activeService.deleteChannel(channelIdx);
@@ -1126,6 +1124,7 @@ class ConnectionProvider with ChangeNotifier {
       // The empty channel will trigger removal via onChannelInfoReceived callback
       await _activeService.getChannel(channelIdx);
     } catch (e) {
+      _pendingDeletedChannelIndices.remove(channelIdx);
       _error = 'Failed to delete channel: $e';
       debugPrint('❌ [Provider] Channel deletion failed: $e');
       notifyListeners();

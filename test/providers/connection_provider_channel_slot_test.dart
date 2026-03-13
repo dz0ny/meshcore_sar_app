@@ -37,5 +37,13 @@ void main() {
         isFalse,
       );
     });
+
+    test('does not treat arbitrary empty channel info as deletion', () {
+      final provider = ConnectionProvider();
+      expect(
+        provider.shouldTreatChannelInfoAsDeleted(3, '', Uint8List(16)),
+        isFalse,
+      );
+    });
   });
 }

@@ -818,7 +818,8 @@ class AppProvider with ChangeNotifier {
               '🔔 [AppProvider] onChannelInfoReceived called: idx=$channelIdx, name="$channelName"',
             );
 
-            final isDeletedChannel = AppProvider.isDeletedChannelInfo(
+            final isDeletedChannel = connectionProvider
+                .shouldTreatChannelInfoAsDeleted(
               channelIdx,
               channelName,
               secret,
