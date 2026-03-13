@@ -874,8 +874,13 @@ class ConnectionProvider with ChangeNotifier {
         }
       }
 
-      // If still no info, assume it's empty
-      return true;
+      // If we still have no authoritative answer after an on-device query,
+      // treat the slot as occupied/unknown so we never overwrite a channel
+      // because of stale or delayed state propagation.
+      debugPrint(
+        '   ⚠️  Slot $channelIdx state is still unknown after query; refusing to treat it as empty',
+      );
+      return false;
     } catch (e) {
       debugPrint('❌ [Provider] Failed to check slot $channelIdx: $e');
       if (_isEmptyChannelQueryError(e)) {
