@@ -342,6 +342,21 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     });
   }
 
+  void _syncRadioPresetSelection() {
+    final freqResult = ValidationService().parseFrequency(_freqController.text);
+    final matchedPreset = freqResult.isSuccess
+        ? _matchRadioPreset(
+            frequencyKhz: (freqResult.value! * 1000).round(),
+            bandwidth: _bandwidthToValue(_selectedBandwidth),
+            spreadingFactor: _selectedSpreadingFactor,
+            codingRate: _selectedCodingRate,
+          )
+        : null;
+
+    _selectedRadioPreset = matchedPreset;
+    _showCustomRadioSettings = matchedPreset == null;
+  }
+
   void _markPublicInfoDirty() {
     if (_publicInfoSaved || _publicInfoError != null) {
       setState(() {
@@ -902,6 +917,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DropdownButtonFormField<_RadioPreset?>(
+                      key: ValueKey(_selectedRadioPreset?.id ?? 'custom'),
                       initialValue: _selectedRadioPreset,
                       decoration: InputDecoration(
                         labelText: 'Radio preset',
@@ -993,16 +1009,13 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                               decimal: true,
                             ),
                             onChanged: (_) {
-                              if (_selectedRadioPreset != null) {
-                                setState(() {
-                                  _selectedRadioPreset = null;
-                                });
-                              }
+                              setState(_syncRadioPresetSelection);
                               _markRadioSettingsDirty();
                             },
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
+                            key: ValueKey('bandwidth-$_selectedBandwidth'),
                             initialValue: _selectedBandwidth,
                             decoration: InputDecoration(
                               labelText: AppLocalizations.of(
@@ -1024,7 +1037,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                               if (newValue != null) {
                                 setState(() {
                                   _selectedBandwidth = newValue;
-                                  _selectedRadioPreset = null;
+                                  _syncRadioPresetSelection();
                                 });
                                 _markRadioSettingsDirty();
                               }
@@ -1032,6 +1045,9 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<int>(
+                            key: ValueKey(
+                              'spreading-factor-$_selectedSpreadingFactor',
+                            ),
                             initialValue: _selectedSpreadingFactor,
                             decoration: InputDecoration(
                               labelText: AppLocalizations.of(
@@ -1055,7 +1071,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                               if (newValue != null) {
                                 setState(() {
                                   _selectedSpreadingFactor = newValue;
-                                  _selectedRadioPreset = null;
+                                  _syncRadioPresetSelection();
                                 });
                                 _markRadioSettingsDirty();
                               }
@@ -1063,6 +1079,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<int>(
+                            key: ValueKey('coding-rate-$_selectedCodingRate'),
                             initialValue: _selectedCodingRate,
                             decoration: InputDecoration(
                               labelText: AppLocalizations.of(
@@ -1086,7 +1103,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                               if (newValue != null) {
                                 setState(() {
                                   _selectedCodingRate = newValue;
-                                  _selectedRadioPreset = null;
+                                  _syncRadioPresetSelection();
                                 });
                                 _markRadioSettingsDirty();
                               }
