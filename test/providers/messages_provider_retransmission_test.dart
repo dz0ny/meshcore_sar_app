@@ -176,29 +176,26 @@ void main() {
       );
     });
 
-    test(
-      'channel replay is deduped for self sender within repeat window',
-      () {
-        final provider = MessagesProvider();
-        provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
-        provider.addSentMessage(
-          _buildSentChannelMessage(id: 'c-echo', senderTimestamp: 1700000100),
-        );
-        provider.markMessageSent('c-echo', 0, 0);
+    test('channel replay is deduped for self sender within repeat window', () {
+      final provider = MessagesProvider();
+      provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
+      provider.addSentMessage(
+        _buildSentChannelMessage(id: 'c-echo', senderTimestamp: 1700000100),
+      );
+      provider.markMessageSent('c-echo', 0, 0);
 
-        provider.addMessage(
-          _buildReceivedChannelReplay(
-            id: 'c-echo-incoming',
-            senderTimestamp: 1700000104,
-            senderName: 'dz0ny (SI)',
-          ),
-        );
+      provider.addMessage(
+        _buildReceivedChannelReplay(
+          id: 'c-echo-incoming',
+          senderTimestamp: 1700000104,
+          senderName: 'dz0ny (SI)',
+        ),
+      );
 
-        expect(provider.messages, hasLength(1));
-        expect(provider.messages.single.id, equals('c-echo'));
-        expect(provider.messages.single.senderName, equals('dz0ny (SI)'));
-      },
-    );
+      expect(provider.messages, hasLength(1));
+      expect(provider.messages.single.id, equals('c-echo'));
+      expect(provider.messages.single.senderName, equals('dz0ny (SI)'));
+    });
 
     test(
       'channel replay is not deduped for different sender with same text',

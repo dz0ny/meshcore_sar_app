@@ -647,9 +647,8 @@ class MessagesProvider with ChangeNotifier {
         return false;
       }
 
-      final timestampDeltaSeconds = (existing.senderTimestamp -
-              message.senderTimestamp)
-          .abs();
+      final timestampDeltaSeconds =
+          (existing.senderTimestamp - message.senderTimestamp).abs();
       final withinChannelRepeatWindow = timestampDeltaSeconds <= 5;
 
       final existingSenderKey = existing.senderKeyShort;
