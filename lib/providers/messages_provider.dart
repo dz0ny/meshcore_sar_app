@@ -505,6 +505,7 @@ class MessagesProvider with ChangeNotifier {
         );
       }
     }
+    enhancedMessage = _resolveSenderNameIfNeeded(enhancedMessage);
 
     // For channel messages with sender name, try to link with contact
     Message finalMessage = enhancedMessage;
@@ -634,17 +635,36 @@ class MessagesProvider with ChangeNotifier {
       if (existing.channelIdx != message.channelIdx) {
         return false;
       }
-      final existingSender = existing.senderKeyShort ?? existing.senderName;
-      final incomingSender = message.senderKeyShort ?? message.senderName;
-      if (existingSender == incomingSender) {
+      final existingSenderKey = existing.senderKeyShort;
+      final incomingSenderKey = message.senderKeyShort;
+      if (existingSenderKey != null &&
+          incomingSenderKey != null &&
+          existingSenderKey == incomingSenderKey) {
         return true;
       }
 
-      // When we send to a channel we add a local "sent" bubble immediately,
-      // then firmware may later sync back the same message as a received
-      // channel item with only the public sender handle. Only fold that replay
-      // into the original bubble after LOG_RX_DATA has already confirmed it as
-      // our own transmitted packet.
+      final existingSenderName = _normalizeSenderName(existing.senderName);
+      final incomingSenderName = _normalizeSenderName(message.senderName);
+      if (existingSenderName != null &&
+          incomingSenderName != null &&
+          existingSenderName == incomingSenderName) {
+        if (!existing.isSentMessage && !message.isSentMessage) {
+          return true;
+        }
+
+        // When we send to a channel we add a local "sent" bubble immediately,
+        // then firmware may later sync back the same message as a received
+        // channel item under our public handle. Only fold that replay into the
+        // original bubble after LOG_RX_DATA has already confirmed it as our
+        // transmitted packet.
+        if (existing.isSentMessage &&
+            existing.echoCount > 0 &&
+            !message.isSentMessage &&
+            (existing.senderTimestamp - message.senderTimestamp).abs() <= 1) {
+          return true;
+        }
+      }
+
       if (existing.isSentMessage &&
           existing.echoCount > 0 &&
           !message.isSentMessage &&
@@ -692,6 +712,29 @@ class MessagesProvider with ChangeNotifier {
     _persistMessages();
 
     notifyListeners();
+  }
+
+  String? _normalizeSenderName(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed.toLowerCase();
+  }
+
+  Message _resolveSenderNameIfNeeded(Message message) {
+    if (message.senderName != null || message.senderPublicKeyPrefix == null) {
+      return message;
+    }
+
+    final resolvedSenderName = resolveContactNameCallback?.call(
+      message.senderPublicKeyPrefix,
+    );
+    if (resolvedSenderName == null || resolvedSenderName.trim().isEmpty) {
+      return message;
+    }
+
+    return message.copyWith(senderName: resolvedSenderName.trim());
   }
 
   /// Trigger urgent notification for SAR marker
@@ -1251,6 +1294,7 @@ class MessagesProvider with ChangeNotifier {
         );
       }
     }
+    enhancedMessage = _resolveSenderNameIfNeeded(enhancedMessage);
 
     // Check for duplicates (shouldn't happen for sent messages, but be safe)
     if (_findDuplicateMessageIndex(enhancedMessage) != -1) {

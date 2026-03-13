@@ -163,6 +163,7 @@ void main() {
 
     test('channel messages are marked sent immediately', () {
       final provider = MessagesProvider();
+      provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
       provider.addSentMessage(
         _buildSentChannelMessage(id: 'c1', senderTimestamp: 1700000000),
       );
@@ -179,6 +180,7 @@ void main() {
       'channel replay is deduped after raw echo detection confirms our send',
       () {
         final provider = MessagesProvider();
+        provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
         provider.addSentMessage(
           _buildSentChannelMessage(id: 'c-echo', senderTimestamp: 1700000100),
         );
@@ -188,12 +190,14 @@ void main() {
         provider.addMessage(
           _buildReceivedChannelReplay(
             id: 'c-echo-incoming',
-            senderTimestamp: 1700000100,
+            senderTimestamp: 1700000101,
+            senderName: 'dz0ny (SI)',
           ),
         );
 
         expect(provider.messages, hasLength(1));
         expect(provider.messages.single.id, equals('c-echo'));
+        expect(provider.messages.single.senderName, equals('dz0ny (SI)'));
       },
     );
 
@@ -201,6 +205,7 @@ void main() {
       'channel replay is not deduped before raw echo detection confirms it',
       () {
         final provider = MessagesProvider();
+        provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
         provider.addSentMessage(
           _buildSentChannelMessage(
             id: 'c-no-echo',
@@ -212,7 +217,8 @@ void main() {
         provider.addMessage(
           _buildReceivedChannelReplay(
             id: 'c-no-echo-incoming',
-            senderTimestamp: 1700000200,
+            senderTimestamp: 1700000201,
+            senderName: 'dz0ny (SI)',
           ),
         );
 

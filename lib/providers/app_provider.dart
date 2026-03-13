@@ -292,6 +292,16 @@ class AppProvider with ChangeNotifier {
   String? _resolveContactNameForNotification(Uint8List? publicKey) {
     if (publicKey == null || publicKey.isEmpty) return null;
 
+    final ownPublicKey = connectionProvider.deviceInfo.publicKey;
+    final ownName =
+        connectionProvider.deviceInfo.deviceName ??
+        connectionProvider.deviceInfo.selfName;
+    if (_matchesPublicKeyPrefix(publicKey, ownPublicKey) &&
+        ownName != null &&
+        ownName.trim().isNotEmpty) {
+      return ownName;
+    }
+
     Contact? contact;
     if (publicKey.length >= 32) {
       contact = contactsProvider.findContactByKey(publicKey);
@@ -302,6 +312,60 @@ class AppProvider with ChangeNotifier {
           )
         : null;
     return contact?.advName;
+  }
+
+  static bool shouldIgnoreSelfReplay({
+    required Message message,
+    required Uint8List? ownPublicKey,
+    required String? ownName,
+  }) {
+    if ((!message.isContactMessage && !message.isChannelMessage) ||
+        message.pathLen > 0) {
+      return false;
+    }
+
+    if (_matchesPublicKeyPrefix(message.senderPublicKeyPrefix, ownPublicKey)) {
+      return true;
+    }
+
+    final trimmedSenderName = message.senderName?.trim();
+    final trimmedOwnName = ownName?.trim();
+    if (trimmedSenderName == null ||
+        trimmedSenderName.isEmpty ||
+        trimmedOwnName == null ||
+        trimmedOwnName.isEmpty) {
+      return false;
+    }
+
+    return trimmedSenderName == trimmedOwnName;
+  }
+
+  static bool _matchesPublicKeyPrefix(
+    Uint8List? candidateKey,
+    Uint8List? ownPublicKey,
+  ) {
+    if (candidateKey == null ||
+        candidateKey.isEmpty ||
+        ownPublicKey == null ||
+        ownPublicKey.isEmpty) {
+      return false;
+    }
+
+    final compareLength = candidateKey.length >= 6 && ownPublicKey.length >= 6
+        ? 6
+        : (candidateKey.length < ownPublicKey.length
+              ? candidateKey.length
+              : ownPublicKey.length);
+    if (compareLength <= 0) {
+      return false;
+    }
+
+    for (var index = 0; index < compareLength; index++) {
+      if (candidateKey[index] != ownPublicKey[index]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Load map enabled setting from shared preferences
@@ -850,6 +914,17 @@ class AppProvider with ChangeNotifier {
 
     // When a message is received
     connectionProvider.onMessageReceived = (message) {
+      if (AppProvider.shouldIgnoreSelfReplay(
+        message: message,
+        ownPublicKey: connectionProvider.deviceInfo.publicKey,
+        ownName:
+            connectionProvider.deviceInfo.deviceName ??
+            connectionProvider.deviceInfo.selfName,
+      )) {
+        debugPrint('⏭️ [AppProvider] Ignoring self replay: ${message.id}');
+        return;
+      }
+
       // Enrich message with sender name from contacts first
       Message enrichedMessage = message;
       Contact? senderContact;
