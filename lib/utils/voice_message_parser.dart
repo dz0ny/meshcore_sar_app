@@ -11,36 +11,26 @@ const int _defaultLoRaCrcEnabled = 1;
 const int _defaultLoRaExplicitHeader = 1;
 const double _defaultAirtimeBudgetFactor = 1.0; // one half duty-cycle
 
-enum VoiceCodecKind {
-  codec2(0, 'Codec2');
-
-  const VoiceCodecKind(this.id, this.label);
-  final int id;
-  final String label;
-}
-
 /// Identifies which voice codec/mode was used for a packet.
 /// Matches the modeId byte in the text/binary packet header.
 enum VoicePacketMode {
-  mode700c(0, '700C', VoiceCodecKind.codec2, 8000, 100, 1600),
-  mode1200(1, '1200', VoiceCodecKind.codec2, 8000, 150, 1040),
-  mode2400(2, '2400', VoiceCodecKind.codec2, 8000, 300, 520),
-  mode1300(3, '1300', VoiceCodecKind.codec2, 8000, 175, 880),
-  mode1400(4, '1400', VoiceCodecKind.codec2, 8000, 175, 880),
-  mode1600(5, '1600', VoiceCodecKind.codec2, 8000, 200, 800),
-  mode3200(6, '3200', VoiceCodecKind.codec2, 8000, 400, 400);
+  mode700c(0, '700C', 8000, 100, 1600),
+  mode1200(1, '1200', 8000, 150, 1040),
+  mode2400(2, '2400', 8000, 300, 520),
+  mode1300(3, '1300', 8000, 175, 880),
+  mode1400(4, '1400', 8000, 175, 880),
+  mode1600(5, '1600', 8000, 200, 800),
+  mode3200(6, '3200', 8000, 400, 400);
 
   const VoicePacketMode(
     this.id,
     this.label,
-    this.codec,
     this.sampleRateHz,
     this.bytesPerSecond,
     this.packetDurationMs,
   );
   final int id;
   final String label;
-  final VoiceCodecKind codec;
   final int sampleRateHz;
   final int bytesPerSecond;
   final int packetDurationMs;
