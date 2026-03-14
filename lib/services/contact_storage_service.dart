@@ -167,6 +167,15 @@ class ContactStorageService {
       'telemetry': contact.telemetry != null
           ? _telemetryToJson(contact.telemetry!)
           : null,
+      'advertHistory': contact.advertHistory
+          .map(
+            (point) => {
+              'lat': point.location.latitude,
+              'lon': point.location.longitude,
+              'tsMillis': point.timestamp.millisecondsSinceEpoch,
+            },
+          )
+          .toList(),
     };
   }
 
@@ -190,6 +199,7 @@ class ContactStorageService {
         telemetry: json['telemetry'] != null
             ? _telemetryFromJson(json['telemetry'] as Map<String, dynamic>)
             : null,
+        advertHistory: _advertHistoryFromJson(json['advertHistory']),
       );
     } catch (e) {
       debugPrint('❌ [ContactStorage] Error parsing contact from JSON: $e');
@@ -240,6 +250,25 @@ class ContactStorageService {
       debugPrint('❌ [ContactStorage] Error parsing telemetry from JSON: $e');
       return null;
     }
+  }
+
+  List<AdvertLocation> _advertHistoryFromJson(dynamic json) {
+    if (json is! List) return [];
+    final result = <AdvertLocation>[];
+    for (final item in json) {
+      if (item is! Map<String, dynamic>) continue;
+      final lat = item['lat'];
+      final lon = item['lon'];
+      final tsMillis = item['tsMillis'];
+      if (lat is! num || lon is! num || tsMillis is! int) continue;
+      result.add(
+        AdvertLocation(
+          location: LatLng(lat.toDouble(), lon.toDouble()),
+          timestamp: DateTime.fromMillisecondsSinceEpoch(tsMillis),
+        ),
+      );
+    }
+    return result;
   }
 
   Map<String, dynamic> _contactGroupToJson(SavedContactGroup group) {

@@ -130,6 +130,9 @@ class ConnectionProvider with ChangeNotifier {
   // Completer to wait for response before sending next sync request
   Completer<bool>? _syncResponseCompleter;
 
+  // Completer to wait for contacts sync to finish
+  Completer<void>? _contactsSyncCompleter;
+
   // Lightweight guards for other commands that can be double-tapped
   bool _isLoginInProgress = false;
   DateTime? _lastLoginRequestedAt;
@@ -291,6 +294,10 @@ class ConnectionProvider with ChangeNotifier {
 
     service.onContactsComplete = (contacts) {
       debugPrint('📥 [Provider] Contacts sync complete: ${contacts.length}');
+      if (_contactsSyncCompleter != null &&
+          !_contactsSyncCompleter!.isCompleted) {
+        _contactsSyncCompleter!.complete();
+      }
       onContactsComplete?.call(contacts);
     };
 
@@ -583,6 +590,9 @@ class ConnectionProvider with ChangeNotifier {
       await stopScan();
     }
 
+    // Ensure we route commands to BLE, not a stale TCP service.
+    _connectionMode = ConnectionMode.ble;
+
     _deviceInfo = _deviceInfo.copyWith(
       deviceId: device.remoteId.toString(),
       deviceName: device.platformName.isNotEmpty
@@ -591,6 +601,7 @@ class ConnectionProvider with ChangeNotifier {
       connectionState: ConnectionState.connecting,
     );
     _error = null;
+    _resetSyncState();
     debugPrint('✅ [Provider] Device info updated to connecting state');
     notifyListeners();
 
@@ -648,6 +659,7 @@ class ConnectionProvider with ChangeNotifier {
     }
     _tcpHost = null;
     _connectionMode = ConnectionMode.ble;
+    _resetSyncState();
     _deviceInfo = DeviceInfo(connectionState: ConnectionState.disconnected);
     _roomLoginManager.clearRoomLoginStates();
     _pingTracker.clearAll();
@@ -670,12 +682,31 @@ class ConnectionProvider with ChangeNotifier {
 
     await _bleService.disconnect();
 
+    _resetSyncState();
     _deviceInfo = DeviceInfo(connectionState: ConnectionState.disconnected);
     _roomLoginManager.clearRoomLoginStates();
     _pingTracker.clearAll();
     _pendingSendOperations.clear();
     _messageDeliveryTracker.clearTracking();
     notifyListeners();
+  }
+
+  /// Reset message sync state so the next connect/reconnect can sync cleanly.
+  void _resetSyncState() {
+    if (_syncResponseCompleter != null &&
+        !_syncResponseCompleter!.isCompleted) {
+      _syncResponseCompleter!.complete(false);
+    }
+    _syncResponseCompleter = null;
+    if (_contactsSyncCompleter != null &&
+        !_contactsSyncCompleter!.isCompleted) {
+      _contactsSyncCompleter!.complete();
+    }
+    _contactsSyncCompleter = null;
+    _isSyncingMessages = false;
+    _syncRequestedWhileBusy = false;
+    _noMoreMessages = false;
+    _pendingAutomaticMessageSync = false;
   }
 
   /// Cancel ongoing reconnection attempts
@@ -719,7 +750,10 @@ class ConnectionProvider with ChangeNotifier {
     return _messageDeliveryTracker.getDiagnostics();
   }
 
-  /// Get contacts from device
+  /// Get contacts from device.
+  ///
+  /// Waits for the device to finish sending all contacts (up to 5 s timeout)
+  /// so callers don't need an arbitrary delay.
   Future<void> getContacts() async {
     if (!_activeService.isConnected) {
       _error = 'Not connected to device';
@@ -728,10 +762,21 @@ class ConnectionProvider with ChangeNotifier {
     }
 
     try {
+      _contactsSyncCompleter = Completer<void>();
       await _activeService.getContacts();
+      await _contactsSyncCompleter!.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          debugPrint(
+            '⚠️ [Provider] Contacts sync timeout - proceeding without full list',
+          );
+        },
+      );
     } catch (e) {
       _error = 'Failed to get contacts: $e';
       notifyListeners();
+    } finally {
+      _contactsSyncCompleter = null;
     }
   }
 
@@ -890,9 +935,8 @@ class ConnectionProvider with ChangeNotifier {
         }
       }
 
-      // If not cached, query the device
+      // If not cached, query the device (awaits the BLE response)
       await _activeService.getChannel(channelIdx);
-      await Future.delayed(const Duration(milliseconds: 100));
 
       // Check again after query
       if (getChannelInfo != null) {
@@ -2370,6 +2414,7 @@ class ConnectionProvider with ChangeNotifier {
   void dispose() {
     _rxActivityTimer?.cancel();
     _txActivityTimer?.cancel();
+    _stopAckCleanupTimer();
     _bleService.dispose();
     _tcpService?.dispose();
     _sseServer.stopServer();

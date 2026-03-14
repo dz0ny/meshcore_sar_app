@@ -1895,11 +1895,8 @@ class AppProvider with ChangeNotifier {
       // Get battery and storage information
       await connectionProvider.getBatteryAndStorage();
 
-      // Load contacts
+      // Load contacts (waits for device to finish sending all contacts)
       await connectionProvider.getContacts();
-
-      // Small delay to ensure contacts are fully loaded
-      await Future.delayed(const Duration(milliseconds: 500));
 
       // Sync all channels so slot assignment and channel state mirror the device.
       final channelsToSync = connectionProvider.deviceInfo.maxChannels;

@@ -64,6 +64,8 @@ class ContactsProvider with ChangeNotifier {
   final Map<String, PendingAdvert> _pendingAdverts = {};
   final ContactStorageService _storageService = ContactStorageService();
   bool _isInitialized = false;
+  bool _isPersisting = false;
+  bool _persistRequested = false;
 
   // Add default public channel on initialization
   ContactsProvider() {
@@ -202,19 +204,27 @@ class ContactsProvider with ChangeNotifier {
     }
   }
 
-  /// Persist contacts to storage (async, non-blocking)
+  /// Persist contacts to storage (async, non-blocking, coalescing).
   Future<void> _persistContacts() async {
+    _persistRequested = true;
+    if (_isPersisting) return;
+    _isPersisting = true;
     try {
-      // Don't persist the public channel pseudo-contact (all zeros key)
-      const publicChannelKey =
-          '0000000000000000000000000000000000000000000000000000000000000000';
-      final contactsToSave = _contacts.entries
-          .where((entry) => entry.key != publicChannelKey)
-          .map((entry) => entry.value)
-          .toList();
-      await _storageService.saveContacts(contactsToSave);
+      while (_persistRequested) {
+        _persistRequested = false;
+        // Don't persist the public channel pseudo-contact (all zeros key)
+        const publicChannelKey =
+            '0000000000000000000000000000000000000000000000000000000000000000';
+        final contactsToSave = _contacts.entries
+            .where((entry) => entry.key != publicChannelKey)
+            .map((entry) => entry.value)
+            .toList();
+        await _storageService.saveContacts(contactsToSave);
+      }
     } catch (e) {
       debugPrint('❌ [ContactsProvider] Error persisting contacts: $e');
+    } finally {
+      _isPersisting = false;
     }
   }
 
@@ -503,7 +513,6 @@ class ContactsProvider with ChangeNotifier {
     if (existingContact == null) {
       var newContact = incomingContact.copyWith(
         isNew: true,
-        nameOverride: existingContact?.nameOverride,
         telemetry: mergedTelemetry,
         outPathLen:
             retainedRoute?.signedEncodedPathLen ?? incomingContact.outPathLen,
@@ -908,7 +917,7 @@ class ContactsProvider with ChangeNotifier {
         .map((b) => b.toRadixString(16).padLeft(2, '0'))
         .join('');
 
-    for (final contact in contacts) {
+    for (final contact in _contacts.values) {
       if (contact.publicKeyHex.startsWith(prefixHex)) {
         return contact;
       }
@@ -1092,10 +1101,10 @@ class ContactsProvider with ChangeNotifier {
 
   /// Find contact by name
   Contact? findContactByName(String name) {
-    return contacts.firstWhere(
-      (c) => c.advName == name,
-      orElse: () => contacts.first,
-    );
+    for (final contact in _contacts.values) {
+      if (contact.advName == name) return contact;
+    }
+    return null;
   }
 
   /// Get contacts with low battery
@@ -1144,6 +1153,7 @@ class ContactsProvider with ChangeNotifier {
   void clearContacts() {
     _contacts.clear();
     _pendingAdverts.clear();
+    _ensurePublicChannelExists();
     _persistContacts();
     notifyListeners();
   }

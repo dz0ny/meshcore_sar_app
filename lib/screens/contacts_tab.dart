@@ -669,25 +669,10 @@ class _ContactsTabState extends State<ContactsTab> {
               _showSavedGroupsForSection(ContactSection.channels)
               ? savedChannelGroups
               : const <_RenderedSavedGroup>[];
-          final showTeamMembersSection =
-              allChatContacts.isNotEmpty &&
-              (!_sectionHasActiveFilter(ContactSection.teamMembers) ||
-                  chatContacts.isNotEmpty ||
-                  visibleSavedTeamGroups.isNotEmpty);
-          final showRepeatersSection =
-              allRepeaters.isNotEmpty &&
-              (!_sectionHasActiveFilter(ContactSection.repeaters) ||
-                  repeaters.isNotEmpty ||
-                  visibleSavedRepeaterGroups.isNotEmpty);
-          final showRoomsSection =
-              allRooms.isNotEmpty &&
-              (!_sectionHasActiveFilter(ContactSection.rooms) ||
-                  rooms.isNotEmpty ||
-                  visibleSavedRoomGroups.isNotEmpty);
-          final showChannelsSection =
-              !_sectionHasActiveFilter(ContactSection.channels) ||
-              filteredChannels.isNotEmpty ||
-              visibleSavedChannelGroups.isNotEmpty;
+          final showTeamMembersSection = allChatContacts.isNotEmpty;
+          final showRepeatersSection = allRepeaters.isNotEmpty;
+          final showRoomsSection = allRooms.isNotEmpty;
+          final showChannelsSection = allChannels.isNotEmpty;
           final pendingAdverts = contactsProvider.pendingAdverts;
 
           _schedulePendingAdvertResolution(pendingAdverts, connectionProvider);
@@ -761,12 +746,16 @@ class _ContactsTabState extends State<ContactsTab> {
                     visibleSavedTeamGroups,
                     ContactSection.teamMembers,
                   ),
-                  ..._buildContactSectionItems(
-                    _excludeGroupedContacts(
-                      chatContacts,
-                      visibleSavedTeamGroups,
+                  if (chatContacts.isEmpty &&
+                      _sectionHasActiveFilter(ContactSection.teamMembers))
+                    _buildNoFilterResults(context)
+                  else
+                    ..._buildContactSectionItems(
+                      _excludeGroupedContacts(
+                        chatContacts,
+                        visibleSavedTeamGroups,
+                      ),
                     ),
-                  ),
                   const Divider(height: 32),
                 ],
 
@@ -799,7 +788,10 @@ class _ContactsTabState extends State<ContactsTab> {
                     visibleSavedRepeaterGroups,
                     ContactSection.repeaters,
                   ),
-                  if (showRepeatersOthersGroup)
+                  if (repeaters.isEmpty &&
+                      _sectionHasActiveFilter(ContactSection.repeaters))
+                    _buildNoFilterResults(context)
+                  else if (showRepeatersOthersGroup)
                     _InferredContactGroupCard(
                       label: 'Others',
                       contacts: ungroupedRepeaters,
@@ -836,9 +828,13 @@ class _ContactsTabState extends State<ContactsTab> {
                     visibleSavedRoomGroups,
                     ContactSection.rooms,
                   ),
-                  ..._buildContactSectionItems(
-                    _excludeGroupedContacts(rooms, visibleSavedRoomGroups),
-                  ),
+                  if (rooms.isEmpty &&
+                      _sectionHasActiveFilter(ContactSection.rooms))
+                    _buildNoFilterResults(context)
+                  else
+                    ..._buildContactSectionItems(
+                      _excludeGroupedContacts(rooms, visibleSavedRoomGroups),
+                    ),
                   const Divider(height: 32),
                 ],
 
@@ -879,7 +875,10 @@ class _ContactsTabState extends State<ContactsTab> {
                     visibleSavedChannelGroups,
                     ContactSection.channels,
                   ),
-                  if (filteredChannels.isNotEmpty) ...[
+                  if (filteredChannels.isEmpty &&
+                      _sectionHasActiveFilter(ContactSection.channels))
+                    _buildNoFilterResults(context)
+                  else ...[
                     ..._excludeGroupedContacts(
                       filteredChannels,
                       visibleSavedChannelGroups,
@@ -917,6 +916,18 @@ class _ContactsTabState extends State<ContactsTab> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildNoFilterResults(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      child: Text(
+        'No matches',
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }
