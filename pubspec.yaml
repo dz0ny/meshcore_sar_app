@@ -44,7 +44,7 @@ dependencies:
   meshcore_client:
     git:
       url: https://github.com/dz0ny/meshcore_client.git
-      ref: "eafe9a88fb12193820e8abbf5a096e408117b53d"
+      ref: "f600789fac7f743b1c7db8aa24e441405413f669"
 
   # Codec2 ultra-low-bitrate speech codec (FFI plugin)
   codec2_flutter:
@@ -135,8 +135,6 @@ dev_dependencies:
   fake_async: ^1.3.3
 
 dependency_overrides:
-  meshcore_client:
-    path: ../meshcore_client
   # path_provider_foundation 2.6.0 pulls in package:objective_c as a native
   # asset. That framework has been ending up archived with a macOS platform
   # slice and fails App Store validation for iOS uploads.
