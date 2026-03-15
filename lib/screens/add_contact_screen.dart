@@ -151,107 +151,234 @@ class _AddContactScreenState extends State<AddContactScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final normalized = _normalizeAdvertText(_advertController.text);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Contact')),
+      appBar: AppBar(title: const Text('Import Contact')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            'Import an exported contact advert, like meshcore-open.',
-            style: theme.textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Paste a `meshcore://...` link or raw hex advert from the clipboard.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _advertController,
-            minLines: 4,
-            maxLines: 8,
-            onChanged: (_) {
-              if (_validationError != null || _importSucceeded) {
-                setState(() {
-                  _importSucceeded = false;
-                  _validationError = null;
-                });
-              }
-            },
-            decoration: InputDecoration(
-              labelText: 'Contact advert',
-              hintText: 'meshcore://...',
-              alignLabelWithHint: true,
-              border: const OutlineInputBorder(),
-              errorText: _validationError,
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (normalized != null)
-            Text(
-              'Advert size: ${normalized.length ~/ 2} bytes',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.6),
               ),
             ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _isImporting ? null : _pasteFromClipboard,
-                  icon: const Icon(Icons.content_paste_go_outlined),
-                  label: const Text('Paste'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: (_isImporting || _importSucceeded)
-                      ? null
-                      : _importContact,
-                  icon: _isImporting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : _importSucceeded
-                      ? const Icon(Icons.check_circle_outline)
-                      : const Icon(Icons.person_add_alt_1_outlined),
-                  label: Text(
-                    _isImporting
-                        ? 'Importing...'
-                        : _importSucceeded
-                        ? 'Added'
-                        : 'Add Contact',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (_importSucceeded) ...[
-            const SizedBox(height: 12),
-            Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.check_circle,
-                  size: 18,
-                  color: theme.colorScheme.primary,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        Icons.person_add_alt_1_outlined,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Import a shared contact advert',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(height: 14),
                 Text(
-                  'Contact added. Paste or edit another advert to import again.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  'Paste a `meshcore://...` link or raw hexadecimal advert. The app will validate it and import the contact into the connected device.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: const [
+                    _ImportHintChip(
+                      icon: Icons.link_outlined,
+                      label: 'Accepts share links',
+                    ),
+                    _ImportHintChip(
+                      icon: Icons.code_outlined,
+                      label: 'Supports raw hex',
+                    ),
+                    _ImportHintChip(
+                      icon: Icons.content_paste_go_outlined,
+                      label: 'Clipboard-friendly',
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.7),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Advert payload',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'You can paste the full share link or only the hex payload.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _advertController,
+                  minLines: 5,
+                  maxLines: 9,
+                  onChanged: (_) {
+                    if (_validationError != null || _importSucceeded) {
+                      setState(() {
+                        _importSucceeded = false;
+                        _validationError = null;
+                      });
+                    }
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Contact advert',
+                    hintText: 'Paste a share link or hex advert',
+                    alignLabelWithHint: true,
+                    border: const OutlineInputBorder(),
+                    errorText: _validationError,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        normalized == null
+                            ? 'No valid advert detected yet'
+                            : 'Advert size: ${normalized.length ~/ 2} bytes',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _isImporting ? null : _pasteFromClipboard,
+                      icon: const Icon(Icons.content_paste_go_outlined),
+                      label: const Text('Paste'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            onPressed: (_isImporting || _importSucceeded)
+                ? null
+                : _importContact,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            icon: _isImporting
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : _importSucceeded
+                ? const Icon(Icons.check_circle_outline)
+                : const Icon(Icons.person_add_alt_1_outlined),
+            label: Text(
+              _isImporting
+                  ? 'Importing...'
+                  : _importSucceeded
+                  ? 'Imported'
+                  : 'Import Contact',
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (_importSucceeded)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.18),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    size: 18,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Contact imported. Paste another advert or edit the current one to import again.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ImportHintChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _ImportHintChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(label, style: theme.textTheme.labelMedium),
         ],
       ),
     );

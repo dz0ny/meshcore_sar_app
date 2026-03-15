@@ -675,7 +675,7 @@ class _ContactsTabState extends State<ContactsTab> {
                       child: OutlinedButton.icon(
                         onPressed: () => _openAddContactScreen(context),
                         icon: const Icon(Icons.person_add_alt_1_outlined),
-                        label: const Text('Add Contact'),
+                        label: const Text('Import Contact'),
                       ),
                     ),
                 ],
@@ -887,7 +887,7 @@ class _ContactsTabState extends State<ContactsTab> {
                           child: OutlinedButton.icon(
                             onPressed: () => _openAddContactScreen(context),
                             icon: const Icon(Icons.person_add_alt_1_outlined),
-                            label: const Text('Add Contact'),
+                            label: const Text('Import Contact'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
