@@ -491,6 +491,10 @@ class ContactTile extends StatelessWidget {
 
           final previewContact = liveContact ?? contact;
           final visibleFields = sensorMetricKeysFor(previewContact);
+          final fieldOrder = sensorsProvider.metricOrderFor(
+            publicKeyHex,
+            visibleFields,
+          );
 
           return SafeArea(
             child: SingleChildScrollView(
@@ -499,7 +503,9 @@ class ContactTile extends StatelessWidget {
                 contact: previewContact,
                 state: sensorsProvider.stateFor(publicKeyHex),
                 visibleFields: visibleFields,
-                fieldSpans: sensorDefaultFieldSpans(visibleFields),
+                fieldOrder: fieldOrder,
+                labelOverrides: sensorsProvider.labelOverridesFor(publicKeyHex),
+                fieldSpans: sensorFullWidthFieldSpans(visibleFields),
                 margin: EdgeInsets.zero,
                 emptyMetricsMessage: 'No telemetry fields available yet.',
               ),

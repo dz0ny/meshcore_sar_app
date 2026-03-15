@@ -85,6 +85,8 @@ class CayenneLppParser {
             if (_isBatteryChannel(channel)) {
               batteryMilliVolts = value * 1000;
               batteryPercentage = _calculateBatteryPercentage(value);
+              extraSensorData[_sourceChannelKey('battery')] = channel;
+              extraSensorData[_sourceChannelKey('voltage')] = channel;
               debugPrint(
                 '      → Battery: ${batteryPercentage.toStringAsFixed(1)}% (${batteryMilliVolts.toStringAsFixed(0)}mV)',
               );
@@ -120,9 +122,13 @@ class CayenneLppParser {
             debugPrint('      Temperature: ${value.toStringAsFixed(1)}°C');
             if (channel == _selfTelemetryChannel) {
               temperature = value;
+              extraSensorData[_sourceChannelKey('temperature')] = channel;
             } else {
               extraSensorData['temperature_$channel'] = value;
-              temperature ??= value;
+              if (temperature == null) {
+                temperature = value;
+                extraSensorData[_sourceChannelKey('temperature')] = channel;
+              }
             }
             break;
 
@@ -133,9 +139,13 @@ class CayenneLppParser {
             debugPrint('      Humidity: ${value.toStringAsFixed(1)}%');
             if (channel == _selfTelemetryChannel) {
               humidity = value;
+              extraSensorData[_sourceChannelKey('humidity')] = channel;
             } else {
               extraSensorData['humidity_$channel'] = value;
-              humidity ??= value;
+              if (humidity == null) {
+                humidity = value;
+                extraSensorData[_sourceChannelKey('humidity')] = channel;
+              }
             }
             break;
 
@@ -158,9 +168,13 @@ class CayenneLppParser {
             debugPrint('      Barometer: ${value.toStringAsFixed(1)} hPa');
             if (channel == _selfTelemetryChannel) {
               pressure = value;
+              extraSensorData[_sourceChannelKey('pressure')] = channel;
             } else {
               extraSensorData['pressure_$channel'] = value;
-              pressure ??= value;
+              if (pressure == null) {
+                pressure = value;
+                extraSensorData[_sourceChannelKey('pressure')] = channel;
+              }
             }
             break;
 
@@ -172,6 +186,8 @@ class CayenneLppParser {
             if (_isBatteryChannel(channel)) {
               batteryMilliVolts = value * 1000;
               batteryPercentage = _calculateBatteryPercentage(value);
+              extraSensorData[_sourceChannelKey('battery')] = channel;
+              extraSensorData[_sourceChannelKey('voltage')] = channel;
               debugPrint(
                 '      → Battery: ${batteryPercentage.toStringAsFixed(1)}% (${batteryMilliVolts.toStringAsFixed(0)}mV)',
               );
@@ -230,6 +246,7 @@ class CayenneLppParser {
             }
 
             gpsLocation = LatLng(lat, lon);
+            extraSensorData[_sourceChannelKey('gps')] = channel;
             extraSensorData['altitude_$channel'] = alt;
             break;
 
@@ -258,6 +275,7 @@ class CayenneLppParser {
             debugPrint('      Percentage: $value%');
             if (_isBatteryChannel(channel)) {
               batteryPercentage = value;
+              extraSensorData[_sourceChannelKey('battery')] = channel;
             } else {
               extraSensorData['percentage_$channel'] = value;
             }
@@ -401,6 +419,8 @@ class CayenneLppParser {
     final bytes = reader.readBytes(4);
     return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
   }
+
+  static String _sourceChannelKey(String fieldKey) => '__source_channel:$fieldKey';
 
   static bool _isZeroPaddedTail(Uint8List data, int remainingBytes) {
     final start = data.length - remainingBytes;

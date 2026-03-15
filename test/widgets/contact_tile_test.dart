@@ -10,6 +10,7 @@ import 'package:meshcore_sar_app/providers/map_provider.dart';
 import 'package:meshcore_sar_app/providers/messages_provider.dart';
 import 'package:meshcore_sar_app/providers/sensors_provider.dart';
 import 'package:meshcore_sar_app/widgets/contacts/contact_tile.dart';
+import 'package:meshcore_sar_app/widgets/sensors/sensor_telemetry_card.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,14 +41,21 @@ void main() {
     );
   }
 
-  Future<void> pumpTile(WidgetTester tester, Contact contact) async {
+  Future<void> pumpTile(
+    WidgetTester tester,
+    Contact contact, {
+    SensorsProvider? sensorsProvider,
+  }) async {
+    final resolvedSensorsProvider = sensorsProvider ?? SensorsProvider();
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ConnectionProvider()),
           ChangeNotifierProvider(create: (_) => ContactsProvider()),
           ChangeNotifierProvider(create: (_) => MessagesProvider()),
-          ChangeNotifierProvider(create: (_) => SensorsProvider()),
+          ChangeNotifierProvider<SensorsProvider>.value(
+            value: resolvedSensorsProvider,
+          ),
           ChangeNotifierProvider(create: (_) => MapProvider()),
         ],
         child: MaterialApp(
@@ -125,6 +133,9 @@ void main() {
             temperature: 21.5,
             humidity: 58.0,
             extraSensorData: const {
+              '__source_channel:battery': 1,
+              '__source_channel:temperature': 1,
+              '__source_channel:humidity': 1,
               'co2': 415.0,
               'illuminance_2': 500.0,
               'current_2': 0.015,
@@ -151,11 +162,29 @@ void main() {
     expect(find.text('21.5°C'), findsOneWidget);
     expect(find.text('CO2'), findsOneWidget);
     expect(find.text('415 ppm'), findsOneWidget);
-    expect(find.text('Illuminance (ch 2)'), findsOneWidget);
+    expect(find.text('Illuminance'), findsOneWidget);
     expect(find.text('~4.2 W/m2 daylight'), findsOneWidget);
-    expect(find.text('Current (ch 2)'), findsOneWidget);
+    expect(find.text('Current'), findsOneWidget);
     expect(find.text('15 mA'), findsOneWidget);
-    expect(find.text('Power (ch 2)'), findsOneWidget);
-    expect(find.text('Distance (ch 2)'), findsOneWidget);
+    expect(find.text('Power'), findsOneWidget);
+    expect(find.text('Distance'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('sensor_metric_channel_battery')),
+      findsOneWidget,
+    );
+    expect(
+      find.text('ch1'),
+      findsWidgets,
+    );
+    expect(
+      find.byKey(const ValueKey('sensor_metric_channel_extra:illuminance_2')),
+      findsOneWidget,
+    );
+
+    final sensorCardSize = tester.getSize(find.byType(SensorTelemetryCard));
+    final batteryTileSize = tester.getSize(
+      find.byKey(const ValueKey('sensor_metric_battery')),
+    );
+    expect(batteryTileSize.width, greaterThan(sensorCardSize.width * 0.8));
   });
 }

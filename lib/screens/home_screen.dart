@@ -802,7 +802,11 @@ class _HomeScreenState extends State<HomeScreen>
                 onNavigateToMessages: () => _navigateToTab(_HomeTab.messages),
               );
             case _HomeTab.sensors:
-              return const SensorsTab();
+              return SensorsTab(
+                isActive:
+                    _currentTab == _HomeTab.sensors &&
+                    _lifecycleState == AppLifecycleState.resumed,
+              );
             case _HomeTab.map:
               return MapTab(
                 onFullscreenChanged: (isFullscreen) {

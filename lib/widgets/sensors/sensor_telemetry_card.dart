@@ -12,34 +12,143 @@ import '../../utils/location_formats.dart';
 class SensorMetricOption {
   final String key;
   final String label;
+  final String defaultLabel;
+  final int? channel;
+  final String? valuePreview;
 
-  const SensorMetricOption({required this.key, required this.label});
+  const SensorMetricOption({
+    required this.key,
+    required this.label,
+    required this.defaultLabel,
+    this.channel,
+    this.valuePreview,
+  });
 }
 
-List<SensorMetricOption> sensorMetricOptionsFor(Contact? contact) {
+List<SensorMetricOption> sensorMetricOptionsFor(
+  Contact? contact, {
+  Map<String, String> labelOverrides = const <String, String>{},
+}) {
   final telemetry = contact?.telemetry;
+  final extraSensorData = telemetry?.extraSensorData;
+  final batteryMilliVolts = telemetry?.batteryMilliVolts;
+  final batteryPercentage = telemetry?.batteryPercentage;
+  final temperature = telemetry?.temperature;
+  final humidity = telemetry?.humidity;
+  final pressure = telemetry?.pressure;
+  final gpsLocation = telemetry?.gpsLocation;
   final options = <SensorMetricOption>[
-    if (telemetry?.batteryMilliVolts != null)
-      const SensorMetricOption(key: 'voltage', label: 'Voltage'),
-    if (telemetry?.batteryPercentage != null)
-      const SensorMetricOption(key: 'battery', label: 'Battery'),
-    if (telemetry?.temperature != null)
-      const SensorMetricOption(key: 'temperature', label: 'Temperature'),
-    if (telemetry?.humidity != null)
-      const SensorMetricOption(key: 'humidity', label: 'Humidity'),
-    if (telemetry?.pressure != null)
-      const SensorMetricOption(key: 'pressure', label: 'Pressure'),
-    if (telemetry?.gpsLocation != null)
-      const SensorMetricOption(key: 'gps', label: 'GPS'),
+    if (batteryMilliVolts != null)
+      SensorMetricOption(
+        key: 'voltage',
+        label: _selectorMetricLabel(
+          _resolvedMetricLabel(
+            'voltage',
+            'Voltage',
+            labelOverrides: labelOverrides,
+          ),
+          _sourceChannelForField(extraSensorData, 'voltage'),
+        ),
+        defaultLabel: 'Voltage',
+        channel: _sourceChannelForField(extraSensorData, 'voltage'),
+        valuePreview: '${(batteryMilliVolts / 1000).toStringAsFixed(3)}V',
+      ),
+    if (batteryPercentage != null)
+      SensorMetricOption(
+        key: 'battery',
+        label: _selectorMetricLabel(
+          _resolvedMetricLabel(
+            'battery',
+            'Battery',
+            labelOverrides: labelOverrides,
+          ),
+          _sourceChannelForField(extraSensorData, 'battery'),
+        ),
+        defaultLabel: 'Battery',
+        channel: _sourceChannelForField(extraSensorData, 'battery'),
+        valuePreview: '${batteryPercentage.toStringAsFixed(0)}%',
+      ),
+    if (temperature != null)
+      SensorMetricOption(
+        key: 'temperature',
+        label: _selectorMetricLabel(
+          _resolvedMetricLabel(
+            'temperature',
+            'Temperature',
+            labelOverrides: labelOverrides,
+          ),
+          _sourceChannelForField(extraSensorData, 'temperature'),
+        ),
+        defaultLabel: 'Temperature',
+        channel: _sourceChannelForField(extraSensorData, 'temperature'),
+        valuePreview: '${temperature.toStringAsFixed(1)}°C',
+      ),
+    if (humidity != null)
+      SensorMetricOption(
+        key: 'humidity',
+        label: _selectorMetricLabel(
+          _resolvedMetricLabel(
+            'humidity',
+            'Humidity',
+            labelOverrides: labelOverrides,
+          ),
+          _sourceChannelForField(extraSensorData, 'humidity'),
+        ),
+        defaultLabel: 'Humidity',
+        channel: _sourceChannelForField(extraSensorData, 'humidity'),
+        valuePreview: '${humidity.toStringAsFixed(1)}%',
+      ),
+    if (pressure != null)
+      SensorMetricOption(
+        key: 'pressure',
+        label: _selectorMetricLabel(
+          _resolvedMetricLabel(
+            'pressure',
+            'Pressure',
+            labelOverrides: labelOverrides,
+          ),
+          _sourceChannelForField(extraSensorData, 'pressure'),
+        ),
+        defaultLabel: 'Pressure',
+        channel: _sourceChannelForField(extraSensorData, 'pressure'),
+        valuePreview: '${pressure.toStringAsFixed(1)} hPa',
+      ),
+    if (gpsLocation != null)
+      SensorMetricOption(
+        key: 'gps',
+        label: _selectorMetricLabel(
+          _resolvedMetricLabel('gps', 'GPS', labelOverrides: labelOverrides),
+          _sourceChannelForField(extraSensorData, 'gps'),
+        ),
+        defaultLabel: 'GPS',
+        channel: _sourceChannelForField(extraSensorData, 'gps'),
+        valuePreview:
+            '${gpsLocation.latitude.toStringAsFixed(5)}, ${gpsLocation.longitude.toStringAsFixed(5)}',
+      ),
   ];
 
-  final extraSensorData = telemetry?.extraSensorData;
   if (extraSensorData != null) {
     for (final key in extraSensorData.keys) {
+      if (_isTelemetryMetadataKey(key)) {
+        continue;
+      }
+      final metricKey = _parseMetricKey(key);
+      final fieldKey = _extraFieldKey(key);
+      final defaultLabel = _formatExtraFieldLabel(key);
       options.add(
         SensorMetricOption(
-          key: _extraFieldKey(key),
-          label: _formatExtraFieldLabel(key),
+          key: fieldKey,
+          label: _selectorMetricLabel(
+            _resolvedMetricLabel(
+              fieldKey,
+              defaultLabel,
+              labelOverrides: labelOverrides,
+            ),
+            metricKey.channel,
+          ),
+          defaultLabel: defaultLabel,
+          channel: metricKey.channel,
+          valuePreview: _sensorMetricPreviewValue(key, extraSensorData[key]),
         ),
       );
     }
@@ -60,22 +169,275 @@ Map<String, int> sensorDefaultFieldSpans(Iterable<String> fieldKeys) {
   return spans;
 }
 
+Map<String, int> sensorFullWidthFieldSpans(Iterable<String> fieldKeys) {
+  return {for (final fieldKey in fieldKeys) fieldKey: 2};
+}
+
+String? _sensorMetricPreviewValue(String rawKey, dynamic value) {
+  final metricKey = _parseMetricKey(rawKey);
+
+  switch (metricKey.baseKey) {
+    case 'altitude':
+      final meters = _previewAsDouble(value);
+      if (meters == null) return null;
+      return '${_formatPreviewNumber(meters, maxFractionDigits: 1)} m';
+
+    case 'illuminance':
+      final lux = _previewAsDouble(value);
+      if (lux == null) return null;
+      return '${_formatPreviewNumber(lux, maxFractionDigits: 0)} lx';
+
+    case 'presence':
+      final isPresent = _previewAsBool(value);
+      if (isPresent == null) return null;
+      return isPresent ? 'Detected' : 'Clear';
+
+    case 'digital_input':
+    case 'digital_output':
+      final isHigh = _previewAsBool(value);
+      if (isHigh == null) return null;
+      return isHigh ? 'High' : 'Low';
+
+    case 'analog_input':
+    case 'analog_output':
+    case 'generic_sensor':
+      final reading = _previewAsDouble(value);
+      if (reading == null) return null;
+      return _formatPreviewNumber(reading, maxFractionDigits: 3);
+
+    case 'accelerometer':
+      final vector = _previewAsVector3(value);
+      if (vector == null) return null;
+      return 'X ${_formatPreviewNumber(vector.x)} • '
+          'Y ${_formatPreviewNumber(vector.y)} • '
+          'Z ${_formatPreviewNumber(vector.z)} g';
+
+    case 'gyrometer':
+      final vector = _previewAsVector3(value);
+      if (vector == null) return null;
+      return 'X ${_formatPreviewNumber(vector.x)} • '
+          'Y ${_formatPreviewNumber(vector.y)} • '
+          'Z ${_formatPreviewNumber(vector.z)} deg/s';
+
+    case 'current':
+      final amps = _previewAsDouble(value);
+      if (amps == null) return null;
+      return _formatPreviewCurrent(amps);
+
+    case 'frequency':
+      final hertz = _previewAsDouble(value);
+      if (hertz == null) return null;
+      return _formatPreviewFrequency(hertz);
+
+    case 'percentage':
+      final reading = _previewAsDouble(value);
+      if (reading == null) return null;
+      return '${_formatPreviewNumber(reading, maxFractionDigits: 1)}%';
+
+    case 'concentration':
+    case 'co2':
+    case 'tvoc':
+      final reading = _previewAsDouble(value);
+      if (reading == null) return null;
+      return '${_formatPreviewNumber(reading, maxFractionDigits: 0)} ppm';
+
+    case 'power':
+      final watts = _previewAsDouble(value);
+      if (watts == null) return null;
+      return _formatPreviewPower(watts);
+
+    case 'speed':
+      final metersPerSecond = _previewAsDouble(value);
+      if (metersPerSecond == null) return null;
+      return '${_formatPreviewNumber(metersPerSecond, maxFractionDigits: 2)} m/s';
+
+    case 'distance':
+      final meters = _previewAsDouble(value);
+      if (meters == null) return null;
+      return _formatPreviewDistance(meters);
+
+    case 'energy':
+      final kilowattHours = _previewAsDouble(value);
+      if (kilowattHours == null) return null;
+      return _formatPreviewEnergy(kilowattHours);
+
+    case 'direction':
+      final degrees = _previewAsDouble(value);
+      if (degrees == null) return null;
+      return '${_formatPreviewNumber(degrees, maxFractionDigits: 0)} deg';
+
+    case 'unixtime':
+      final seconds = _previewAsInt(value);
+      if (seconds == null) return null;
+      final timestamp = DateTime.fromMillisecondsSinceEpoch(
+        seconds * 1000,
+        isUtc: true,
+      ).toLocal();
+      return _formatPreviewTelemetryDateTime(timestamp);
+
+    case 'colour':
+      final color = _previewAsRgb(value);
+      if (color == null) return null;
+      return '#${color.r.toRadixString(16).padLeft(2, '0').toUpperCase()}'
+          '${color.g.toRadixString(16).padLeft(2, '0').toUpperCase()}'
+          '${color.b.toRadixString(16).padLeft(2, '0').toUpperCase()}';
+
+    case 'switch':
+      final isOn = _previewAsBool(value);
+      if (isOn == null) return null;
+      return isOn ? 'On' : 'Off';
+
+    case 'voltage':
+      final volts = _previewAsDouble(value);
+      if (volts == null) return null;
+      return '${_formatPreviewNumber(volts, maxFractionDigits: 3)} V';
+
+    case 'pm25':
+    case 'pm10':
+      final reading = _previewAsDouble(value);
+      if (reading == null) return null;
+      return '${_formatPreviewNumber(reading, maxFractionDigits: 1)} ug/m3';
+
+    case 'uv':
+      final reading = _previewAsDouble(value);
+      if (reading == null) return null;
+      return _formatPreviewNumber(reading, maxFractionDigits: 1);
+  }
+
+  if (value is num) {
+    return _formatPreviewNumber(value, maxFractionDigits: 2);
+  }
+
+  if (value is Map) {
+    return value.entries
+        .map((entry) => '${entry.key} ${entry.value}')
+        .join(' • ');
+  }
+
+  return value?.toString();
+}
+
+_Vector3? _previewAsVector3(dynamic value) {
+  if (value is! Map) return null;
+  final x = _previewAsDouble(value['x']);
+  final y = _previewAsDouble(value['y']);
+  final z = _previewAsDouble(value['z']);
+  if (x == null || y == null || z == null) return null;
+  return _Vector3(x: x, y: y, z: z);
+}
+
+_RgbColor? _previewAsRgb(dynamic value) {
+  if (value is! Map) return null;
+  final red = _previewAsInt(value['r']);
+  final green = _previewAsInt(value['g']);
+  final blue = _previewAsInt(value['b']);
+  if (red == null || green == null || blue == null) return null;
+  return _RgbColor(r: red, g: green, b: blue);
+}
+
+double? _previewAsDouble(dynamic value) {
+  if (value is num) return value.toDouble();
+  return null;
+}
+
+int? _previewAsInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.round();
+  return null;
+}
+
+bool? _previewAsBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  return null;
+}
+
+String _formatPreviewCurrent(double amps) {
+  final absolute = amps.abs();
+  if (absolute < 1.0) {
+    return '${_formatPreviewNumber(amps * 1000, maxFractionDigits: 1)} mA';
+  }
+  return '${_formatPreviewNumber(amps, maxFractionDigits: 3)} A';
+}
+
+String _formatPreviewPower(double watts) {
+  final absolute = watts.abs();
+  if (absolute < 1.0) {
+    return '${_formatPreviewNumber(watts * 1000, maxFractionDigits: 1)} mW';
+  }
+  return '${_formatPreviewNumber(watts, maxFractionDigits: 2)} W';
+}
+
+String _formatPreviewFrequency(double hertz) {
+  final absolute = hertz.abs();
+  if (absolute >= 1000000) {
+    return '${_formatPreviewNumber(hertz / 1000000, maxFractionDigits: 2)} MHz';
+  }
+  if (absolute >= 1000) {
+    return '${_formatPreviewNumber(hertz / 1000, maxFractionDigits: 2)} kHz';
+  }
+  return '${_formatPreviewNumber(hertz, maxFractionDigits: 0)} Hz';
+}
+
+String _formatPreviewDistance(double meters) {
+  final absolute = meters.abs();
+  if (absolute < 1.0) {
+    return '${_formatPreviewNumber(meters * 1000, maxFractionDigits: 0)} mm';
+  }
+  if (absolute >= 1000.0) {
+    return '${_formatPreviewNumber(meters / 1000, maxFractionDigits: 2)} km';
+  }
+  return '${_formatPreviewNumber(meters, maxFractionDigits: 2)} m';
+}
+
+String _formatPreviewEnergy(double kilowattHours) {
+  final absolute = kilowattHours.abs();
+  if (absolute < 1.0) {
+    return '${_formatPreviewNumber(kilowattHours * 1000, maxFractionDigits: 1)} Wh';
+  }
+  return '${_formatPreviewNumber(kilowattHours, maxFractionDigits: 3)} kWh';
+}
+
+String _formatPreviewNumber(num value, {int maxFractionDigits = 2}) {
+  final absolute = value.abs();
+  final digits = absolute >= 100
+      ? 0
+      : absolute >= 10
+      ? math.min(maxFractionDigits, 1)
+      : maxFractionDigits;
+  final text = value.toStringAsFixed(digits);
+  return text.replaceFirst(RegExp(r'\.?0+$'), '');
+}
+
+String _formatPreviewTelemetryDateTime(DateTime timestamp) {
+  final local = timestamp.toLocal();
+  final year = local.year.toString().padLeft(4, '0');
+  final month = local.month.toString().padLeft(2, '0');
+  final day = local.day.toString().padLeft(2, '0');
+  final hour = local.hour.toString().padLeft(2, '0');
+  final minute = local.minute.toString().padLeft(2, '0');
+  return '$year-$month-$day $hour:$minute';
+}
+
 class SensorTelemetryCard extends StatelessWidget {
   final Contact? contact;
   final SensorRefreshState state;
   final Set<String> visibleFields;
+  final List<String>? fieldOrder;
   final Map<String, int> fieldSpans;
   final Future<void> Function()? onRemove;
   final Future<void> Function()? onRefresh;
   final VoidCallback? onCustomize;
   final EdgeInsetsGeometry margin;
   final String emptyMetricsMessage;
+  final Map<String, String> labelOverrides;
 
   const SensorTelemetryCard({
     super.key,
     required this.contact,
     required this.state,
     required this.visibleFields,
+    this.fieldOrder,
     required this.fieldSpans,
     this.onRemove,
     this.onRefresh,
@@ -83,6 +445,7 @@ class SensorTelemetryCard extends StatelessWidget {
     this.margin = const EdgeInsets.only(bottom: 16),
     this.emptyMetricsMessage =
         'All fields are hidden. Use Visible fields to choose what to show.',
+    this.labelOverrides = const <String, String>{},
   });
 
   bool get _showsMenu =>
@@ -96,7 +459,9 @@ class SensorTelemetryCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final metrics = contact == null || telemetry == null
         ? const <_MetricCardData>[]
-        : _buildMetricCards(l10n, telemetry, contact!);
+        : _sortMetricsByFieldOrder(
+            _buildMetricCards(l10n, telemetry, contact!),
+          );
 
     return Container(
       margin: margin,
@@ -281,9 +646,14 @@ class SensorTelemetryCard extends StatelessWidget {
         _MetricCardData(
           fieldKey: 'voltage',
           icon: Icons.bolt,
-          label: l10n.voltage,
+          label: _resolvedMetricLabel(
+            'voltage',
+            l10n.voltage,
+            labelOverrides: labelOverrides,
+          ),
           value: '${(telemetry.batteryMilliVolts! / 1000).toStringAsFixed(3)}V',
           accent: const Color(0xFF0A7D61),
+          channel: _sourceChannelForField(telemetry.extraSensorData, 'voltage'),
         ),
       );
     }
@@ -293,9 +663,14 @@ class SensorTelemetryCard extends StatelessWidget {
         _MetricCardData(
           fieldKey: 'battery',
           icon: Icons.battery_5_bar,
-          label: l10n.battery,
+          label: _resolvedMetricLabel(
+            'battery',
+            l10n.battery,
+            labelOverrides: labelOverrides,
+          ),
           value: '${telemetry.batteryPercentage!.toStringAsFixed(0)}%',
           accent: const Color(0xFF4B8E2F),
+          channel: _sourceChannelForField(telemetry.extraSensorData, 'battery'),
         ),
       );
     }
@@ -305,9 +680,17 @@ class SensorTelemetryCard extends StatelessWidget {
         _MetricCardData(
           fieldKey: 'temperature',
           icon: Icons.thermostat,
-          label: l10n.temperature,
+          label: _resolvedMetricLabel(
+            'temperature',
+            l10n.temperature,
+            labelOverrides: labelOverrides,
+          ),
           value: '${telemetry.temperature!.toStringAsFixed(1)}°C',
           accent: const Color(0xFFC76821),
+          channel: _sourceChannelForField(
+            telemetry.extraSensorData,
+            'temperature',
+          ),
         ),
       );
     }
@@ -316,9 +699,17 @@ class SensorTelemetryCard extends StatelessWidget {
         _MetricCardData(
           fieldKey: 'humidity',
           icon: Icons.water_drop,
-          label: l10n.humidity,
+          label: _resolvedMetricLabel(
+            'humidity',
+            l10n.humidity,
+            labelOverrides: labelOverrides,
+          ),
           value: '${telemetry.humidity!.toStringAsFixed(1)}%',
           accent: const Color(0xFF246BB2),
+          channel: _sourceChannelForField(
+            telemetry.extraSensorData,
+            'humidity',
+          ),
         ),
       );
     }
@@ -327,9 +718,17 @@ class SensorTelemetryCard extends StatelessWidget {
         _MetricCardData(
           fieldKey: 'pressure',
           icon: Icons.compress,
-          label: l10n.pressure,
+          label: _resolvedMetricLabel(
+            'pressure',
+            l10n.pressure,
+            labelOverrides: labelOverrides,
+          ),
           value: '${telemetry.pressure!.toStringAsFixed(1)} hPa',
           accent: const Color(0xFF6B4BAE),
+          channel: _sourceChannelForField(
+            telemetry.extraSensorData,
+            'pressure',
+          ),
         ),
       );
     }
@@ -338,7 +737,11 @@ class SensorTelemetryCard extends StatelessWidget {
         _MetricCardData(
           fieldKey: 'gps',
           icon: Icons.place,
-          label: l10n.gpsTelemetry,
+          label: _resolvedMetricLabel(
+            'gps',
+            l10n.gpsTelemetry,
+            labelOverrides: labelOverrides,
+          ),
           value:
               '${telemetry.gpsLocation!.latitude.toStringAsFixed(5)}, ${telemetry.gpsLocation!.longitude.toStringAsFixed(5)}',
           accent: const Color(0xFFAA3F57),
@@ -351,11 +754,15 @@ class SensorTelemetryCard extends StatelessWidget {
             telemetry.gpsLocation!.latitude,
             telemetry.gpsLocation!.longitude,
           ),
+          channel: _sourceChannelForField(telemetry.extraSensorData, 'gps'),
         ),
       );
     }
     if (telemetry.extraSensorData != null) {
       for (final entry in telemetry.extraSensorData!.entries) {
+        if (_isTelemetryMetadataKey(entry.key)) {
+          continue;
+        }
         final fieldKey = _extraFieldKey(entry.key);
         if (!visibleFields.contains(fieldKey)) {
           continue;
@@ -370,9 +777,37 @@ class SensorTelemetryCard extends StatelessWidget {
     return items;
   }
 
+  List<_MetricCardData> _sortMetricsByFieldOrder(
+    List<_MetricCardData> metrics,
+  ) {
+    final order = fieldOrder;
+    if (order == null || order.isEmpty || metrics.length < 2) {
+      return metrics;
+    }
+
+    final orderIndex = <String, int>{
+      for (var i = 0; i < order.length; i++) order[i]: i,
+    };
+    final indexedMetrics = metrics.asMap().entries.toList();
+    indexedMetrics.sort((left, right) {
+      final leftOrder = orderIndex[left.value.fieldKey] ?? order.length;
+      final rightOrder = orderIndex[right.value.fieldKey] ?? order.length;
+      if (leftOrder != rightOrder) {
+        return leftOrder.compareTo(rightOrder);
+      }
+      return left.key.compareTo(right.key);
+    });
+    return indexedMetrics.map((entry) => entry.value).toList(growable: false);
+  }
+
   _MetricCardData? _buildExtraMetricCardData(String rawKey, dynamic value) {
     final metricKey = _parseMetricKey(rawKey);
-    final label = _formatExtraFieldLabel(rawKey);
+    final fieldKey = _extraFieldKey(rawKey);
+    final label = _resolvedMetricLabel(
+      fieldKey,
+      _formatExtraFieldLabel(rawKey),
+      labelOverrides: labelOverrides,
+    );
 
     switch (metricKey.baseKey) {
       case 'altitude':
@@ -384,6 +819,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: '${_formatNumber(meters, maxFractionDigits: 1)} m',
           accent: const Color(0xFF7A5C3E),
+          channel: metricKey.channel,
         );
 
       case 'illuminance':
@@ -397,6 +833,7 @@ class SensorTelemetryCard extends StatelessWidget {
           secondaryValue:
               '~${_formatNumber(_approxDaylightIrradiance(lux), maxFractionDigits: 1)} W/m2 daylight',
           accent: const Color(0xFFC17B1D),
+          channel: metricKey.channel,
         );
 
       case 'presence':
@@ -408,6 +845,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: isPresent ? 'Detected' : 'Clear',
           accent: const Color(0xFFAA3F57),
+          channel: metricKey.channel,
         );
 
       case 'digital_input':
@@ -419,6 +857,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: isHigh ? 'High' : 'Low',
           accent: const Color(0xFF3A6D8C),
+          channel: metricKey.channel,
         );
 
       case 'digital_output':
@@ -430,6 +869,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: isHigh ? 'High' : 'Low',
           accent: const Color(0xFF4B7B5A),
+          channel: metricKey.channel,
         );
 
       case 'analog_input':
@@ -441,6 +881,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: _formatNumber(reading, maxFractionDigits: 3),
           accent: const Color(0xFF5A6C84),
+          channel: metricKey.channel,
         );
 
       case 'analog_output':
@@ -452,6 +893,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: _formatNumber(reading, maxFractionDigits: 3),
           accent: const Color(0xFF4B7785),
+          channel: metricKey.channel,
         );
 
       case 'accelerometer':
@@ -467,6 +909,7 @@ class SensorTelemetryCard extends StatelessWidget {
               '|a| ${_formatNumber(_vectorMagnitude(vector), maxFractionDigits: 2)} g',
           accent: const Color(0xFF5A4C99),
           wide: true,
+          channel: metricKey.channel,
         );
 
       case 'gyrometer':
@@ -482,6 +925,7 @@ class SensorTelemetryCard extends StatelessWidget {
               '|w| ${_formatNumber(_vectorMagnitude(vector), maxFractionDigits: 2)} deg/s',
           accent: const Color(0xFF6C4F96),
           wide: true,
+          channel: metricKey.channel,
         );
 
       case 'generic_sensor':
@@ -493,6 +937,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: _formatNumber(reading, maxFractionDigits: 2),
           accent: const Color(0xFF3E657C),
+          channel: metricKey.channel,
         );
 
       case 'current':
@@ -504,6 +949,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: _formatCurrent(amps),
           accent: const Color(0xFF1C7C54),
+          channel: metricKey.channel,
         );
 
       case 'frequency':
@@ -515,6 +961,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: _formatFrequency(hz),
           accent: const Color(0xFF2C6BA0),
+          channel: metricKey.channel,
         );
 
       case 'percentage':
@@ -526,6 +973,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: '${_formatNumber(reading, maxFractionDigits: 1)}%',
           accent: const Color(0xFF4B8E2F),
+          channel: metricKey.channel,
         );
 
       case 'concentration':
@@ -537,6 +985,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: '${_formatNumber(reading, maxFractionDigits: 0)} ppm',
           accent: const Color(0xFF4D6D9A),
+          channel: metricKey.channel,
         );
 
       case 'power':
@@ -548,6 +997,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: _formatPower(watts),
           accent: const Color(0xFFB5622E),
+          channel: metricKey.channel,
         );
 
       case 'speed':
@@ -559,6 +1009,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: '${_formatNumber(metersPerSecond, maxFractionDigits: 2)} m/s',
           accent: const Color(0xFF2B78A0),
+          channel: metricKey.channel,
         );
 
       case 'distance':
@@ -570,6 +1021,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: _formatDistance(meters),
           accent: const Color(0xFF577590),
+          channel: metricKey.channel,
         );
 
       case 'energy':
@@ -581,6 +1033,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: _formatEnergy(kwh),
           accent: const Color(0xFF9C6644),
+          channel: metricKey.channel,
         );
 
       case 'direction':
@@ -593,6 +1046,7 @@ class SensorTelemetryCard extends StatelessWidget {
           value: '${_formatNumber(degrees, maxFractionDigits: 0)} deg',
           secondaryValue: _formatCardinalDirection(degrees),
           accent: const Color(0xFF8A5A44),
+          channel: metricKey.channel,
         );
 
       case 'unixtime':
@@ -610,6 +1064,7 @@ class SensorTelemetryCard extends StatelessWidget {
           secondaryValue: _formatTelemetryTime(timestamp),
           accent: const Color(0xFF6B7280),
           wide: true,
+          channel: metricKey.channel,
         );
 
       case 'colour':
@@ -624,6 +1079,7 @@ class SensorTelemetryCard extends StatelessWidget {
           secondaryValue: 'R ${color.r} • G ${color.g} • B ${color.b}',
           accent: Color.fromARGB(255, color.r, color.g, color.b),
           wide: true,
+          channel: metricKey.channel,
         );
 
       case 'switch':
@@ -635,6 +1091,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: isOn ? 'On' : 'Off',
           accent: const Color(0xFF4B7B5A),
+          channel: metricKey.channel,
         );
 
       case 'voltage':
@@ -646,6 +1103,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: '${_formatNumber(volts, maxFractionDigits: 3)} V',
           accent: const Color(0xFF0A7D61),
+          channel: metricKey.channel,
         );
     }
 
@@ -660,6 +1118,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: '${_formatNumber(reading, maxFractionDigits: 0)} ppm',
           accent: const Color(0xFF4D6D9A),
+          channel: metricKey.channel,
         );
 
       case 'pm25':
@@ -672,6 +1131,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: '${_formatNumber(reading, maxFractionDigits: 1)} ug/m3',
           accent: const Color(0xFF7A6C5D),
+          channel: metricKey.channel,
         );
 
       case 'uv':
@@ -683,6 +1143,7 @@ class SensorTelemetryCard extends StatelessWidget {
           label: label,
           value: _formatNumber(reading, maxFractionDigits: 1),
           accent: const Color(0xFFC17B1D),
+          channel: metricKey.channel,
         );
     }
 
@@ -693,6 +1154,7 @@ class SensorTelemetryCard extends StatelessWidget {
         label: label,
         value: _formatNumber(value, maxFractionDigits: 2),
         accent: const Color(0xFF3E657C),
+        channel: metricKey.channel,
       );
     }
 
@@ -703,6 +1165,7 @@ class SensorTelemetryCard extends StatelessWidget {
       value: '$value',
       accent: const Color(0xFF3E657C),
       wide: value is Map,
+      channel: metricKey.channel,
     );
   }
 
@@ -986,6 +1449,7 @@ class _MetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: ValueKey('sensor_metric_${data.fieldKey}'),
       width: width,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -1133,14 +1597,39 @@ class _MetricText extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          data.label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: data.accent,
-            fontWeight: FontWeight.w700,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                data.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: data.accent,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            if (data.channel != null) ...[
+              const SizedBox(width: 8),
+              Container(
+                key: ValueKey('sensor_metric_channel_${data.fieldKey}'),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: data.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'ch${data.channel}',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: data.accent,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 4),
         Text(
@@ -1178,6 +1667,7 @@ class _MetricCardData {
   final Color accent;
   final bool wide;
   final LatLng? mapLocation;
+  final int? channel;
 
   const _MetricCardData({
     required this.fieldKey,
@@ -1188,6 +1678,7 @@ class _MetricCardData {
     required this.accent,
     this.wide = false,
     this.mapLocation,
+    this.channel,
   });
 }
 
@@ -1214,19 +1705,57 @@ class _RgbColor {
   const _RgbColor({required this.r, required this.g, required this.b});
 }
 
+const String _telemetrySourceChannelPrefix = '__source_channel:';
+
 String _extraFieldKey(String label) {
   return 'extra:$label';
 }
 
+bool _isTelemetryMetadataKey(String key) {
+  return key.startsWith(_telemetrySourceChannelPrefix);
+}
+
+String _telemetrySourceChannelKey(String fieldKey) {
+  return '$_telemetrySourceChannelPrefix$fieldKey';
+}
+
+int? _sourceChannelForField(
+  Map<String, dynamic>? extraSensorData,
+  String fieldKey,
+) {
+  final value = extraSensorData?[_telemetrySourceChannelKey(fieldKey)];
+  if (value is int) {
+    return value;
+  }
+  if (value is num) {
+    return value.toInt();
+  }
+  return null;
+}
+
+String _resolvedMetricLabel(
+  String fieldKey,
+  String defaultLabel, {
+  Map<String, String> labelOverrides = const <String, String>{},
+}) {
+  final override = labelOverrides[fieldKey]?.trim();
+  if (override == null || override.isEmpty) {
+    return defaultLabel;
+  }
+  return override;
+}
+
+String _selectorMetricLabel(String label, int? channel) {
+  if (channel == null) {
+    return label;
+  }
+  return '$label (ch $channel)';
+}
+
 String _formatExtraFieldLabel(String rawKey) {
   final metricKey = _parseMetricKey(rawKey);
-  final label =
-      _knownMetricLabels[metricKey.baseKey] ??
+  return _knownMetricLabels[metricKey.baseKey] ??
       _fallbackMetricLabel(metricKey.baseKey);
-  if (metricKey.channel != null) {
-    return '$label (ch ${metricKey.channel})';
-  }
-  return label;
 }
 
 const List<String> _knownMetricBaseKeys = <String>[

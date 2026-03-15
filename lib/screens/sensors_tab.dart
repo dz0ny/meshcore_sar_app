@@ -10,7 +10,9 @@ import '../providers/sensors_provider.dart';
 import '../widgets/sensors/sensor_telemetry_card.dart';
 
 class SensorsTab extends StatefulWidget {
-  const SensorsTab({super.key});
+  final bool isActive;
+
+  const SensorsTab({super.key, this.isActive = true});
 
   @override
   State<SensorsTab> createState() => _SensorsTabState();
@@ -22,7 +24,10 @@ class _SensorsTabState extends State<SensorsTab> {
   @override
   void initState() {
     super.initState();
-    _scheduleMinuteTicker();
+    if (widget.isActive) {
+      unawaited(_handleMinuteTick());
+      _scheduleMinuteTicker();
+    }
   }
 
   @override
@@ -31,8 +36,28 @@ class _SensorsTabState extends State<SensorsTab> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant SensorsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive == widget.isActive) {
+      return;
+    }
+
+    if (widget.isActive) {
+      unawaited(_handleMinuteTick());
+      _scheduleMinuteTicker();
+      return;
+    }
+
+    _minuteTicker?.cancel();
+    _minuteTicker = null;
+  }
+
   void _scheduleMinuteTicker() {
     _minuteTicker?.cancel();
+    if (!widget.isActive) {
+      return;
+    }
 
     final now = DateTime.now();
     final nextMinute = DateTime(
@@ -46,14 +71,29 @@ class _SensorsTabState extends State<SensorsTab> {
 
     _minuteTicker = Timer(delay, () {
       if (!mounted) return;
-      context.read<SensorsProvider>().clearExpiredRefreshStates();
-      setState(() {});
+      unawaited(_handleMinuteTick());
       _minuteTicker = Timer.periodic(const Duration(minutes: 1), (_) {
-        if (!mounted) return;
-        context.read<SensorsProvider>().clearExpiredRefreshStates();
-        setState(() {});
+        unawaited(_handleMinuteTick());
       });
     });
+  }
+
+  Future<void> _handleMinuteTick() async {
+    if (!mounted || !widget.isActive) {
+      return;
+    }
+
+    final sensorsProvider = context.read<SensorsProvider>();
+    sensorsProvider.clearExpiredRefreshStates();
+    await sensorsProvider.refreshDueSensors(
+      contactsProvider: context.read<ContactsProvider>(),
+      connectionProvider: context.read<ConnectionProvider>(),
+      now: DateTime.now(),
+    );
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
   }
 
   Future<void> _showAddSensorSheet(BuildContext context) async {
@@ -137,23 +177,76 @@ class _SensorsTabState extends State<SensorsTab> {
       builder: (sheetContext) => Consumer<SensorsProvider>(
         builder: (context, sensorsProvider, child) {
           final visibleFields = sensorsProvider.visibleFieldsFor(publicKeyHex);
-          final options = sensorMetricOptionsFor(contact);
+          final autoRefreshMinutes = sensorsProvider.autoRefreshMinutesFor(
+            publicKeyHex,
+          );
+          final options = sensorMetricOptionsFor(
+            contact,
+            labelOverrides: sensorsProvider.labelOverridesFor(publicKeyHex),
+          );
+          final orderedFieldKeys = sensorsProvider.metricOrderFor(
+            publicKeyHex,
+            options.map((option) => option.key),
+          );
+          final optionByKey = <String, SensorMetricOption>{
+            for (final option in options) option.key: option,
+          };
+          final orderedOptions = orderedFieldKeys
+              .map((fieldKey) => optionByKey[fieldKey])
+              .whereType<SensorMetricOption>()
+              .toList(growable: false);
           return SafeArea(
             child: ListView(
               shrinkWrap: true,
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
               children: [
                 Text(
+                  'Auto refresh telemetry',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Refresh this contact automatically while the device is connected.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: SensorsProvider.supportedAutoRefreshIntervals
+                      .map(
+                        (minutes) => ChoiceChip(
+                          label: Text(minutes == 0 ? 'Off' : '${minutes}m'),
+                          selected: autoRefreshMinutes == minutes,
+                          onSelected: (_) {
+                            sensorsProvider.setAutoRefreshMinutes(
+                              publicKeyHex,
+                              minutes,
+                            );
+                          },
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+                const SizedBox(height: 20),
+                Text(
                   'Visible fields',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Choose which values appear on sensor cards.',
+                  'Choose which values appear on sensor cards and rename them.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  'Use the arrows to change card order.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 const SizedBox(height: 20),
-                ...options.map((option) {
+                ...orderedOptions.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final option = entry.value;
                   final visible = visibleFields.contains(option.key);
                   final span = sensorsProvider.fieldSpanFor(
                     publicKeyHex,
@@ -161,35 +254,146 @@ class _SensorsTabState extends State<SensorsTab> {
                   );
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: FilterChip(
-                            selected: visible,
-                            label: Text(option.label),
-                            onSelected: (value) {
-                              sensorsProvider.toggleMetric(
-                                publicKeyHex,
-                                option.key,
-                                value,
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        SegmentedButton<int>(
-                          segments: const [
-                            ButtonSegment<int>(value: 1, label: Text('1x')),
-                            ButtonSegment<int>(value: 2, label: Text('2x')),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: FilterChip(
+                                selected: visible,
+                                label: Text(option.label),
+                                onSelected: (value) {
+                                  sensorsProvider.toggleMetric(
+                                    publicKeyHex,
+                                    option.key,
+                                    value,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              tooltip: 'Rename',
+                              onPressed: () => _showMetricRenameDialog(
+                                context,
+                                publicKeyHex: publicKeyHex,
+                                option: option,
+                                sensorsProvider: sensorsProvider,
+                              ),
+                              icon: const Icon(Icons.edit_outlined),
+                            ),
                           ],
-                          selected: <int>{span},
-                          onSelectionChanged: (selection) {
-                            sensorsProvider.setFieldSpan(
-                              publicKeyHex,
-                              option.key,
-                              selection.first,
-                            );
-                          },
+                        ),
+                        if (option.valuePreview != null ||
+                            option.channel != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 6,
+                              children: [
+                                if (option.valuePreview != null)
+                                  Text(
+                                    option.valuePreview!,
+                                    key: ValueKey(
+                                      'sensor_selector_value_${option.key}',
+                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                if (option.channel != null)
+                                  Container(
+                                    key: ValueKey(
+                                      'sensor_selector_channel_${option.key}',
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      'ch${option.channel}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            children: [
+                              IconButton(
+                                tooltip: 'Move up',
+                                onPressed: index > 0
+                                    ? () => sensorsProvider.moveMetric(
+                                        publicKeyHex,
+                                        availableFieldKeys: orderedFieldKeys,
+                                        oldIndex: index,
+                                        newIndex: index - 1,
+                                      )
+                                    : null,
+                                icon: const Icon(Icons.arrow_upward),
+                              ),
+                              IconButton(
+                                tooltip: 'Move down',
+                                onPressed: index < orderedOptions.length - 1
+                                    ? () => sensorsProvider.moveMetric(
+                                        publicKeyHex,
+                                        availableFieldKeys: orderedFieldKeys,
+                                        oldIndex: index,
+                                        newIndex: index + 1,
+                                      )
+                                    : null,
+                                icon: const Icon(Icons.arrow_downward),
+                              ),
+                              SegmentedButton<int>(
+                                segments: const [
+                                  ButtonSegment<int>(
+                                    value: 1,
+                                    label: Text('1x'),
+                                  ),
+                                  ButtonSegment<int>(
+                                    value: 2,
+                                    label: Text('2x'),
+                                  ),
+                                ],
+                                selected: <int>{span},
+                                onSelectionChanged: (selection) {
+                                  sensorsProvider.setFieldSpan(
+                                    publicKeyHex,
+                                    option.key,
+                                    selection.first,
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -201,6 +405,71 @@ class _SensorsTabState extends State<SensorsTab> {
         },
       ),
     );
+  }
+
+  Future<void> _showMetricRenameDialog(
+    BuildContext context, {
+    required String publicKeyHex,
+    required SensorMetricOption option,
+    required SensorsProvider sensorsProvider,
+  }) async {
+    final controller = TextEditingController(
+      text:
+          sensorsProvider.labelOverrideFor(publicKeyHex, option.key) ??
+          option.defaultLabel,
+    );
+    final didSave = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Rename value'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Set a custom label for ${option.label}.',
+              style: Theme.of(dialogContext).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'Label',
+                hintText: option.defaultLabel,
+              ),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => Navigator.of(dialogContext).pop(true),
+            ),
+          ],
+        ),
+        actions: [
+          if (sensorsProvider.labelOverrideFor(publicKeyHex, option.key) !=
+              null)
+            TextButton(onPressed: controller.clear, child: const Text('Reset')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (didSave != true) {
+      controller.dispose();
+      return;
+    }
+
+    final nextLabel = controller.text.trim();
+    await sensorsProvider.setMetricLabel(
+      publicKeyHex,
+      option.key,
+      nextLabel == option.defaultLabel ? null : nextLabel,
+    );
+    controller.dispose();
   }
 
   Future<void> _refreshAll(BuildContext context) async {
@@ -241,6 +510,11 @@ class _SensorsTabState extends State<SensorsTab> {
                       contact: contact,
                       state: sensorsProvider.stateFor(key),
                       visibleFields: sensorsProvider.visibleFieldsFor(key),
+                      fieldOrder: sensorsProvider.metricOrderFor(
+                        key,
+                        sensorsProvider.visibleFieldsFor(key),
+                      ),
+                      labelOverrides: sensorsProvider.labelOverridesFor(key),
                       fieldSpans: {
                         for (final field in sensorsProvider.visibleFieldsFor(
                           key,
