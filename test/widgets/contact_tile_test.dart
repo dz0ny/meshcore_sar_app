@@ -156,6 +156,7 @@ void main() {
     await tester.tap(find.text('Preview'));
     await tester.pumpAndSettle();
 
+    expect(find.byIcon(Icons.close), findsOneWidget);
     expect(find.text('Battery'), findsOneWidget);
     expect(find.text('84%'), findsOneWidget);
     expect(find.text('Temperature'), findsOneWidget);
@@ -172,10 +173,7 @@ void main() {
       find.byKey(const ValueKey('sensor_metric_channel_battery')),
       findsOneWidget,
     );
-    expect(
-      find.text('ch1'),
-      findsWidgets,
-    );
+    expect(find.text('ch1'), findsWidgets);
     expect(
       find.byKey(const ValueKey('sensor_metric_channel_extra:illuminance_2')),
       findsOneWidget,
@@ -186,5 +184,10 @@ void main() {
       find.byKey(const ValueKey('sensor_metric_battery')),
     );
     expect(batteryTileSize.width, greaterThan(sensorCardSize.width * 0.8));
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SensorTelemetryCard), findsNothing);
   });
 }

@@ -50,9 +50,7 @@ void main() {
     );
   }
 
-  testWidgets('customize sheet shows metric value previews and channels', (
-    tester,
-  ) async {
+  testWidgets('customize action opens full customization view', (tester) async {
     final contact = buildSensorContact();
     final sensorsProvider = SensorsProvider();
     final contactsProvider = ContactsProvider();
@@ -61,40 +59,37 @@ void main() {
     contactsProvider.addOrUpdateContact(contact);
     await sensorsProvider.addSensor(contact);
 
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<ContactsProvider>.value(
-              value: contactsProvider,
-            ),
-            ChangeNotifierProvider<SensorsProvider>.value(value: sensorsProvider),
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<ContactsProvider>.value(
+            value: contactsProvider,
+          ),
+          ChangeNotifierProvider<SensorsProvider>.value(value: sensorsProvider),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const SensorsTab(),
-          ),
         ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.tap(find.text('Customize fields'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Customize fields'));
+    await tester.pumpAndSettle();
 
+    expect(find.text('Customize WX Station'), findsOneWidget);
+    expect(find.text('Live preview'), findsOneWidget);
+    expect(find.text('Refresh schedule'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('sensor_selector_value_extra:illuminance_2')),
+      find.byKey(
+        const ValueKey('sensor_selector_metric_channel_extra:illuminance_2'),
+      ),
       findsOneWidget,
     );
-    expect(find.text('500 lx'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('sensor_selector_channel_extra:illuminance_2')),
-      findsOneWidget,
-    );
-    expect(find.text('ch2'), findsOneWidget);
+    expect(find.text('Channel 2'), findsOneWidget);
   });
 }

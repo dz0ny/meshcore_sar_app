@@ -18,7 +18,16 @@ class SensorsProvider with ChangeNotifier {
   static const String _metricLabelKey = 'sensor_metric_labels';
   static const String _metricOrderKey = 'sensor_metric_order';
   static const String _autoRefreshMinutesKey = 'sensor_auto_refresh_minutes';
-  static const List<int> supportedAutoRefreshIntervals = <int>[0, 1, 5, 15];
+  static const List<int> supportedAutoRefreshIntervals = <int>[
+    0,
+    5,
+    15,
+    30,
+    60,
+    360,
+    720,
+    1440,
+  ];
   static const Set<String> _defaultVisibleFields = <String>{
     'voltage',
     'battery',
@@ -118,7 +127,9 @@ class SensorsProvider with ChangeNotifier {
         final decoded =
             jsonDecode(storedAutoRefreshJson) as Map<String, dynamic>;
         for (final entry in decoded.entries) {
-          final minutes = (entry.value as num).toInt();
+          final minutes = _normalizeAutoRefreshMinutes(
+            (entry.value as num).toInt(),
+          );
           if (minutes > 0) {
             _autoRefreshMinutesBySensor[entry.key] = minutes;
           }
@@ -258,7 +269,7 @@ class SensorsProvider with ChangeNotifier {
       _autoRefreshMinutesBySensor[publicKeyHex] ?? 0;
 
   Future<void> setAutoRefreshMinutes(String publicKeyHex, int minutes) async {
-    final normalizedMinutes = minutes <= 0 ? 0 : minutes;
+    final normalizedMinutes = _normalizeAutoRefreshMinutes(minutes);
     final currentMinutes = autoRefreshMinutesFor(publicKeyHex);
     if (currentMinutes == normalizedMinutes) {
       return;
@@ -271,6 +282,32 @@ class SensorsProvider with ChangeNotifier {
     }
     await _persistAutoRefreshMinutes();
     notifyListeners();
+  }
+
+  static int _normalizeAutoRefreshMinutes(int minutes) {
+    if (minutes <= 0) {
+      return 0;
+    }
+
+    if (supportedAutoRefreshIntervals.contains(minutes)) {
+      return minutes;
+    }
+
+    final positiveIntervals = supportedAutoRefreshIntervals.where(
+      (value) => value > 0,
+    );
+    var bestMatch = positiveIntervals.first;
+    var bestDistance = (minutes - bestMatch).abs();
+
+    for (final interval in positiveIntervals.skip(1)) {
+      final distance = (minutes - interval).abs();
+      if (distance < bestDistance) {
+        bestMatch = interval;
+        bestDistance = distance;
+      }
+    }
+
+    return bestMatch;
   }
 
   List<String> dueAutoRefreshSensorKeys({DateTime? now}) {

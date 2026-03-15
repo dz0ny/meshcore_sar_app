@@ -171,135 +171,26 @@ class _SensorsTabState extends State<SensorsTab> {
     String publicKeyHex,
     Contact? contact,
   ) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => Consumer<SensorsProvider>(
-        builder: (context, sensorsProvider, child) {
-          final visibleFields = sensorsProvider.visibleFieldsFor(publicKeyHex);
-          final autoRefreshMinutes = sensorsProvider.autoRefreshMinutesFor(
-            publicKeyHex,
-          );
-          final options = sensorMetricOptionsFor(
-            contact,
-            labelOverrides: sensorsProvider.labelOverridesFor(publicKeyHex),
-          );
-          final orderedFieldKeys = sensorsProvider.metricOrderFor(
-            publicKeyHex,
-            options.map((option) => option.key),
-          );
-          final optionByKey = <String, SensorMetricOption>{
-            for (final option in options) option.key: option,
-          };
-          final orderedOptions = orderedFieldKeys
-              .map((fieldKey) => optionByKey[fieldKey])
-              .whereType<SensorMetricOption>()
-              .toList(growable: false);
-          return SafeArea(
-            child: ListView(
-              shrinkWrap: true,
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-              children: [
-                Text(
-                  'Auto refresh telemetry',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Refresh this contact automatically while the device is connected.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: SensorsProvider.supportedAutoRefreshIntervals
-                      .map(
-                        (minutes) => ChoiceChip(
-                          label: Text(minutes == 0 ? 'Off' : '${minutes}m'),
-                          selected: autoRefreshMinutes == minutes,
-                          onSelected: (_) {
-                            sensorsProvider.setAutoRefreshMinutes(
-                              publicKeyHex,
-                              minutes,
-                            );
-                          },
-                        ),
-                      )
-                      .toList(growable: false),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Visible fields',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Choose which values appear on sensor cards and rename them.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Use the arrows to change card order.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 20),
-                ...orderedOptions.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final option = entry.value;
-                  final visible = visibleFields.contains(option.key);
-                  final span = sensorsProvider.fieldSpanFor(
-                    publicKeyHex,
-                    option.key,
-                  );
-                  return SensorMetricSelectorItem(
-                    option: option,
-                    visible: visible,
-                    span: span,
-                    canMoveUp: index > 0,
-                    canMoveDown: index < orderedOptions.length - 1,
-                    onToggle: (value) {
-                      sensorsProvider.toggleMetric(
-                        publicKeyHex,
-                        option.key,
-                        value,
-                      );
-                    },
-                    onRename: () => _showMetricRenameDialog(
-                      context,
-                      publicKeyHex: publicKeyHex,
-                      option: option,
-                      sensorsProvider: sensorsProvider,
-                    ),
-                    onMoveUp: index > 0
-                        ? () => sensorsProvider.moveMetric(
-                            publicKeyHex,
-                            availableFieldKeys: orderedFieldKeys,
-                            oldIndex: index,
-                            newIndex: index - 1,
-                          )
-                        : null,
-                    onMoveDown: index < orderedOptions.length - 1
-                        ? () => sensorsProvider.moveMetric(
-                            publicKeyHex,
-                            availableFieldKeys: orderedFieldKeys,
-                            oldIndex: index,
-                            newIndex: index + 1,
-                          )
-                        : null,
-                    onSpanChanged: (selection) {
-                      sensorsProvider.setFieldSpan(
-                        publicKeyHex,
-                        option.key,
-                        selection,
-                      );
-                    },
-                  );
-                }),
-              ],
-            ),
-          );
-        },
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (pageContext) => _SensorCustomizeView(
+          publicKeyHex: publicKeyHex,
+          initialContact: contact,
+          onRenameMetric:
+              ({
+                required BuildContext context,
+                required String publicKeyHex,
+                required SensorMetricOption option,
+                required SensorsProvider sensorsProvider,
+              }) {
+                return _showMetricRenameDialog(
+                  context,
+                  publicKeyHex: publicKeyHex,
+                  option: option,
+                  sensorsProvider: sensorsProvider,
+                );
+              },
+        ),
       ),
     );
   }
@@ -439,6 +330,273 @@ class _SensorsTabState extends State<SensorsTab> {
   }
 }
 
+class _SensorCustomizeView extends StatelessWidget {
+  final String publicKeyHex;
+  final Contact? initialContact;
+  final Future<void> Function({
+    required BuildContext context,
+    required String publicKeyHex,
+    required SensorMetricOption option,
+    required SensorsProvider sensorsProvider,
+  })
+  onRenameMetric;
+
+  const _SensorCustomizeView({
+    required this.publicKeyHex,
+    required this.initialContact,
+    required this.onRenameMetric,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<SensorsProvider, ContactsProvider>(
+      builder: (context, sensorsProvider, contactsProvider, child) {
+        Contact? contact = initialContact;
+        for (final entry in contactsProvider.contacts) {
+          if (entry.publicKeyHex == publicKeyHex) {
+            contact = entry;
+            break;
+          }
+        }
+
+        final visibleFields = sensorsProvider.visibleFieldsFor(publicKeyHex);
+        final autoRefreshMinutes = sensorsProvider.autoRefreshMinutesFor(
+          publicKeyHex,
+        );
+        final options = sensorMetricOptionsFor(
+          contact,
+          labelOverrides: sensorsProvider.labelOverridesFor(publicKeyHex),
+        );
+        final orderedFieldKeys = sensorsProvider.metricOrderFor(
+          publicKeyHex,
+          options.map((option) => option.key),
+        );
+        final optionByKey = <String, SensorMetricOption>{
+          for (final option in options) option.key: option,
+        };
+        final orderedOptions = orderedFieldKeys
+            .map((fieldKey) => optionByKey[fieldKey])
+            .whereType<SensorMetricOption>()
+            .toList(growable: false);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Customize ${contact?.displayName ?? 'Sensor'}'),
+          ),
+          body: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            children: [
+              _SensorCustomizeSectionCard(
+                title: 'Live preview',
+                subtitle:
+                    'Changes apply immediately. This card matches the current dashboard layout for this sensor.',
+                child: SensorTelemetryCard(
+                  contact: contact,
+                  state: sensorsProvider.stateFor(publicKeyHex),
+                  visibleFields: visibleFields,
+                  fieldOrder: sensorsProvider.metricOrderFor(
+                    publicKeyHex,
+                    visibleFields,
+                  ),
+                  labelOverrides: sensorsProvider.labelOverridesFor(
+                    publicKeyHex,
+                  ),
+                  fieldSpans: {
+                    for (final field in visibleFields)
+                      field: sensorsProvider.fieldSpanFor(publicKeyHex, field),
+                  },
+                  margin: EdgeInsets.zero,
+                  emptyMetricsMessage: 'No telemetry fields available yet.',
+                ),
+              ),
+              _SensorCustomizeSectionCard(
+                title: 'Refresh schedule',
+                subtitle:
+                    'Choose how often this sensor should refresh while your device stays connected.',
+                child: SensorAutoRefreshOptions(
+                  selectedMinutes: autoRefreshMinutes,
+                  onSelected: (minutes) {
+                    sensorsProvider.setAutoRefreshMinutes(
+                      publicKeyHex,
+                      minutes,
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Field layout',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Use the same value-card previews shown on the dashboard to control visibility, labels, width, and order.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              ...orderedOptions.asMap().entries.map((entry) {
+                final index = entry.key;
+                final option = entry.value;
+                final visible = visibleFields.contains(option.key);
+                final span = sensorsProvider.fieldSpanFor(
+                  publicKeyHex,
+                  option.key,
+                );
+                return SensorMetricSelectorItem(
+                  option: option,
+                  visible: visible,
+                  span: span,
+                  canMoveUp: index > 0,
+                  canMoveDown: index < orderedOptions.length - 1,
+                  onToggle: (value) {
+                    sensorsProvider.toggleMetric(
+                      publicKeyHex,
+                      option.key,
+                      value,
+                    );
+                  },
+                  onRename: () => onRenameMetric(
+                    context: context,
+                    publicKeyHex: publicKeyHex,
+                    option: option,
+                    sensorsProvider: sensorsProvider,
+                  ),
+                  onMoveUp: index > 0
+                      ? () => sensorsProvider.moveMetric(
+                          publicKeyHex,
+                          availableFieldKeys: orderedFieldKeys,
+                          oldIndex: index,
+                          newIndex: index - 1,
+                        )
+                      : null,
+                  onMoveDown: index < orderedOptions.length - 1
+                      ? () => sensorsProvider.moveMetric(
+                          publicKeyHex,
+                          availableFieldKeys: orderedFieldKeys,
+                          oldIndex: index,
+                          newIndex: index + 1,
+                        )
+                      : null,
+                  onSpanChanged: (selection) {
+                    sensorsProvider.setFieldSpan(
+                      publicKeyHex,
+                      option.key,
+                      selection,
+                    );
+                  },
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SensorCustomizeSectionCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Widget child;
+
+  const _SensorCustomizeSectionCard({
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.surfaceContainerLow,
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.9),
+          ],
+        ),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.045),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 14),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SensorAutoRefreshOptions extends StatelessWidget {
+  final int selectedMinutes;
+  final ValueChanged<int> onSelected;
+
+  const SensorAutoRefreshOptions({
+    super.key,
+    required this.selectedMinutes,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: SensorsProvider.supportedAutoRefreshIntervals
+          .map(
+            (minutes) => ChoiceChip(
+              label: Text(_formatAutoRefreshIntervalLabel(minutes)),
+              selected: selectedMinutes == minutes,
+              onSelected: (_) => onSelected(minutes),
+            ),
+          )
+          .toList(growable: false),
+    );
+  }
+}
+
+String _formatAutoRefreshIntervalLabel(int minutes) {
+  if (minutes <= 0) {
+    return 'Off';
+  }
+  if (minutes >= 360 && minutes % 60 == 0) {
+    return '${minutes ~/ 60}h';
+  }
+  return '${minutes}m';
+}
+
 class SensorMetricSelectorItem extends StatelessWidget {
   final SensorMetricOption option;
   final bool visible;
@@ -468,84 +626,143 @@ class SensorMetricSelectorItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: FilterChip(
-                  selected: visible,
-                  label: Text(option.label),
-                  onSelected: onToggle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                tooltip: 'Rename',
-                onPressed: onRename,
-                icon: const Icon(Icons.edit_outlined),
-              ),
-            ],
+    final colorScheme = theme.colorScheme;
+    final previewCardData =
+        option.previewCardData ??
+        SensorMetricCardData(
+          fieldKey: option.key,
+          icon: Icons.sensors,
+          label: option.defaultLabel,
+          value: option.valuePreview ?? 'No telemetry yet',
+          accent: colorScheme.primary,
+          channel: option.channel,
+        );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.surfaceContainerLow,
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.9),
+          ],
+        ),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.045),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          if (option.valuePreview != null || option.channel != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 6,
-                children: [
-                  if (option.valuePreview != null)
-                    Text(
-                      option.valuePreview!,
-                      key: ValueKey('sensor_selector_value_${option.key}'),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    option.defaultLabel,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                  if (option.channel != null)
-                    Container(
-                      key: ValueKey('sensor_selector_channel_${option.key}'),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        'ch${option.channel}',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: visible
+                        ? const Color(0xFF218B63).withValues(alpha: 0.12)
+                        : colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    visible ? 'Visible' : 'Hidden',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: visible
+                          ? const Color(0xFF218B63)
+                          : colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
                     ),
-                ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Opacity(
+              opacity: visible ? 1 : 0.55,
+              child: SensorMetricTile(
+                data: previewCardData,
+                width: double.infinity,
+                keyPrefix: 'sensor_selector_metric',
+                allowMapPreview: false,
               ),
             ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 8,
+            const SizedBox(height: 8),
+            Row(
               children: [
-                IconButton(
-                  tooltip: 'Move up',
-                  onPressed: canMoveUp ? onMoveUp : null,
-                  icon: const Icon(Icons.arrow_upward),
+                Expanded(
+                  child: Text(
+                    'Show on sensor card',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-                IconButton(
-                  tooltip: 'Move down',
-                  onPressed: canMoveDown ? onMoveDown : null,
-                  icon: const Icon(Icons.arrow_downward),
+                Switch.adaptive(value: visible, onChanged: onToggle),
+              ],
+            ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: onRename,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Rename'),
                 ),
+                if (option.channel != null)
+                  Container(
+                    key: ValueKey('sensor_selector_channel_${option.key}'),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: previewCardData.accent.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      'Channel ${option.channel}',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: previewCardData.accent,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text(
+                  'Card width',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
                 SegmentedButton<int>(
                   segments: const [
                     ButtonSegment<int>(value: 1, label: Text('1x')),
@@ -558,8 +775,30 @@ class SensorMetricSelectorItem extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text(
+                  'Order',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  tooltip: 'Move up',
+                  onPressed: canMoveUp ? onMoveUp : null,
+                  icon: const Icon(Icons.arrow_upward),
+                ),
+                IconButton(
+                  tooltip: 'Move down',
+                  onPressed: canMoveDown ? onMoveDown : null,
+                  icon: const Icon(Icons.arrow_downward),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

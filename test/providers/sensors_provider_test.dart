@@ -148,15 +148,30 @@ void main() {
     final provider = SensorsProvider();
     await waitUntilLoaded(provider);
     await provider.addSensor(contact);
-    await provider.setAutoRefreshMinutes(contact.publicKeyHex, 5);
+    await provider.setAutoRefreshMinutes(contact.publicKeyHex, 1440);
 
-    expect(provider.autoRefreshMinutesFor(contact.publicKeyHex), 5);
+    expect(provider.autoRefreshMinutesFor(contact.publicKeyHex), 1440);
 
     final reloadedProvider = SensorsProvider();
     await waitUntilLoaded(reloadedProvider);
 
-    expect(reloadedProvider.autoRefreshMinutesFor(contact.publicKeyHex), 5);
+    expect(reloadedProvider.autoRefreshMinutesFor(contact.publicKeyHex), 1440);
   });
+
+  test(
+    'unsupported auto refresh minutes normalize to nearest option',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final contact = buildSensorContact();
+
+      final provider = SensorsProvider();
+      await waitUntilLoaded(provider);
+      await provider.addSensor(contact);
+      await provider.setAutoRefreshMinutes(contact.publicKeyHex, 1);
+
+      expect(provider.autoRefreshMinutesFor(contact.publicKeyHex), 5);
+    },
+  );
 
   test('refreshDueSensors respects per-contact interval', () async {
     SharedPreferences.setMockInitialValues({});

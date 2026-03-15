@@ -393,7 +393,7 @@ class ContactTile extends StatelessWidget {
                     Navigator.pop(sheetContext);
                     await Future<void>.delayed(Duration.zero);
                     if (!context.mounted) return;
-                    await _showSensorPreviewSheet(context, contact);
+                    await _showSensorPreviewView(context, contact);
                   },
                 ),
               if (canAddToSensors)
@@ -469,49 +469,14 @@ class ContactTile extends StatelessWidget {
     );
   }
 
-  Future<void> _showSensorPreviewSheet(
+  Future<void> _showSensorPreviewView(
     BuildContext context,
     Contact contact,
   ) async {
-    final publicKeyHex = contact.publicKeyHex;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) => Consumer2<ContactsProvider, SensorsProvider>(
-        builder: (context, contactsProvider, sensorsProvider, child) {
-          Contact? liveContact;
-          for (final entry in contactsProvider.contacts) {
-            if (entry.publicKeyHex == publicKeyHex) {
-              liveContact = entry;
-              break;
-            }
-          }
-
-          final previewContact = liveContact ?? contact;
-          final visibleFields = sensorMetricKeysFor(previewContact);
-          final fieldOrder = sensorsProvider.metricOrderFor(
-            publicKeyHex,
-            visibleFields,
-          );
-
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              child: SensorTelemetryCard(
-                contact: previewContact,
-                state: sensorsProvider.stateFor(publicKeyHex),
-                visibleFields: visibleFields,
-                fieldOrder: fieldOrder,
-                labelOverrides: sensorsProvider.labelOverridesFor(publicKeyHex),
-                fieldSpans: sensorFullWidthFieldSpans(visibleFields),
-                margin: EdgeInsets.zero,
-                emptyMetricsMessage: 'No telemetry fields available yet.',
-              ),
-            ),
-          );
-        },
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (pageContext) => _SensorPreviewView(contact: contact),
       ),
     );
   }
@@ -1040,6 +1005,60 @@ class ContactTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SensorPreviewView extends StatelessWidget {
+  final Contact contact;
+
+  const _SensorPreviewView({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    final publicKeyHex = contact.publicKeyHex;
+    return Consumer2<ContactsProvider, SensorsProvider>(
+      builder: (context, contactsProvider, sensorsProvider, child) {
+        Contact? liveContact;
+        for (final entry in contactsProvider.contacts) {
+          if (entry.publicKeyHex == publicKeyHex) {
+            liveContact = entry;
+            break;
+          }
+        }
+
+        final previewContact = liveContact ?? contact;
+        final visibleFields = sensorMetricKeysFor(previewContact);
+        final fieldOrder = sensorsProvider.metricOrderFor(
+          publicKeyHex,
+          visibleFields,
+        );
+
+        return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text(previewContact.displayName),
+          ),
+          body: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            children: [
+              SensorTelemetryCard(
+                contact: previewContact,
+                state: sensorsProvider.stateFor(publicKeyHex),
+                visibleFields: visibleFields,
+                fieldOrder: fieldOrder,
+                labelOverrides: sensorsProvider.labelOverridesFor(publicKeyHex),
+                fieldSpans: sensorFullWidthFieldSpans(visibleFields),
+                margin: EdgeInsets.zero,
+                emptyMetricsMessage: 'No telemetry fields available yet.',
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
