@@ -627,6 +627,7 @@ class SensorMetricSelectorItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final showChannelChip = option.channel != null && option.channel != 1;
     final previewCardData =
         option.previewCardData ??
         SensorMetricCardData(
@@ -667,15 +668,68 @@ class SensorMetricSelectorItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    option.defaultLabel,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        option.defaultLabel,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          TextButton.icon(
+                            onPressed: onRename,
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              foregroundColor: colorScheme.primary,
+                              textStyle: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            label: const Text('Rename'),
+                          ),
+                          if (showChannelChip)
+                            Container(
+                              key: ValueKey(
+                                'sensor_selector_channel_${option.key}',
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: previewCardData.accent.withValues(
+                                  alpha: 0.10,
+                                ),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'Channel ${option.channel}',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: previewCardData.accent,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(width: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -721,36 +775,6 @@ class SensorMetricSelectorItem extends StatelessWidget {
                   ),
                 ),
                 Switch.adaptive(value: visible, onChanged: onToggle),
-              ],
-            ),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: onRename,
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Rename'),
-                ),
-                if (option.channel != null)
-                  Container(
-                    key: ValueKey('sensor_selector_channel_${option.key}'),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: previewCardData.accent.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      'Channel ${option.channel}',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: previewCardData.accent,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
               ],
             ),
             const SizedBox(height: 12),
