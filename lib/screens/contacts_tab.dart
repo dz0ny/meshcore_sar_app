@@ -17,6 +17,7 @@ import '../utils/avatar_label_helper.dart';
 import '../widgets/common/contact_avatar.dart';
 import '../widgets/contacts/contact_tile.dart';
 import '../widgets/contacts/add_channel_dialog.dart';
+import 'add_contact_screen.dart';
 
 class ContactsTab extends StatefulWidget {
   final VoidCallback? onNavigateToMap;
@@ -389,6 +390,12 @@ class _ContactsTabState extends State<ContactsTab> {
     );
   }
 
+  Future<void> _openAddContactScreen(BuildContext context) async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const AddContactScreen()));
+  }
+
   Future<void> _showDeleteChannelDialog(
     BuildContext context,
     Contact channel,
@@ -659,6 +666,18 @@ class _ContactsTabState extends State<ContactsTab> {
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
+                  if (context
+                      .watch<ConnectionProvider>()
+                      .deviceInfo
+                      .isConnected)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: OutlinedButton.icon(
+                        onPressed: () => _openAddContactScreen(context),
+                        icon: const Icon(Icons.person_add_alt_1_outlined),
+                        label: const Text('Add Contact'),
+                      ),
+                    ),
                 ],
               ),
             );
@@ -862,16 +881,36 @@ class _ContactsTabState extends State<ContactsTab> {
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    child: OutlinedButton.icon(
-                      onPressed: () => _showAddChannelDialog(context),
-                      icon: const Icon(Icons.add_circle_outline),
-                      label: Text(l10n.addChannel),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _openAddContactScreen(context),
+                            icon: const Icon(Icons.person_add_alt_1_outlined),
+                            label: const Text('Add Contact'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _showAddChannelDialog(context),
+                            icon: const Icon(Icons.add_circle_outline),
+                            label: Text(l10n.addChannel),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
               ],

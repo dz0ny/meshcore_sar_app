@@ -1358,6 +1358,22 @@ class ConnectionProvider with ChangeNotifier {
     }
   }
 
+  Future<void> importContactAdvert(Uint8List contactAdvertFrame) async {
+    if (!_activeService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      _error = null;
+      await _activeService.importContact(contactAdvertFrame);
+    } catch (e) {
+      _error = 'Failed to import contact: $e';
+      notifyListeners();
+    }
+  }
+
   /// Send text message to contact
   ///
   /// Returns true if the message was successfully sent to the BLE service.
