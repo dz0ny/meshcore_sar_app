@@ -212,7 +212,8 @@ class ProfileWorkspaceCoordinator {
     if (profileId == ConfigProfile.defaultProfileId) {
       return snapshotCurrentProfile(id: profileId, name: 'Default');
     }
-    return profileManager.getProfile(profileId)!;
+    return profileManager.getProfile(profileId) ??
+        await snapshotCurrentProfile(id: profileId, name: 'Unknown');
   }
 
   Future<void> exportProfile(ConfigProfile profile) async {
@@ -300,7 +301,10 @@ class ProfileWorkspaceCoordinator {
       return;
     }
     final current = profileManager.getProfile(profileManager.activeProfileId);
-    if (current == null) return;
+    if (current == null) {
+      await _persistCurrentState();
+      return;
+    }
     final snapshot = await snapshotCurrentProfile(
       id: current.id,
       name: current.name,
