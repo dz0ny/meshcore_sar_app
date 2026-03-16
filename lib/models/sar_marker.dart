@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
+import 'map_coordinate_space.dart';
 import '../services/sar_template_service.dart';
 
 /// SAR (Search & Rescue) marker types
@@ -78,6 +79,8 @@ class SarMarker {
   final String? notes;
   final String? customEmoji; // For custom SAR markers not in predefined types
   final int? colorIndex; // Color index (0-7) from standard palette
+  final MapCoordinateSpace coordinateSpace;
+  final String? mapId;
 
   SarMarker({
     required this.id,
@@ -89,7 +92,12 @@ class SarMarker {
     this.notes,
     this.customEmoji,
     this.colorIndex,
+    this.coordinateSpace = MapCoordinateSpace.geo,
+    this.mapId,
   });
+
+  bool get isCustomMapMarker =>
+      coordinateSpace == MapCoordinateSpace.customMap && mapId != null;
 
   /// Get sender public key as hex string (short)
   String? get senderKeyShort {
@@ -167,6 +175,8 @@ class SarMarker {
     String? notes,
     String? customEmoji,
     int? colorIndex,
+    MapCoordinateSpace? coordinateSpace,
+    String? mapId,
   }) {
     return SarMarker(
       id: id ?? this.id,
@@ -178,6 +188,8 @@ class SarMarker {
       notes: notes ?? this.notes,
       customEmoji: customEmoji ?? this.customEmoji,
       colorIndex: colorIndex ?? this.colorIndex,
+      coordinateSpace: coordinateSpace ?? this.coordinateSpace,
+      mapId: mapId ?? this.mapId,
     );
   }
 

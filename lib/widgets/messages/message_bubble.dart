@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import '../../models/contact.dart';
@@ -7,6 +8,7 @@ import '../../models/message.dart';
 import '../../models/sar_marker.dart';
 import '../../models/sar_template.dart';
 import '../../models/map_drawing.dart';
+import '../../models/map_coordinate_space.dart';
 import '../../providers/messages_provider.dart';
 import '../../providers/contacts_provider.dart';
 import '../../providers/connection_provider.dart';
@@ -1490,7 +1492,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   void _navigateToDrawing(BuildContext context) {
     if (widget.message.drawingId == null) return;
-    widget.onNavigateToMap?.call();
+    widget.onTap?.call();
   }
 
   void _copyDrawingCoordinates(BuildContext context) {
@@ -1505,21 +1507,18 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
 
     // Format coordinates based on drawing type
+    String formatPoint(LatLng point) {
+      if (drawing.coordinateSpace == MapCoordinateSpace.customMap) {
+        return '${point.latitude.toStringAsFixed(0)}, ${point.longitude.toStringAsFixed(0)}';
+      }
+      return '${point.latitude.toStringAsFixed(5)}, ${point.longitude.toStringAsFixed(5)}';
+    }
+
     String coordinatesText;
     if (drawing is LineDrawing) {
-      coordinatesText = drawing.points
-          .map(
-            (p) =>
-                '${p.latitude.toStringAsFixed(5)}, ${p.longitude.toStringAsFixed(5)}',
-          )
-          .join('\n');
+      coordinatesText = drawing.points.map(formatPoint).join('\n');
     } else if (drawing is RectangleDrawing) {
-      coordinatesText = drawing.corners
-          .map(
-            (p) =>
-                '${p.latitude.toStringAsFixed(5)}, ${p.longitude.toStringAsFixed(5)}',
-          )
-          .join('\n');
+      coordinatesText = drawing.corners.map(formatPoint).join('\n');
     } else {
       ToastLogger.error(context, 'Unknown drawing type');
       return;
@@ -2291,6 +2290,72 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   ),
                                 ],
                               ),
+                            ],
+                          ),
+                        ),
+                      ] else if (message.sarCustomMapPoint != null) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(
+                              alpha: isDarkMode ? 0.18 : 0.05,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.map_outlined,
+                                    size: 15,
+                                    color: _getSarMarkerBorderColor(
+                                      context,
+                                      isDarkMode,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'Custom map marker',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Point: ${message.sarCustomMapPoint!.latitude.toStringAsFixed(0)}, ${message.sarCustomMapPoint!.longitude.toStringAsFixed(0)}',
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      fontFamily: 'monospace',
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.15,
+                                    ),
+                              ),
+                              if (message.sarCustomMapId != null &&
+                                  message.sarCustomMapId!.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Map ID: ${message.sarCustomMapId}',
+                                  style: Theme.of(context).textTheme.labelMedium
+                                      ?.copyWith(
+                                        fontFamily: 'monospace',
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.15,
+                                      ),
+                                ),
+                              ],
                             ],
                           ),
                         ),

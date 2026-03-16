@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:meshcore_sar_app/models/map_drawing.dart';
+import 'package:meshcore_sar_app/models/map_coordinate_space.dart';
 import 'package:meshcore_sar_app/utils/drawing_message_parser.dart';
 
 void main() {
@@ -10,10 +11,7 @@ void main() {
         id: 'test-123',
         color: DrawingColors.palette[0],
         createdAt: DateTime.now(),
-        points: [
-          LatLng(37.7749, -122.4194),
-          LatLng(37.7750, -122.4195),
-        ],
+        points: [LatLng(37.7749, -122.4194), LatLng(37.7750, -122.4195)],
       );
 
       final message = DrawingMessageParser.createDrawingMessage(drawing);
@@ -59,29 +57,55 @@ void main() {
       expect((parsed as LineDrawing).points.length, equals(3));
     });
 
-    test('createDrawingMessage handles rectangle with proper string format', () {
-      final drawing = RectangleDrawing(
-        id: 'rect-789',
-        color: DrawingColors.palette[4], // orange
+    test(
+      'createDrawingMessage handles rectangle with proper string format',
+      () {
+        final drawing = RectangleDrawing(
+          id: 'rect-789',
+          color: DrawingColors.palette[4], // orange
+          createdAt: DateTime.now(),
+          topLeft: LatLng(45.5231, -122.6765),
+          bottomRight: LatLng(45.5100, -122.6600),
+        );
+
+        final message = DrawingMessageParser.createDrawingMessage(drawing);
+
+        // CRITICAL: Must be pure string
+        expect(message, isA<String>());
+        expect(message, startsWith('D:'));
+
+        // Should contain compact JSON format
+        expect(message, contains('"t":'));
+        expect(message, contains('"c":'));
+        expect(message, contains('"b":'));
+
+        // Must NOT contain any object representations
+        expect(message, isNot(contains('RectangleDrawing')));
+        expect(message, isNot(contains('Instance')));
+      },
+    );
+
+    test('custom-map drawings use D2 format and preserve map metadata', () {
+      final drawing = LineDrawing(
+        id: 'custom-1',
+        color: DrawingColors.palette[1],
         createdAt: DateTime.now(),
-        topLeft: LatLng(45.5231, -122.6765),
-        bottomRight: LatLng(45.5100, -122.6600),
+        points: [LatLng(120, 200), LatLng(320, 450)],
+        coordinateSpace: MapCoordinateSpace.customMap,
+        mapId: '1234567890abcdef',
       );
 
       final message = DrawingMessageParser.createDrawingMessage(drawing);
 
-      // CRITICAL: Must be pure string
-      expect(message, isA<String>());
-      expect(message, startsWith('D:'));
+      expect(message, startsWith('D2:'));
 
-      // Should contain compact JSON format
-      expect(message, contains('"t":'));
-      expect(message, contains('"c":'));
-      expect(message, contains('"b":'));
-
-      // Must NOT contain any object representations
-      expect(message, isNot(contains('RectangleDrawing')));
-      expect(message, isNot(contains('Instance')));
+      final parsed = DrawingMessageParser.parseDrawingMessage(message);
+      expect(parsed, isA<LineDrawing>());
+      expect(parsed!.coordinateSpace, MapCoordinateSpace.customMap);
+      expect(parsed.mapId, '1234567890ab');
+      final parsedLine = parsed as LineDrawing;
+      expect(parsedLine.points.first.latitude, 120);
+      expect(parsedLine.points.first.longitude, 200);
     });
 
     test('JSON encoding produces string with coordinates as numbers', () {
@@ -89,9 +113,7 @@ void main() {
         id: 'coord-test',
         color: DrawingColors.palette[1], // blue
         createdAt: DateTime.now(),
-        points: [
-          LatLng(37.77490, -122.41940),
-        ],
+        points: [LatLng(37.77490, -122.41940)],
       );
 
       final message = DrawingMessageParser.createDrawingMessage(drawing);
@@ -110,17 +132,17 @@ void main() {
     });
 
     test('isDrawingMessage correctly identifies valid drawing messages', () {
-      expect(DrawingMessageParser.isDrawingMessage('D:{"t":0,"c":1,"p":[1,2]}'), isTrue);
+      expect(
+        DrawingMessageParser.isDrawingMessage('D:{"t":0,"c":1,"p":[1,2]}'),
+        isTrue,
+      );
       expect(DrawingMessageParser.isDrawingMessage('S:🧑:37,-122'), isFalse);
       expect(DrawingMessageParser.isDrawingMessage('Plain text'), isFalse);
       expect(DrawingMessageParser.isDrawingMessage('D:'), isTrue);
     });
 
     test('parseDrawingMessage returns null for malformed messages', () {
-      expect(
-        DrawingMessageParser.parseDrawingMessage('Not a drawing'),
-        isNull,
-      );
+      expect(DrawingMessageParser.parseDrawingMessage('Not a drawing'), isNull);
       expect(
         DrawingMessageParser.parseDrawingMessage('D:invalid json'),
         isNull,
@@ -132,10 +154,7 @@ void main() {
         id: 'roundtrip-1',
         color: DrawingColors.palette[3], // yellow
         createdAt: DateTime.now(),
-        points: [
-          LatLng(51.5074, -0.1278),
-          LatLng(51.5075, -0.1279),
-        ],
+        points: [LatLng(51.5074, -0.1278), LatLng(51.5075, -0.1279)],
       );
 
       // Create message
@@ -204,9 +223,7 @@ void main() {
         id: 'precision-test',
         color: DrawingColors.palette[0],
         createdAt: DateTime.now(),
-        points: [
-          LatLng(37.774901234567, -122.419401234567),
-        ],
+        points: [LatLng(37.774901234567, -122.419401234567)],
       );
 
       final message = DrawingMessageParser.createDrawingMessage(drawing);
@@ -259,8 +276,14 @@ void main() {
       final lineMsg = 'D:{"t":0,"c":1,"p":[1,2,3,4]}';
       final rectMsg = 'D:{"t":1,"c":2,"b":[1,2,3,4]}';
 
-      expect(DrawingMessageParser.getDrawingTypeDisplay(lineMsg), equals('Line'));
-      expect(DrawingMessageParser.getDrawingTypeDisplay(rectMsg), equals('Rectangle'));
+      expect(
+        DrawingMessageParser.getDrawingTypeDisplay(lineMsg),
+        equals('Line'),
+      );
+      expect(
+        DrawingMessageParser.getDrawingTypeDisplay(rectMsg),
+        equals('Rectangle'),
+      );
       expect(DrawingMessageParser.getDrawingTypeDisplay('Invalid'), isNull);
     });
 
@@ -322,7 +345,10 @@ void main() {
       expect(message, isA<String>());
       expect(message, startsWith('D:'));
       // Should still be parseable
-      expect(() => DrawingMessageParser.parseDrawingMessage(message), returnsNormally);
+      expect(
+        () => DrawingMessageParser.parseDrawingMessage(message),
+        returnsNormally,
+      );
     });
   });
 }

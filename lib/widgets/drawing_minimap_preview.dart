@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:latlong2/latlong.dart';
 import '../models/map_drawing.dart';
+import '../models/map_coordinate_space.dart';
 
 /// Minimap preview widget for map drawings
 /// Renders a small 80x80px preview of a drawing on a map background
@@ -52,8 +53,12 @@ class DrawingMinimapPreview extends StatelessWidget {
       final rectDrawing = drawing as RectangleDrawing;
 
       // Add padding (10% on each side)
-      final latDiff = (rectDrawing.bottomRight.latitude - rectDrawing.topLeft.latitude).abs();
-      final lonDiff = (rectDrawing.bottomRight.longitude - rectDrawing.topLeft.longitude).abs();
+      final latDiff =
+          (rectDrawing.bottomRight.latitude - rectDrawing.topLeft.latitude)
+              .abs();
+      final lonDiff =
+          (rectDrawing.bottomRight.longitude - rectDrawing.topLeft.longitude)
+              .abs();
       final latPadding = latDiff * 0.1;
       final lonPadding = lonDiff * 0.1;
 
@@ -79,6 +84,12 @@ class DrawingMinimapPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bounds = _calculateBounds();
+    final isCustomMap = drawing.coordinateSpace == MapCoordinateSpace.customMap;
+    final drawingPoints = drawing is LineDrawing
+        ? (drawing as LineDrawing).points
+        : drawing is RectangleDrawing
+        ? (drawing as RectangleDrawing).corners
+        : const <LatLng>[];
 
     return Container(
       width: 80,
@@ -86,26 +97,27 @@ class DrawingMinimapPreview extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.grey.shade300,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Colors.grey.shade400,
-          width: 1,
-        ),
+        border: Border.all(color: Colors.grey.shade400, width: 1),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(7),
         child: flutter_map.FlutterMap(
           options: flutter_map.MapOptions(
+            crs: isCustomMap
+                ? const flutter_map.CrsSimple()
+                : const flutter_map.Epsg3857(),
             initialCameraFit: flutter_map.CameraFit.bounds(
               bounds: bounds,
               padding: const EdgeInsets.all(8),
             ),
             interactionOptions: const flutter_map.InteractionOptions(
-              flags: flutter_map.InteractiveFlag.none, // Disable all interactions
+              flags:
+                  flutter_map.InteractiveFlag.none, // Disable all interactions
             ),
           ),
           children: [
             // Use provided tile layer or fallback to gray background
-            if (tileLayer != null)
+            if (!isCustomMap && tileLayer != null)
               tileLayer!
             else
               Container(color: Colors.grey.shade300),
@@ -115,7 +127,7 @@ class DrawingMinimapPreview extends StatelessWidget {
               flutter_map.PolylineLayer(
                 polylines: [
                   flutter_map.Polyline(
-                    points: (drawing as LineDrawing).points,
+                    points: drawingPoints,
                     strokeWidth: 3.0,
                     color: drawing.color,
                   ),
@@ -125,7 +137,7 @@ class DrawingMinimapPreview extends StatelessWidget {
               flutter_map.PolygonLayer(
                 polygons: [
                   flutter_map.Polygon(
-                    points: (drawing as RectangleDrawing).corners,
+                    points: drawingPoints,
                     color: drawing.color.withValues(alpha: 0.3),
                     borderColor: drawing.color,
                     borderStrokeWidth: 3.0,

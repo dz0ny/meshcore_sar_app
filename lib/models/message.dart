@@ -9,6 +9,7 @@ export 'package:meshcore_client/meshcore_client.dart'
 import 'package:flutter/foundation.dart';
 import 'package:meshcore_client/meshcore_client.dart';
 import 'sar_marker.dart';
+import 'map_coordinate_space.dart';
 import '../utils/voice_message_parser.dart';
 
 extension MessageVoiceExtension on Message {
@@ -47,7 +48,7 @@ extension MessageSarExtension on Message {
 
   /// Convert to a [SarMarker] if this message contains SAR data.
   SarMarker? toSarMarker() {
-    if (!isSarMarker || sarMarkerType == null || sarGpsCoordinates == null) {
+    if (!isSarMarker || sarMarkerType == null) {
       return null;
     }
 
@@ -57,16 +58,26 @@ extension MessageSarExtension on Message {
     debugPrint('   message.sarMarkerType: $sarMarkerType');
     debugPrint('   message.sarCustomEmoji: "$sarCustomEmoji"');
 
+    final coordinateSpace = sarCustomMapPoint != null && sarCustomMapId != null
+        ? MapCoordinateSpace.customMap
+        : MapCoordinateSpace.geo;
+    final location = sarCustomMapPoint ?? sarGpsCoordinates;
+    if (location == null) {
+      return null;
+    }
+
     return SarMarker(
       id: id,
       type: sarMarkerType!,
-      location: sarGpsCoordinates!,
+      location: location,
       timestamp: sentAt,
       senderPublicKey: senderPublicKeyPrefix,
       senderName: senderName,
       notes: sarNotes,
       customEmoji: sarCustomEmoji,
       colorIndex: sarColorIndex,
+      coordinateSpace: coordinateSpace,
+      mapId: sarCustomMapId,
     );
   }
 }

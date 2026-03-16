@@ -1,19 +1,17 @@
 import 'dart:convert';
+
+import '../models/map_coordinate_space.dart';
 import '../models/map_drawing.dart';
+import 'custom_map_id.dart';
 
-/// Parser for drawing messages transmitted over mesh network
 class DrawingMessageParser {
-  /// Drawing message prefix
-  static const String prefix = 'D:';
+  static const String legacyPrefix = 'D:';
+  static const String customMapPrefix = 'D2:';
 
-  /// Check if message is a drawing message
   static bool isDrawingMessage(String text) {
-    return text.startsWith(prefix);
+    return text.startsWith(legacyPrefix) || text.startsWith(customMapPrefix);
   }
 
-  /// Parse drawing message text into MapDrawing object
-  /// senderName and messageId should be extracted from packet metadata
-  /// Returns null if parsing fails
   static MapDrawing? parseDrawingMessage(
     String text, {
     String? senderName,
@@ -24,126 +22,96 @@ class DrawingMessageParser {
     }
 
     try {
-      // Remove prefix
-      final jsonStr = text.substring(prefix.length);
+      if (text.startsWith(customMapPrefix)) {
+        final json =
+            jsonDecode(text.substring(customMapPrefix.length))
+                as Map<String, dynamic>;
+        final mapId = normalizeCustomMapId(json['m'] as String?);
+        if (mapId == null || mapId.isEmpty) {
+          return null;
+        }
+        return MapDrawing.fromNetworkJson(
+          json,
+          senderName: senderName,
+          messageId: messageId,
+          coordinateSpace: MapCoordinateSpace.customMap,
+          mapId: mapId,
+        );
+      }
 
-      // Parse JSON
-      final json = jsonDecode(jsonStr) as Map<String, dynamic>;
-
-      // Use ultra-compact network format parser
-      // Sender name and message ID come from packet metadata, not JSON
+      final json =
+          jsonDecode(text.substring(legacyPrefix.length))
+              as Map<String, dynamic>;
       return MapDrawing.fromNetworkJson(
         json,
         senderName: senderName,
         messageId: messageId,
+        coordinateSpace: MapCoordinateSpace.geo,
       );
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
 
-  /// Create drawing message text from MapDrawing object
-  /// Sender will be determined from packet metadata on receiving end
   static String createDrawingMessage(MapDrawing drawing) {
     final json = drawing.toNetworkJson();
-    final jsonStr = jsonEncode(json).toString();
-    return '$prefix$jsonStr';
+    final prefix = drawing.coordinateSpace == MapCoordinateSpace.customMap
+        ? customMapPrefix
+        : legacyPrefix;
+    return '$prefix${jsonEncode(json)}';
   }
 
-  /// Get drawing type display name from drawing message text
-  /// Returns "Line" or "Rectangle", or null if parsing fails
   static String? getDrawingTypeDisplay(String text) {
-    if (!isDrawingMessage(text)) return null;
-
-    try {
-      final jsonStr = text.substring(prefix.length);
-      final json = jsonDecode(jsonStr) as Map<String, dynamic>;
-      final typeNum = json['t'] as int?;
-
-      if (typeNum == null) return null;
-
-      switch (typeNum) {
-        case 0:
-          return 'Line';
-        case 1:
-          return 'Rectangle';
-        default:
-          return null;
-      }
-    } catch (e) {
-      return null;
-    }
+    final metadata = getDrawingMetadata(text);
+    return metadata?['type'] as String?;
   }
 
-  /// Get color name from drawing message text
-  /// Returns color name like "Red", "Blue", etc., or null if parsing fails
   static String? getColorName(String text) {
-    if (!isDrawingMessage(text)) return null;
-
-    try {
-      final jsonStr = text.substring(prefix.length);
-      final json = jsonDecode(jsonStr) as Map<String, dynamic>;
-      final colorIndex = json['c'] as int?;
-
-      if (colorIndex == null) return null;
-
-      // Color mapping from DrawingColor enum
-      const colorNames = [
-        'Red',    // 0
-        'Blue',   // 1
-        'Green',  // 2
-        'Yellow', // 3
-        'Orange', // 4
-        'Purple', // 5
-        'Pink',   // 6
-        'Cyan',   // 7
-      ];
-
-      if (colorIndex >= 0 && colorIndex < colorNames.length) {
-        return colorNames[colorIndex];
-      }
-
-      return null;
-    } catch (e) {
-      return null;
-    }
+    final metadata = getDrawingMetadata(text);
+    return metadata?['color'] as String?;
   }
 
-  /// Get drawing metadata for display in message bubbles
-  /// Returns map with type, color, and pointCount, or null if parsing fails
   static Map<String, dynamic>? getDrawingMetadata(String text) {
     if (!isDrawingMessage(text)) return null;
 
     try {
-      final jsonStr = text.substring(prefix.length);
-      final json = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final json =
+          jsonDecode(
+                text.startsWith(customMapPrefix)
+                    ? text.substring(customMapPrefix.length)
+                    : text.substring(legacyPrefix.length),
+              )
+              as Map<String, dynamic>;
 
       final typeNum = json['t'] as int?;
       final colorIndex = json['c'] as int?;
-
       if (typeNum == null || colorIndex == null) return null;
 
-      // Get type display name
       String type;
       int? pointCount;
-
       switch (typeNum) {
-        case 0: // Line
+        case 0:
           type = 'Line';
           final points = json['p'] as List?;
           pointCount = points != null ? points.length ~/ 2 : null;
           break;
-        case 1: // Rectangle
+        case 1:
           type = 'Rectangle';
-          pointCount = 4; // Rectangles always have 4 corners
+          pointCount = 4;
           break;
         default:
           return null;
       }
 
-      // Get color name
       const colorNames = [
-        'Red', 'Blue', 'Green', 'Yellow', 'Orange', 'Purple', 'Pink', 'Cyan',
+        'Red',
+        'Blue',
+        'Green',
+        'Yellow',
+        'Orange',
+        'Purple',
+        'Pink',
+        'Cyan',
       ];
       final color = colorIndex >= 0 && colorIndex < colorNames.length
           ? colorNames[colorIndex]
@@ -153,8 +121,12 @@ class DrawingMessageParser {
         'type': type,
         'color': color,
         'pointCount': pointCount,
+        'coordinateSpace': text.startsWith(customMapPrefix)
+            ? MapCoordinateSpace.customMap.name
+            : MapCoordinateSpace.geo.name,
+        'mapId': normalizeCustomMapId(json['m'] as String?),
       };
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }

@@ -2439,6 +2439,8 @@ class MessagesProvider with ChangeNotifier {
       text: message.text,
       isSarMarker: message.isSarMarker,
       sarGpsCoordinates: message.sarGpsCoordinates,
+      sarCustomMapPoint: message.sarCustomMapPoint,
+      sarCustomMapId: message.sarCustomMapId,
       sarNotes: message.sarNotes,
       sarCustomEmoji: message.sarCustomEmoji,
       sarColorIndex: message.sarColorIndex,

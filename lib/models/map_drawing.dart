@@ -2,35 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'map_coordinate_space.dart';
+import '../utils/custom_map_id.dart';
+
 /// Drawing shape type
-enum DrawingShapeType {
-  line,
-  rectangle,
-}
+enum DrawingShapeType { line, rectangle }
 
 /// Drawing color enum for compact network transmission
-enum DrawingColor {
-  red,      // 0
-  blue,     // 1
-  green,    // 2
-  yellow,   // 3
-  orange,   // 4
-  purple,   // 5
-  pink,     // 6
-  cyan,     // 7
-}
+enum DrawingColor { red, blue, green, yellow, orange, purple, pink, cyan }
 
 /// Drawing colors available for user selection
 class DrawingColors {
   static const List<Color> palette = [
-    Colors.red,     // index 0
-    Colors.blue,    // index 1
-    Colors.green,   // index 2
-    Colors.yellow,  // index 3
-    Colors.orange,  // index 4
-    Colors.purple,  // index 5
-    Colors.pink,    // index 6
-    Colors.cyan,    // index 7
+    Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.yellow,
+    Colors.orange,
+    Colors.purple,
+    Colors.pink,
+    Colors.cyan,
   ];
 
   static String colorToName(Color color) {
@@ -45,37 +36,36 @@ class DrawingColors {
     return 'Unknown';
   }
 
-  /// Convert Color to enum index for network transmission
   static int colorToIndex(Color color) {
     for (int i = 0; i < palette.length; i++) {
       if (palette[i].toARGB32() == color.toARGB32()) {
         return i;
       }
     }
-    return 0; // Default to red if not found
+    return 0;
   }
 
-  /// Convert enum index to Color for network reception
   static Color indexToColor(int index) {
     if (index >= 0 && index < palette.length) {
       return palette[index];
     }
-    return palette[0]; // Default to red if invalid index
+    return palette[0];
   }
 }
 
-/// Base class for map drawings
 abstract class MapDrawing {
   final String id;
   final DrawingShapeType type;
   final Color color;
   final DateTime createdAt;
-  final String? senderName; // Name of sender (null if local drawing)
-  final bool isReceived; // True if drawing was received from another node
-  final String? messageId; // ID of the source message (for navigation)
-  final bool isShared; // Whether drawing has been broadcast over mesh
-  final bool isSent; // Whether this is a sent drawing (vs received)
-  final bool isHidden; // Temporary visibility toggle (session only, not persisted)
+  final String? senderName;
+  final bool isReceived;
+  final String? messageId;
+  final bool isShared;
+  final bool isSent;
+  final bool isHidden;
+  final MapCoordinateSpace coordinateSpace;
+  final String? mapId;
 
   MapDrawing({
     required this.id,
@@ -88,79 +78,79 @@ abstract class MapDrawing {
     this.isShared = false,
     this.isSent = false,
     this.isHidden = false,
+    this.coordinateSpace = MapCoordinateSpace.geo,
+    this.mapId,
   });
 
-  /// Convert to JSON for persistence
+  bool get isCustomMap => coordinateSpace == MapCoordinateSpace.customMap;
+
   Map<String, dynamic> toJson();
 
-  /// Convert to JSON for network transmission (compact format)
-  /// Uses short field names and excludes createdAt to minimize message size
-  /// Sender will be fetched from packet metadata
   Map<String, dynamic> toNetworkJson();
 
-  /// Parse network JSON (compact format)
-  /// senderName and messageId will be populated from packet metadata
   static MapDrawing? fromNetworkJson(
     Map<String, dynamic> json, {
     String? senderName,
     String? messageId,
+    MapCoordinateSpace coordinateSpace = MapCoordinateSpace.geo,
+    String? mapId,
   }) {
     final typeNum = json['t'] as int?;
-    if (typeNum == null || typeNum < 0 || typeNum >= DrawingShapeType.values.length) {
+    if (typeNum == null ||
+        typeNum < 0 ||
+        typeNum >= DrawingShapeType.values.length) {
       return null;
     }
 
     try {
       final type = DrawingShapeType.values[typeNum];
-
       switch (type) {
         case DrawingShapeType.line:
           return LineDrawing.fromNetworkJson(
             json,
             senderName: senderName,
             messageId: messageId,
+            coordinateSpace: coordinateSpace,
+            mapId: mapId,
           );
         case DrawingShapeType.rectangle:
           return RectangleDrawing.fromNetworkJson(
             json,
             senderName: senderName,
             messageId: messageId,
+            coordinateSpace: coordinateSpace,
+            mapId: mapId,
           );
       }
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
 
-  /// Create from JSON
   static MapDrawing? fromJson(Map<String, dynamic> json) {
     final typeStr = json['type'] as String?;
     if (typeStr == null) return null;
 
     try {
       final type = DrawingShapeType.values.firstWhere(
-        (e) => e.toString() == 'DrawingShapeType.$typeStr',
+        (value) => value.name == typeStr,
       );
-
       switch (type) {
         case DrawingShapeType.line:
           return LineDrawing.fromJson(json);
         case DrawingShapeType.rectangle:
           return RectangleDrawing.fromJson(json);
       }
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
 
-  /// Get the center point of the drawing
   LatLng getCenter();
 
-  /// Get the bounds of the drawing
   LatLngBounds getBounds();
 }
 
-/// Line drawing on map
 class LineDrawing extends MapDrawing {
   final List<LatLng> points;
 
@@ -175,6 +165,8 @@ class LineDrawing extends MapDrawing {
     super.isShared,
     super.isSent,
     super.isHidden,
+    super.coordinateSpace,
+    super.mapId,
   }) : super(type: DrawingShapeType.line);
 
   @override
@@ -184,31 +176,51 @@ class LineDrawing extends MapDrawing {
       'type': type.name,
       'color': color.toARGB32(),
       'createdAt': createdAt.toIso8601String(),
-      'points': points.map((p) => {'lat': p.latitude, 'lon': p.longitude}).toList(),
+      'points': points
+          .map((point) => {'lat': point.latitude, 'lon': point.longitude})
+          .toList(),
       'isShared': isShared,
-      // Note: isHidden is not persisted - it's session-only
+      'coordinateSpace': coordinateSpace.name,
+      'mapId': normalizeCustomMapId(mapId),
     };
   }
 
   @override
   Map<String, dynamic> toNetworkJson() {
-    // Ultra-compact format: t=type (0=line, 1=rect), c=color index (0-7), p=points
-    // Points are encoded as flat array [lat1,lon1,lat2,lon2,...]
-    // Coordinates rounded to 5 decimal places (~1m precision, like SAR markers)
-    // Sender is fetched from packet metadata, not included in JSON
-    return {
+    final payload = <String, dynamic>{
       't': type.index,
       'c': DrawingColors.colorToIndex(color),
-      'p': points.expand((p) => [
-        double.parse(p.latitude.toStringAsFixed(5)),
-        double.parse(p.longitude.toStringAsFixed(5)),
-      ]).toList(),
     };
+
+    if (coordinateSpace == MapCoordinateSpace.customMap) {
+      payload['m'] = normalizeCustomMapId(mapId);
+      payload['p'] = points
+          .expand((point) => [point.latitude.round(), point.longitude.round()])
+          .toList();
+      return payload;
+    }
+
+    payload['p'] = points
+        .expand(
+          (point) => [
+            double.parse(point.latitude.toStringAsFixed(5)),
+            double.parse(point.longitude.toStringAsFixed(5)),
+          ],
+        )
+        .toList();
+    return payload;
   }
 
   static LineDrawing fromJson(Map<String, dynamic> json) {
     final pointsJson = json['points'] as List<dynamic>;
-    final points = pointsJson.map((p) => LatLng(p['lat'] as double, p['lon'] as double)).toList();
+    final points = pointsJson
+        .map(
+          (point) => LatLng(
+            (point['lat'] as num).toDouble(),
+            (point['lon'] as num).toDouble(),
+          ),
+        )
+        .toList();
     final senderName = json['sender'] as String?;
 
     return LineDrawing(
@@ -217,8 +229,12 @@ class LineDrawing extends MapDrawing {
       createdAt: DateTime.parse(json['createdAt'] as String),
       points: points,
       senderName: senderName,
-      isReceived: senderName != null, // Mark as received if sender is present
+      isReceived: senderName != null,
       isShared: json['isShared'] as bool? ?? false,
+      coordinateSpace: MapCoordinateSpace.fromName(
+        json['coordinateSpace'] as String?,
+      ),
+      mapId: normalizeCustomMapId(json['mapId'] as String?),
     );
   }
 
@@ -226,42 +242,60 @@ class LineDrawing extends MapDrawing {
     Map<String, dynamic> json, {
     String? senderName,
     String? messageId,
+    MapCoordinateSpace coordinateSpace = MapCoordinateSpace.geo,
+    String? mapId,
   }) {
-    // Parse ultra-compact format
-    final pointsFlat = (json['p'] as List<dynamic>).cast<double>();
+    final flatPoints = (json['p'] as List<dynamic>).cast<num>();
     final points = <LatLng>[];
-    for (int i = 0; i < pointsFlat.length; i += 2) {
-      points.add(LatLng(pointsFlat[i], pointsFlat[i + 1]));
+    for (int i = 0; i < flatPoints.length; i += 2) {
+      points.add(
+        LatLng(flatPoints[i].toDouble(), flatPoints[i + 1].toDouble()),
+      );
     }
 
     return LineDrawing(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate new ID
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       color: DrawingColors.indexToColor(json['c'] as int),
       createdAt: DateTime.now(),
       points: points,
       senderName: senderName,
       isReceived: true,
-      messageId: messageId, // Link to source message
-      isShared: false, // Received drawings are not marked as shared
+      messageId: messageId,
+      coordinateSpace: coordinateSpace,
+      mapId: normalizeCustomMapId(mapId),
     );
   }
 
-  /// Create a copy with updated points
-  LineDrawing copyWith({List<LatLng>? points}) {
+  LineDrawing copyWith({
+    List<LatLng>? points,
+    bool? isHidden,
+    bool? isShared,
+    bool? isReceived,
+    String? messageId,
+    String? senderName,
+    MapCoordinateSpace? coordinateSpace,
+    String? mapId,
+  }) {
     return LineDrawing(
       id: id,
       color: color,
       createdAt: createdAt,
       points: points ?? this.points,
+      isHidden: isHidden ?? this.isHidden,
+      isShared: isShared ?? this.isShared,
+      isReceived: isReceived ?? this.isReceived,
+      messageId: messageId ?? this.messageId,
+      senderName: senderName ?? this.senderName,
+      coordinateSpace: coordinateSpace ?? this.coordinateSpace,
+      mapId: mapId ?? this.mapId,
     );
   }
 
   @override
   LatLng getCenter() {
-    if (points.isEmpty) return LatLng(0, 0);
+    if (points.isEmpty) return const LatLng(0, 0);
     if (points.length == 1) return points[0];
 
-    // Calculate center as average of all points
     double sumLat = 0;
     double sumLon = 0;
     for (final point in points) {
@@ -273,8 +307,12 @@ class LineDrawing extends MapDrawing {
 
   @override
   LatLngBounds getBounds() {
-    if (points.isEmpty) return LatLngBounds(LatLng(0, 0), LatLng(0, 0));
-    if (points.length == 1) return LatLngBounds(points[0], points[0]);
+    if (points.isEmpty) {
+      return LatLngBounds(const LatLng(0, 0), const LatLng(0, 0));
+    }
+    if (points.length == 1) {
+      return LatLngBounds(points[0], points[0]);
+    }
 
     double minLat = points[0].latitude;
     double maxLat = points[0].latitude;
@@ -292,7 +330,6 @@ class LineDrawing extends MapDrawing {
   }
 }
 
-/// Rectangle drawing on map
 class RectangleDrawing extends MapDrawing {
   final LatLng topLeft;
   final LatLng bottomRight;
@@ -309,16 +346,17 @@ class RectangleDrawing extends MapDrawing {
     super.isShared,
     super.isSent,
     super.isHidden,
+    super.coordinateSpace,
+    super.mapId,
   }) : super(type: DrawingShapeType.rectangle);
 
-  /// Get all corner points for rendering
   List<LatLng> get corners => [
-        topLeft,
-        LatLng(topLeft.latitude, bottomRight.longitude), // top right
-        bottomRight,
-        LatLng(bottomRight.latitude, topLeft.longitude), // bottom left
-        topLeft, // close the rectangle
-      ];
+    topLeft,
+    LatLng(topLeft.latitude, bottomRight.longitude),
+    bottomRight,
+    LatLng(bottomRight.latitude, topLeft.longitude),
+    topLeft,
+  ];
 
   @override
   Map<String, dynamic> toJson() {
@@ -328,27 +366,41 @@ class RectangleDrawing extends MapDrawing {
       'color': color.toARGB32(),
       'createdAt': createdAt.toIso8601String(),
       'topLeft': {'lat': topLeft.latitude, 'lon': topLeft.longitude},
-      'bottomRight': {'lat': bottomRight.latitude, 'lon': bottomRight.longitude},
+      'bottomRight': {
+        'lat': bottomRight.latitude,
+        'lon': bottomRight.longitude,
+      },
       'isShared': isShared,
-      // Note: isHidden is not persisted - it's session-only
+      'coordinateSpace': coordinateSpace.name,
+      'mapId': normalizeCustomMapId(mapId),
     };
   }
 
   @override
   Map<String, dynamic> toNetworkJson() {
-    // Ultra-compact format: t=type (0=line, 1=rect), c=color index (0-7), b=bounds [lat1,lon1,lat2,lon2]
-    // Coordinates rounded to 5 decimal places (~1m precision, like SAR markers)
-    // Sender is fetched from packet metadata, not included in JSON
-    return {
+    final payload = <String, dynamic>{
       't': type.index,
       'c': DrawingColors.colorToIndex(color),
-      'b': [
-        double.parse(topLeft.latitude.toStringAsFixed(5)),
-        double.parse(topLeft.longitude.toStringAsFixed(5)),
-        double.parse(bottomRight.latitude.toStringAsFixed(5)),
-        double.parse(bottomRight.longitude.toStringAsFixed(5)),
-      ],
     };
+
+    if (coordinateSpace == MapCoordinateSpace.customMap) {
+      payload['m'] = normalizeCustomMapId(mapId);
+      payload['b'] = [
+        topLeft.latitude.round(),
+        topLeft.longitude.round(),
+        bottomRight.latitude.round(),
+        bottomRight.longitude.round(),
+      ];
+      return payload;
+    }
+
+    payload['b'] = [
+      double.parse(topLeft.latitude.toStringAsFixed(5)),
+      double.parse(topLeft.longitude.toStringAsFixed(5)),
+      double.parse(bottomRight.latitude.toStringAsFixed(5)),
+      double.parse(bottomRight.longitude.toStringAsFixed(5)),
+    ];
+    return payload;
   }
 
   static RectangleDrawing fromJson(Map<String, dynamic> json) {
@@ -360,11 +412,21 @@ class RectangleDrawing extends MapDrawing {
       id: json['id'] as String,
       color: Color(json['color'] as int),
       createdAt: DateTime.parse(json['createdAt'] as String),
-      topLeft: LatLng(topLeftJson['lat'] as double, topLeftJson['lon'] as double),
-      bottomRight: LatLng(bottomRightJson['lat'] as double, bottomRightJson['lon'] as double),
+      topLeft: LatLng(
+        (topLeftJson['lat'] as num).toDouble(),
+        (topLeftJson['lon'] as num).toDouble(),
+      ),
+      bottomRight: LatLng(
+        (bottomRightJson['lat'] as num).toDouble(),
+        (bottomRightJson['lon'] as num).toDouble(),
+      ),
       senderName: senderName,
-      isReceived: senderName != null, // Mark as received if sender is present
+      isReceived: senderName != null,
       isShared: json['isShared'] as bool? ?? false,
+      coordinateSpace: MapCoordinateSpace.fromName(
+        json['coordinateSpace'] as String?,
+      ),
+      mapId: normalizeCustomMapId(json['mapId'] as String?),
     );
   }
 
@@ -372,27 +434,35 @@ class RectangleDrawing extends MapDrawing {
     Map<String, dynamic> json, {
     String? senderName,
     String? messageId,
+    MapCoordinateSpace coordinateSpace = MapCoordinateSpace.geo,
+    String? mapId,
   }) {
-    // Parse ultra-compact format
-    final bounds = (json['b'] as List<dynamic>).cast<double>();
+    final bounds = (json['b'] as List<dynamic>).cast<num>();
 
     return RectangleDrawing(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate new ID
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       color: DrawingColors.indexToColor(json['c'] as int),
       createdAt: DateTime.now(),
-      topLeft: LatLng(bounds[0], bounds[1]),
-      bottomRight: LatLng(bounds[2], bounds[3]),
+      topLeft: LatLng(bounds[0].toDouble(), bounds[1].toDouble()),
+      bottomRight: LatLng(bounds[2].toDouble(), bounds[3].toDouble()),
       senderName: senderName,
       isReceived: true,
-      messageId: messageId, // Link to source message
-      isShared: false, // Received drawings are not marked as shared
+      messageId: messageId,
+      coordinateSpace: coordinateSpace,
+      mapId: normalizeCustomMapId(mapId),
     );
   }
 
-  /// Create a copy with updated corners
   RectangleDrawing copyWith({
     LatLng? topLeft,
     LatLng? bottomRight,
+    bool? isHidden,
+    bool? isShared,
+    bool? isReceived,
+    String? messageId,
+    String? senderName,
+    MapCoordinateSpace? coordinateSpace,
+    String? mapId,
   }) {
     return RectangleDrawing(
       id: id,
@@ -400,12 +470,18 @@ class RectangleDrawing extends MapDrawing {
       createdAt: createdAt,
       topLeft: topLeft ?? this.topLeft,
       bottomRight: bottomRight ?? this.bottomRight,
+      isHidden: isHidden ?? this.isHidden,
+      isShared: isShared ?? this.isShared,
+      isReceived: isReceived ?? this.isReceived,
+      messageId: messageId ?? this.messageId,
+      senderName: senderName ?? this.senderName,
+      coordinateSpace: coordinateSpace ?? this.coordinateSpace,
+      mapId: mapId ?? this.mapId,
     );
   }
 
   @override
   LatLng getCenter() {
-    // Center is the midpoint between top-left and bottom-right
     return LatLng(
       (topLeft.latitude + bottomRight.latitude) / 2,
       (topLeft.longitude + bottomRight.longitude) / 2,
@@ -414,7 +490,6 @@ class RectangleDrawing extends MapDrawing {
 
   @override
   LatLngBounds getBounds() {
-    // Bounds are simply the two corners
     return LatLngBounds(topLeft, bottomRight);
   }
 }

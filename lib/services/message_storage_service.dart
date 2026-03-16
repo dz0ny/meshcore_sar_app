@@ -346,6 +346,9 @@ class MessageStorageService {
       'isSarMarker': message.isSarMarker,
       'sarGpsLat': message.sarGpsCoordinates?.latitude,
       'sarGpsLon': message.sarGpsCoordinates?.longitude,
+      'sarCustomMapLat': message.sarCustomMapPoint?.latitude,
+      'sarCustomMapLon': message.sarCustomMapPoint?.longitude,
+      'sarCustomMapId': message.sarCustomMapId,
       'sarNotes': message.sarNotes,
       'sarCustomEmoji': message.sarCustomEmoji,
       'sarColorIndex': message.sarColorIndex,
@@ -482,8 +485,19 @@ class MessageStorageService {
         isSarMarker: json['isSarMarker'] as bool? ?? false,
         sarGpsCoordinates:
             json['sarGpsLat'] != null && json['sarGpsLon'] != null
-            ? LatLng(json['sarGpsLat'] as double, json['sarGpsLon'] as double)
+            ? LatLng(
+                (json['sarGpsLat'] as num).toDouble(),
+                (json['sarGpsLon'] as num).toDouble(),
+              )
             : null,
+        sarCustomMapPoint:
+            json['sarCustomMapLat'] != null && json['sarCustomMapLon'] != null
+            ? LatLng(
+                (json['sarCustomMapLat'] as num).toDouble(),
+                (json['sarCustomMapLon'] as num).toDouble(),
+              )
+            : null,
+        sarCustomMapId: json['sarCustomMapId'] as String?,
         sarNotes: json['sarNotes'] as String?,
         sarCustomEmoji: json['sarCustomEmoji'] as String?,
         sarColorIndex: json['sarColorIndex'] as int?,

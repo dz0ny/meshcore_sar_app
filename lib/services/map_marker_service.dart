@@ -152,10 +152,11 @@ class MapMarkerService {
     required BuildContext context,
     Function(SarMarker)? onTap,
     double mapRotation = 0,
+    LatLng Function(LatLng point)? pointTransformer,
   }) {
     return sarMarkers.map((marker) {
       return Marker(
-        point: marker.location,
+        point: pointTransformer?.call(marker.location) ?? marker.location,
         width: 90,
         height: 100,
         rotate: false, // Don't rotate the entire marker with map

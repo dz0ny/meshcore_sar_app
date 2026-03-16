@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:meshcore_sar_app/models/sar_marker.dart';
+import 'package:meshcore_sar_app/models/map_coordinate_space.dart';
 import 'package:meshcore_sar_app/utils/sar_message_parser.dart';
 
 void main() {
@@ -50,7 +51,10 @@ void main() {
 
       // CRITICAL: Coordinates must be in string form, not Object
       expect(message, contains('40.7128'));
-      expect(message, contains('-74.006')); // Trailing zero trimmed by toString()
+      expect(
+        message,
+        contains('-74.006'),
+      ); // Trailing zero trimmed by toString()
 
       // Must NOT contain object representation
       expect(message, isNot(contains('LatLng')));
@@ -113,6 +117,26 @@ void main() {
       expect(info.location.longitude, equals(-74.0060));
       expect(info.colorIndex, isNull); // Old format has no color index
       expect(info.notes, equals('Large fire'));
+    });
+
+    test('custom-map SAR markers use S2 format and preserve map metadata', () {
+      final message = SarMessageParser.createCustomMapSarMessage(
+        emoji: '📦',
+        mapId: 'abcdef1234567890',
+        point: LatLng(250, 400),
+        notes: 'Cache location',
+        colorIndex: 4,
+      );
+
+      expect(message, startsWith('S2:'));
+
+      final parsed = SarMessageParser.parse(message);
+      expect(parsed, isNotNull);
+      expect(parsed!.coordinateSpace, MapCoordinateSpace.customMap);
+      expect(parsed.mapId, 'abcdef123456');
+      expect(parsed.location.latitude, 250);
+      expect(parsed.location.longitude, 400);
+      expect(parsed.notes, 'Cache location');
     });
 
     test('round-trip: create -> parse -> create preserves format', () {
@@ -271,15 +295,9 @@ void main() {
         isTrue,
       );
 
-      expect(
-        SarMessageParser.isValidFormat('S:invalid:format'),
-        isFalse,
-      );
+      expect(SarMessageParser.isValidFormat('S:invalid:format'), isFalse);
 
-      expect(
-        SarMessageParser.isValidFormat('Not SAR message'),
-        isFalse,
-      );
+      expect(SarMessageParser.isValidFormat('Not SAR message'), isFalse);
     });
 
     test('getFormatError provides helpful error messages', () {
@@ -288,10 +306,7 @@ void main() {
         contains('must start with "S:"'),
       );
 
-      expect(
-        SarMessageParser.getFormatError('S:'),
-        contains('Invalid format'),
-      );
+      expect(SarMessageParser.getFormatError('S:'), contains('Invalid format'));
 
       expect(
         SarMessageParser.getFormatError('S::37.7,-122.4'),
@@ -415,6 +430,7 @@ void main() {
         emoji: '🧑',
         notes: 'Test notes',
         colorIndex: 2,
+        coordinateSpace: MapCoordinateSpace.geo,
       );
 
       final str = info.toString();

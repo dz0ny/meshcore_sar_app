@@ -1,30 +1,47 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:ui' as ui;
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/custom_map_config.dart';
 import '../models/location_trail.dart';
+import '../models/map_coordinate_space.dart';
 import '../models/map_drawing.dart';
+import '../models/sar_marker.dart';
+import '../utils/custom_map_id.dart';
 
 class MapProvider with ChangeNotifier {
+  static const String _customMapConfigKey = 'custom_map_config_v1';
+  static const String _customMapModeKey = 'custom_map_mode_v1';
+  static const String _customMapsDirName = 'custom_maps';
+
   MapProvider() {
     unawaited(_loadInitialState());
   }
 
+  final ImagePicker _imagePicker = ImagePicker();
+
   LatLng? _targetLocation;
+  LatLngBounds? _targetBounds;
   double? _targetZoom;
   bool _shouldAnimate = false;
+  MapCoordinateSpace _targetCoordinateSpace = MapCoordinateSpace.geo;
+  String? _targetMapId;
 
-  // Track which contact paths are currently visible
   final Set<String> _visibleContactPaths = {};
 
-  // Location trail tracking
   LocationTrail? _currentTrail;
   bool _isTrailVisible = true;
   final List<LocationTrail> _trailHistory = [];
 
-  // WMS overlay toggles
   bool _showCadastralOverlay = false;
   bool _showForestRoadsOverlay = false;
   bool _showHikingTrailsOverlay = false;
@@ -37,29 +54,30 @@ class MapProvider with ChangeNotifier {
   bool _showPlaceNamesOverlay = false;
   bool _showMunicipalityBordersOverlay = false;
 
-  // Contact trail toggles
-  bool _showAllContactTrails = true; // Default to showing all contact trails
+  bool _showAllContactTrails = true;
   bool _hideRepeatersOnMap = false;
 
-  // Imported trail (from GPX)
   LocationTrail? _importedTrail;
 
-  // Download area selection
   bool _isSelectingDownloadArea = false;
   LatLngBounds? _downloadAreaBounds;
 
+  CustomMapConfig? _customMapConfig;
+  bool _isUsingCustomMap = false;
+
   LatLng? get targetLocation => _targetLocation;
+  LatLngBounds? get targetBounds => _targetBounds;
   double? get targetZoom => _targetZoom;
   bool get shouldAnimate => _shouldAnimate;
+  MapCoordinateSpace get targetCoordinateSpace => _targetCoordinateSpace;
+  String? get targetMapId => _targetMapId;
   Set<String> get visibleContactPaths => Set.unmodifiable(_visibleContactPaths);
 
-  // Trail getters
   LocationTrail? get currentTrail => _currentTrail;
   bool get isTrailVisible => _isTrailVisible;
   List<LocationTrail> get trailHistory => List.unmodifiable(_trailHistory);
   bool get isTrailActive => _currentTrail?.isActive ?? false;
 
-  // WMS overlay getters
   bool get showCadastralOverlay => _showCadastralOverlay;
   bool get showForestRoadsOverlay => _showForestRoadsOverlay;
   bool get showHikingTrailsOverlay => _showHikingTrailsOverlay;
@@ -72,69 +90,135 @@ class MapProvider with ChangeNotifier {
   bool get showPlaceNamesOverlay => _showPlaceNamesOverlay;
   bool get showMunicipalityBordersOverlay => _showMunicipalityBordersOverlay;
 
-  // Contact trail getters
   bool get showAllContactTrails => _showAllContactTrails;
   bool get hideRepeatersOnMap => _hideRepeatersOnMap;
 
-  // Imported trail getters
   LocationTrail? get importedTrail => _importedTrail;
 
-  // Download area getters
   bool get isSelectingDownloadArea => _isSelectingDownloadArea;
   LatLngBounds? get downloadAreaBounds => _downloadAreaBounds;
+
+  CustomMapConfig? get customMapConfig => _customMapConfig;
+  bool get hasCustomMap => _customMapConfig != null;
+  bool get isUsingCustomMap => _isUsingCustomMap && _customMapConfig != null;
+  bool get shouldHideGpsData => isUsingCustomMap;
+
+  LatLngBounds? get customMapBounds => _customMapConfig?.bounds;
+
+  bool matchesActiveCustomMap(String? mapId) {
+    return hasCustomMap &&
+        normalizeCustomMapId(_customMapConfig!.mapId) ==
+            normalizeCustomMapId(mapId);
+  }
 
   void navigateToLocation({
     required LatLng location,
     double zoom = 15.0,
     bool animate = true,
   }) {
+    if (_isUsingCustomMap) {
+      _isUsingCustomMap = false;
+      unawaited(_saveCustomMapState());
+    }
     _targetLocation = location;
+    _targetBounds = null;
     _targetZoom = zoom;
     _shouldAnimate = animate;
+    _targetCoordinateSpace = MapCoordinateSpace.geo;
+    _targetMapId = null;
     notifyListeners();
+  }
+
+  String? navigateToMapPoint({
+    required LatLng point,
+    required MapCoordinateSpace coordinateSpace,
+    String? mapId,
+    double zoom = 15.0,
+    bool animate = true,
+  }) {
+    if (coordinateSpace == MapCoordinateSpace.customMap) {
+      if (!matchesActiveCustomMap(mapId)) {
+        return 'Load the matching custom map to view this item.';
+      }
+      if (!_isUsingCustomMap) {
+        _isUsingCustomMap = true;
+        unawaited(_saveCustomMapState());
+      }
+    } else if (_isUsingCustomMap) {
+      _isUsingCustomMap = false;
+      unawaited(_saveCustomMapState());
+    }
+
+    _targetLocation = point;
+    _targetBounds = null;
+    _targetZoom = zoom;
+    _shouldAnimate = animate;
+    _targetCoordinateSpace = coordinateSpace;
+    _targetMapId = mapId;
+    notifyListeners();
+    return null;
+  }
+
+  String? navigateToBounds({
+    required LatLngBounds bounds,
+    required MapCoordinateSpace coordinateSpace,
+    String? mapId,
+    bool animate = true,
+  }) {
+    if (coordinateSpace == MapCoordinateSpace.customMap) {
+      if (!matchesActiveCustomMap(mapId)) {
+        return 'Load the matching custom map to view this item.';
+      }
+      if (!_isUsingCustomMap) {
+        _isUsingCustomMap = true;
+        unawaited(_saveCustomMapState());
+      }
+    } else if (_isUsingCustomMap) {
+      _isUsingCustomMap = false;
+      unawaited(_saveCustomMapState());
+    }
+
+    _targetBounds = bounds;
+    _targetLocation = bounds.center;
+    _targetZoom = null;
+    _shouldAnimate = animate;
+    _targetCoordinateSpace = coordinateSpace;
+    _targetMapId = mapId;
+    notifyListeners();
+    return null;
   }
 
   void clearNavigation() {
     _targetLocation = null;
+    _targetBounds = null;
     _targetZoom = null;
     _shouldAnimate = false;
-    // Don't notify listeners to avoid rebuilds
+    _targetCoordinateSpace = MapCoordinateSpace.geo;
+    _targetMapId = null;
   }
 
-  /// Navigate to a drawing by its ID
-  void navigateToDrawing(String drawingId, dynamic drawingProvider) {
-    debugPrint('🗺️ [MapProvider] navigateToDrawing called with ID: $drawingId');
-    // Find the drawing in the provider
-    final drawings = drawingProvider.drawings as List;
-    debugPrint('🗺️ [MapProvider] Total drawings in provider: ${drawings.length}');
-    final drawing = drawings.cast<dynamic>().firstWhere(
-      (d) => d.id == drawingId,
-      orElse: () => null,
-    );
-
+  String? navigateToDrawing(String drawingId, dynamic drawingProvider) {
+    final drawing = drawingProvider.getDrawingById(drawingId) as MapDrawing?;
     if (drawing == null) {
-      debugPrint('⚠️ [MapProvider] Drawing $drawingId not found');
-      debugPrint('⚠️ [MapProvider] Available drawing IDs: ${drawings.map((d) => d.id).toList()}');
-      return;
+      return 'Drawing not found.';
     }
 
-    // Use MapDrawing's built-in getCenter and getBounds methods
-    final center = drawing.getCenter();
-    final bounds = drawing.getBounds();
+    if (drawing.coordinateSpace == MapCoordinateSpace.customMap) {
+      if (!matchesActiveCustomMap(drawing.mapId)) {
+        return 'Load the matching custom map to view this drawing.';
+      }
+      return navigateToBounds(
+        bounds: drawing.getBounds(),
+        coordinateSpace: drawing.coordinateSpace,
+        mapId: drawing.mapId,
+      );
+    }
 
-    // Calculate appropriate zoom level based on bounds
-    // For larger drawings, use lower zoom to fit the whole drawing
-    // For smaller drawings, use higher zoom for better detail
+    final bounds = drawing.getBounds();
     final latDiff = (bounds.north - bounds.south).abs();
     final lonDiff = (bounds.east - bounds.west).abs();
     final maxDiff = latDiff > lonDiff ? latDiff : lonDiff;
 
-    // Zoom scale: smaller drawings get higher zoom
-    // 0.001 degrees (~100m) -> zoom 17
-    // 0.005 degrees (~500m) -> zoom 16
-    // 0.01 degrees (~1km) -> zoom 15
-    // 0.05 degrees (~5km) -> zoom 13
-    // 0.1 degrees (~10km) -> zoom 12
     double zoom = 15.0;
     if (maxDiff < 0.001) {
       zoom = 17.0;
@@ -150,9 +234,125 @@ class MapProvider with ChangeNotifier {
       zoom = 10.0;
     }
 
-    final typeStr = drawing is LineDrawing ? 'line' : 'rectangle';
-    debugPrint('🗺️ [MapProvider] Navigating to drawing: $typeStr, zoom: $zoom');
-    navigateToLocation(location: center, zoom: zoom, animate: true);
+    navigateToLocation(
+      location: drawing.getCenter(),
+      zoom: zoom,
+      animate: true,
+    );
+    return null;
+  }
+
+  String? navigateToSarMarker(SarMarker marker) {
+    if (marker.coordinateSpace == MapCoordinateSpace.customMap) {
+      return navigateToMapPoint(
+        point: marker.location,
+        coordinateSpace: MapCoordinateSpace.customMap,
+        mapId: marker.mapId,
+      );
+    }
+    navigateToLocation(location: marker.location, zoom: 15.0, animate: true);
+    return null;
+  }
+
+  Future<bool> loadCustomMapFromGallery() async {
+    final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (picked == null) {
+      return false;
+    }
+    final bytes = await picked.readAsBytes();
+    await setCustomMapImage(bytes: bytes, displayName: picked.name);
+    return true;
+  }
+
+  Future<void> replaceCustomMap() async {
+    await loadCustomMapFromGallery();
+  }
+
+  Future<void> setCustomMapImage({
+    required Uint8List bytes,
+    required String displayName,
+  }) async {
+    final dimensions = await _decodeImageSize(bytes);
+    final mapId = normalizeCustomMapId(sha256.convert(bytes).toString())!;
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dir = Directory('${documentsDir.path}/$_customMapsDirName');
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+
+    final extension = _normalizedExtension(displayName);
+    final nextPath = '${dir.path}/custom_map_$mapId.$extension';
+    final nextFile = File(nextPath);
+    await nextFile.writeAsBytes(bytes, flush: true);
+
+    final previousPath = _customMapConfig?.filePath;
+    _customMapConfig = CustomMapConfig(
+      filePath: nextPath,
+      displayName: displayName,
+      mapId: mapId,
+      imageWidth: dimensions.$1,
+      imageHeight: dimensions.$2,
+    );
+    _isUsingCustomMap = true;
+    await _saveCustomMapState();
+
+    if (previousPath != null && previousPath != nextPath) {
+      unawaited(_deleteFileIfExists(previousPath));
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> setCustomMapCalibration({
+    required LatLng pointA,
+    required LatLng pointB,
+    required double metersPerPixel,
+  }) async {
+    if (_customMapConfig == null) return;
+    _customMapConfig = _customMapConfig!.copyWith(
+      calibrationPointA: pointA,
+      calibrationPointB: pointB,
+      metersPerPixel: metersPerPixel,
+    );
+    await _saveCustomMapState();
+    notifyListeners();
+  }
+
+  Future<void> clearCustomMapCalibration() async {
+    if (_customMapConfig == null) return;
+    _customMapConfig = _customMapConfig!.copyWith(
+      clearMetersPerPixel: true,
+      clearCalibrationPointA: true,
+      clearCalibrationPointB: true,
+    );
+    await _saveCustomMapState();
+    notifyListeners();
+  }
+
+  Future<void> removeCustomMap() async {
+    final filePath = _customMapConfig?.filePath;
+    _customMapConfig = null;
+    _isUsingCustomMap = false;
+    clearNavigation();
+    await _saveCustomMapState();
+    if (filePath != null) {
+      await _deleteFileIfExists(filePath);
+    }
+    notifyListeners();
+  }
+
+  Future<void> enterCustomMapMode() async {
+    if (!hasCustomMap || _isUsingCustomMap) return;
+    _isUsingCustomMap = true;
+    await _saveCustomMapState();
+    notifyListeners();
+  }
+
+  Future<void> exitCustomMapMode() async {
+    if (!_isUsingCustomMap) return;
+    _isUsingCustomMap = false;
+    await _saveCustomMapState();
+    notifyListeners();
   }
 
   void updateZoom(double zoom) {
@@ -160,7 +360,6 @@ class MapProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Toggle path visibility for a contact
   void toggleContactPath(String publicKeyHex) {
     if (_visibleContactPaths.contains(publicKeyHex)) {
       _visibleContactPaths.remove(publicKeyHex);
@@ -170,27 +369,22 @@ class MapProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Check if a contact's path is visible
   bool isContactPathVisible(String publicKeyHex) {
     return _visibleContactPaths.contains(publicKeyHex);
   }
 
-  /// Hide all contact paths
   void hideAllPaths() {
     _visibleContactPaths.clear();
     notifyListeners();
   }
 
-  /// Show path for specific contact (hide all others)
   void showOnlyPath(String publicKeyHex) {
     _visibleContactPaths.clear();
     _visibleContactPaths.add(publicKeyHex);
     notifyListeners();
   }
 
-  /// Start a new location trail
   void startTrail() {
-    // End current trail if active
     if (_currentTrail != null && _currentTrail!.isActive) {
       endTrail();
     }
@@ -203,22 +397,22 @@ class MapProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Add a point to the current trail
   void addTrailPoint(LatLng position, {double? accuracy, double? speed}) {
     if (_currentTrail == null || !_currentTrail!.isActive) {
       startTrail();
     }
 
-    _currentTrail!.addPoint(TrailPoint(
-      position: position,
-      timestamp: DateTime.now(),
-      accuracy: accuracy,
-      speed: speed,
-    ));
+    _currentTrail!.addPoint(
+      TrailPoint(
+        position: position,
+        timestamp: DateTime.now(),
+        accuracy: accuracy,
+        speed: speed,
+      ),
+    );
     notifyListeners();
   }
 
-  /// End the current trail
   void endTrail() {
     if (_currentTrail != null) {
       _currentTrail!.isActive = false;
@@ -231,13 +425,11 @@ class MapProvider with ChangeNotifier {
     }
   }
 
-  /// Toggle trail visibility
   void toggleTrailVisibility() {
     _isTrailVisible = !_isTrailVisible;
     notifyListeners();
   }
 
-  /// Clear the current trail
   void clearCurrentTrail() {
     if (_currentTrail != null) {
       _currentTrail = null;
@@ -245,155 +437,173 @@ class MapProvider with ChangeNotifier {
     }
   }
 
-  /// Clear all trail history
   void clearAllTrails() {
     _currentTrail = null;
     _trailHistory.clear();
     notifyListeners();
   }
 
-  /// Get total trail distance in meters
   double get totalTrailDistance {
     if (_currentTrail == null) return 0;
     return _currentTrail!.totalDistance;
   }
 
-  /// Get trail duration
   Duration get trailDuration {
     if (_currentTrail == null) return Duration.zero;
     return _currentTrail!.duration;
   }
 
-  /// Toggle cadastral parcels overlay
   Future<void> toggleCadastralOverlay() async {
     _showCadastralOverlay = !_showCadastralOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle forest roads overlay
   Future<void> toggleForestRoadsOverlay() async {
     _showForestRoadsOverlay = !_showForestRoadsOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle hiking trails overlay
   Future<void> toggleHikingTrailsOverlay() async {
     _showHikingTrailsOverlay = !_showHikingTrailsOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle main roads overlay
   Future<void> toggleMainRoadsOverlay() async {
     _showMainRoadsOverlay = !_showMainRoadsOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle house numbers overlay
   Future<void> toggleHouseNumbersOverlay() async {
     _showHouseNumbersOverlay = !_showHouseNumbersOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle fire hazard zones overlay
   Future<void> toggleFireHazardZonesOverlay() async {
     _showFireHazardZonesOverlay = !_showFireHazardZonesOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle historical fires overlay
   Future<void> toggleHistoricalFiresOverlay() async {
     _showHistoricalFiresOverlay = !_showHistoricalFiresOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle firebreaks overlay
   Future<void> toggleFirebreaksOverlay() async {
     _showFirebreaksOverlay = !_showFirebreaksOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle Kras fire zones overlay
   Future<void> toggleKrasFireZonesOverlay() async {
     _showKrasFireZonesOverlay = !_showKrasFireZonesOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle place names overlay
   Future<void> togglePlaceNamesOverlay() async {
     _showPlaceNamesOverlay = !_showPlaceNamesOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Toggle municipality borders overlay
   Future<void> toggleMunicipalityBordersOverlay() async {
     _showMunicipalityBordersOverlay = !_showMunicipalityBordersOverlay;
     notifyListeners();
     await _saveOverlayState();
   }
 
-  /// Load overlay state from SharedPreferences
   Future<void> loadOverlayState() async {
     final prefs = await SharedPreferences.getInstance();
-    _showCadastralOverlay = prefs.getBool('map_show_cadastral_overlay') ?? false;
-    _showForestRoadsOverlay = prefs.getBool('map_show_forest_roads_overlay') ?? false;
-    _showHikingTrailsOverlay = prefs.getBool('map_show_hiking_trails_overlay') ?? false;
-    _showMainRoadsOverlay = prefs.getBool('map_show_main_roads_overlay') ?? false;
-    _showHouseNumbersOverlay = prefs.getBool('map_show_house_numbers_overlay') ?? false;
-    _showFireHazardZonesOverlay = prefs.getBool('map_show_fire_hazard_zones_overlay') ?? false;
-    _showHistoricalFiresOverlay = prefs.getBool('map_show_historical_fires_overlay') ?? false;
-    _showFirebreaksOverlay = prefs.getBool('map_show_firebreaks_overlay') ?? false;
-    _showKrasFireZonesOverlay = prefs.getBool('map_show_kras_fire_zones_overlay') ?? false;
-    _showPlaceNamesOverlay = prefs.getBool('map_show_place_names_overlay') ?? false;
-    _showMunicipalityBordersOverlay = prefs.getBool('map_show_municipality_borders_overlay') ?? false;
+    _showCadastralOverlay =
+        prefs.getBool('map_show_cadastral_overlay') ?? false;
+    _showForestRoadsOverlay =
+        prefs.getBool('map_show_forest_roads_overlay') ?? false;
+    _showHikingTrailsOverlay =
+        prefs.getBool('map_show_hiking_trails_overlay') ?? false;
+    _showMainRoadsOverlay =
+        prefs.getBool('map_show_main_roads_overlay') ?? false;
+    _showHouseNumbersOverlay =
+        prefs.getBool('map_show_house_numbers_overlay') ?? false;
+    _showFireHazardZonesOverlay =
+        prefs.getBool('map_show_fire_hazard_zones_overlay') ?? false;
+    _showHistoricalFiresOverlay =
+        prefs.getBool('map_show_historical_fires_overlay') ?? false;
+    _showFirebreaksOverlay =
+        prefs.getBool('map_show_firebreaks_overlay') ?? false;
+    _showKrasFireZonesOverlay =
+        prefs.getBool('map_show_kras_fire_zones_overlay') ?? false;
+    _showPlaceNamesOverlay =
+        prefs.getBool('map_show_place_names_overlay') ?? false;
+    _showMunicipalityBordersOverlay =
+        prefs.getBool('map_show_municipality_borders_overlay') ?? false;
     notifyListeners();
   }
 
   Future<void> _loadInitialState() async {
-    await Future.wait([loadOverlayState(), loadTrailSettings()]);
-    await loadRepeaterVisibilitySettings();
+    await Future.wait([
+      loadOverlayState(),
+      loadTrailSettings(),
+      loadRepeaterVisibilitySettings(),
+      _loadCustomMapState(),
+    ]);
   }
 
-  /// Save overlay state to SharedPreferences
   Future<void> _saveOverlayState() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('map_show_cadastral_overlay', _showCadastralOverlay);
-    await prefs.setBool('map_show_forest_roads_overlay', _showForestRoadsOverlay);
-    await prefs.setBool('map_show_hiking_trails_overlay', _showHikingTrailsOverlay);
+    await prefs.setBool(
+      'map_show_forest_roads_overlay',
+      _showForestRoadsOverlay,
+    );
+    await prefs.setBool(
+      'map_show_hiking_trails_overlay',
+      _showHikingTrailsOverlay,
+    );
     await prefs.setBool('map_show_main_roads_overlay', _showMainRoadsOverlay);
-    await prefs.setBool('map_show_house_numbers_overlay', _showHouseNumbersOverlay);
-    await prefs.setBool('map_show_fire_hazard_zones_overlay', _showFireHazardZonesOverlay);
-    await prefs.setBool('map_show_historical_fires_overlay', _showHistoricalFiresOverlay);
+    await prefs.setBool(
+      'map_show_house_numbers_overlay',
+      _showHouseNumbersOverlay,
+    );
+    await prefs.setBool(
+      'map_show_fire_hazard_zones_overlay',
+      _showFireHazardZonesOverlay,
+    );
+    await prefs.setBool(
+      'map_show_historical_fires_overlay',
+      _showHistoricalFiresOverlay,
+    );
     await prefs.setBool('map_show_firebreaks_overlay', _showFirebreaksOverlay);
-    await prefs.setBool('map_show_kras_fire_zones_overlay', _showKrasFireZonesOverlay);
+    await prefs.setBool(
+      'map_show_kras_fire_zones_overlay',
+      _showKrasFireZonesOverlay,
+    );
     await prefs.setBool('map_show_place_names_overlay', _showPlaceNamesOverlay);
-    await prefs.setBool('map_show_municipality_borders_overlay', _showMunicipalityBordersOverlay);
+    await prefs.setBool(
+      'map_show_municipality_borders_overlay',
+      _showMunicipalityBordersOverlay,
+    );
   }
 
-  /// Toggle all contact trails on/off
   Future<void> toggleAllContactTrails() async {
     _showAllContactTrails = !_showAllContactTrails;
     notifyListeners();
     await _saveTrailSettings();
   }
 
-  /// Load trail settings from SharedPreferences
   Future<void> loadTrailSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    _showAllContactTrails = prefs.getBool('map_show_all_contact_trails') ?? true; // Default to true (show all)
+    _showAllContactTrails =
+        prefs.getBool('map_show_all_contact_trails') ?? true;
     notifyListeners();
   }
 
-  /// Save trail settings to SharedPreferences
   Future<void> _saveTrailSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('map_show_all_contact_trails', _showAllContactTrails);
@@ -413,48 +623,92 @@ class MapProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Set imported trail (from GPX import)
   void setImportedTrail(LocationTrail trail) {
     _importedTrail = trail;
     notifyListeners();
   }
 
-  /// Clear imported trail
   void clearImportedTrail() {
     _importedTrail = null;
     notifyListeners();
   }
 
-  /// Replace current trail with imported trail
   void replaceCurrentTrailWithImport(LocationTrail importedTrail) {
-    // End current trail if active
     if (_currentTrail != null && _currentTrail!.isActive) {
       endTrail();
     }
-
-    // Set imported trail as current trail
     _currentTrail = importedTrail;
     _isTrailVisible = true;
     notifyListeners();
   }
 
-  /// Enter download area selection mode with initial bounds
   void enterDownloadAreaMode(LatLngBounds initialBounds) {
     _isSelectingDownloadArea = true;
     _downloadAreaBounds = initialBounds;
     notifyListeners();
   }
 
-  /// Exit download area selection mode
   void exitDownloadAreaMode() {
     _isSelectingDownloadArea = false;
     _downloadAreaBounds = null;
     notifyListeners();
   }
 
-  /// Update the download area bounds (while dragging/resizing)
   void updateDownloadAreaBounds(LatLngBounds bounds) {
     _downloadAreaBounds = bounds;
     notifyListeners();
+  }
+
+  Future<void> _loadCustomMapState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final configJson = prefs.getString(_customMapConfigKey);
+    if (configJson != null && configJson.isNotEmpty) {
+      final decoded = jsonDecode(configJson);
+      if (decoded is Map<String, dynamic>) {
+        final config = CustomMapConfig.fromJson(decoded);
+        if (config != null && await File(config.filePath).exists()) {
+          _customMapConfig = config;
+        } else {
+          _customMapConfig = null;
+        }
+      }
+    }
+    _isUsingCustomMap =
+        (prefs.getBool(_customMapModeKey) ?? false) && _customMapConfig != null;
+    notifyListeners();
+  }
+
+  Future<void> _saveCustomMapState() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_customMapConfig == null) {
+      await prefs.remove(_customMapConfigKey);
+    } else {
+      await prefs.setString(
+        _customMapConfigKey,
+        jsonEncode(_customMapConfig!.toJson()),
+      );
+    }
+    await prefs.setBool(_customMapModeKey, _isUsingCustomMap);
+  }
+
+  Future<(int, int)> _decodeImageSize(Uint8List bytes) async {
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    return (frame.image.width, frame.image.height);
+  }
+
+  String _normalizedExtension(String displayName) {
+    final dotIndex = displayName.lastIndexOf('.');
+    if (dotIndex == -1 || dotIndex == displayName.length - 1) {
+      return 'png';
+    }
+    return displayName.substring(dotIndex + 1).toLowerCase();
+  }
+
+  Future<void> _deleteFileIfExists(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
   }
 }

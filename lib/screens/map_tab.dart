@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
@@ -16,6 +18,8 @@ import '../providers/drawing_provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/connection_provider.dart';
 import '../models/contact.dart';
+import '../models/custom_map_config.dart';
+import '../models/map_coordinate_space.dart';
 import '../models/sar_marker.dart';
 import '../models/map_layer.dart';
 import '../models/message.dart';
@@ -32,8 +36,10 @@ import '../widgets/map/drawing_toolbar.dart';
 import '../widgets/map/location_trail_layer.dart';
 import '../widgets/map/trail_controls.dart';
 import '../widgets/map/map_message_overlay.dart';
+import '../widgets/messages/custom_map_sar_update_sheet.dart';
 import '../widgets/messages/sar_update_sheet.dart';
 import '../utils/key_comparison.dart';
+import '../utils/sar_message_parser.dart';
 import '../l10n/app_localizations.dart';
 
 class MapTab extends StatefulWidget {
@@ -90,6 +96,10 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   // Saved map position (loaded from SharedPreferences)
   LatLng? _savedMapCenter;
   double? _savedMapZoom;
+  bool _isCalibratingCustomMap = false;
+  LatLng? _customMapCalibrationPointA;
+  LatLng? _customMapCalibrationPointB;
+  String _lastCustomMapViewportKey = '';
 
   // Default center point (will be updated based on markers)
   static const LatLng _defaultCenter = LatLng(
@@ -304,6 +314,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
   Future<void> _saveMapPosition() async {
     if (!_isMapReady) return;
+    if (_mapProvider?.isUsingCustomMap == true) return;
     try {
       final prefs = await SharedPreferences.getInstance();
       final camera = _mapController.camera;
@@ -317,18 +328,41 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
   void _handleMapNavigation() {
     final mapProvider = context.read<MapProvider>();
-    if (mapProvider.targetLocation != null && _isMapReady) {
-      try {
-        _mapController.move(
-          mapProvider.targetLocation!,
-          mapProvider.targetZoom ?? _defaultZoom,
+    if (!_isMapReady) return;
+
+    try {
+      final customMapConfig = mapProvider.customMapConfig;
+
+      if (mapProvider.targetBounds != null) {
+        final bounds =
+            mapProvider.targetCoordinateSpace == MapCoordinateSpace.customMap &&
+                customMapConfig != null
+            ? _toDisplayBounds(customMapConfig, mapProvider.targetBounds!)
+            : mapProvider.targetBounds!;
+
+        _mapController.fitCamera(
+          CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(48)),
         );
-        // Clear the navigation request after handling
         mapProvider.clearNavigation();
-      } catch (e) {
-        // Map not ready yet, ignore
-        debugPrint('Map controller not ready for navigation: $e');
+        return;
       }
+
+      if (mapProvider.targetLocation != null) {
+        final location =
+            mapProvider.targetCoordinateSpace == MapCoordinateSpace.customMap &&
+                customMapConfig != null
+            ? _toDisplayMapPoint(customMapConfig, mapProvider.targetLocation!)
+            : mapProvider.targetLocation!;
+        final zoom =
+            mapProvider.targetCoordinateSpace == MapCoordinateSpace.customMap
+            ? (mapProvider.targetZoom ?? 2.0).clamp(-4.0, 8.0).toDouble()
+            : mapProvider.targetZoom ?? _defaultZoom;
+
+        _mapController.move(location, zoom);
+        mapProvider.clearNavigation();
+      }
+    } catch (e) {
+      debugPrint('Map controller not ready for navigation: $e');
     }
   }
 
@@ -400,6 +434,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   }
 
   void _showLayerSelector(BuildContext context) {
+    final rootContext = this.context;
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -700,6 +735,154 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                       },
                     ),
                   ],
+                  const Divider(),
+                  Consumer<MapProvider>(
+                    builder: (context, mapProvider, _) {
+                      final customMapConfig = mapProvider.customMapConfig;
+                      final hasCustomMap = customMapConfig != null;
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.photo_library_outlined),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Custom picture map',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w700),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (!hasCustomMap)
+                            ListTile(
+                              leading: const Icon(Icons.add_photo_alternate),
+                              title: const Text('Load from gallery'),
+                              subtitle: const Text(
+                                'Use a cave map image instead of GPS tiles',
+                              ),
+                              onTap: () async {
+                                final loaded = await mapProvider
+                                    .loadCustomMapFromGallery();
+                                if (!context.mounted || !rootContext.mounted) {
+                                  return;
+                                }
+                                Navigator.pop(context);
+                                if (!loaded) {
+                                  return;
+                                }
+                                final drawingProvider = rootContext
+                                    .read<DrawingProvider>();
+                                _syncDrawingContext(
+                                  drawingProvider,
+                                  mapProvider,
+                                );
+                              },
+                            )
+                          else ...[
+                            ListTile(
+                              leading: const Icon(Icons.image_outlined),
+                              title: Text(customMapConfig.displayName),
+                              subtitle: Text(
+                                'Map ID ${customMapConfig.mapId}${customMapConfig.isCalibrated ? ' • Scale set' : ' • Not calibrated'}',
+                              ),
+                            ),
+                            SwitchListTile(
+                              secondary: const Icon(Icons.map_outlined),
+                              title: const Text('Use custom map'),
+                              subtitle: const Text(
+                                'Hide GPS-based layers and work in image space',
+                              ),
+                              value: mapProvider.isUsingCustomMap,
+                              onChanged: (value) async {
+                                if (value) {
+                                  await mapProvider.enterCustomMapMode();
+                                } else {
+                                  await mapProvider.exitCustomMapMode();
+                                }
+                                if (!context.mounted) return;
+                                Navigator.pop(context);
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.swap_horizontal_circle),
+                              title: const Text('Replace image'),
+                              subtitle: const Text(
+                                'Pick a different map from the gallery',
+                              ),
+                              onTap: () async {
+                                await mapProvider.replaceCustomMap();
+                                if (!context.mounted) return;
+                                Navigator.pop(context);
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.straighten),
+                              title: Text(
+                                customMapConfig.isCalibrated
+                                    ? 'Update scale'
+                                    : 'Set scale',
+                              ),
+                              subtitle: const Text(
+                                'Tap two points on the image and enter meters',
+                              ),
+                              onTap: () async {
+                                if (!mapProvider.isUsingCustomMap) {
+                                  await mapProvider.enterCustomMapMode();
+                                }
+                                if (!context.mounted || !rootContext.mounted) {
+                                  return;
+                                }
+                                Navigator.pop(context);
+                                _startCustomMapCalibration(
+                                  rootContext.read<DrawingProvider>(),
+                                );
+                              },
+                            ),
+                            if (customMapConfig.isCalibrated)
+                              ListTile(
+                                leading: const Icon(Icons.clear),
+                                title: const Text('Clear scale'),
+                                onTap: () async {
+                                  await mapProvider.clearCustomMapCalibration();
+                                  if (!context.mounted) return;
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ListTile(
+                              leading: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
+                              title: Text(
+                                'Remove custom map',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                              subtitle: const Text(
+                                'Deletes the saved image from this device',
+                              ),
+                              onTap: () async {
+                                await mapProvider.removeCustomMap();
+                                if (!context.mounted) return;
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -817,6 +1000,272 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     }
   }
 
+  LatLng _toStoredMapPoint(CustomMapConfig config, LatLng point) {
+    return config.fromDisplayPoint(point);
+  }
+
+  LatLng _toDisplayMapPoint(CustomMapConfig config, LatLng point) {
+    return config.toDisplayPoint(point);
+  }
+
+  LatLngBounds _toDisplayBounds(CustomMapConfig config, LatLngBounds bounds) {
+    return LatLngBounds.fromPoints([
+      _toDisplayMapPoint(config, LatLng(bounds.north, bounds.west)),
+      _toDisplayMapPoint(config, LatLng(bounds.north, bounds.east)),
+      _toDisplayMapPoint(config, LatLng(bounds.south, bounds.west)),
+      _toDisplayMapPoint(config, LatLng(bounds.south, bounds.east)),
+    ]);
+  }
+
+  void _syncDrawingContext(
+    DrawingProvider drawingProvider,
+    MapProvider mapProvider,
+  ) {
+    final coordinateSpace = mapProvider.isUsingCustomMap
+        ? MapCoordinateSpace.customMap
+        : MapCoordinateSpace.geo;
+    final mapId = mapProvider.isUsingCustomMap
+        ? mapProvider.customMapConfig?.mapId
+        : null;
+    final metersPerPixel = mapProvider.isUsingCustomMap
+        ? mapProvider.customMapConfig?.metersPerPixel
+        : null;
+
+    if (drawingProvider.activeCoordinateSpace == coordinateSpace &&
+        drawingProvider.activeMapId == mapId &&
+        drawingProvider.activeMetersPerPixel == metersPerPixel) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      drawingProvider.setMapContext(
+        coordinateSpace: coordinateSpace,
+        mapId: mapId,
+        metersPerPixel: metersPerPixel,
+      );
+    });
+  }
+
+  void _ensureCustomMapViewport(
+    MapProvider mapProvider,
+    CustomMapConfig? customMapConfig,
+  ) {
+    final nextKey = mapProvider.isUsingCustomMap && customMapConfig != null
+        ? customMapConfig.mapId
+        : '';
+    if (_lastCustomMapViewportKey == nextKey) {
+      return;
+    }
+    _lastCustomMapViewportKey = nextKey;
+
+    if (!_isMapReady ||
+        customMapConfig == null ||
+        !mapProvider.isUsingCustomMap) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_isMapReady || !mapProvider.isUsingCustomMap) {
+        return;
+      }
+      try {
+        _mapController.fitCamera(
+          CameraFit.bounds(
+            bounds: customMapConfig.displayBounds,
+            padding: const EdgeInsets.all(24),
+          ),
+        );
+      } catch (e) {
+        debugPrint('Failed to fit custom map viewport: $e');
+      }
+    });
+  }
+
+  void _startCustomMapCalibration(DrawingProvider drawingProvider) {
+    if (!mounted) return;
+    drawingProvider.exitDrawingMode();
+    setState(() {
+      _droppedPinLocation = null;
+      _isDraggingPin = false;
+      _isCalibratingCustomMap = true;
+      _customMapCalibrationPointA = null;
+      _customMapCalibrationPointB = null;
+    });
+  }
+
+  void _stopCustomMapCalibration() {
+    if (!mounted) return;
+    setState(() {
+      _isCalibratingCustomMap = false;
+      _customMapCalibrationPointA = null;
+      _customMapCalibrationPointB = null;
+    });
+  }
+
+  Future<void> _handleCustomMapCalibrationTap(
+    MapProvider mapProvider,
+    LatLng storedPoint,
+  ) async {
+    if (!_isCalibratingCustomMap) {
+      return;
+    }
+
+    if (_customMapCalibrationPointA == null) {
+      setState(() {
+        _customMapCalibrationPointA = storedPoint;
+      });
+      return;
+    }
+
+    if (_customMapCalibrationPointB == null) {
+      setState(() {
+        _customMapCalibrationPointB = storedPoint;
+      });
+
+      final controller = TextEditingController();
+      final meters = await showDialog<double>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Set map scale'),
+            content: TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Distance in meters',
+                hintText: '25',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(AppLocalizations.of(dialogContext)!.cancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final value = double.tryParse(controller.text.trim());
+                  if (value == null || value <= 0) {
+                    return;
+                  }
+                  Navigator.pop(dialogContext, value);
+                },
+                child: Text(AppLocalizations.of(dialogContext)!.save),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (meters == null || meters <= 0) {
+        if (mounted) {
+          setState(() {
+            _customMapCalibrationPointB = null;
+          });
+        }
+        return;
+      }
+
+      final pointA = _customMapCalibrationPointA!;
+      final pointB = _customMapCalibrationPointB!;
+      final dy = pointB.latitude - pointA.latitude;
+      final dx = pointB.longitude - pointA.longitude;
+      final pixelDistance = math.sqrt((dx * dx) + (dy * dy));
+      if (pixelDistance <= 0) {
+        return;
+      }
+
+      await mapProvider.setCustomMapCalibration(
+        pointA: pointA,
+        pointB: pointB,
+        metersPerPixel: meters / pixelDistance,
+      );
+
+      _stopCustomMapCalibration();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Custom map scale saved')));
+    }
+  }
+
+  void _showCustomMapSarDialogWithPoint(
+    CustomMapConfig customMapConfig,
+    LatLng storedPoint,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CustomMapSarUpdateSheet(
+        mapName: customMapConfig.displayName,
+        mapId: customMapConfig.mapId,
+        pointLabel:
+            'Point: ${storedPoint.latitude.toStringAsFixed(0)}, ${storedPoint.longitude.toStringAsFixed(0)}',
+        onSend:
+            (
+              emoji,
+              name,
+              roomPublicKey,
+              sendToChannel,
+              sendToAllContacts,
+              colorIndex,
+            ) async {
+              await _sendCustomMapSarMessage(
+                emoji,
+                name,
+                storedPoint,
+                customMapConfig.mapId,
+                roomPublicKey,
+                sendToChannel,
+                sendToAllContacts,
+                colorIndex,
+              );
+            },
+      ),
+    );
+  }
+
+  Widget _buildTaggedPointMarker({
+    required String label,
+    required Color color,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Container(
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+          padding: const EdgeInsets.all(6),
+          child: const Icon(Icons.place, color: Colors.white, size: 18),
+        ),
+      ],
+    );
+  }
+
   Future<void> _showSarMarkerActions(
     SarMarker marker,
     MessagesProvider messagesProvider,
@@ -850,9 +1299,19 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '${marker.location.latitude.toStringAsFixed(6)}, ${marker.location.longitude.toStringAsFixed(6)}',
+                  marker.coordinateSpace == MapCoordinateSpace.customMap
+                      ? 'Point ${marker.location.latitude.toStringAsFixed(0)}, ${marker.location.longitude.toStringAsFixed(0)}'
+                      : '${marker.location.latitude.toStringAsFixed(6)}, ${marker.location.longitude.toStringAsFixed(6)}',
                   style: theme.textTheme.bodyMedium,
                 ),
+                if (marker.coordinateSpace == MapCoordinateSpace.customMap &&
+                    marker.mapId != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Map ID ${marker.mapId}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   marker.senderName != null
@@ -1041,6 +1500,53 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     bool sendToAllContacts,
     int colorIndex,
   ) async {
+    final sarMessage = SarMessageParser.createSarMessage(
+      type: SarMarkerType.fromEmoji(emoji),
+      location: LatLng(position.latitude, position.longitude),
+      notes: name,
+      colorIndex: colorIndex,
+    );
+
+    await _sendSarPayload(
+      sarMessage: sarMessage,
+      roomPublicKey: roomPublicKey,
+      sendToChannel: sendToChannel,
+      sendToAllContacts: sendToAllContacts,
+    );
+  }
+
+  Future<void> _sendCustomMapSarMessage(
+    String emoji,
+    String name,
+    LatLng storedPoint,
+    String mapId,
+    Uint8List? roomPublicKey,
+    bool sendToChannel,
+    bool sendToAllContacts,
+    int colorIndex,
+  ) async {
+    final sarMessage = SarMessageParser.createCustomMapSarMessage(
+      emoji: emoji,
+      mapId: mapId,
+      point: storedPoint,
+      notes: name,
+      colorIndex: colorIndex,
+    );
+
+    await _sendSarPayload(
+      sarMessage: sarMessage,
+      roomPublicKey: roomPublicKey,
+      sendToChannel: sendToChannel,
+      sendToAllContacts: sendToAllContacts,
+    );
+  }
+
+  Future<void> _sendSarPayload({
+    required String sarMessage,
+    required Uint8List? roomPublicKey,
+    required bool sendToChannel,
+    required bool sendToAllContacts,
+  }) async {
     final connectionProvider = context.read<ConnectionProvider>();
     final messagesProvider = context.read<MessagesProvider>();
 
@@ -1067,13 +1573,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     }
 
     try {
-      // New format: S:<emoji>:<colorIndex>:<latitude>,<longitude>:<name>
-      // Round coordinates to 5 decimal places (~1m accuracy) since most GPS is only that accurate
-      final sarMessage =
-          'S:$emoji:$colorIndex:${position.latitude.toStringAsFixed(5)},${position.longitude.toStringAsFixed(5)}:$name';
-
       if (sendToAllContacts) {
-        // Send to all chat contacts (ContactType.chat)
         final contactsProvider = context.read<ContactsProvider>();
         final chatContacts = contactsProvider.chatContacts;
 
@@ -1088,13 +1588,11 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           return;
         }
 
-        // Create a single grouped message instead of multiple individual messages
         final groupId = '${DateTime.now().millisecondsSinceEpoch}_group';
         final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         final devicePublicKey = connectionProvider.deviceInfo.publicKey;
         final senderPublicKeyPrefix = devicePublicKey?.sublist(0, 6);
 
-        // Create recipient list
         final recipients = chatContacts.map((contact) {
           return MessageRecipient(
             publicKey: contact.publicKey,
@@ -1104,7 +1602,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           );
         }).toList();
 
-        // Create single grouped message
         final groupedMessage = Message(
           id: groupId,
           messageType: MessageType.contact,
@@ -1119,22 +1616,17 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           recipients: recipients,
         );
 
-        // Add the grouped message to the list
         messagesProvider.addSentMessage(groupedMessage);
 
-        // Send to each contact and track status
         int successCount = 0;
         for (final contact in chatContacts) {
           final individualMessageId = '${groupId}_${contact.publicKeyShort}';
-
-          // Register this individual send as part of the grouped message
           messagesProvider.registerGroupedMessageSend(
             individualMessageId,
             groupId,
             contact.publicKey,
           );
 
-          // Send SAR message to contact (with ACK tracking)
           final sentSuccessfully = await connectionProvider.sendTextMessage(
             contactPublicKey: contact.publicKey,
             text: sarMessage,
@@ -1145,7 +1637,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           if (sentSuccessfully) {
             successCount++;
           } else {
-            // Update recipient status in grouped message
             messagesProvider.updateGroupedMessageRecipientStatus(
               groupId,
               contact.publicKey,
@@ -1153,10 +1644,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
             );
           }
 
-          // Add 1 second delay between sends to ensure:
-          // 1. Different timestamps (messages sent in different seconds)
-          // 2. Radio has time to fully process previous message and assign ACK tag
-          // This ensures each message gets a unique ACK tag from the radio
           if (contact != chatContacts.last) {
             await Future.delayed(const Duration(seconds: 1));
           }
@@ -1174,17 +1661,16 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
             duration: const Duration(seconds: 2),
           ),
         );
-      } else if (sendToChannel) {
-        // Create message ID
+        return;
+      }
+
+      if (sendToChannel) {
         final messageId =
             '${DateTime.now().millisecondsSinceEpoch}_channel_sent';
         final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-        // Get current device's public key (first 6 bytes)
         final devicePublicKey = connectionProvider.deviceInfo.publicKey;
         final senderPublicKeyPrefix = devicePublicKey?.sublist(0, 6);
 
-        // Create sent message object
         final sentMessage = Message(
           id: messageId,
           messageType: MessageType.channel,
@@ -1196,13 +1682,10 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           receivedAt: DateTime.now(),
           deliveryStatus: MessageDeliveryStatus.sending,
           channelIdx: 0,
-          // SAR marker data is automatically added by SarMessageParser.enhanceMessage in MessagesProvider
         );
 
-        // Add to messages list with "sending" status
         messagesProvider.addSentMessage(sentMessage);
 
-        // Send to public channel (ephemeral, over-the-air only)
         await connectionProvider.sendChannelMessage(
           channelIdx: 0,
           text: sarMessage,
@@ -1217,62 +1700,54 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
             duration: Duration(seconds: 2),
           ),
         );
-      } else {
-        // Create message ID
-        final messageId = '${DateTime.now().millisecondsSinceEpoch}_sent';
-        final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-        // Get current device's public key (first 6 bytes)
-        final devicePublicKey = connectionProvider.deviceInfo.publicKey;
-        final senderPublicKeyPrefix = devicePublicKey?.sublist(0, 6);
-
-        // Create sent message object with recipient public key for retry support
-        final sentMessage = Message(
-          id: messageId,
-          messageType: MessageType.contact,
-          senderPublicKeyPrefix: senderPublicKeyPrefix,
-          pathLen: 0,
-          textType: MessageTextType.plain,
-          senderTimestamp: timestamp,
-          text: sarMessage,
-          receivedAt: DateTime.now(),
-          deliveryStatus: MessageDeliveryStatus.sending,
-          recipientPublicKey: roomPublicKey, // Store recipient for retry
-          // SAR marker data is automatically added by SarMessageParser.enhanceMessage in MessagesProvider
-        );
-
-        // Look up the room contact for path logging
-        final contactsProvider = context.read<ContactsProvider>();
-        final roomContact = contactsProvider.contacts.where((c) {
-          return c.publicKey.length >= roomPublicKey!.length &&
-              c.publicKey.matches(roomPublicKey);
-        }).firstOrNull;
-
-        // Add to messages list with "sending" status
-        messagesProvider.addSentMessage(sentMessage, contact: roomContact);
-
-        // Send SAR message to selected room (persisted and immutable)
-        final sentSuccessfully = await connectionProvider.sendTextMessage(
-          contactPublicKey: roomPublicKey!,
-          text: sarMessage,
-          messageId: messageId, // Pass message ID so it can be tracked
-          contact: roomContact, // Include contact for path status logging
-        );
-
-        if (!sentSuccessfully) {
-          // Mark message as failed if sending failed
-          messagesProvider.markMessageFailed(messageId);
-        }
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('SAR marker sent to room'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        return;
       }
+
+      final messageId = '${DateTime.now().millisecondsSinceEpoch}_sent';
+      final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final devicePublicKey = connectionProvider.deviceInfo.publicKey;
+      final senderPublicKeyPrefix = devicePublicKey?.sublist(0, 6);
+
+      final sentMessage = Message(
+        id: messageId,
+        messageType: MessageType.contact,
+        senderPublicKeyPrefix: senderPublicKeyPrefix,
+        pathLen: 0,
+        textType: MessageTextType.plain,
+        senderTimestamp: timestamp,
+        text: sarMessage,
+        receivedAt: DateTime.now(),
+        deliveryStatus: MessageDeliveryStatus.sending,
+        recipientPublicKey: roomPublicKey,
+      );
+
+      final contactsProvider = context.read<ContactsProvider>();
+      final roomContact = contactsProvider.contacts.where((c) {
+        return c.publicKey.length >= roomPublicKey!.length &&
+            c.publicKey.matches(roomPublicKey);
+      }).firstOrNull;
+
+      messagesProvider.addSentMessage(sentMessage, contact: roomContact);
+
+      final sentSuccessfully = await connectionProvider.sendTextMessage(
+        contactPublicKey: roomPublicKey!,
+        text: sarMessage,
+        messageId: messageId,
+        contact: roomContact,
+      );
+
+      if (!sentSuccessfully) {
+        messagesProvider.markMessageFailed(messageId);
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('SAR marker sent to room'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1294,26 +1769,73 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
       DrawingProvider,
       MapProvider
     >(
-      builder: (
-        context,
-        contactsProvider,
-        messagesProvider,
-        drawingProvider,
-        mapProvider,
-        child,
-      ) {
+      builder: (context, contactsProvider, messagesProvider, drawingProvider, mapProvider, child) {
+        final customMapConfig = mapProvider.customMapConfig;
+        final isCustomMapMode =
+            mapProvider.isUsingCustomMap && customMapConfig != null;
+        if (!isCustomMapMode && _isCalibratingCustomMap) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _stopCustomMapCalibration();
+            }
+          });
+        }
+        _syncDrawingContext(drawingProvider, mapProvider);
+        _ensureCustomMapViewport(mapProvider, customMapConfig);
+
         final allContactsWithLocation = contactsProvider.contactsWithLocation;
         final contactsWithLocation = mapProvider.hideRepeatersOnMap
             ? allContactsWithLocation
-                .where((contact) => !contact.isRepeater)
-                .toList()
+                  .where((contact) => !contact.isRepeater)
+                  .toList()
             : allContactsWithLocation;
         // Filter SAR markers based on visibility toggle
         final allSarMarkers = messagesProvider.sarMarkers;
-        final sarMarkers = drawingProvider.showSarMarkers
+        final sarMarkers = !drawingProvider.showSarMarkers
+            ? <SarMarker>[]
+            : isCustomMapMode
             ? allSarMarkers
-            : <SarMarker>[];
-        final center = _calculateCenter(contactsWithLocation, sarMarkers);
+                  .where(
+                    (marker) =>
+                        marker.coordinateSpace ==
+                            MapCoordinateSpace.customMap &&
+                        marker.mapId == customMapConfig.mapId,
+                  )
+                  .toList()
+            : allSarMarkers
+                  .where(
+                    (marker) =>
+                        marker.coordinateSpace == MapCoordinateSpace.geo,
+                  )
+                  .toList();
+        final center = isCustomMapMode
+            ? customMapConfig.displayBounds.center
+            : _calculateCenter(contactsWithLocation, sarMarkers);
+        final pointTransformer = isCustomMapMode
+            ? (LatLng point) => _toDisplayMapPoint(customMapConfig, point)
+            : null;
+        final measurementPoint1 =
+            isCustomMapMode && drawingProvider.measurementPoint1 != null
+            ? _toDisplayMapPoint(
+                customMapConfig,
+                drawingProvider.measurementPoint1!,
+              )
+            : drawingProvider.measurementPoint1;
+        final measurementPoint2 =
+            isCustomMapMode && drawingProvider.measurementPoint2 != null
+            ? _toDisplayMapPoint(
+                customMapConfig,
+                drawingProvider.measurementPoint2!,
+              )
+            : drawingProvider.measurementPoint2;
+        final calibrationPointA =
+            isCustomMapMode && _customMapCalibrationPointA != null
+            ? _toDisplayMapPoint(customMapConfig, _customMapCalibrationPointA!)
+            : null;
+        final calibrationPointB =
+            isCustomMapMode && _customMapCalibrationPointB != null
+            ? _toDisplayMapPoint(customMapConfig, _customMapCalibrationPointB!)
+            : null;
 
         return Stack(
           children: [
@@ -1321,7 +1843,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
             Listener(
               onPointerMove: (PointerMoveEvent event) {
                 // Track pointer movement for mobile drag (onPointerHover doesn't work on mobile)
-                if (_isDraggingPin) {
+                if (_isDraggingPin && !isCustomMapMode) {
                   final latLng = _mapController.camera.screenOffsetToLatLng(
                     event.localPosition,
                   );
@@ -1333,16 +1855,30 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
               child: FlutterMap(
                 mapController: _mapController,
                 options: MapOptions(
-                  // Use the layer's CRS if it has one (for WMS layers), otherwise default to EPSG:3857
-                  crs: _currentLayer.crs ?? const Epsg3857(),
-                  // Use saved position if available, otherwise use calculated center
-                  initialCenter: _savedMapCenter ?? center,
-                  initialZoom: _savedMapZoom ?? _defaultZoom,
-                  minZoom: 0, // Allow full zoom out to see world view
-                  maxZoom:
-                      _currentLayer.maxZoom, // Respect current layer's maximum
+                  crs: isCustomMapMode
+                      ? const CrsSimple()
+                      : _currentLayer.crs ?? const Epsg3857(),
+                  initialCenter: isCustomMapMode
+                      ? center
+                      : (_savedMapCenter ?? center),
+                  initialZoom: isCustomMapMode
+                      ? 0.0
+                      : (_savedMapZoom ?? _defaultZoom),
+                  initialCameraFit: isCustomMapMode
+                      ? CameraFit.bounds(
+                          bounds: customMapConfig.displayBounds,
+                          padding: const EdgeInsets.all(24),
+                        )
+                      : null,
+                  minZoom: isCustomMapMode ? -4 : 0,
+                  maxZoom: isCustomMapMode ? 8 : _currentLayer.maxZoom,
+                  cameraConstraint: isCustomMapMode
+                      ? CameraConstraint.contain(
+                          bounds: customMapConfig.displayBounds,
+                        )
+                      : const CameraConstraint.unconstrained(),
                   interactionOptions: InteractionOptions(
-                    flags: _isDraggingPin
+                    flags: _isDraggingPin && !isCustomMapMode
                         ? InteractiveFlag
                               .none // Disable map interaction while dragging pin
                         : InteractiveFlag.all,
@@ -1360,18 +1896,26 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     }
                   },
                   onLongPress: (tapPosition, point) {
+                    if (_isCalibratingCustomMap) {
+                      return;
+                    }
+
+                    final mapPoint = isCustomMapMode
+                        ? _toStoredMapPoint(customMapConfig, point)
+                        : point;
+
                     // Handle measurement mode - set measurement points only, no SAR marker
                     if (drawingProvider.drawingMode == DrawingMode.measure) {
                       if (drawingProvider.measurementPoint1 == null) {
                         // Set first measurement point
-                        drawingProvider.setMeasurementPoint1(point);
+                        drawingProvider.setMeasurementPoint1(mapPoint);
                       } else if (drawingProvider.measurementPoint2 == null) {
                         // Set second measurement point
-                        drawingProvider.setMeasurementPoint2(point);
+                        drawingProvider.setMeasurementPoint2(mapPoint);
                       } else {
                         // Clear and start new measurement
                         drawingProvider.clearMeasurement();
-                        drawingProvider.setMeasurementPoint1(point);
+                        drawingProvider.setMeasurementPoint1(mapPoint);
                       }
                       // Don't drop SAR marker pin in measurement mode
                       return;
@@ -1379,6 +1923,14 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
                     // Skip if in other drawing modes
                     if (drawingProvider.isDrawing) return;
+
+                    if (isCustomMapMode) {
+                      _showCustomMapSarDialogWithPoint(
+                        customMapConfig,
+                        mapPoint,
+                      );
+                      return;
+                    }
 
                     // Drop a pin at long press location for SAR marker creation
                     if (_droppedPinLocation == null) {
@@ -1388,6 +1940,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     }
                   },
                   onPointerDown: (event, point) {
+                    if (isCustomMapMode) {
+                      return;
+                    }
                     // Check if pointer is near the pin to start dragging
                     if (_droppedPinLocation != null) {
                       final distance = _calculateDistanceInMeters(
@@ -1405,15 +1960,19 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     }
                   },
                   onPointerHover: (event, point) {
+                    final mapPoint = isCustomMapMode
+                        ? _toStoredMapPoint(customMapConfig, point)
+                        : point;
+
                     // Update rectangle preview while dragging
                     if (drawingProvider.drawingMode == DrawingMode.rectangle &&
                         drawingProvider.rectangleStartPoint != null) {
-                      drawingProvider.updateRectangleEndPoint(point);
+                      drawingProvider.updateRectangleEndPoint(mapPoint);
                       return;
                     }
 
                     // Update pin location while dragging
-                    if (_isDraggingPin) {
+                    if (_isDraggingPin && !isCustomMapMode) {
                       setState(() {
                         _droppedPinLocation = point;
                       });
@@ -1428,25 +1987,38 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     }
                   },
                   onTap: (tapPosition, point) {
+                    final mapPoint = isCustomMapMode
+                        ? _toStoredMapPoint(customMapConfig, point)
+                        : point;
+
+                    if (_isCalibratingCustomMap && isCustomMapMode) {
+                      _handleCustomMapCalibrationTap(mapProvider, mapPoint);
+                      return;
+                    }
+
                     // Handle drawing mode taps
                     if (drawingProvider.drawingMode == DrawingMode.line) {
                       if (drawingProvider.currentLinePoints.isEmpty) {
                         // Start new line
-                        drawingProvider.startLine(point);
+                        drawingProvider.startLine(mapPoint);
                       } else {
                         // Add point to current line
-                        drawingProvider.addLinePoint(point);
+                        drawingProvider.addLinePoint(mapPoint);
                       }
                       return;
                     } else if (drawingProvider.drawingMode ==
                         DrawingMode.rectangle) {
                       if (drawingProvider.rectangleStartPoint == null) {
                         // Start rectangle
-                        drawingProvider.startRectangle(point);
+                        drawingProvider.startRectangle(mapPoint);
                       } else {
                         // Complete rectangle
-                        drawingProvider.completeRectangle(point);
+                        drawingProvider.completeRectangle(mapPoint);
                       }
+                      return;
+                    }
+
+                    if (isCustomMapMode) {
                       return;
                     }
 
@@ -1470,7 +2042,18 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                 ),
                 children: [
                   // Render raster or WMS tile layer based on layer type
-                  if (_currentLayer.isWms &&
+                  if (isCustomMapMode)
+                    OverlayImageLayer(
+                      overlayImages: [
+                        OverlayImage(
+                          bounds: customMapConfig.displayBounds,
+                          imageProvider: FileImage(
+                            File(customMapConfig.filePath),
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (_currentLayer.isWms &&
                       _currentLayer.wmsBaseUrl != null &&
                       _currentLayer.crs != null)
                     // WMS Base Layer (e.g., Slovenian Aerial Imagery)
@@ -1500,387 +2083,399 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                       userAgentPackageName: 'com.meshcore.sar',
                       maxZoom: _currentLayer.maxZoom,
                     ),
-                  // WMS Overlays (rendered after base layer, before polylines)
-                  // Note: These overlays only work with EPSG:3794 CRS (Slovenian coordinate system)
-                  // Cadastral parcels overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      // Only show if enabled and map is using Slovenian CRS
-                      if (!mapProvider.showCadastralOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl:
-                              'https://prostor.zgs.gov.si/geowebcache/service/wms?',
-                          layers: const ['pregledovalnik:kn_parcele'],
-                          styles: const ['parcele'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Cadastral overlay tile error at ${tile.coordinates}: $error',
-                          );
-                          if (stackTrace != null) {
-                            debugPrint('   StackTrace: $stackTrace');
-                          }
-                        },
-                      );
-                    },
-                  ),
-                  // Forest roads overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      // Only show if enabled and map is using Slovenian CRS
-                      if (!mapProvider.showForestRoadsOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const ['pregledovalnik:gozdne_ceste'],
-                          styles: const ['gozdne_ceste'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Forest roads overlay tile error at ${tile.coordinates}: $error',
-                          );
-                          if (stackTrace != null) {
-                            debugPrint('   StackTrace: $stackTrace');
-                          }
-                        },
-                      );
-                    },
-                  ),
-                  // Hiking trails overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (!mapProvider.showHikingTrailsOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const [
-                            'pregledovalnik:KGI_LINIJE_PLANINSKE_POTI_G',
-                          ],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Hiking trails overlay tile error at ${tile.coordinates}: $error',
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  // Main roads overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (!mapProvider.showMainRoadsOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const ['pregledovalnik:KGI_LINIJE_CESTE_G'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Main roads overlay tile error at ${tile.coordinates}: $error',
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  // House numbers overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (!mapProvider.showHouseNumbersOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const ['pregledovalnik:NEP_HISNE_STEVILKE'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 House numbers overlay tile error at ${tile.coordinates}: $error',
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  // Fire hazard zones overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (!mapProvider.showFireHazardZonesOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const ['pregledovalnik:pozarna_ogrozenost'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Fire hazard zones overlay tile error at ${tile.coordinates}: $error',
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  // Historical fires overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (!mapProvider.showHistoricalFiresOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const ['pregledovalnik:gozdni_pozari'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Historical fires overlay tile error at ${tile.coordinates}: $error',
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  // Firebreaks overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (!mapProvider.showFirebreaksOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const ['pregledovalnik:protipozarne_preseke'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Firebreaks overlay tile error at ${tile.coordinates}: $error',
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  // Kras fire zones overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (!mapProvider.showKrasFireZonesOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const ['pregledovalnik:pozarisce_kras'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Kras fire zones overlay tile error at ${tile.coordinates}: $error',
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  // Place names overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (!mapProvider.showPlaceNamesOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const ['pregledovalnik:zemljepisna_imena'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Place names overlay tile error at ${tile.coordinates}: $error',
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  // Municipality borders overlay
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (!mapProvider.showMunicipalityBordersOverlay ||
-                          _currentLayer.crs == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return flutter_map.TileLayer(
-                        wmsOptions: WMSTileLayerOptions(
-                          baseUrl: 'https://prostor.zgs.gov.si/geoserver/wms?',
-                          layers: const ['pregledovalnik:NEP_RPE_OBCINE'],
-                          styles: const ['obcine'],
-                          format: 'image/png',
-                          transparent: true,
-                          crs: slovenianCrs,
-                        ),
-                        tileProvider: _tileProvider,
-                        userAgentPackageName: 'com.meshcore.sar',
-                        maxZoom: 19,
-                        errorTileCallback: (tile, error, stackTrace) {
-                          debugPrint(
-                            '🔴 Municipality borders overlay tile error at ${tile.coordinates}: $error',
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  // Imported trail layer (rendered at bottom for reference)
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      if (mapProvider.importedTrail == null ||
-                          mapProvider.importedTrail!.points.length < 2) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return PolylineLayer(
-                        polylines: [
-                          Polyline(
-                            points: mapProvider.importedTrail!.latLngPoints,
-                            color: Colors.green.withValues(alpha: 0.7),
-                            strokeWidth: 3.0,
-                            borderColor: Colors.white.withValues(alpha: 0.4),
-                            borderStrokeWidth: 1.0,
-                            // DOTTED pattern to distinguish from other trails
-                            pattern: StrokePattern.dotted(spacingFactor: 2),
+                  if (!isCustomMapMode) ...[
+                    // WMS Overlays (rendered after base layer, before polylines)
+                    // Note: These overlays only work with EPSG:3794 CRS (Slovenian coordinate system)
+                    // Cadastral parcels overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        // Only show if enabled and map is using Slovenian CRS
+                        if (!mapProvider.showCadastralOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geowebcache/service/wms?',
+                            layers: const ['pregledovalnik:kn_parcele'],
+                            styles: const ['parcele'],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
                           ),
-                        ],
-                      );
-                    },
-                  ),
-                  // Contact trail polylines (rendered before user trail and markers)
-                  Consumer<MapProvider>(
-                    builder: (context, mapProvider, _) {
-                      // Determine which contacts to show trails for
-                      final contactsToShow = mapProvider.showAllContactTrails
-                          ? contactsWithLocation // Show all when master toggle is ON
-                          : contactsWithLocation.where(
-                              (contact) => mapProvider.isContactPathVisible(
-                                contact.publicKeyHex,
-                              ),
-                            ); // Individual toggles
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Cadastral overlay tile error at ${tile.coordinates}: $error',
+                            );
+                            if (stackTrace != null) {
+                              debugPrint('   StackTrace: $stackTrace');
+                            }
+                          },
+                        );
+                      },
+                    ),
+                    // Forest roads overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        // Only show if enabled and map is using Slovenian CRS
+                        if (!mapProvider.showForestRoadsOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const ['pregledovalnik:gozdne_ceste'],
+                            styles: const ['gozdne_ceste'],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Forest roads overlay tile error at ${tile.coordinates}: $error',
+                            );
+                            if (stackTrace != null) {
+                              debugPrint('   StackTrace: $stackTrace');
+                            }
+                          },
+                        );
+                      },
+                    ),
+                    // Hiking trails overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (!mapProvider.showHikingTrailsOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const [
+                              'pregledovalnik:KGI_LINIJE_PLANINSKE_POTI_G',
+                            ],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Hiking trails overlay tile error at ${tile.coordinates}: $error',
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    // Main roads overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (!mapProvider.showMainRoadsOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const ['pregledovalnik:KGI_LINIJE_CESTE_G'],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Main roads overlay tile error at ${tile.coordinates}: $error',
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    // House numbers overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (!mapProvider.showHouseNumbersOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const ['pregledovalnik:NEP_HISNE_STEVILKE'],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 House numbers overlay tile error at ${tile.coordinates}: $error',
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    // Fire hazard zones overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (!mapProvider.showFireHazardZonesOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const ['pregledovalnik:pozarna_ogrozenost'],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Fire hazard zones overlay tile error at ${tile.coordinates}: $error',
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    // Historical fires overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (!mapProvider.showHistoricalFiresOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const ['pregledovalnik:gozdni_pozari'],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Historical fires overlay tile error at ${tile.coordinates}: $error',
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    // Firebreaks overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (!mapProvider.showFirebreaksOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const [
+                              'pregledovalnik:protipozarne_preseke',
+                            ],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Firebreaks overlay tile error at ${tile.coordinates}: $error',
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    // Kras fire zones overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (!mapProvider.showKrasFireZonesOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const ['pregledovalnik:pozarisce_kras'],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Kras fire zones overlay tile error at ${tile.coordinates}: $error',
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    // Place names overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (!mapProvider.showPlaceNamesOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const ['pregledovalnik:zemljepisna_imena'],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Place names overlay tile error at ${tile.coordinates}: $error',
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    // Municipality borders overlay
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (!mapProvider.showMunicipalityBordersOverlay ||
+                            _currentLayer.crs == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return flutter_map.TileLayer(
+                          wmsOptions: WMSTileLayerOptions(
+                            baseUrl:
+                                'https://prostor.zgs.gov.si/geoserver/wms?',
+                            layers: const ['pregledovalnik:NEP_RPE_OBCINE'],
+                            styles: const ['obcine'],
+                            format: 'image/png',
+                            transparent: true,
+                            crs: slovenianCrs,
+                          ),
+                          tileProvider: _tileProvider,
+                          userAgentPackageName: 'com.meshcore.sar',
+                          maxZoom: 19,
+                          errorTileCallback: (tile, error, stackTrace) {
+                            debugPrint(
+                              '🔴 Municipality borders overlay tile error at ${tile.coordinates}: $error',
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    // Imported trail layer (rendered at bottom for reference)
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        if (mapProvider.importedTrail == null ||
+                            mapProvider.importedTrail!.points.length < 2) {
+                          return const SizedBox.shrink();
+                        }
 
-                      return PolylineLayer(
-                        polylines: contactsToShow
-                            .where(
-                              (contact) => contact.advertHistory.length >= 2,
-                            )
-                            .map((contact) {
-                              // Use TrailColorService for consistent, emoji-based colors
-                              final color = TrailColorService.getTrailColor(
-                                contact,
-                              );
+                        return PolylineLayer(
+                          polylines: [
+                            Polyline(
+                              points: mapProvider.importedTrail!.latLngPoints,
+                              color: Colors.green.withValues(alpha: 0.7),
+                              strokeWidth: 3.0,
+                              borderColor: Colors.white.withValues(alpha: 0.4),
+                              borderStrokeWidth: 1.0,
+                              // DOTTED pattern to distinguish from other trails
+                              pattern: StrokePattern.dotted(spacingFactor: 2),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    // Contact trail polylines (rendered before user trail and markers)
+                    Consumer<MapProvider>(
+                      builder: (context, mapProvider, _) {
+                        // Determine which contacts to show trails for
+                        final contactsToShow = mapProvider.showAllContactTrails
+                            ? contactsWithLocation // Show all when master toggle is ON
+                            : contactsWithLocation.where(
+                                (contact) => mapProvider.isContactPathVisible(
+                                  contact.publicKeyHex,
+                                ),
+                              ); // Individual toggles
 
-                              return Polyline(
-                                points: contact.advertHistory
-                                    .map((advert) => advert.location)
-                                    .toList(),
-                                color: color.withValues(
-                                  alpha: 0.95,
-                                ), // More opaque for better visibility
-                                strokeWidth:
-                                    4.5, // Thicker for better visibility on all map backgrounds
-                                borderColor: Colors.white.withValues(
-                                  alpha: 0.6,
-                                ), // Stronger border contrast
-                                borderStrokeWidth: 2.0, // Wider border
-                                // DASHED pattern to distinguish from solid user trail
-                                pattern: StrokePattern.dashed(segments: [8, 4]),
-                              );
-                            })
-                            .toList(),
-                      );
-                    },
-                  ),
-                  // Location trail layer (rendered after paths, before drawings)
-                  const LocationTrailLayer(),
+                        return PolylineLayer(
+                          polylines: contactsToShow
+                              .where(
+                                (contact) => contact.advertHistory.length >= 2,
+                              )
+                              .map((contact) {
+                                // Use TrailColorService for consistent, emoji-based colors
+                                final color = TrailColorService.getTrailColor(
+                                  contact,
+                                );
+
+                                return Polyline(
+                                  points: contact.advertHistory
+                                      .map((advert) => advert.location)
+                                      .toList(),
+                                  color: color.withValues(
+                                    alpha: 0.95,
+                                  ), // More opaque for better visibility
+                                  strokeWidth:
+                                      4.5, // Thicker for better visibility on all map backgrounds
+                                  borderColor: Colors.white.withValues(
+                                    alpha: 0.6,
+                                  ), // Stronger border contrast
+                                  borderStrokeWidth: 2.0, // Wider border
+                                  // DASHED pattern to distinguish from solid user trail
+                                  pattern: StrokePattern.dashed(
+                                    segments: [8, 4],
+                                  ),
+                                );
+                              })
+                              .toList(),
+                        );
+                      },
+                    ),
+                    // Location trail layer (rendered after paths, before drawings)
+                    const LocationTrailLayer(),
+                  ],
                   // Measurement line layer (rendered before drawings)
-                  if (drawingProvider.measurementPoint1 != null &&
-                      drawingProvider.measurementPoint2 != null)
+                  if (measurementPoint1 != null && measurementPoint2 != null)
                     PolylineLayer(
                       polylines: [
                         Polyline(
-                          points: [
-                            drawingProvider.measurementPoint1!,
-                            drawingProvider.measurementPoint2!,
-                          ],
+                          points: [measurementPoint1, measurementPoint2],
                           color: Colors.yellow.withValues(alpha: 0.8),
                           strokeWidth: 3.0,
                           borderColor: Colors.black.withValues(alpha: 0.5),
@@ -1889,33 +2484,48 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         ),
                       ],
                     ),
+                  if (calibrationPointA != null && calibrationPointB != null)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: [calibrationPointA, calibrationPointB],
+                          color: Colors.lightBlueAccent.withValues(alpha: 0.9),
+                          strokeWidth: 3.0,
+                          borderColor: Colors.black.withValues(alpha: 0.35),
+                          borderStrokeWidth: 1.0,
+                        ),
+                      ],
+                    ),
                   // Drawing layer (rendered after paths, before markers)
                   DrawingLayer(
                     drawings: drawingProvider.drawings,
                     previewDrawing: drawingProvider.getPreviewDrawing(),
+                    pointTransformer: pointTransformer,
                   ),
                   MarkerLayer(
                     markers: [
                       // Contact markers
-                      ..._markerService.generateContactMarkers(
-                        contacts: contactsWithLocation,
-                        context: context,
-                        mapRotation: _getMapRotation(),
-                        userPosition: _locationService.currentPosition,
-                        onTap: (contact) {
-                          _showDetailedCompassWithContact(
-                            context,
-                            contactsWithLocation,
-                            messagesProvider.sarMarkers,
-                            contact,
-                          );
-                        },
-                      ),
+                      if (!isCustomMapMode)
+                        ..._markerService.generateContactMarkers(
+                          contacts: contactsWithLocation,
+                          context: context,
+                          mapRotation: _getMapRotation(),
+                          userPosition: _locationService.currentPosition,
+                          onTap: (contact) {
+                            _showDetailedCompassWithContact(
+                              context,
+                              contactsWithLocation,
+                              sarMarkers,
+                              contact,
+                            );
+                          },
+                        ),
                       // SAR markers
                       ..._markerService.generateSarMarkers(
                         sarMarkers: sarMarkers,
                         context: context,
                         mapRotation: _getMapRotation(),
+                        pointTransformer: pointTransformer,
                         onTap: (marker) {
                           _showSarMarkerActions(
                             marker,
@@ -1925,21 +2535,22 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         },
                       ),
                       // User location marker with directional pointer
-                      if (_markerService.generateUserLocationMarker(
-                            position: _locationService.currentPosition,
-                            heading: _currentHeading,
-                            context: context,
-                          ) !=
-                          null)
+                      if (!isCustomMapMode &&
+                          _markerService.generateUserLocationMarker(
+                                position: _locationService.currentPosition,
+                                heading: _currentHeading,
+                                context: context,
+                              ) !=
+                              null)
                         _markerService.generateUserLocationMarker(
                           position: _locationService.currentPosition,
                           heading: _currentHeading,
                           context: context,
                         )!,
                       // Measurement point 1 marker
-                      if (drawingProvider.measurementPoint1 != null)
+                      if (measurementPoint1 != null)
                         Marker(
-                          point: drawingProvider.measurementPoint1!,
+                          point: measurementPoint1,
                           width: 60,
                           height: 80,
                           rotate: false,
@@ -1992,9 +2603,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                           ),
                         ),
                       // Measurement point 2 marker
-                      if (drawingProvider.measurementPoint2 != null)
+                      if (measurementPoint2 != null)
                         Marker(
-                          point: drawingProvider.measurementPoint2!,
+                          point: measurementPoint2,
                           width: 60,
                           height: 80,
                           rotate: false,
@@ -2046,8 +2657,30 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                             ],
                           ),
                         ),
+                      if (calibrationPointA != null)
+                        Marker(
+                          point: calibrationPointA,
+                          width: 60,
+                          height: 70,
+                          rotate: false,
+                          child: _buildTaggedPointMarker(
+                            label: 'A',
+                            color: Colors.lightBlue,
+                          ),
+                        ),
+                      if (calibrationPointB != null)
+                        Marker(
+                          point: calibrationPointB,
+                          width: 60,
+                          height: 70,
+                          rotate: false,
+                          child: _buildTaggedPointMarker(
+                            label: 'B',
+                            color: Colors.lightBlue,
+                          ),
+                        ),
                       // Dropped pin marker with label
-                      if (_droppedPinLocation != null)
+                      if (!isCustomMapMode && _droppedPinLocation != null)
                         Marker(
                           key: _pinMarkerKey,
                           point: _droppedPinLocation!,
@@ -2136,6 +2769,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   DrawingMarkersLayer(
                     drawings: drawingProvider.drawings,
                     showDeleteButtons: drawingProvider.isDrawing,
+                    pointTransformer: pointTransformer,
                     onDeleteDrawing: (drawingId) {
                       drawingProvider.removeDrawing(drawingId);
                     },
@@ -2202,7 +2836,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                 ),
               ),
             // Compass widget - top right (hidden in fullscreen mode)
-            if (!_isFullscreen)
+            if (!_isFullscreen && !isCustomMapMode)
               Positioned(
                 top: 16,
                 right: 16,
@@ -2210,11 +2844,59 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   onTap: () => _showDetailedCompass(
                     context,
                     contactsWithLocation,
-                    messagesProvider.sarMarkers,
+                    sarMarkers,
                   ),
                   child: CompassWidget(
                     heading: _currentHeading ?? 0,
                     hasHeading: _currentHeading != null,
+                  ),
+                ),
+              ),
+            if (isCustomMapMode &&
+                !_isFullscreen &&
+                drawingProvider.drawingMode != DrawingMode.measure)
+              Positioned(
+                top: 16,
+                left: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.96),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        customMapConfig.isCalibrated
+                            ? 'Scale set'
+                            : 'Not calibrated',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      if (_isCalibratingCustomMap) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _customMapCalibrationPointA == null
+                              ? 'Tap point A'
+                              : _customMapCalibrationPointB == null
+                              ? 'Tap point B'
+                              : 'Enter distance',
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -2263,6 +2945,19 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         ],
                       ),
                       const SizedBox(height: 8),
+                      if (isCustomMapMode) ...[
+                        Text(
+                          customMapConfig.isCalibrated
+                              ? 'Scale set'
+                              : 'Set scale in Layers to enable distance',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
                       if (drawingProvider.measuredDistance != null)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2323,7 +3018,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     const DrawingToolbar(),
                     const SizedBox(height: 8),
                     // Hide other buttons when in drawing mode
-                    if (!drawingProvider.isDrawing) ...[
+                    if (!drawingProvider.isDrawing && !isCustomMapMode) ...[
                       // Current Location - always center to GPS
                       FloatingActionButton.small(
                         heroTag: 'center_map',
@@ -2440,8 +3135,10 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                     // Continue with other buttons when not in drawing mode
                     if (!drawingProvider.isDrawing) ...[
                       // Trail controls button
-                      const TrailControls(),
-                      const SizedBox(height: 8),
+                      if (!isCustomMapMode) ...[
+                        const TrailControls(),
+                        const SizedBox(height: 8),
+                      ],
                       FloatingActionButton.small(
                         heroTag: 'layer_selector',
                         onPressed: () => _showLayerSelector(context),

@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/map_drawing.dart';
+import '../models/map_coordinate_space.dart';
 import '../utils/drawing_message_parser.dart';
 
 /// Drawing mode state
@@ -33,12 +35,18 @@ class DrawingProvider with ChangeNotifier {
   LatLng? _measurementPoint1;
   LatLng? _measurementPoint2;
   double? _measuredDistance; // in meters
+  MapCoordinateSpace _activeCoordinateSpace = MapCoordinateSpace.geo;
+  String? _activeMapId;
+  double? _activeMetersPerPixel;
 
   // Getters
   DrawingMode get drawingMode => _drawingMode;
   Color get selectedColor => _selectedColor;
   bool get showReceivedDrawings => _showReceivedDrawings;
   bool get showSarMarkers => _showSarMarkers;
+  MapCoordinateSpace get activeCoordinateSpace => _activeCoordinateSpace;
+  String? get activeMapId => _activeMapId;
+  double? get activeMetersPerPixel => _activeMetersPerPixel;
   List<MapDrawing> get drawings {
     // Filter out hidden drawings first
     var visibleDrawings = _drawings.where((d) => !d.isHidden);
@@ -48,8 +56,19 @@ class DrawingProvider with ChangeNotifier {
       visibleDrawings = visibleDrawings.where((d) => !d.isReceived);
     }
 
+    visibleDrawings = visibleDrawings.where((drawing) {
+      if (drawing.coordinateSpace != _activeCoordinateSpace) {
+        return false;
+      }
+      if (drawing.coordinateSpace == MapCoordinateSpace.customMap) {
+        return drawing.mapId != null && drawing.mapId == _activeMapId;
+      }
+      return true;
+    });
+
     return List.unmodifiable(visibleDrawings.toList());
   }
+
   MapDrawing? get currentDrawing => _currentDrawing;
   List<LatLng> get currentLinePoints => List.unmodifiable(_currentLinePoints);
   LatLng? get rectangleStartPoint => _rectangleStartPoint;
@@ -64,6 +83,29 @@ class DrawingProvider with ChangeNotifier {
     await _loadPreferences();
     await _loadDrawings();
     _isInitialized = true;
+  }
+
+  void setMapContext({
+    required MapCoordinateSpace coordinateSpace,
+    String? mapId,
+    double? metersPerPixel,
+  }) {
+    final changed =
+        coordinateSpace != _activeCoordinateSpace ||
+        mapId != _activeMapId ||
+        metersPerPixel != _activeMetersPerPixel;
+    _activeCoordinateSpace = coordinateSpace;
+    _activeMapId = mapId;
+    _activeMetersPerPixel = metersPerPixel;
+    if (_measurementPoint1 != null && _measurementPoint2 != null) {
+      _measuredDistance = _calculateDistance(
+        _measurementPoint1!,
+        _measurementPoint2!,
+      );
+    }
+    if (changed) {
+      notifyListeners();
+    }
   }
 
   /// Set drawing mode
@@ -137,6 +179,10 @@ class DrawingProvider with ChangeNotifier {
       color: _selectedColor,
       createdAt: DateTime.now(),
       points: List.from(_currentLinePoints),
+      coordinateSpace: _activeCoordinateSpace,
+      mapId: _activeCoordinateSpace == MapCoordinateSpace.customMap
+          ? _activeMapId
+          : null,
     );
 
     _drawings.add(drawing);
@@ -180,6 +226,10 @@ class DrawingProvider with ChangeNotifier {
             ? _rectangleStartPoint!.longitude
             : endPoint.longitude,
       ),
+      coordinateSpace: _activeCoordinateSpace,
+      mapId: _activeCoordinateSpace == MapCoordinateSpace.customMap
+          ? _activeMapId
+          : null,
     );
     notifyListeners();
   }
@@ -216,6 +266,10 @@ class DrawingProvider with ChangeNotifier {
       createdAt: DateTime.now(),
       topLeft: topLeft,
       bottomRight: bottomRight,
+      coordinateSpace: _activeCoordinateSpace,
+      mapId: _activeCoordinateSpace == MapCoordinateSpace.customMap
+          ? _activeMapId
+          : null,
     );
 
     _drawings.add(drawing);
@@ -237,7 +291,9 @@ class DrawingProvider with ChangeNotifier {
 
   /// Set second measurement point and calculate distance
   void setMeasurementPoint2(LatLng point) {
-    if (_drawingMode != DrawingMode.measure || _measurementPoint1 == null) return;
+    if (_drawingMode != DrawingMode.measure || _measurementPoint1 == null) {
+      return;
+    }
 
     _measurementPoint2 = point;
     _measuredDistance = _calculateDistance(_measurementPoint1!, point);
@@ -246,6 +302,13 @@ class DrawingProvider with ChangeNotifier {
 
   /// Calculate distance between two points using Haversine formula
   double _calculateDistance(LatLng point1, LatLng point2) {
+    if (_activeCoordinateSpace == MapCoordinateSpace.customMap &&
+        _activeMetersPerPixel != null) {
+      final dy = point2.latitude - point1.latitude;
+      final dx = point2.longitude - point1.longitude;
+      final pixelDistance = math.sqrt((dx * dx) + (dy * dy));
+      return pixelDistance * _activeMetersPerPixel!;
+    }
     const Distance distance = Distance();
     return distance.as(LengthUnit.Meter, point1, point2);
   }
@@ -339,6 +402,10 @@ class DrawingProvider with ChangeNotifier {
         color: _selectedColor,
         createdAt: DateTime.now(),
         points: _currentLinePoints,
+        coordinateSpace: _activeCoordinateSpace,
+        mapId: _activeCoordinateSpace == MapCoordinateSpace.customMap
+            ? _activeMapId
+            : null,
       );
     } else if (_drawingMode == DrawingMode.rectangle &&
         _currentDrawing != null) {
@@ -376,6 +443,8 @@ class DrawingProvider with ChangeNotifier {
         isShared: drawing.isShared,
         isSent: drawing.isSent,
         isHidden: drawing.isHidden,
+        coordinateSpace: drawing.coordinateSpace,
+        mapId: drawing.mapId,
       );
     } else if (drawing is RectangleDrawing) {
       return RectangleDrawing(
@@ -390,6 +459,8 @@ class DrawingProvider with ChangeNotifier {
         isShared: drawing.isShared,
         isSent: drawing.isSent,
         isHidden: drawing.isHidden,
+        coordinateSpace: drawing.coordinateSpace,
+        mapId: drawing.mapId,
       );
     }
     return drawing;
@@ -406,7 +477,7 @@ class DrawingProvider with ChangeNotifier {
 
   /// Get all unshared drawings (local drawings not yet sent)
   List<MapDrawing> getUnsharedDrawings() {
-    return _drawings.where((d) => !d.isShared && !d.isReceived).toList();
+    return drawings.where((d) => !d.isShared && !d.isReceived).toList();
   }
 
   /// Mark a drawing as shared
@@ -428,6 +499,8 @@ class DrawingProvider with ChangeNotifier {
           isShared: true,
           isSent: drawing.isSent,
           isHidden: drawing.isHidden,
+          coordinateSpace: drawing.coordinateSpace,
+          mapId: drawing.mapId,
         );
       } else if (drawing is RectangleDrawing) {
         _drawings[index] = RectangleDrawing(
@@ -442,6 +515,8 @@ class DrawingProvider with ChangeNotifier {
           isShared: true,
           isSent: drawing.isSent,
           isHidden: drawing.isHidden,
+          coordinateSpace: drawing.coordinateSpace,
+          mapId: drawing.mapId,
         );
       }
 
@@ -469,6 +544,8 @@ class DrawingProvider with ChangeNotifier {
           isShared: drawing.isShared,
           isSent: drawing.isSent,
           isHidden: !drawing.isHidden,
+          coordinateSpace: drawing.coordinateSpace,
+          mapId: drawing.mapId,
         );
       } else if (drawing is RectangleDrawing) {
         _drawings[index] = RectangleDrawing(
@@ -483,6 +560,8 @@ class DrawingProvider with ChangeNotifier {
           isShared: drawing.isShared,
           isSent: drawing.isSent,
           isHidden: !drawing.isHidden,
+          coordinateSpace: drawing.coordinateSpace,
+          mapId: drawing.mapId,
         );
       }
 

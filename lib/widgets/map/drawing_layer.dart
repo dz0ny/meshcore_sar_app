@@ -8,8 +8,14 @@ import '../../l10n/app_localizations.dart';
 class DrawingLayer extends StatelessWidget {
   final List<MapDrawing> drawings;
   final MapDrawing? previewDrawing;
+  final LatLng Function(LatLng point)? pointTransformer;
 
-  const DrawingLayer({super.key, required this.drawings, this.previewDrawing});
+  const DrawingLayer({
+    super.key,
+    required this.drawings,
+    this.previewDrawing,
+    this.pointTransformer,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -66,11 +72,15 @@ class DrawingLayer extends StatelessWidget {
   /// Get points from a drawing based on its type
   List<LatLng> _getPoints(MapDrawing drawing) {
     if (drawing is LineDrawing) {
-      return drawing.points;
+      return drawing.points.map(_transformPoint).toList();
     } else if (drawing is RectangleDrawing) {
-      return drawing.corners;
+      return drawing.corners.map(_transformPoint).toList();
     }
     return [];
+  }
+
+  LatLng _transformPoint(LatLng point) {
+    return pointTransformer?.call(point) ?? point;
   }
 }
 
@@ -80,6 +90,7 @@ class DrawingMarkersLayer extends StatelessWidget {
   final Function(String drawingId)? onDeleteDrawing;
   final Function(MapDrawing drawing)? onTapDrawing;
   final bool showDeleteButtons;
+  final LatLng Function(LatLng point)? pointTransformer;
 
   const DrawingMarkersLayer({
     super.key,
@@ -87,6 +98,7 @@ class DrawingMarkersLayer extends StatelessWidget {
     this.onDeleteDrawing,
     this.onTapDrawing,
     this.showDeleteButtons = false,
+    this.pointTransformer,
   });
 
   @override
@@ -144,15 +156,21 @@ class DrawingMarkersLayer extends StatelessWidget {
     if (drawing is LineDrawing && drawing.points.isNotEmpty) {
       // Use the middle point of the line
       final midIndex = drawing.points.length ~/ 2;
-      return drawing.points[midIndex];
+      return _transformPoint(drawing.points[midIndex]);
     } else if (drawing is RectangleDrawing) {
       // Use the center of the rectangle
-      return LatLng(
-        (drawing.topLeft.latitude + drawing.bottomRight.latitude) / 2,
-        (drawing.topLeft.longitude + drawing.bottomRight.longitude) / 2,
+      return _transformPoint(
+        LatLng(
+          (drawing.topLeft.latitude + drawing.bottomRight.latitude) / 2,
+          (drawing.topLeft.longitude + drawing.bottomRight.longitude) / 2,
+        ),
       );
     }
     return null;
+  }
+
+  LatLng _transformPoint(LatLng point) {
+    return pointTransformer?.call(point) ?? point;
   }
 
   /// Show delete confirmation dialog

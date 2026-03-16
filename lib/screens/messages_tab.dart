@@ -2020,12 +2020,19 @@ class _MessagesTabState extends State<MessagesTab> {
   void _handleMessageTap(Message message) {
     if (widget.onNavigateToMap == null) return;
 
-    if (message.isSarMarker && message.sarGpsCoordinates != null) {
+    if (message.isSarMarker) {
       final mapProvider = context.read<MapProvider>();
-      mapProvider.navigateToLocation(
-        location: message.sarGpsCoordinates!,
-        zoom: 15.0,
-      );
+      final marker = message.toSarMarker();
+      if (marker == null) {
+        return;
+      }
+      final error = mapProvider.navigateToSarMarker(marker);
+      if (error != null && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error)));
+        return;
+      }
       widget.onNavigateToMap?.call();
       return;
     }
@@ -2034,7 +2041,16 @@ class _MessagesTabState extends State<MessagesTab> {
       debugPrint('🗺️ [MessagesTab] Drawing tapped! ID: ${message.drawingId}');
       final mapProvider = context.read<MapProvider>();
       final drawingProvider = context.read<DrawingProvider>();
-      mapProvider.navigateToDrawing(message.drawingId!, drawingProvider);
+      final error = mapProvider.navigateToDrawing(
+        message.drawingId!,
+        drawingProvider,
+      );
+      if (error != null && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error)));
+        return;
+      }
       widget.onNavigateToMap?.call();
     }
   }
