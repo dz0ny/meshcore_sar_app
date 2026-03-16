@@ -18,6 +18,7 @@ import '../services/messaging_route_preferences.dart';
 import '../services/nearest_router_selector.dart';
 import '../services/packet_capture_storage_service.dart';
 import '../services/path_history_service.dart';
+import '../services/profiles_feature_service.dart';
 import '../services/route_hash_preferences.dart';
 import '../services/notification_service.dart';
 import '../models/contact.dart';
@@ -251,6 +252,10 @@ class AppProvider with ChangeNotifier {
     _startLowBatteryWatcher();
     _syncDrawingsOnStartup(); // Sync drawings immediately after providers load
     _isInitialized = true;
+  }
+
+  String _scopedKey(String baseKey) {
+    return ProfileStorageScope.scopedKey(baseKey);
   }
 
   void _startPacketCapturePersistence() {
@@ -516,7 +521,7 @@ class AppProvider with ChangeNotifier {
   Future<void> _loadMapEnabled() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _isMapEnabled = prefs.getBool('map_enabled') ?? true;
+      _isMapEnabled = prefs.getBool(_scopedKey('map_enabled')) ?? true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading map enabled setting: $e');
@@ -528,7 +533,7 @@ class AppProvider with ChangeNotifier {
     try {
       _isMapEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('map_enabled', enabled);
+      await prefs.setBool(_scopedKey('map_enabled'), enabled);
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving map enabled setting: $e');
@@ -539,7 +544,8 @@ class AppProvider with ChangeNotifier {
   Future<void> _loadContactsEnabled() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _isContactsEnabled = prefs.getBool('contacts_enabled') ?? true;
+      _isContactsEnabled =
+          prefs.getBool(_scopedKey('contacts_enabled')) ?? true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading contacts enabled setting: $e');
@@ -551,7 +557,7 @@ class AppProvider with ChangeNotifier {
     try {
       _isContactsEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('contacts_enabled', enabled);
+      await prefs.setBool(_scopedKey('contacts_enabled'), enabled);
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving contacts enabled setting: $e');
@@ -562,7 +568,7 @@ class AppProvider with ChangeNotifier {
   Future<void> _loadSensorsEnabled() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _isSensorsEnabled = prefs.getBool('sensors_enabled') ?? true;
+      _isSensorsEnabled = prefs.getBool(_scopedKey('sensors_enabled')) ?? true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading sensors enabled setting: $e');
@@ -574,7 +580,7 @@ class AppProvider with ChangeNotifier {
     try {
       _isSensorsEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('sensors_enabled', enabled);
+      await prefs.setBool(_scopedKey('sensors_enabled'), enabled);
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving sensors enabled setting: $e');
@@ -586,7 +592,7 @@ class AppProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _isVoiceSilenceTrimmingEnabled =
-          prefs.getBool('voice_silence_trimming_enabled') ?? true;
+          prefs.getBool(_scopedKey('voice_silence_trimming_enabled')) ?? true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading voice silence trimming setting: $e');
@@ -598,7 +604,10 @@ class AppProvider with ChangeNotifier {
     try {
       _isVoiceSilenceTrimmingEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('voice_silence_trimming_enabled', enabled);
+      await prefs.setBool(
+        _scopedKey('voice_silence_trimming_enabled'),
+        enabled,
+      );
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving voice silence trimming setting: $e');
@@ -610,7 +619,7 @@ class AppProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _isVoiceBandPassFilterEnabled =
-          prefs.getBool('voice_band_pass_filter_enabled') ?? true;
+          prefs.getBool(_scopedKey('voice_band_pass_filter_enabled')) ?? true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading voice band-pass filter setting: $e');
@@ -622,7 +631,10 @@ class AppProvider with ChangeNotifier {
     try {
       _isVoiceBandPassFilterEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('voice_band_pass_filter_enabled', enabled);
+      await prefs.setBool(
+        _scopedKey('voice_band_pass_filter_enabled'),
+        enabled,
+      );
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving voice band-pass filter setting: $e');
@@ -634,7 +646,7 @@ class AppProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _isVoiceCompressorEnabled =
-          prefs.getBool('voice_compressor_enabled') ?? true;
+          prefs.getBool(_scopedKey('voice_compressor_enabled')) ?? true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading voice compressor setting: $e');
@@ -646,7 +658,7 @@ class AppProvider with ChangeNotifier {
     try {
       _isVoiceCompressorEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('voice_compressor_enabled', enabled);
+      await prefs.setBool(_scopedKey('voice_compressor_enabled'), enabled);
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving voice compressor setting: $e');
@@ -657,7 +669,8 @@ class AppProvider with ChangeNotifier {
   Future<void> _loadVoiceLimiterEnabled() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _isVoiceLimiterEnabled = prefs.getBool('voice_limiter_enabled') ?? true;
+      _isVoiceLimiterEnabled =
+          prefs.getBool(_scopedKey('voice_limiter_enabled')) ?? true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading voice limiter setting: $e');
@@ -669,7 +682,7 @@ class AppProvider with ChangeNotifier {
     try {
       _isVoiceLimiterEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('voice_limiter_enabled', enabled);
+      await prefs.setBool(_scopedKey('voice_limiter_enabled'), enabled);
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving voice limiter setting: $e');
@@ -680,7 +693,7 @@ class AppProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _isVoiceAutoGainEnabled =
-          prefs.getBool('voice_auto_gain_enabled') ?? false;
+          prefs.getBool(_scopedKey('voice_auto_gain_enabled')) ?? false;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading voice auto gain setting: $e');
@@ -691,7 +704,7 @@ class AppProvider with ChangeNotifier {
     try {
       _isVoiceAutoGainEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('voice_auto_gain_enabled', enabled);
+      await prefs.setBool(_scopedKey('voice_auto_gain_enabled'), enabled);
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving voice auto gain setting: $e');
@@ -702,7 +715,7 @@ class AppProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _isVoiceEchoCancellationEnabled =
-          prefs.getBool('voice_echo_cancellation_enabled') ?? false;
+          prefs.getBool(_scopedKey('voice_echo_cancellation_enabled')) ?? false;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading voice echo cancellation setting: $e');
@@ -713,7 +726,10 @@ class AppProvider with ChangeNotifier {
     try {
       _isVoiceEchoCancellationEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('voice_echo_cancellation_enabled', enabled);
+      await prefs.setBool(
+        _scopedKey('voice_echo_cancellation_enabled'),
+        enabled,
+      );
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving voice echo cancellation setting: $e');
@@ -724,7 +740,7 @@ class AppProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _isVoiceNoiseSuppressionEnabled =
-          prefs.getBool('voice_noise_suppression_enabled') ?? false;
+          prefs.getBool(_scopedKey('voice_noise_suppression_enabled')) ?? false;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading voice noise suppression setting: $e');
@@ -735,7 +751,10 @@ class AppProvider with ChangeNotifier {
     try {
       _isVoiceNoiseSuppressionEnabled = enabled;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('voice_noise_suppression_enabled', enabled);
+      await prefs.setBool(
+        _scopedKey('voice_noise_suppression_enabled'),
+        enabled,
+      );
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving voice noise suppression setting: $e');
@@ -745,10 +764,11 @@ class AppProvider with ChangeNotifier {
   Future<void> _loadMessageFontScale() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _messageFontScale = (prefs.getDouble('message_font_scale') ?? 1.0).clamp(
-        0.85,
-        1.4,
-      );
+      _messageFontScale =
+          (prefs.getDouble(_scopedKey('message_font_scale')) ?? 1.0).clamp(
+            0.85,
+            1.4,
+          );
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading message font scale setting: $e');
@@ -759,7 +779,10 @@ class AppProvider with ChangeNotifier {
     try {
       _messageFontScale = scale.clamp(0.85, 1.4);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('message_font_scale', _messageFontScale);
+      await prefs.setDouble(
+        _scopedKey('message_font_scale'),
+        _messageFontScale,
+      );
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving message font scale setting: $e');
@@ -2598,6 +2621,24 @@ class AppProvider with ChangeNotifier {
     if (_fastLocationScreenActive == isActive) return;
     _fastLocationScreenActive = isActive;
     locationTrackingService.setFastLocationActiveUse(isActive);
+  }
+
+  Future<void> reloadProfileScopedSettings() async {
+    await Future.wait([
+      _loadMapEnabled(),
+      _loadContactsEnabled(),
+      _loadSensorsEnabled(),
+      _loadVoiceSilenceTrimmingEnabled(),
+      _loadVoiceBandPassFilterEnabled(),
+      _loadVoiceCompressorEnabled(),
+      _loadVoiceLimiterEnabled(),
+      _loadVoiceAutoGainEnabled(),
+      _loadVoiceEchoCancellationEnabled(),
+      _loadVoiceNoiseSuppressionEnabled(),
+      _loadMessageFontScale(),
+      _loadMessagingRouteSettings(),
+      locationTrackingService.loadSettings(),
+    ]);
   }
 
   Future<void> _sendFastLocationUpdate(

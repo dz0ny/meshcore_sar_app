@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:meshcore_client/meshcore_client.dart';
+import 'profiles_feature_service.dart';
 
 /// Background location tracking service for SAR operations
 /// Tracks user location and sends periodic updates via MeshCore BLE
@@ -15,6 +16,11 @@ class BackgroundLocationService {
   static const String _prefKeyLastLon = 'background_last_lon';
 
   MeshCoreBleService? _bleService;
+
+  String _scopedKey(String baseKey) {
+    return ProfileStorageScope.scopedKey(baseKey);
+  }
+
   bool _isInitialized = false;
   StreamSubscription<Position>? _positionSubscription;
 
@@ -71,8 +77,8 @@ class BackgroundLocationService {
 
     // Save settings
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_prefKeyEnabled, true);
-    await prefs.setDouble(_prefKeyDistance, distanceThreshold);
+    await prefs.setBool(_scopedKey(_prefKeyEnabled), true);
+    await prefs.setDouble(_scopedKey(_prefKeyDistance), distanceThreshold);
 
     // Start listening to position updates
     Position? lastPosition;
@@ -110,8 +116,14 @@ class BackgroundLocationService {
             lastPosition = position;
 
             // Save to preferences
-            await prefs.setDouble(_prefKeyLastLat, position.latitude);
-            await prefs.setDouble(_prefKeyLastLon, position.longitude);
+            await prefs.setDouble(
+              _scopedKey(_prefKeyLastLat),
+              position.latitude,
+            );
+            await prefs.setDouble(
+              _scopedKey(_prefKeyLastLon),
+              position.longitude,
+            );
 
             // Update device's advertised location
             if (_bleService != null && _bleService!.isConnected) {
@@ -161,7 +173,7 @@ class BackgroundLocationService {
     _positionSubscription = null;
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_prefKeyEnabled, false);
+    await prefs.setBool(_scopedKey(_prefKeyEnabled), false);
     debugPrint('✅ [BackgroundLocation] Tracking stopped');
   }
 
@@ -169,13 +181,13 @@ class BackgroundLocationService {
   /// Note: This will restart tracking with the new threshold
   Future<void> updateDistanceThreshold(double distance) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_prefKeyDistance, distance);
+    await prefs.setDouble(_scopedKey(_prefKeyDistance), distance);
     debugPrint(
       '📏 [BackgroundLocation] Distance threshold updated to ${distance}m',
     );
 
     // Restart tracking if currently enabled
-    final isEnabled = prefs.getBool(_prefKeyEnabled) ?? false;
+    final isEnabled = prefs.getBool(_scopedKey(_prefKeyEnabled)) ?? false;
     if (isEnabled && _bleService != null) {
       await stopTracking();
       await startTracking(distanceThreshold: distance);

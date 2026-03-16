@@ -20,6 +20,7 @@ import 'settings_screen.dart';
 import 'device_config_screen.dart';
 import 'packet_log_screen.dart';
 import 'live_traffic_screen.dart';
+import 'profiles_screen.dart';
 import 'spectrum_scan_screen.dart';
 import '../utils/toast_logger.dart';
 import '../l10n/app_localizations.dart';
@@ -28,6 +29,8 @@ import '../widgets/connection_dialog.dart';
 import '../utils/battery_display_helper.dart';
 import '../services/developer_mode_service.dart';
 import '../services/mesh_map_nodes_service.dart';
+import '../services/profile_manager.dart';
+import '../services/profiles_feature_service.dart';
 
 enum _HomeTab { messages, contacts, sensors, map }
 
@@ -237,7 +240,11 @@ class _HomeScreenState extends State<HomeScreen>
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
       setState(() {
-        _showRxTxIndicators = prefs.getBool('show_rx_tx_indicators') ?? true;
+        _showRxTxIndicators =
+            prefs.getBool(
+              ProfileStorageScope.scopedKey('show_rx_tx_indicators'),
+            ) ??
+            true;
       });
     }
   }
@@ -626,6 +633,9 @@ class _HomeScreenState extends State<HomeScreen>
                   icon: const Icon(Icons.more_vert),
                   itemBuilder: (context) {
                     final items = <PopupMenuEntry<void>>[];
+                    final profilesEnabled = context
+                        .read<ProfileManager>()
+                        .profilesEnabled;
 
                     if (_isDeveloperModeEnabled) {
                       items.add(
@@ -775,6 +785,31 @@ class _HomeScreenState extends State<HomeScreen>
                         },
                       ),
                     );
+
+                    if (profilesEnabled) {
+                      items.add(
+                        PopupMenuItem(
+                          child: const Row(
+                            children: [
+                              Icon(Icons.layers_outlined),
+                              SizedBox(width: 8),
+                              Text('Profiles'),
+                            ],
+                          ),
+                          onTap: () {
+                            final navigator = Navigator.of(context);
+                            Future.delayed(Duration.zero, () {
+                              if (!mounted) return;
+                              navigator.push(
+                                MaterialPageRoute(
+                                  builder: (context) => const ProfilesScreen(),
+                                ),
+                              );
+                            });
+                          },
+                        ),
+                      );
+                    }
 
                     return items;
                   },

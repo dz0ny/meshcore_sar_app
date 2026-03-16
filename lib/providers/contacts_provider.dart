@@ -134,6 +134,7 @@ class ContactsProvider with ChangeNotifier {
   bool _persistRequested = false;
   bool _isPersistingPendingAdverts = false;
   bool _persistPendingAdvertsRequested = false;
+  String? _storageNamespace;
 
   // Add default public channel on initialization
   ContactsProvider() {
@@ -141,19 +142,74 @@ class ContactsProvider with ChangeNotifier {
   }
 
   bool get isInitialized => _isInitialized;
+  String? get storageNamespace => _storageNamespace;
 
   /// Initialize and load persisted contacts at app startup
   /// This loads contacts without filtering, allowing offline viewing
   Future<void> initializeEarly() async {
     if (_isInitialized) return;
 
+    await _loadFromStorage();
+  }
+
+  Future<void> reloadFromStorage({
+    String? namespace,
+    Uint8List? devicePublicKey,
+  }) async {
+    _storageNamespace = namespace;
+    await _loadFromStorage(force: true, devicePublicKey: devicePublicKey);
+  }
+
+  Future<void> persistNow() async {
+    await _storageService.saveContacts(
+      _contactsForStorage(),
+      namespace: _storageNamespace,
+    );
+    await _storageService.saveContactGroups(
+      _savedContactGroups,
+      namespace: _storageNamespace,
+    );
+    await _storageService.savePendingAdverts(
+      _pendingAdverts.values.map(_pendingAdvertToJson).toList(),
+      namespace: _storageNamespace,
+    );
+  }
+
+  Future<void> cloneCurrentStorageTo(String? namespace) async {
+    await _storageService.saveContacts(
+      _contactsForStorage(),
+      namespace: namespace,
+    );
+    await _storageService.saveContactGroups(
+      _savedContactGroups,
+      namespace: namespace,
+    );
+    await _storageService.savePendingAdverts(
+      _pendingAdverts.values.map(_pendingAdvertToJson).toList(),
+      namespace: namespace,
+    );
+  }
+
+  Future<void> _loadFromStorage({
+    bool force = false,
+    Uint8List? devicePublicKey,
+  }) async {
+    if (_isInitialized && !force) return;
+
     try {
+      _resetInMemoryState();
       debugPrint(
         '📦 [ContactsProvider] Early loading persisted contacts (no filtering)...',
       );
-      final storedContacts = await _storageService.loadContacts();
-      final storedGroups = await _storageService.loadContactGroups();
-      final storedPendingAdverts = await _storageService.loadPendingAdverts();
+      final storedContacts = await _storageService.loadContacts(
+        namespace: _storageNamespace,
+      );
+      final storedGroups = await _storageService.loadContactGroups(
+        namespace: _storageNamespace,
+      );
+      final storedPendingAdverts = await _storageService.loadPendingAdverts(
+        namespace: _storageNamespace,
+      );
 
       // Add stored contacts (excluding any with all-zeros public key)
       const publicChannelKey =
@@ -170,7 +226,10 @@ class ContactsProvider with ChangeNotifier {
       _savedContactGroups
         ..clear()
         ..addAll(storedGroups);
-      _restorePendingAdverts(storedPendingAdverts);
+      _restorePendingAdverts(
+        storedPendingAdverts,
+        devicePublicKey: devicePublicKey,
+      );
       debugPrint(
         '✅ [ContactsProvider] Early loaded ${storedContacts.length} persisted contacts and ${storedGroups.length} groups',
       );
@@ -197,45 +256,9 @@ class ContactsProvider with ChangeNotifier {
       return;
     }
 
-    try {
-      debugPrint('📦 [ContactsProvider] Loading persisted contacts...');
-      final storedContacts = await _storageService.loadContacts(
-        excludePublicKey: devicePublicKey,
-      );
-      final storedGroups = await _storageService.loadContactGroups();
-      final storedPendingAdverts = await _storageService.loadPendingAdverts();
-
-      // Add stored contacts (excluding any with all-zeros public key)
-      const publicChannelKey =
-          '0000000000000000000000000000000000000000000000000000000000000000';
-      for (final contact in storedContacts) {
-        // Skip any contacts with all-zeros public key (shouldn't happen, but safety check)
-        if (contact.publicKeyHex == publicChannelKey) {
-          continue;
-        }
-        _contacts[contact.publicKeyHex] = contact;
-      }
-
-      _isInitialized = true;
-      _savedContactGroups
-        ..clear()
-        ..addAll(storedGroups);
-      _restorePendingAdverts(
-        storedPendingAdverts,
-        devicePublicKey: devicePublicKey,
-      );
-      debugPrint(
-        '✅ [ContactsProvider] Loaded ${storedContacts.length} persisted contacts and ${storedGroups.length} groups',
-      );
-
-      // Ensure public channel exists after loading
-      _ensurePublicChannelExists();
-
-      notifyListeners();
-    } catch (e) {
-      debugPrint('❌ [ContactsProvider] Error initializing: $e');
-      _isInitialized = true; // Mark as initialized even on error
-      _ensurePublicChannelExists();
+    await _loadFromStorage(force: true, devicePublicKey: devicePublicKey);
+    if (devicePublicKey != null) {
+      _removeSelfContact(devicePublicKey);
     }
   }
 
@@ -287,7 +310,10 @@ class ContactsProvider with ChangeNotifier {
     try {
       while (_persistRequested) {
         _persistRequested = false;
-        await _storageService.saveContacts(_contactsForStorage());
+        await _storageService.saveContacts(
+          _contactsForStorage(),
+          namespace: _storageNamespace,
+        );
       }
     } catch (e) {
       debugPrint('❌ [ContactsProvider] Error persisting contacts: $e');
@@ -305,6 +331,7 @@ class ContactsProvider with ChangeNotifier {
         _persistPendingAdvertsRequested = false;
         await _storageService.savePendingAdverts(
           _pendingAdverts.values.map(_pendingAdvertToJson).toList(),
+          namespace: _storageNamespace,
         );
       }
     } catch (e) {
@@ -436,7 +463,10 @@ class ContactsProvider with ChangeNotifier {
 
   Future<void> _persistSavedGroups() async {
     try {
-      await _storageService.saveContactGroups(_savedContactGroups);
+      await _storageService.saveContactGroups(
+        _savedContactGroups,
+        namespace: _storageNamespace,
+      );
     } catch (e) {
       debugPrint('❌ [ContactsProvider] Error persisting contact groups: $e');
     }
@@ -1442,11 +1472,7 @@ class ContactsProvider with ChangeNotifier {
 
   /// Get storage statistics
   Future<Map<String, dynamic>> getStorageStats() async {
-    return await _storageService.getStorageStats();
-  }
-
-  Future<void> persistNow() async {
-    await _storageService.saveContacts(_contactsForStorage());
+    return await _storageService.getStorageStats(namespace: _storageNamespace);
   }
 
   Future<void> clearPendingAdverts() async {
@@ -1454,7 +1480,7 @@ class ContactsProvider with ChangeNotifier {
       return;
     }
     _pendingAdverts.clear();
-    await _storageService.clearPendingAdverts();
+    await _storageService.clearPendingAdverts(namespace: _storageNamespace);
     notifyListeners();
   }
 
@@ -1515,6 +1541,12 @@ class ContactsProvider with ChangeNotifier {
       }
       _pendingAdverts[advert.publicKeyHex] = advert;
     }
+  }
+
+  void _resetInMemoryState() {
+    _contacts.clear();
+    _savedContactGroups.clear();
+    _pendingAdverts.clear();
   }
 
   Map<String, dynamic> _pendingAdvertToJson(PendingAdvert advert) {

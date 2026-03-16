@@ -16,6 +16,7 @@ import '../models/location_trail.dart';
 import '../models/map_coordinate_space.dart';
 import '../models/map_drawing.dart';
 import '../models/sar_marker.dart';
+import '../services/profiles_feature_service.dart';
 import '../utils/custom_map_id.dart';
 
 class MapProvider with ChangeNotifier {
@@ -104,6 +105,10 @@ class MapProvider with ChangeNotifier {
   bool get shouldHideGpsData => isUsingCustomMap;
 
   LatLngBounds? get customMapBounds => _customMapConfig?.bounds;
+
+  Future<void> reloadProfileScopedState() async {
+    await _loadInitialState();
+  }
 
   bool matchesActiveCustomMap(String? mapId) {
     return hasCustomMap &&
@@ -522,27 +527,29 @@ class MapProvider with ChangeNotifier {
   Future<void> loadOverlayState() async {
     final prefs = await SharedPreferences.getInstance();
     _showCadastralOverlay =
-        prefs.getBool('map_show_cadastral_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_cadastral_overlay')) ?? false;
     _showForestRoadsOverlay =
-        prefs.getBool('map_show_forest_roads_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_forest_roads_overlay')) ?? false;
     _showHikingTrailsOverlay =
-        prefs.getBool('map_show_hiking_trails_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_hiking_trails_overlay')) ?? false;
     _showMainRoadsOverlay =
-        prefs.getBool('map_show_main_roads_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_main_roads_overlay')) ?? false;
     _showHouseNumbersOverlay =
-        prefs.getBool('map_show_house_numbers_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_house_numbers_overlay')) ?? false;
     _showFireHazardZonesOverlay =
-        prefs.getBool('map_show_fire_hazard_zones_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_fire_hazard_zones_overlay')) ??
+        false;
     _showHistoricalFiresOverlay =
-        prefs.getBool('map_show_historical_fires_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_historical_fires_overlay')) ?? false;
     _showFirebreaksOverlay =
-        prefs.getBool('map_show_firebreaks_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_firebreaks_overlay')) ?? false;
     _showKrasFireZonesOverlay =
-        prefs.getBool('map_show_kras_fire_zones_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_kras_fire_zones_overlay')) ?? false;
     _showPlaceNamesOverlay =
-        prefs.getBool('map_show_place_names_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_place_names_overlay')) ?? false;
     _showMunicipalityBordersOverlay =
-        prefs.getBool('map_show_municipality_borders_overlay') ?? false;
+        prefs.getBool(_scopedKey('map_show_municipality_borders_overlay')) ??
+        false;
     notifyListeners();
   }
 
@@ -557,36 +564,48 @@ class MapProvider with ChangeNotifier {
 
   Future<void> _saveOverlayState() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('map_show_cadastral_overlay', _showCadastralOverlay);
     await prefs.setBool(
-      'map_show_forest_roads_overlay',
+      _scopedKey('map_show_cadastral_overlay'),
+      _showCadastralOverlay,
+    );
+    await prefs.setBool(
+      _scopedKey('map_show_forest_roads_overlay'),
       _showForestRoadsOverlay,
     );
     await prefs.setBool(
-      'map_show_hiking_trails_overlay',
+      _scopedKey('map_show_hiking_trails_overlay'),
       _showHikingTrailsOverlay,
     );
-    await prefs.setBool('map_show_main_roads_overlay', _showMainRoadsOverlay);
     await prefs.setBool(
-      'map_show_house_numbers_overlay',
+      _scopedKey('map_show_main_roads_overlay'),
+      _showMainRoadsOverlay,
+    );
+    await prefs.setBool(
+      _scopedKey('map_show_house_numbers_overlay'),
       _showHouseNumbersOverlay,
     );
     await prefs.setBool(
-      'map_show_fire_hazard_zones_overlay',
+      _scopedKey('map_show_fire_hazard_zones_overlay'),
       _showFireHazardZonesOverlay,
     );
     await prefs.setBool(
-      'map_show_historical_fires_overlay',
+      _scopedKey('map_show_historical_fires_overlay'),
       _showHistoricalFiresOverlay,
     );
-    await prefs.setBool('map_show_firebreaks_overlay', _showFirebreaksOverlay);
     await prefs.setBool(
-      'map_show_kras_fire_zones_overlay',
+      _scopedKey('map_show_firebreaks_overlay'),
+      _showFirebreaksOverlay,
+    );
+    await prefs.setBool(
+      _scopedKey('map_show_kras_fire_zones_overlay'),
       _showKrasFireZonesOverlay,
     );
-    await prefs.setBool('map_show_place_names_overlay', _showPlaceNamesOverlay);
     await prefs.setBool(
-      'map_show_municipality_borders_overlay',
+      _scopedKey('map_show_place_names_overlay'),
+      _showPlaceNamesOverlay,
+    );
+    await prefs.setBool(
+      _scopedKey('map_show_municipality_borders_overlay'),
       _showMunicipalityBordersOverlay,
     );
   }
@@ -600,13 +619,16 @@ class MapProvider with ChangeNotifier {
   Future<void> loadTrailSettings() async {
     final prefs = await SharedPreferences.getInstance();
     _showAllContactTrails =
-        prefs.getBool('map_show_all_contact_trails') ?? true;
+        prefs.getBool(_scopedKey('map_show_all_contact_trails')) ?? true;
     notifyListeners();
   }
 
   Future<void> _saveTrailSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('map_show_all_contact_trails', _showAllContactTrails);
+    await prefs.setBool(
+      _scopedKey('map_show_all_contact_trails'),
+      _showAllContactTrails,
+    );
   }
 
   Future<void> setHideRepeatersOnMap(bool hide) async {
@@ -614,12 +636,13 @@ class MapProvider with ChangeNotifier {
     _hideRepeatersOnMap = hide;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('map_hide_repeaters', _hideRepeatersOnMap);
+    await prefs.setBool(_scopedKey('map_hide_repeaters'), _hideRepeatersOnMap);
   }
 
   Future<void> loadRepeaterVisibilitySettings() async {
     final prefs = await SharedPreferences.getInstance();
-    _hideRepeatersOnMap = prefs.getBool('map_hide_repeaters') ?? false;
+    _hideRepeatersOnMap =
+        prefs.getBool(_scopedKey('map_hide_repeaters')) ?? false;
     notifyListeners();
   }
 
@@ -661,7 +684,7 @@ class MapProvider with ChangeNotifier {
 
   Future<void> _loadCustomMapState() async {
     final prefs = await SharedPreferences.getInstance();
-    final configJson = prefs.getString(_customMapConfigKey);
+    final configJson = prefs.getString(_scopedKey(_customMapConfigKey));
     if (configJson != null && configJson.isNotEmpty) {
       final decoded = jsonDecode(configJson);
       if (decoded is Map<String, dynamic>) {
@@ -672,23 +695,26 @@ class MapProvider with ChangeNotifier {
           _customMapConfig = null;
         }
       }
+    } else {
+      _customMapConfig = null;
     }
     _isUsingCustomMap =
-        (prefs.getBool(_customMapModeKey) ?? false) && _customMapConfig != null;
+        (prefs.getBool(_scopedKey(_customMapModeKey)) ?? false) &&
+        _customMapConfig != null;
     notifyListeners();
   }
 
   Future<void> _saveCustomMapState() async {
     final prefs = await SharedPreferences.getInstance();
     if (_customMapConfig == null) {
-      await prefs.remove(_customMapConfigKey);
+      await prefs.remove(_scopedKey(_customMapConfigKey));
     } else {
       await prefs.setString(
-        _customMapConfigKey,
+        _scopedKey(_customMapConfigKey),
         jsonEncode(_customMapConfig!.toJson()),
       );
     }
-    await prefs.setBool(_customMapModeKey, _isUsingCustomMap);
+    await prefs.setBool(_scopedKey(_customMapModeKey), _isUsingCustomMap);
   }
 
   Future<(int, int)> _decodeImageSize(Uint8List bytes) async {
@@ -710,5 +736,68 @@ class MapProvider with ChangeNotifier {
     if (await file.exists()) {
       await file.delete();
     }
+  }
+
+  Map<String, dynamic> exportWorkspaceJson() {
+    return {
+      'currentTrail': _currentTrail?.toJson(),
+      'trailHistory': _trailHistory.map((trail) => trail.toJson()).toList(),
+      'importedTrail': _importedTrail?.toJson(),
+      'isTrailVisible': _isTrailVisible,
+      'showCadastralOverlay': _showCadastralOverlay,
+      'showForestRoadsOverlay': _showForestRoadsOverlay,
+      'showHikingTrailsOverlay': _showHikingTrailsOverlay,
+      'showMainRoadsOverlay': _showMainRoadsOverlay,
+      'showHouseNumbersOverlay': _showHouseNumbersOverlay,
+      'showFireHazardZonesOverlay': _showFireHazardZonesOverlay,
+      'showHistoricalFiresOverlay': _showHistoricalFiresOverlay,
+      'showFirebreaksOverlay': _showFirebreaksOverlay,
+      'showKrasFireZonesOverlay': _showKrasFireZonesOverlay,
+      'showPlaceNamesOverlay': _showPlaceNamesOverlay,
+      'showMunicipalityBordersOverlay': _showMunicipalityBordersOverlay,
+      'showAllContactTrails': _showAllContactTrails,
+      'hideRepeatersOnMap': _hideRepeatersOnMap,
+    };
+  }
+
+  void applyWorkspaceJson(Map<String, dynamic> json) {
+    _currentTrail = json['currentTrail'] is Map<String, dynamic>
+        ? LocationTrail.fromJson(json['currentTrail'] as Map<String, dynamic>)
+        : null;
+    _trailHistory
+      ..clear()
+      ..addAll(
+        (json['trailHistory'] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(LocationTrail.fromJson),
+      );
+    _importedTrail = json['importedTrail'] is Map<String, dynamic>
+        ? LocationTrail.fromJson(json['importedTrail'] as Map<String, dynamic>)
+        : null;
+    _isTrailVisible = json['isTrailVisible'] as bool? ?? true;
+    _showCadastralOverlay = json['showCadastralOverlay'] as bool? ?? false;
+    _showForestRoadsOverlay = json['showForestRoadsOverlay'] as bool? ?? false;
+    _showHikingTrailsOverlay =
+        json['showHikingTrailsOverlay'] as bool? ?? false;
+    _showMainRoadsOverlay = json['showMainRoadsOverlay'] as bool? ?? false;
+    _showHouseNumbersOverlay =
+        json['showHouseNumbersOverlay'] as bool? ?? false;
+    _showFireHazardZonesOverlay =
+        json['showFireHazardZonesOverlay'] as bool? ?? false;
+    _showHistoricalFiresOverlay =
+        json['showHistoricalFiresOverlay'] as bool? ?? false;
+    _showFirebreaksOverlay = json['showFirebreaksOverlay'] as bool? ?? false;
+    _showKrasFireZonesOverlay =
+        json['showKrasFireZonesOverlay'] as bool? ?? false;
+    _showPlaceNamesOverlay = json['showPlaceNamesOverlay'] as bool? ?? false;
+    _showMunicipalityBordersOverlay =
+        json['showMunicipalityBordersOverlay'] as bool? ?? false;
+    _showAllContactTrails = json['showAllContactTrails'] as bool? ?? true;
+    _hideRepeatersOnMap = json['hideRepeatersOnMap'] as bool? ?? false;
+    notifyListeners();
+  }
+
+  String _scopedKey(String baseKey) {
+    return ProfileStorageScope.scopedKey(baseKey);
   }
 }

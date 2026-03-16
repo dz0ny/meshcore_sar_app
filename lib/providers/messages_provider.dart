@@ -37,6 +37,7 @@ class MessagesProvider with ChangeNotifier {
   final Map<String, MessageReceptionDetails> _messageReceptionDetails = {};
   final Map<String, MessageTransferDetails> _messageTransferDetails = {};
   final Map<String, MessageRouteMetadata> _messageRouteMetadata = {};
+  String? _storageNamespace;
 
   // Track pending sent messages by expected ACK/TAG
   final Map<int, Message> _pendingSentMessages = {};
@@ -149,6 +150,7 @@ class MessagesProvider with ChangeNotifier {
       sarMarkers.where((m) => m.type == SarMarkerType.object).toList();
 
   bool get isInitialized => _isInitialized;
+  String? get storageNamespace => _storageNamespace;
 
   String? get targetMessageId => _targetMessageId;
 
@@ -311,19 +313,64 @@ class MessagesProvider with ChangeNotifier {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
+    await _loadFromStorage();
+  }
+
+  Future<void> reloadFromStorage({String? namespace}) async {
+    _storageNamespace = namespace;
+    await _loadFromStorage(force: true);
+  }
+
+  Future<void> persistNow() async {
+    await _storageService.saveMessages(
+      _messages,
+      messageContactLocations: _messageContactLocations,
+      messageReceptionDetails: _messageReceptionDetails,
+      messageTransferDetails: _messageTransferDetails,
+      messageRouteMetadata: _messageRouteMetadata,
+      namespace: _storageNamespace,
+    );
+    await _storageService.saveRemovedSarMarkerIds(
+      _removedSarMarkerIds,
+      namespace: _storageNamespace,
+    );
+  }
+
+  Future<void> cloneCurrentStorageTo(String? namespace) async {
+    await _storageService.saveMessages(
+      _messages,
+      messageContactLocations: _messageContactLocations,
+      messageReceptionDetails: _messageReceptionDetails,
+      messageTransferDetails: _messageTransferDetails,
+      messageRouteMetadata: _messageRouteMetadata,
+      namespace: namespace,
+    );
+    await _storageService.saveRemovedSarMarkerIds(
+      _removedSarMarkerIds,
+      namespace: namespace,
+    );
+  }
+
+  Future<void> _loadFromStorage({bool force = false}) async {
+    if (_isInitialized && !force) return;
+
     try {
+      _cancelAllTimers();
+      _resetInMemoryState();
       debugPrint('📦 [MessagesProvider] Loading persisted messages...');
-      final storedMessages = await _storageService.loadMessages();
+      final storedMessages = await _storageService.loadMessages(
+        namespace: _storageNamespace,
+      );
       final storedContactLocations = await _storageService
-          .loadMessageContactLocations();
+          .loadMessageContactLocations(namespace: _storageNamespace);
       final storedReceptionDetails = await _storageService
-          .loadMessageReceptionDetails();
+          .loadMessageReceptionDetails(namespace: _storageNamespace);
       final storedTransferDetails = await _storageService
-          .loadMessageTransferDetails();
+          .loadMessageTransferDetails(namespace: _storageNamespace);
       final storedRouteMetadata = await _storageService
-          .loadMessageRouteMetadata();
+          .loadMessageRouteMetadata(namespace: _storageNamespace);
       final storedRemovedSarMarkerIds = await _storageService
-          .loadRemovedSarMarkerIds();
+          .loadRemovedSarMarkerIds(namespace: _storageNamespace);
       _messageContactLocations
         ..clear()
         ..addAll(storedContactLocations);
@@ -1051,6 +1098,7 @@ class MessagesProvider with ChangeNotifier {
           messageReceptionDetails: _messageReceptionDetails,
           messageTransferDetails: _messageTransferDetails,
           messageRouteMetadata: _messageRouteMetadata,
+          namespace: _storageNamespace,
         );
       }
     } catch (e) {
@@ -1199,7 +1247,10 @@ class MessagesProvider with ChangeNotifier {
   Future<void> removeSarMarker(String id) async {
     _sarMarkers.remove(id);
     _removedSarMarkerIds.add(id);
-    await _storageService.saveRemovedSarMarkerIds(_removedSarMarkerIds);
+    await _storageService.saveRemovedSarMarkerIds(
+      _removedSarMarkerIds,
+      namespace: _storageNamespace,
+    );
     notifyListeners();
   }
 
@@ -1324,7 +1375,12 @@ class MessagesProvider with ChangeNotifier {
       debugPrint('🗑️ [MessagesProvider] Message $messageId deleted');
 
       _persistMessages();
-      unawaited(_storageService.saveRemovedSarMarkerIds(_removedSarMarkerIds));
+      unawaited(
+        _storageService.saveRemovedSarMarkerIds(
+          _removedSarMarkerIds,
+          namespace: _storageNamespace,
+        ),
+      );
       notifyListeners();
     }
   }
@@ -1348,23 +1404,15 @@ class MessagesProvider with ChangeNotifier {
   /// Clear all messages
   void clearMessages() {
     _cancelAllTimers();
-    _messages.clear();
-    _sarMarkers.clear();
-    _removedSarMarkerIds.clear();
-    _messageContactLocations.clear();
-    _messageReceptionDetails.clear();
-    _messageTransferDetails.clear();
-    _messageRouteMetadata.clear();
-    _pendingSentMessages.clear();
-    _messageContactMap.clear();
-    _groupedMessageMapping.clear();
-    _ackTagToRecipients.clear();
-    _messageAckHistory.clear();
-    _ackHistoryLookup.clear();
-    _completedAckHistory.clear();
+    _resetInMemoryState();
     _retryManager.clearAll();
     _persistMessages();
-    unawaited(_storageService.saveRemovedSarMarkerIds(_removedSarMarkerIds));
+    unawaited(
+      _storageService.saveRemovedSarMarkerIds(
+        _removedSarMarkerIds,
+        namespace: _storageNamespace,
+      ),
+    );
     notifyListeners();
   }
 
@@ -1372,13 +1420,29 @@ class MessagesProvider with ChangeNotifier {
   Future<void> clearSarMarkers() async {
     _removedSarMarkerIds.addAll(_sarMarkers.keys);
     _sarMarkers.clear();
-    await _storageService.saveRemovedSarMarkerIds(_removedSarMarkerIds);
+    await _storageService.saveRemovedSarMarkerIds(
+      _removedSarMarkerIds,
+      namespace: _storageNamespace,
+    );
     notifyListeners();
   }
 
   /// Clear all data
   void clearAll() {
     _cancelAllTimers();
+    _resetInMemoryState();
+    _retryManager.clearAll();
+    _persistMessages();
+    unawaited(
+      _storageService.saveRemovedSarMarkerIds(
+        _removedSarMarkerIds,
+        namespace: _storageNamespace,
+      ),
+    );
+    notifyListeners();
+  }
+
+  void _resetInMemoryState() {
     _messages.clear();
     _sarMarkers.clear();
     _removedSarMarkerIds.clear();
@@ -1393,10 +1457,6 @@ class MessagesProvider with ChangeNotifier {
     _messageAckHistory.clear();
     _ackHistoryLookup.clear();
     _completedAckHistory.clear();
-    _retryManager.clearAll();
-    _persistMessages();
-    unawaited(_storageService.saveRemovedSarMarkerIds(_removedSarMarkerIds));
-    notifyListeners();
   }
 
   int transferCountForSession({

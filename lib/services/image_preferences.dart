@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'profiles_feature_service.dart';
 
 /// Stores user-selected image compression settings.
 class ImagePreferences {
@@ -17,44 +18,53 @@ class ImagePreferences {
 
   static Future<int> getMaxSize() async {
     final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getInt(_maxSizeKey) ?? defaultMaxSize;
+    final value =
+        prefs.getInt(ProfileStorageScope.scopedKey(_maxSizeKey)) ??
+        defaultMaxSize;
     return supportedSizes.contains(value) ? value : defaultMaxSize;
   }
 
   static Future<void> setMaxSize(int size) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_maxSizeKey, size);
+    await prefs.setInt(ProfileStorageScope.scopedKey(_maxSizeKey), size);
   }
 
   static Future<int> getCompression() async {
     final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getInt(_qualityKey) ?? defaultQuality;
+    final value =
+        prefs.getInt(ProfileStorageScope.scopedKey(_qualityKey)) ??
+        defaultQuality;
     return value.clamp(10, 90);
   }
 
   static Future<void> setCompression(int compression) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_qualityKey, compression.clamp(10, 90));
+    await prefs.setInt(
+      ProfileStorageScope.scopedKey(_qualityKey),
+      compression.clamp(10, 90),
+    );
   }
 
   static Future<bool> getGrayscale() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_grayscaleKey) ?? defaultGrayscale;
+    return prefs.getBool(ProfileStorageScope.scopedKey(_grayscaleKey)) ??
+        defaultGrayscale;
   }
 
   static Future<void> setGrayscale(bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_grayscaleKey, value);
+    await prefs.setBool(ProfileStorageScope.scopedKey(_grayscaleKey), value);
   }
 
   static Future<bool> getUltraMode() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_ultraModeKey) ?? defaultUltraMode;
+    return prefs.getBool(ProfileStorageScope.scopedKey(_ultraModeKey)) ??
+        defaultUltraMode;
   }
 
   static Future<void> setUltraMode(bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_ultraModeKey, value);
+    await prefs.setBool(ProfileStorageScope.scopedKey(_ultraModeKey), value);
   }
 
   static int effectiveMaxSize(

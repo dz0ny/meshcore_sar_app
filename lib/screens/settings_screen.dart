@@ -16,6 +16,7 @@ import '../providers/app_provider.dart';
 import '../providers/connection_provider.dart';
 import '../providers/drawing_provider.dart';
 import '../providers/map_provider.dart';
+import '../models/config_profile.dart';
 import '../services/location_tracking_service.dart';
 import '../services/locale_preferences.dart';
 import '../services/mesh_map_nodes_service.dart';
@@ -26,6 +27,9 @@ import '../services/route_hash_preferences.dart';
 import '../services/image_codec_service.dart';
 import '../services/developer_mode_service.dart';
 import '../services/notification_service.dart';
+import '../services/profile_manager.dart';
+import '../services/profile_workspace_coordinator.dart';
+import '../services/profiles_feature_service.dart';
 import '../utils/sample_data_generator.dart';
 import '../utils/image_message_parser.dart';
 import '../utils/voice_message_parser.dart';
@@ -33,6 +37,7 @@ import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/update_dialog.dart';
 import 'sar_template_management_screen.dart';
+import 'profiles_screen.dart';
 import 'welcome_wizard_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -83,6 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _updateNotificationsEnabled = true;
   bool _muteForegroundNotifications = true;
   bool _isDeveloperModeEnabled = false;
+  bool _profilesEnabled = false;
   DateTime? _onlineTraceCacheUpdatedAt;
   bool _isClearingOnlineTraceCache = false;
   int _versionTapCount = 0;
@@ -102,6 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadImagePreferences();
     _loadFastLocationSettings();
     _loadDeveloperMode();
+    _loadProfilesEnabled();
     _loadOnlineTraceCacheStatus();
     _loadMapPreferences();
     _loadNotificationPreferences();
@@ -129,7 +136,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
       setState(() {
-        _showRxTxIndicators = prefs.getBool('show_rx_tx_indicators') ?? true;
+        _showRxTxIndicators =
+            prefs.getBool(
+              ProfileStorageScope.scopedKey('show_rx_tx_indicators'),
+            ) ??
+            true;
       });
     }
   }
@@ -139,6 +150,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     setState(() {
       _isDeveloperModeEnabled = isEnabled;
+    });
+  }
+
+  Future<void> _loadProfilesEnabled() async {
+    final isEnabled = await ProfilesFeatureService.isEnabled();
+    if (!mounted) return;
+    setState(() {
+      _profilesEnabled = isEnabled;
     });
   }
 
@@ -199,22 +218,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _saveRxTxPreference(bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('show_rx_tx_indicators', value);
+    await prefs.setBool(
+      ProfileStorageScope.scopedKey('show_rx_tx_indicators'),
+      value,
+    );
   }
 
   Future<void> _loadMapPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
-      _rotateMapWithHeading = prefs.getBool('map_rotate_with_heading') ?? false;
-      _showMapDebugInfo = prefs.getBool('map_show_debug_info') ?? false;
-      _openMapInFullscreen = prefs.getBool('map_fullscreen') ?? false;
+      _rotateMapWithHeading =
+          prefs.getBool(
+            ProfileStorageScope.scopedKey('map_rotate_with_heading'),
+          ) ??
+          false;
+      _showMapDebugInfo =
+          prefs.getBool(ProfileStorageScope.scopedKey('map_show_debug_info')) ??
+          false;
+      _openMapInFullscreen =
+          prefs.getBool(ProfileStorageScope.scopedKey('map_fullscreen')) ??
+          false;
     });
   }
 
   Future<void> _saveMapPreference(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
+    await prefs.setBool(ProfileStorageScope.scopedKey(key), value);
   }
 
   Future<void> _loadVoicePreferences() async {
@@ -487,7 +517,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Load settings and restore tracking state
         final prefs = await SharedPreferences.getInstance();
         final wasTracking =
-            prefs.getBool('background_tracking_enabled') ?? false;
+            prefs.getBool(
+              ProfileStorageScope.scopedKey('background_tracking_enabled'),
+            ) ??
+            false;
 
         if (wasTracking) {
           await _startBackgroundTracking();
@@ -1518,6 +1551,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
             builder: (context, connectionProvider, child) =>
                 _buildImageModePreviewCard(connectionProvider),
           ),
+          _buildSectionHeader('Profiles'),
+          _buildSettingsCard([
+            SwitchListTile(
+              secondary: const Icon(Icons.layers_outlined),
+              title: const Text('Enable Profiles'),
+              subtitle: const Text(
+                'Show profile management UI while keeping the hidden Default profile as the current workspace.',
+              ),
+              value: _profilesEnabled,
+              onChanged: (value) async {
+                await context
+                    .read<ProfileWorkspaceCoordinator>()
+                    .setProfilesEnabled(value);
+                if (!mounted) return;
+                setState(() {
+                  _profilesEnabled = value;
+                });
+              },
+            ),
+            if (_profilesEnabled)
+              ListTile(
+                leading: const Icon(Icons.folder_copy_outlined),
+                title: const Text('Manage profiles'),
+                subtitle: Text(
+                  context.watch<ProfileManager>().activeProfileId ==
+                          ConfigProfile.defaultProfileId
+                      ? 'Default is active'
+                      : 'Custom profile active',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfilesScreen(),
+                    ),
+                  );
+                },
+              ),
+          ]),
           _buildSectionHeader('Templates & Help'),
           _buildSettingsCard([
             ListTile(

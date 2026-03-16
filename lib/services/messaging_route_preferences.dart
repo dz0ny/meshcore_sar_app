@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'profiles_feature_service.dart';
 
 class MessagingRoutePreferences {
   static const bool defaultAutoRouteRotationEnabled = false;
@@ -14,33 +15,49 @@ class MessagingRoutePreferences {
 
   static Future<bool> getAutoRouteRotationEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_autoRouteRotationKey) ??
+    return prefs.getBool(
+          ProfileStorageScope.scopedKey(_autoRouteRotationKey),
+        ) ??
         defaultAutoRouteRotationEnabled;
   }
 
   static Future<void> setAutoRouteRotationEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_autoRouteRotationKey, enabled);
+    await prefs.setBool(
+      ProfileStorageScope.scopedKey(_autoRouteRotationKey),
+      enabled,
+    );
   }
 
   static Future<bool> getClearPathOnMaxRetry() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_clearPathOnMaxRetryKey) ?? defaultClearPathOnMaxRetry;
+    return prefs.getBool(
+          ProfileStorageScope.scopedKey(_clearPathOnMaxRetryKey),
+        ) ??
+        defaultClearPathOnMaxRetry;
   }
 
   static Future<void> setClearPathOnMaxRetry(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_clearPathOnMaxRetryKey, enabled);
+    await prefs.setBool(
+      ProfileStorageScope.scopedKey(_clearPathOnMaxRetryKey),
+      enabled,
+    );
   }
 
   static Future<bool> getNearestRelayFallbackEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_nearestRelayFallbackKey) ??
+    return prefs.getBool(
+          ProfileStorageScope.scopedKey(_nearestRelayFallbackKey),
+        ) ??
         defaultNearestRelayFallbackEnabled;
   }
 
   static Future<void> setNearestRelayFallbackEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_nearestRelayFallbackKey, enabled);
+    await prefs.setBool(
+      ProfileStorageScope.scopedKey(_nearestRelayFallbackKey),
+      enabled,
+    );
   }
 }

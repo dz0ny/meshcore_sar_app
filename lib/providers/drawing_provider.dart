@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/map_drawing.dart';
 import '../models/map_coordinate_space.dart';
+import '../services/profiles_feature_service.dart';
 import '../utils/drawing_message_parser.dart';
 
 /// Drawing mode state
@@ -85,6 +86,12 @@ class DrawingProvider with ChangeNotifier {
     _isInitialized = true;
   }
 
+  Future<void> reloadProfileScopedState() async {
+    await _loadPreferences();
+    await _loadDrawings();
+    notifyListeners();
+  }
+
   void setMapContext({
     required MapCoordinateSpace coordinateSpace,
     String? mapId,
@@ -140,15 +147,19 @@ class DrawingProvider with ChangeNotifier {
 
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    _showReceivedDrawings = prefs.getBool(_showReceivedDrawingsKey) ?? true;
-    _showSarMarkers = prefs.getBool(_showSarMarkersKey) ?? true;
+    _showReceivedDrawings =
+        prefs.getBool(_scopedKey(_showReceivedDrawingsKey)) ?? true;
+    _showSarMarkers = prefs.getBool(_scopedKey(_showSarMarkersKey)) ?? true;
     notifyListeners();
   }
 
   Future<void> _savePreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_showReceivedDrawingsKey, _showReceivedDrawings);
-    await prefs.setBool(_showSarMarkersKey, _showSarMarkers);
+    await prefs.setBool(
+      _scopedKey(_showReceivedDrawingsKey),
+      _showReceivedDrawings,
+    );
+    await prefs.setBool(_scopedKey(_showSarMarkersKey), _showSarMarkers);
   }
 
   /// Start drawing a line
@@ -365,7 +376,7 @@ class DrawingProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _drawings.map((d) => d.toJson()).toList();
       final jsonString = jsonEncode(jsonList);
-      await prefs.setString(_storageKey, jsonString);
+      await prefs.setString(_scopedKey(_storageKey), jsonString);
     } catch (e) {
       debugPrint('Error saving drawings: $e');
     }
@@ -375,8 +386,11 @@ class DrawingProvider with ChangeNotifier {
   Future<void> _loadDrawings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_storageKey);
-      if (jsonString == null) return;
+      final jsonString = prefs.getString(_scopedKey(_storageKey));
+      if (jsonString == null || jsonString.isEmpty) {
+        _drawings.clear();
+        return;
+      }
 
       final jsonList = jsonDecode(jsonString) as List<dynamic>;
       _drawings.clear();
@@ -473,6 +487,24 @@ class DrawingProvider with ChangeNotifier {
     } catch (e) {
       return null;
     }
+  }
+
+  List<Map<String, dynamic>> exportDrawingsJson() {
+    return _drawings.map((drawing) => drawing.toJson()).toList();
+  }
+
+  Future<void> replaceDrawingsFromJson(
+    List<Map<String, dynamic>> jsonList,
+  ) async {
+    _drawings
+      ..clear()
+      ..addAll(jsonList.map(MapDrawing.fromJson).whereType<MapDrawing>());
+    await _saveDrawings();
+    notifyListeners();
+  }
+
+  String _scopedKey(String baseKey) {
+    return ProfileStorageScope.scopedKey(baseKey);
   }
 
   /// Get all unshared drawings (local drawings not yet sent)

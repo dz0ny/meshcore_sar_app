@@ -28,6 +28,7 @@ import '../services/location_tracking_service.dart';
 import '../services/map_marker_service.dart';
 import '../services/message_destination_preferences.dart';
 import '../services/trail_color_service.dart';
+import '../services/profiles_feature_service.dart';
 import '../widgets/map_debug_info.dart';
 import '../widgets/map/compass_widget.dart';
 import '../widgets/map/detailed_compass_dialog.dart';
@@ -244,25 +245,49 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
       // Load last map position if available
-      final lastLat = prefs.getDouble('map_last_latitude');
-      final lastLon = prefs.getDouble('map_last_longitude');
-      final lastZoom = prefs.getDouble('map_last_zoom');
+      final lastLat = prefs.getDouble(
+        ProfileStorageScope.scopedKey('map_last_latitude'),
+      );
+      final lastLon = prefs.getDouble(
+        ProfileStorageScope.scopedKey('map_last_longitude'),
+      );
+      final lastZoom = prefs.getDouble(
+        ProfileStorageScope.scopedKey('map_last_zoom'),
+      );
 
       // Load last map layer
-      final lastLayerType = prefs.getInt('map_last_layer_type');
+      final lastLayerType = prefs.getInt(
+        ProfileStorageScope.scopedKey('map_last_layer_type'),
+      );
       setState(() {
         _rotateMarkerWithHeading =
-            prefs.getBool('map_rotate_with_heading') ?? false;
-        _showMapDebugInfo = prefs.getBool('map_show_debug_info') ?? false;
-        _isFullscreen = prefs.getBool('map_fullscreen') ?? false;
+            prefs.getBool(
+              ProfileStorageScope.scopedKey('map_rotate_with_heading'),
+            ) ??
+            false;
+        _showMapDebugInfo =
+            prefs.getBool(
+              ProfileStorageScope.scopedKey('map_show_debug_info'),
+            ) ??
+            false;
+        _isFullscreen =
+            prefs.getBool(ProfileStorageScope.scopedKey('map_fullscreen')) ??
+            false;
 
         // Notify parent about initial fullscreen state
         WidgetsBinding.instance.addPostFrameCallback((_) {
           widget.onFullscreenChanged?.call(_isFullscreen);
         });
-        _gpsUpdateDistance = prefs.getDouble('map_gps_update_distance') ?? 3.0;
+        _gpsUpdateDistance =
+            prefs.getDouble(
+              ProfileStorageScope.scopedKey('map_gps_update_distance'),
+            ) ??
+            3.0;
         _backgroundTrackingEnabled =
-            prefs.getBool('background_tracking_enabled') ?? false;
+            prefs.getBool(
+              ProfileStorageScope.scopedKey('background_tracking_enabled'),
+            ) ??
+            false;
 
         // Store saved position for use in build
         if (lastLat != null && lastLon != null && lastZoom != null) {
@@ -298,18 +323,33 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('map_rotate_with_heading', _rotateMarkerWithHeading);
-    await prefs.setBool('map_show_debug_info', _showMapDebugInfo);
-    await prefs.setBool('map_fullscreen', _isFullscreen);
-    await prefs.setDouble('map_gps_update_distance', _gpsUpdateDistance);
     await prefs.setBool(
-      'background_tracking_enabled',
+      ProfileStorageScope.scopedKey('map_rotate_with_heading'),
+      _rotateMarkerWithHeading,
+    );
+    await prefs.setBool(
+      ProfileStorageScope.scopedKey('map_show_debug_info'),
+      _showMapDebugInfo,
+    );
+    await prefs.setBool(
+      ProfileStorageScope.scopedKey('map_fullscreen'),
+      _isFullscreen,
+    );
+    await prefs.setDouble(
+      ProfileStorageScope.scopedKey('map_gps_update_distance'),
+      _gpsUpdateDistance,
+    );
+    await prefs.setBool(
+      ProfileStorageScope.scopedKey('background_tracking_enabled'),
       _backgroundTrackingEnabled,
     );
 
     // Save layer type.
-    await prefs.setInt('map_last_layer_type', _currentLayer.type.index);
-    await prefs.remove('map_last_layer_name');
+    await prefs.setInt(
+      ProfileStorageScope.scopedKey('map_last_layer_type'),
+      _currentLayer.type.index,
+    );
+    await prefs.remove(ProfileStorageScope.scopedKey('map_last_layer_name'));
   }
 
   Future<void> _saveMapPosition() async {
@@ -318,9 +358,18 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     try {
       final prefs = await SharedPreferences.getInstance();
       final camera = _mapController.camera;
-      await prefs.setDouble('map_last_latitude', camera.center.latitude);
-      await prefs.setDouble('map_last_longitude', camera.center.longitude);
-      await prefs.setDouble('map_last_zoom', camera.zoom);
+      await prefs.setDouble(
+        ProfileStorageScope.scopedKey('map_last_latitude'),
+        camera.center.latitude,
+      );
+      await prefs.setDouble(
+        ProfileStorageScope.scopedKey('map_last_longitude'),
+        camera.center.longitude,
+      );
+      await prefs.setDouble(
+        ProfileStorageScope.scopedKey('map_last_zoom'),
+        camera.zoom,
+      );
     } catch (e) {
       debugPrint('Error saving map position: $e');
     }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/contact.dart';
 import '../models/contact_group.dart';
+import 'profiles_feature_service.dart';
 import '../utils/key_comparison.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -14,8 +15,12 @@ class ContactStorageService {
   static const int _maxStoredContacts = 500; // Store up to 500 contacts
   static const int _maxStoredPendingAdverts = 500;
 
+  String _key(String baseKey, {String? namespace}) {
+    return ProfileStorageScope.scopedKey(baseKey, namespace: namespace);
+  }
+
   /// Save contacts to persistent storage
-  Future<void> saveContacts(List<Contact> contacts) async {
+  Future<void> saveContacts(List<Contact> contacts, {String? namespace}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
@@ -30,7 +35,10 @@ class ContactStorageService {
           : jsonList;
 
       final jsonString = jsonEncode(limitedList);
-      await prefs.setString(_contactsKey, jsonString);
+      await prefs.setString(
+        _key(_contactsKey, namespace: namespace),
+        jsonString,
+      );
 
       debugPrint(
         '✅ [ContactStorage] Saved ${limitedList.length} contacts to storage',
@@ -42,10 +50,15 @@ class ContactStorageService {
 
   /// Load contacts from persistent storage
   /// [excludePublicKey] - optional public key to exclude (e.g., device's own key)
-  Future<List<Contact>> loadContacts({Uint8List? excludePublicKey}) async {
+  Future<List<Contact>> loadContacts({
+    Uint8List? excludePublicKey,
+    String? namespace,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_contactsKey);
+      final jsonString = prefs.getString(
+        _key(_contactsKey, namespace: namespace),
+      );
 
       if (jsonString == null || jsonString.isEmpty) {
         debugPrint('ℹ️ [ContactStorage] No stored contacts found');
@@ -84,23 +97,29 @@ class ContactStorageService {
   }
 
   /// Clear all stored contacts
-  Future<void> clearContacts() async {
+  Future<void> clearContacts({String? namespace}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_contactsKey);
+      await prefs.remove(_key(_contactsKey, namespace: namespace));
       debugPrint('✅ [ContactStorage] Cleared all stored contacts');
     } catch (e) {
       debugPrint('❌ [ContactStorage] Error clearing contacts: $e');
     }
   }
 
-  Future<void> saveContactGroups(List<SavedContactGroup> groups) async {
+  Future<void> saveContactGroups(
+    List<SavedContactGroup> groups, {
+    String? namespace,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = jsonEncode(
         groups.map((group) => _contactGroupToJson(group)).toList(),
       );
-      await prefs.setString(_contactGroupsKey, jsonString);
+      await prefs.setString(
+        _key(_contactGroupsKey, namespace: namespace),
+        jsonString,
+      );
       debugPrint(
         '✅ [ContactStorage] Saved ${groups.length} contact groups to storage',
       );
@@ -109,10 +128,12 @@ class ContactStorageService {
     }
   }
 
-  Future<List<SavedContactGroup>> loadContactGroups() async {
+  Future<List<SavedContactGroup>> loadContactGroups({String? namespace}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_contactGroupsKey);
+      final jsonString = prefs.getString(
+        _key(_contactGroupsKey, namespace: namespace),
+      );
       if (jsonString == null || jsonString.isEmpty) {
         return [];
       }
@@ -128,13 +149,29 @@ class ContactStorageService {
     }
   }
 
-  Future<void> savePendingAdverts(List<Map<String, dynamic>> adverts) async {
+  Future<void> clearContactGroups({String? namespace}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_key(_contactGroupsKey, namespace: namespace));
+      debugPrint('✅ [ContactStorage] Cleared all contact groups');
+    } catch (e) {
+      debugPrint('❌ [ContactStorage] Error clearing contact groups: $e');
+    }
+  }
+
+  Future<void> savePendingAdverts(
+    List<Map<String, dynamic>> adverts, {
+    String? namespace,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final limitedList = adverts.length > _maxStoredPendingAdverts
           ? adverts.sublist(adverts.length - _maxStoredPendingAdverts)
           : adverts;
-      await prefs.setString(_pendingAdvertsKey, jsonEncode(limitedList));
+      await prefs.setString(
+        _key(_pendingAdvertsKey, namespace: namespace),
+        jsonEncode(limitedList),
+      );
       debugPrint(
         '✅ [ContactStorage] Saved ${limitedList.length} pending adverts to storage',
       );
@@ -143,10 +180,14 @@ class ContactStorageService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> loadPendingAdverts() async {
+  Future<List<Map<String, dynamic>>> loadPendingAdverts({
+    String? namespace,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_pendingAdvertsKey);
+      final jsonString = prefs.getString(
+        _key(_pendingAdvertsKey, namespace: namespace),
+      );
       if (jsonString == null || jsonString.isEmpty) {
         return const [];
       }
@@ -159,10 +200,10 @@ class ContactStorageService {
     }
   }
 
-  Future<void> clearPendingAdverts() async {
+  Future<void> clearPendingAdverts({String? namespace}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_pendingAdvertsKey);
+      await prefs.remove(_key(_pendingAdvertsKey, namespace: namespace));
       debugPrint('✅ [ContactStorage] Cleared all stored pending adverts');
     } catch (e) {
       debugPrint('❌ [ContactStorage] Error clearing pending adverts: $e');
@@ -170,10 +211,12 @@ class ContactStorageService {
   }
 
   /// Get storage statistics
-  Future<Map<String, dynamic>> getStorageStats() async {
+  Future<Map<String, dynamic>> getStorageStats({String? namespace}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_contactsKey);
+      final jsonString = prefs.getString(
+        _key(_contactsKey, namespace: namespace),
+      );
 
       if (jsonString == null || jsonString.isEmpty) {
         return {'contactCount': 0, 'storageSizeBytes': 0, 'storageSizeKB': 0};

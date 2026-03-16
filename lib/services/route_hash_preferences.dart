@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'profiles_feature_service.dart';
 
 class RouteHashPreferences {
   static const String _hashSizeKey = 'route_hash_size';
@@ -6,13 +7,18 @@ class RouteHashPreferences {
 
   static Future<int> getHashSize() async {
     final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getInt(_hashSizeKey) ?? defaultHashSize;
+    final value =
+        prefs.getInt(ProfileStorageScope.scopedKey(_hashSizeKey)) ??
+        defaultHashSize;
     return _normalize(value);
   }
 
   static Future<void> setHashSize(int value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_hashSizeKey, _normalize(value));
+    await prefs.setInt(
+      ProfileStorageScope.scopedKey(_hashSizeKey),
+      _normalize(value),
+    );
   }
 
   static int normalizeSync(int value) => _normalize(value);

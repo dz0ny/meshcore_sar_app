@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:meshcore_client/meshcore_client.dart';
+import 'profiles_feature_service.dart';
 
 /// Centralized location tracking service for MeshCore SAR
 ///
@@ -48,6 +49,10 @@ class LocationTrackingService {
       'fast_location_movement_threshold_meters';
   static const String _prefKeyFastActiveCadence =
       'fast_location_active_cadence_seconds';
+
+  String _scopedKey(String baseKey) {
+    return ProfileStorageScope.scopedKey(baseKey);
+  }
 
   // ============================================================================
   // Configuration Properties
@@ -399,7 +404,7 @@ class LocationTrackingService {
 
     // Save disabled state
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_prefKeyEnabled, false);
+    await prefs.setBool(_scopedKey(_prefKeyEnabled), false);
 
     debugPrint('✅ [LocationTracking] Tracking stopped');
   }
@@ -477,8 +482,8 @@ class LocationTrackingService {
 
       // Save to preferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble(_prefKeyLastLat, position.latitude);
-      await prefs.setDouble(_prefKeyLastLon, position.longitude);
+      await prefs.setDouble(_scopedKey(_prefKeyLastLat), position.latitude);
+      await prefs.setDouble(_scopedKey(_prefKeyLastLon), position.longitude);
 
       debugPrint('✅ [LocationTracking] Initial position set without broadcast');
       debugPrint('   Next broadcast allowed in ${minTimeIntervalSeconds}s');
@@ -646,17 +651,24 @@ class LocationTrackingService {
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
-    minDistanceMeters = prefs.getDouble(_prefKeyMinDistance) ?? 5.0;
-    maxDistanceMeters = prefs.getDouble(_prefKeyMaxDistance) ?? 100.0;
-    minTimeIntervalSeconds = prefs.getInt(_prefKeyMinTimeInterval) ?? 30;
-    gpsUpdateDistance = prefs.getDouble(_prefKeyGpsUpdateDistance) ?? 10.0;
+    minDistanceMeters = prefs.getDouble(_scopedKey(_prefKeyMinDistance)) ?? 5.0;
+    maxDistanceMeters =
+        prefs.getDouble(_scopedKey(_prefKeyMaxDistance)) ?? 100.0;
+    minTimeIntervalSeconds =
+        prefs.getInt(_scopedKey(_prefKeyMinTimeInterval)) ?? 30;
+    gpsUpdateDistance =
+        prefs.getDouble(_scopedKey(_prefKeyGpsUpdateDistance)) ?? 10.0;
     fastLocationUpdatesEnabled =
-        prefs.getBool(_prefKeyFastLocationEnabled) ?? false;
+        prefs.getBool(_scopedKey(_prefKeyFastLocationEnabled)) ?? false;
     fastLocationMovementThresholdMeters =
-        (prefs.getDouble(_prefKeyFastMovementThreshold) ?? gpsUpdateDistance)
+        (prefs.getDouble(_scopedKey(_prefKeyFastMovementThreshold)) ??
+                gpsUpdateDistance)
             .clamp(1.0, 1000.0);
     fastLocationActiveCadenceSeconds =
-        (prefs.getInt(_prefKeyFastActiveCadence) ?? 10).clamp(5, 60);
+        (prefs.getInt(_scopedKey(_prefKeyFastActiveCadence)) ?? 10).clamp(
+          5,
+          60,
+        );
 
     debugPrint('✅ [LocationTracking] Settings loaded');
     debugPrint('    Min distance: ${minDistanceMeters}m');
@@ -674,21 +686,27 @@ class LocationTrackingService {
   Future<void> saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
-    await prefs.setDouble(_prefKeyMinDistance, minDistanceMeters);
-    await prefs.setDouble(_prefKeyMaxDistance, maxDistanceMeters);
-    await prefs.setInt(_prefKeyMinTimeInterval, minTimeIntervalSeconds);
-    await prefs.setDouble(_prefKeyGpsUpdateDistance, gpsUpdateDistance);
-    await prefs.setBool(_prefKeyEnabled, isTracking);
+    await prefs.setDouble(_scopedKey(_prefKeyMinDistance), minDistanceMeters);
+    await prefs.setDouble(_scopedKey(_prefKeyMaxDistance), maxDistanceMeters);
+    await prefs.setInt(
+      _scopedKey(_prefKeyMinTimeInterval),
+      minTimeIntervalSeconds,
+    );
+    await prefs.setDouble(
+      _scopedKey(_prefKeyGpsUpdateDistance),
+      gpsUpdateDistance,
+    );
+    await prefs.setBool(_scopedKey(_prefKeyEnabled), isTracking);
     await prefs.setBool(
-      _prefKeyFastLocationEnabled,
+      _scopedKey(_prefKeyFastLocationEnabled),
       fastLocationUpdatesEnabled,
     );
     await prefs.setDouble(
-      _prefKeyFastMovementThreshold,
+      _scopedKey(_prefKeyFastMovementThreshold),
       fastLocationMovementThresholdMeters,
     );
     await prefs.setInt(
-      _prefKeyFastActiveCadence,
+      _scopedKey(_prefKeyFastActiveCadence),
       fastLocationActiveCadenceSeconds,
     );
 

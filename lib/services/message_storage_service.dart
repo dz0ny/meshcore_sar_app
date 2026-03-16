@@ -6,6 +6,7 @@ import '../models/message_contact_location.dart';
 import '../models/message_reception_details.dart';
 import '../models/message_transfer_details.dart';
 import '../models/message_route_metadata.dart';
+import 'profiles_feature_service.dart';
 import 'package:latlong2/latlong.dart';
 
 /// Service for persisting messages to local storage
@@ -24,6 +25,10 @@ class MessageStorageService {
   static const String _legacyPathBytesKey = 'storedPathBytes';
   static const int _maxStoredMessages = 1000; // Store up to 1000 messages
 
+  String _key(String baseKey, {String? namespace}) {
+    return ProfileStorageScope.scopedKey(baseKey, namespace: namespace);
+  }
+
   /// Save messages to persistent storage
   Future<void> saveMessages(
     List<Message> messages, {
@@ -31,6 +36,7 @@ class MessageStorageService {
     Map<String, MessageReceptionDetails> messageReceptionDetails = const {},
     Map<String, MessageTransferDetails> messageTransferDetails = const {},
     Map<String, MessageRouteMetadata> messageRouteMetadata = const {},
+    String? namespace,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -52,7 +58,10 @@ class MessageStorageService {
           : jsonList;
 
       final jsonString = jsonEncode(limitedList);
-      await prefs.setString(_messagesKey, jsonString);
+      await prefs.setString(
+        _key(_messagesKey, namespace: namespace),
+        jsonString,
+      );
       final retainedMessageIds = limitedList
           .map((entry) => entry['id'] as String)
           .toSet();
@@ -81,19 +90,19 @@ class MessageStorageService {
         }
       }
       await prefs.setString(
-        _messageContactLocationsKey,
+        _key(_messageContactLocationsKey, namespace: namespace),
         jsonEncode(locationJson),
       );
       await prefs.setString(
-        _messageReceptionDetailsKey,
+        _key(_messageReceptionDetailsKey, namespace: namespace),
         jsonEncode(receptionJson),
       );
       await prefs.setString(
-        _messageTransferDetailsKey,
+        _key(_messageTransferDetailsKey, namespace: namespace),
         jsonEncode(transferJson),
       );
       await prefs.setString(
-        _messageRouteMetadataKey,
+        _key(_messageRouteMetadataKey, namespace: namespace),
         jsonEncode(routeMetadataJson),
       );
 
@@ -105,11 +114,14 @@ class MessageStorageService {
     }
   }
 
-  Future<Map<String, MessageContactLocation>>
-  loadMessageContactLocations() async {
+  Future<Map<String, MessageContactLocation>> loadMessageContactLocations({
+    String? namespace,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_messageContactLocationsKey);
+      final jsonString = prefs.getString(
+        _key(_messageContactLocationsKey, namespace: namespace),
+      );
       if (jsonString == null || jsonString.isEmpty) {
         return const {};
       }
@@ -135,11 +147,14 @@ class MessageStorageService {
     }
   }
 
-  Future<Map<String, MessageReceptionDetails>>
-  loadMessageReceptionDetails() async {
+  Future<Map<String, MessageReceptionDetails>> loadMessageReceptionDetails({
+    String? namespace,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_messageReceptionDetailsKey);
+      final jsonString = prefs.getString(
+        _key(_messageReceptionDetailsKey, namespace: namespace),
+      );
       final result = <String, MessageReceptionDetails>{};
       if (jsonString != null && jsonString.isNotEmpty) {
         final decoded = jsonDecode(jsonString);
@@ -155,12 +170,16 @@ class MessageStorageService {
         }
       }
 
-      final embeddedReceptionDetails = await _loadEmbeddedReceptionDetails();
+      final embeddedReceptionDetails = await _loadEmbeddedReceptionDetails(
+        namespace: namespace,
+      );
       embeddedReceptionDetails.forEach((messageId, snapshot) {
         result.putIfAbsent(messageId, () => snapshot);
       });
 
-      final fallbackPathBytes = await _loadLegacyPathBytesFromMessages();
+      final fallbackPathBytes = await _loadLegacyPathBytesFromMessages(
+        namespace: namespace,
+      );
       fallbackPathBytes.forEach((messageId, pathBytes) {
         result.putIfAbsent(
           messageId,
@@ -177,11 +196,14 @@ class MessageStorageService {
     }
   }
 
-  Future<Map<String, MessageTransferDetails>>
-  loadMessageTransferDetails() async {
+  Future<Map<String, MessageTransferDetails>> loadMessageTransferDetails({
+    String? namespace,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_messageTransferDetailsKey);
+      final jsonString = prefs.getString(
+        _key(_messageTransferDetailsKey, namespace: namespace),
+      );
       if (jsonString == null || jsonString.isEmpty) {
         return const {};
       }
@@ -207,10 +229,14 @@ class MessageStorageService {
     }
   }
 
-  Future<Map<String, MessageRouteMetadata>> loadMessageRouteMetadata() async {
+  Future<Map<String, MessageRouteMetadata>> loadMessageRouteMetadata({
+    String? namespace,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_messageRouteMetadataKey);
+      final jsonString = prefs.getString(
+        _key(_messageRouteMetadataKey, namespace: namespace),
+      );
       if (jsonString == null || jsonString.isEmpty) {
         return const {};
       }
@@ -234,10 +260,12 @@ class MessageStorageService {
   }
 
   /// Load messages from persistent storage
-  Future<List<Message>> loadMessages() async {
+  Future<List<Message>> loadMessages({String? namespace}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_messagesKey);
+      final jsonString = prefs.getString(
+        _key(_messagesKey, namespace: namespace),
+      );
 
       if (jsonString == null || jsonString.isEmpty) {
         debugPrint('ℹ️ [MessageStorage] No stored messages found');
@@ -262,25 +290,35 @@ class MessageStorageService {
   }
 
   /// Clear all stored messages
-  Future<void> clearMessages() async {
+  Future<void> clearMessages({String? namespace}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_messagesKey);
-      await prefs.remove(_messageContactLocationsKey);
-      await prefs.remove(_messageReceptionDetailsKey);
-      await prefs.remove(_messageTransferDetailsKey);
-      await prefs.remove(_messageRouteMetadataKey);
-      await prefs.remove(_removedSarMarkerIdsKey);
+      await prefs.remove(_key(_messagesKey, namespace: namespace));
+      await prefs.remove(
+        _key(_messageContactLocationsKey, namespace: namespace),
+      );
+      await prefs.remove(
+        _key(_messageReceptionDetailsKey, namespace: namespace),
+      );
+      await prefs.remove(
+        _key(_messageTransferDetailsKey, namespace: namespace),
+      );
+      await prefs.remove(_key(_messageRouteMetadataKey, namespace: namespace));
+      await prefs.remove(_key(_removedSarMarkerIdsKey, namespace: namespace));
       debugPrint('✅ [MessageStorage] Cleared all stored messages');
     } catch (e) {
       debugPrint('❌ [MessageStorage] Error clearing messages: $e');
     }
   }
 
-  Future<Set<String>> loadRemovedSarMarkerIds() async {
+  Future<Set<String>> loadRemovedSarMarkerIds({String? namespace}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final ids = prefs.getStringList(_removedSarMarkerIdsKey) ?? const [];
+      final ids =
+          prefs.getStringList(
+            _key(_removedSarMarkerIdsKey, namespace: namespace),
+          ) ??
+          const [];
       return ids.toSet();
     } catch (e) {
       debugPrint('❌ [MessageStorage] Error loading removed SAR marker IDs: $e');
@@ -288,10 +326,16 @@ class MessageStorageService {
     }
   }
 
-  Future<void> saveRemovedSarMarkerIds(Set<String> ids) async {
+  Future<void> saveRemovedSarMarkerIds(
+    Set<String> ids, {
+    String? namespace,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList(_removedSarMarkerIdsKey, ids.toList()..sort());
+      await prefs.setStringList(
+        _key(_removedSarMarkerIdsKey, namespace: namespace),
+        ids.toList()..sort(),
+      );
       debugPrint(
         '✅ [MessageStorage] Saved ${ids.length} removed SAR marker IDs',
       );
@@ -301,10 +345,12 @@ class MessageStorageService {
   }
 
   /// Get storage statistics
-  Future<Map<String, dynamic>> getStorageStats() async {
+  Future<Map<String, dynamic>> getStorageStats({String? namespace}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_messagesKey);
+      final jsonString = prefs.getString(
+        _key(_messagesKey, namespace: namespace),
+      );
 
       if (jsonString == null || jsonString.isEmpty) {
         return {'messageCount': 0, 'storageSizeBytes': 0, 'storageSizeKB': 0};
@@ -401,10 +447,13 @@ class MessageStorageService {
     };
   }
 
-  Future<Map<String, MessageReceptionDetails>>
-  _loadEmbeddedReceptionDetails() async {
+  Future<Map<String, MessageReceptionDetails>> _loadEmbeddedReceptionDetails({
+    String? namespace,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_messagesKey);
+    final jsonString = prefs.getString(
+      _key(_messagesKey, namespace: namespace),
+    );
     if (jsonString == null || jsonString.isEmpty) {
       return const {};
     }
@@ -427,9 +476,13 @@ class MessageStorageService {
     return result;
   }
 
-  Future<Map<String, List<int>>> _loadLegacyPathBytesFromMessages() async {
+  Future<Map<String, List<int>>> _loadLegacyPathBytesFromMessages({
+    String? namespace,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_messagesKey);
+    final jsonString = prefs.getString(
+      _key(_messagesKey, namespace: namespace),
+    );
     if (jsonString == null || jsonString.isEmpty) {
       return const {};
     }

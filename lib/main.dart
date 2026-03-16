@@ -23,6 +23,9 @@ import 'services/voice_player_service.dart';
 import 'services/notification_service.dart';
 import 'services/locale_preferences.dart';
 import 'services/mesh_map_nodes_service.dart';
+import 'services/profile_manager.dart';
+import 'services/profile_workspace_coordinator.dart';
+import 'services/profiles_feature_service.dart';
 import 'services/update_checker_service.dart';
 import 'services/wizard_preferences.dart';
 import 'screens/discovery_screen.dart';
@@ -58,6 +61,14 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
   }
 
   Future<void> _initializeApp() async {
+    final prefs = await SharedPreferences.getInstance();
+    final profilesEnabled = await ProfilesFeatureService.isEnabled();
+    final activeProfileId =
+        prefs.getString(ProfileManager.activeProfileIdKey) ?? 'default';
+    await ProfileStorageScope.bootstrap(
+      profilesEnabled: profilesEnabled,
+      activeProfileId: activeProfileId,
+    );
     await _loadThemePreference();
     await _loadLocalePreference();
 
@@ -271,6 +282,13 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
         ),
         ChangeNotifierProvider(create: (_) => ChannelsProvider()),
         ChangeNotifierProvider(create: (_) => SensorsProvider()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final manager = ProfileManager();
+            manager.initialize();
+            return manager;
+          },
+        ),
 
         // Voice provider (packet reassembly + playback)
         ChangeNotifierProvider(
@@ -322,6 +340,36 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
                     voiceProvider: context.read<VoiceProvider>(),
                     imageProvider: context.read<ip.ImageProvider>(),
                   ),
+        ),
+        ProxyProvider6<
+          ProfileManager,
+          AppProvider,
+          ConnectionProvider,
+          ContactsProvider,
+          MessagesProvider,
+          MapProvider,
+          ProfileWorkspaceCoordinator
+        >(
+          update:
+              (
+                context,
+                profileManager,
+                appProvider,
+                connectionProvider,
+                contactsProvider,
+                messagesProvider,
+                mapProvider,
+                previous,
+              ) => ProfileWorkspaceCoordinator(
+                profileManager: profileManager,
+                connectionProvider: connectionProvider,
+                contactsProvider: contactsProvider,
+                messagesProvider: messagesProvider,
+                mapProvider: mapProvider,
+                drawingProvider: context.read<DrawingProvider>(),
+                channelsProvider: context.read<ChannelsProvider>(),
+                appProvider: appProvider,
+              ),
         ),
       ],
       child: _buildMaterialApp(),

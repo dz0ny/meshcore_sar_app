@@ -1325,6 +1325,31 @@ class ConnectionProvider with ChangeNotifier {
     }
   }
 
+  Future<void> setChannelSlot({
+    required int channelIdx,
+    required String channelName,
+    required Uint8List secret,
+  }) async {
+    if (!_activeService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await _activeService.setChannel(
+        channelIdx: channelIdx,
+        channelName: channelName,
+        secret: secret,
+      );
+      await _activeService.getChannel(channelIdx);
+    } catch (e) {
+      _error = 'Failed to set channel: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   /// Generate secret for hash channel using SHA256
   /// Same algorithm as Channel model for consistency
   /// Python equivalent: hashlib.sha256(channel_name.encode()).digest()[0:16]

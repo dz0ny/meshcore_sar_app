@@ -112,4 +112,47 @@ void main() {
 
     expect(restored, equals({'sar-1', 'sar-2'}));
   });
+
+  test('keeps default and custom profile message storage isolated', () async {
+    final storage = MessageStorageService();
+    final defaultMessage = Message(
+      id: 'default-msg',
+      messageType: MessageType.channel,
+      senderPublicKeyPrefix: Uint8List.fromList([1, 1, 1, 1, 1, 1]),
+      channelIdx: 0,
+      pathLen: 0,
+      textType: MessageTextType.plain,
+      senderTimestamp: 1700001000,
+      text: 'Default profile',
+      receivedAt: DateTime.fromMillisecondsSinceEpoch(1700001000500),
+      isRead: true,
+    );
+    final customMessage = Message(
+      id: 'custom-msg',
+      messageType: MessageType.channel,
+      senderPublicKeyPrefix: Uint8List.fromList([2, 2, 2, 2, 2, 2]),
+      channelIdx: 1,
+      pathLen: 0,
+      textType: MessageTextType.plain,
+      senderTimestamp: 1700002000,
+      text: 'Custom profile',
+      receivedAt: DateTime.fromMillisecondsSinceEpoch(1700002000500),
+      isRead: false,
+    );
+
+    await storage.saveMessages([defaultMessage]);
+    await storage.saveMessages([customMessage], namespace: 'alpha');
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('stored_messages'), isNotNull);
+    expect(prefs.getString('profile.alpha.stored_messages'), isNotNull);
+
+    final defaultMessages = await storage.loadMessages();
+    final customMessages = await storage.loadMessages(namespace: 'alpha');
+
+    expect(defaultMessages.single.id, defaultMessage.id);
+    expect(defaultMessages.single.text, defaultMessage.text);
+    expect(customMessages.single.id, customMessage.id);
+    expect(customMessages.single.text, customMessage.text);
+  });
 }
