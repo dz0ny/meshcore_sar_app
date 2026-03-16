@@ -731,25 +731,25 @@ class _MessageBubbleState extends State<MessageBubble> {
                         runSpacing: 8,
                         children: [
                           _techBadge(
-                            context,
+                            sheetContext,
                             icon: Icons.message,
                             label: widget.message.messageType.name
                                 .toUpperCase(),
                           ),
                           _techBadge(
-                            context,
+                            sheetContext,
                             icon: Icons.route,
                             label: hopDisplayLabel(widget.message),
                           ),
                           _techBadge(
-                            context,
+                            sheetContext,
                             icon: Icons.account_tree_outlined,
                             label:
                                 '${widget.message.echoCount} node${widget.message.echoCount == 1 ? '' : 's'}',
                           ),
                           if (widget.message.channelIdx != null)
                             _techBadge(
-                              context,
+                              sheetContext,
                               icon: Icons.group_work,
                               label: 'CH ${widget.message.channelIdx}',
                             ),
@@ -760,14 +760,14 @@ class _MessageBubbleState extends State<MessageBubble> {
                           rssiDbm != null) ...[
                         const SizedBox(height: 12),
                         _techSection(
-                          context,
+                          sheetContext,
                           icon: Icons.network_check,
                           title: l10n.linkQuality,
                           child: Column(
                             children: [
                               if (rssiDbm != null)
                                 _signalRow(
-                                  context,
+                                  sheetContext,
                                   label: 'RSSI',
                                   valueLabel: '$rssiDbm dBm',
                                   normalized:
@@ -782,7 +782,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                               if (snrDb != null) ...[
                                 const SizedBox(height: 8),
                                 _signalRow(
-                                  context,
+                                  sheetContext,
                                   label: 'SNR',
                                   valueLabel: '${snrDb.toStringAsFixed(1)} dB',
                                   normalized: ((snrDb + 20.0) / 40.0).clamp(
@@ -802,18 +802,18 @@ class _MessageBubbleState extends State<MessageBubble> {
                       ],
                       const SizedBox(height: 12),
                       _techSection(
-                        context,
+                        sheetContext,
                         icon: Icons.tune,
                         title: l10n.delivery,
                         child: Column(
                           children: [
                             _detailRow(
-                              context,
+                              sheetContext,
                               label: l10n.status,
                               value: widget.message.deliveryStatus.name,
                             ),
                             _detailRow(
-                              context,
+                              sheetContext,
                               label: 'Received (RFC3339)',
                               value: _formatRfc3339(widget.message.receivedAt),
                               onCopy: () => copyField(
@@ -822,14 +822,14 @@ class _MessageBubbleState extends State<MessageBubble> {
                             ),
                             if (widget.message.expectedAckTag != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.expectedAckTag,
                                 value: widget.message.expectedAckTag!
                                     .toString(),
                               ),
                             if (receptionDetails?.senderToReceiptMs != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Sender to receipt',
                                 value: _formatDurationMs(
                                   receptionDetails!.senderToReceiptMs!,
@@ -837,7 +837,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                               ),
                             if (receptionDetails?.estimatedTransmitMs != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Estimated tx',
                                 value: _formatDurationMs(
                                   receptionDetails!.estimatedTransmitMs!,
@@ -845,7 +845,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                               ),
                             if (receptionDetails?.postTransmitDelayMs != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Post-tx delay',
                                 value: _formatDurationMs(
                                   receptionDetails!.postTransmitDelayMs!,
@@ -853,44 +853,44 @@ class _MessageBubbleState extends State<MessageBubble> {
                               ),
                             if (widget.receivedCopies > 1)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Received copies',
                                 value: '${widget.receivedCopies}',
                               ),
                             if (widget.message.suggestedTimeoutMs != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'ACK timeout',
                                 value:
                                     '${widget.message.suggestedTimeoutMs} ms',
                               ),
                             if (retryCause != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Retry cause',
                                 value: retryCause,
                               ),
                             if (retryMode != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Retry mode',
                                 value: retryMode,
                               ),
                             if (widget.message.roundTripTimeMs != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.roundTrip,
                                 value: '${widget.message.roundTripTimeMs} ms',
                               ),
                             if (widget.message.retryAttempt > 0)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.retryAttempt,
                                 value: '${widget.message.retryAttempt}/4',
                               ),
                             if (widget.message.lastRetryAt != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Last retry',
                                 value: _formatRfc3339(
                                   widget.message.lastRetryAt!,
@@ -901,33 +901,33 @@ class _MessageBubbleState extends State<MessageBubble> {
                               ),
                             if (widget.message.usedFloodFallback)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.floodFallback,
                                 value: l10n.yes,
                               ),
                             if (routeMetadata?.relayName case final relayName?)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Relay',
                                 value: relayName,
                               ),
                             if (routeMetadata?.canonicalPath
                                 case final routePath?)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Selected path',
                                 value: routePath,
                                 onCopy: () => copyField(routePath),
                               ),
                             if (retryResult != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Retry result',
                                 value: retryResult,
                               ),
                             if (packetPathHex != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Path bytes',
                                 value: packetPathHex,
                                 onCopy: () => copyField(packetPathHex),
@@ -937,19 +937,19 @@ class _MessageBubbleState extends State<MessageBubble> {
                       ),
                       const SizedBox(height: 12),
                       _techSection(
-                        context,
+                        sheetContext,
                         icon: Icons.badge,
                         title: l10n.identity,
                         child: Column(
                           children: [
                             _detailRow(
-                              context,
+                              sheetContext,
                               label: l10n.messageId,
                               value: widget.message.id,
                               onCopy: () => copyField(widget.message.id),
                             ),
                             _detailRow(
-                              context,
+                              sheetContext,
                               label: l10n.sender,
                               value:
                                   senderName ??
@@ -958,20 +958,20 @@ class _MessageBubbleState extends State<MessageBubble> {
                             ),
                             if (senderPrefixHex != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.senderKey,
                                 value: senderPrefixHex,
                                 onCopy: () => copyField(senderPrefixHex),
                               ),
                             if (recipientName != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.recipient,
                                 value: recipientName,
                               ),
                             if (recipientPrefixHex != null)
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.recipientKey,
                                 value: recipientPrefixHex,
                                 onCopy: () => copyField(recipientPrefixHex),
@@ -982,18 +982,18 @@ class _MessageBubbleState extends State<MessageBubble> {
                       if (widget.message.isVoice) ...[
                         const SizedBox(height: 12),
                         _techSection(
-                          context,
+                          sheetContext,
                           icon: Icons.graphic_eq,
                           title: l10n.voice,
                           child: Column(
                             children: [
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.voiceId,
                                 value: widget.message.voiceId ?? '-',
                               ),
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.envelope,
                                 value: envelope != null
                                     ? 'VE3 compact'
@@ -1001,14 +1001,14 @@ class _MessageBubbleState extends State<MessageBubble> {
                               ),
                               if (voiceSession != null)
                                 _detailRow(
-                                  context,
+                                  sheetContext,
                                   label: l10n.sessionProgress,
                                   value:
                                       '${voiceSession.receivedCount}/${voiceSession.total} segments',
                                 ),
                               if (voiceSession != null)
                                 _detailRow(
-                                  context,
+                                  sheetContext,
                                   label: l10n.complete,
                                   value: voiceSession.isComplete
                                       ? l10n.yes
@@ -1016,14 +1016,14 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 ),
                               if (transferDetails != null)
                                 _detailRow(
-                                  context,
+                                  sheetContext,
                                   label: 'Transfers',
                                   value: '${transferDetails.totalTransfers}',
                                 ),
                               if (transferDetails != null &&
                                   transferDetails.downloaders.isNotEmpty)
                                 _detailRow(
-                                  context,
+                                  sheetContext,
                                   label: 'Downloaded by',
                                   value: _formatDownloaderSummary(
                                     transferDetails,
@@ -1031,7 +1031,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 ),
                               if (voiceTxEstimate > Duration.zero)
                                 _detailRow(
-                                  context,
+                                  sheetContext,
                                   label: 'Estimated tx',
                                   value: voiceTxEstimate.inSeconds < 60
                                       ? '~${voiceTxEstimate.inSeconds}s'
@@ -1044,29 +1044,29 @@ class _MessageBubbleState extends State<MessageBubble> {
                       if (imageEnvelope != null) ...[
                         const SizedBox(height: 12),
                         _techSection(
-                          context,
+                          sheetContext,
                           icon: Icons.image_outlined,
                           title: 'Image',
                           child: Column(
                             children: [
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: l10n.envelope,
                                 value: 'IE1',
                               ),
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Format',
                                 value: imageEnvelope.format.label,
                               ),
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Dimensions',
                                 value:
                                     '${imageEnvelope.width}×${imageEnvelope.height}',
                               ),
                               _detailRow(
-                                context,
+                                sheetContext,
                                 label: 'Segments',
                                 value: imageSession != null
                                     ? '${imageSession.receivedCount}/${imageSession.total}'
@@ -1074,7 +1074,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                               ),
                               if (imageSession != null)
                                 _detailRow(
-                                  context,
+                                  sheetContext,
                                   label: l10n.complete,
                                   value: imageSession.isComplete
                                       ? l10n.yes
@@ -1082,14 +1082,14 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 ),
                               if (transferDetails != null)
                                 _detailRow(
-                                  context,
+                                  sheetContext,
                                   label: 'Transfers',
                                   value: '${transferDetails.totalTransfers}',
                                 ),
                               if (transferDetails != null &&
                                   transferDetails.downloaders.isNotEmpty)
                                 _detailRow(
-                                  context,
+                                  sheetContext,
                                   label: 'Downloaded by',
                                   value: _formatDownloaderSummary(
                                     transferDetails,
@@ -1097,7 +1097,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 ),
                               if (imageTxEstimate > Duration.zero)
                                 _detailRow(
-                                  context,
+                                  sheetContext,
                                   label: 'Estimated tx',
                                   value: imageTxEstimate.inSeconds < 60
                                       ? '~${imageTxEstimate.inSeconds}s'
@@ -1124,7 +1124,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Theme.of(context)
+                              color: Theme.of(sheetContext)
                                   .colorScheme
                                   .surfaceContainerHighest
                                   .withValues(alpha: 0.35),

@@ -96,6 +96,10 @@ class MessagesProvider with ChangeNotifier {
 
   Future<void> Function({required Contact contact, required int failureStreak})?
   onDirectPathFailedCallback;
+
+  /// Called before the last retry attempt to reset the contact's path,
+  /// forcing the firmware to use flood mode for the final try.
+  Future<void> Function(Contact contact)? resetPathBeforeLastRetryCallback;
   void Function(String messageId)? onManualRetryPreparedCallback;
   Future<bool> Function({
     required String messageId,
@@ -2316,7 +2320,7 @@ class MessagesProvider with ChangeNotifier {
     final delayMs = _retryManager.getDelayForAttempt(message.retryAttempt);
 
     debugPrint(
-      '🔄 [MessagesProvider] Scheduling retry $nextAttempt/${MessageRetryManager.maxRetryAttempts} for message $messageId',
+      '🔄 [MessagesProvider] Scheduling retry $nextAttempt/${MessageRetryManager.maxRetryAttemptsForContact(contact)} for message $messageId',
     );
     debugPrint('   Delay: ${delayMs}ms');
 
@@ -2354,6 +2358,17 @@ class MessagesProvider with ChangeNotifier {
         final currentMessage = _messages[currentIndex];
         if (currentMessage.deliveryStatus == MessageDeliveryStatus.delivered) {
           return;
+        }
+
+        // On the last attempt, reset the path to force flood mode
+        // (matches official MeshCore app behaviour)
+        if (_retryManager.isLastAttempt(currentMessage, contact)) {
+          debugPrint(
+            '🔄 [MessagesProvider] Last attempt — resetting path to flood for $messageId',
+          );
+          if (resetPathBeforeLastRetryCallback != null) {
+            await resetPathBeforeLastRetryCallback!(contact);
+          }
         }
 
         if (sendMessageCallback != null) {

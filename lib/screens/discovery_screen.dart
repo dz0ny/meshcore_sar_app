@@ -426,6 +426,16 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             final isConnected = connectionProvider.deviceInfo.isConnected;
             final cachedNodes = nodesSnapshot.data ?? const <MeshMapNode>[];
 
+            // Track which pending adverts are already in the contacts list
+            final resolvedKeySet = <String>{};
+            for (final advert in pendingAdverts) {
+              if (contactsProvider.findContactByKey(advert.publicKey) != null) {
+                resolvedKeySet.add(advert.publicKeyHex);
+              }
+            }
+
+            final totalCount = pendingAdverts.length;
+
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -442,7 +452,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Pending discoveries (${pendingAdverts.length})',
+                                'Discovered nodes ($totalCount)',
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
@@ -495,7 +505,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                if (pendingAdverts.isEmpty)
+                if (totalCount == 0)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 48),
                     child: Column(
@@ -507,115 +517,131 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No pending discoveries',
+                          'No discovered nodes',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Unknown adverts will appear here until you choose to resolve them.',
+                          'Use the menu to discover repeaters and sensors on the mesh.',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
                     ),
                   ),
-                ...pendingAdverts.map((advert) {
-                  final isResolving = _resolvingAdvertKeys.contains(
-                    advert.publicKeyHex,
-                  );
-                  final displayName = _displayNameForAdvert(
-                    advert,
-                    contactsProvider,
-                    cachedNodes,
-                  );
-                  final typeLabel = _resolvedTypeLabelForAdvert(
-                    advert,
-                    cachedNodes,
-                  );
-                  final downMetric = SignalMetric.fromValues(
-                    rssiDbm: advert.rxRssiDbm,
-                    snrDb: advert.rxSnr,
-                  );
-                  final upMetric = SignalMetric.fromValues(
-                    rssiDbm: advert.repeaterLastRssi,
-                    snrDb: advert.repeaterLastSnr,
-                  );
-                  final detailLines = <String>[
-                    '${l10n.publicKey}: ${advert.shortDisplayKey}',
-                  ];
-                  final summaryParts = <String>[];
-                  final battery = advert.repeaterBatteryPercent;
-                  if (battery != null) {
-                    summaryParts.add('Battery ${battery.round()}%');
-                  }
-                  if (advert.repeaterQueueLen != null) {
-                    summaryParts.add('Queue ${advert.repeaterQueueLen}');
-                  }
-                  if (summaryParts.isNotEmpty) {
-                    detailLines.add(summaryParts.join(' • '));
-                  }
-                  detailLines.add(
-                    '${l10n.lastSeen}: ${_formatRelativeTime(context, advert.receivedAt)}',
-                  );
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              CircleAvatar(child: Icon(_iconForAdvert(advert))),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildAdvertTitle(
-                                  context,
-                                  displayName: displayName,
-                                  subtitle: typeLabel,
-                                ),
-                              ),
-                              if (downMetric != null || upMetric != null) ...[
-                                const SizedBox(width: 12),
-                                _buildSignalSummary(
-                                  context,
-                                  downMetric: downMetric,
-                                  upMetric: upMetric,
-                                ),
-                              ],
-                              const SizedBox(width: 8),
-                              isResolving
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : IconButton(
-                                      visualDensity: VisualDensity.compact,
-                                      icon: const Icon(Icons.person_add_alt_1),
-                                      tooltip: 'Resolve contact',
-                                      onPressed: isConnected
-                                          ? () => _resolveAdvert(advert)
-                                          : null,
-                                    ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            detailLines.join('\n'),
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
+                ...pendingAdverts.map((advert) =>
+                  _buildPendingAdvertCard(
+                    context,
+                    advert: advert,
+                    contactsProvider: contactsProvider,
+                    isConnected: isConnected,
+                    isResolved: resolvedKeySet.contains(advert.publicKeyHex),
+                    cachedNodes: cachedNodes,
+                    l10n: l10n,
+                  ),
+                ),
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPendingAdvertCard(
+    BuildContext context, {
+    required PendingAdvert advert,
+    required ContactsProvider contactsProvider,
+    required bool isConnected,
+    required bool isResolved,
+    required List<MeshMapNode> cachedNodes,
+    required AppLocalizations l10n,
+  }) {
+    final isResolving = _resolvingAdvertKeys.contains(advert.publicKeyHex);
+    final displayName = _displayNameForAdvert(advert, contactsProvider, cachedNodes);
+    final typeLabel = _resolvedTypeLabelForAdvert(advert, cachedNodes);
+    final downMetric = SignalMetric.fromValues(
+      rssiDbm: advert.rxRssiDbm,
+      snrDb: advert.rxSnr,
+    );
+    final upMetric = SignalMetric.fromValues(
+      rssiDbm: advert.repeaterLastRssi,
+      snrDb: advert.repeaterLastSnr,
+    );
+    final detailLines = <String>[
+      '${l10n.publicKey}: ${advert.shortDisplayKey}',
+    ];
+    final summaryParts = <String>[];
+    final battery = advert.repeaterBatteryPercent;
+    if (battery != null) {
+      summaryParts.add('Battery ${battery.round()}%');
+    }
+    if (advert.repeaterQueueLen != null) {
+      summaryParts.add('Queue ${advert.repeaterQueueLen}');
+    }
+    if (summaryParts.isNotEmpty) {
+      detailLines.add(summaryParts.join(' • '));
+    }
+    detailLines.add(
+      '${l10n.lastSeen}: ${_formatRelativeTime(context, advert.receivedAt)}',
+    );
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(child: Icon(_iconForAdvert(advert))),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildAdvertTitle(
+                    context,
+                    displayName: displayName,
+                    subtitle: typeLabel,
+                  ),
+                ),
+                if (downMetric != null || upMetric != null) ...[
+                  const SizedBox(width: 12),
+                  _buildSignalSummary(
+                    context,
+                    downMetric: downMetric,
+                    upMetric: upMetric,
+                  ),
+                ],
+                const SizedBox(width: 8),
+                if (isResolved)
+                  Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 24,
+                  )
+                else if (isResolving)
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.person_add_alt_1),
+                    tooltip: 'Resolve contact',
+                    onPressed: isConnected
+                        ? () => _resolveAdvert(advert)
+                        : null,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              detailLines.join('\n'),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
         ),
       ),
     );

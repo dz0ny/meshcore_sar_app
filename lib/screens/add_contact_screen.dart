@@ -154,7 +154,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Import Contact')),
+      appBar: AppBar(title: const Text('Add Contact')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -315,7 +315,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
                   ? 'Importing...'
                   : _importSucceeded
                   ? 'Imported'
-                  : 'Import Contact',
+                  : 'Add Contact',
             ),
           ),
           const SizedBox(height: 12),

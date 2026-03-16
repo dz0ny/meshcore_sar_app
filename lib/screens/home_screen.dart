@@ -402,45 +402,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildActivityBadge({
-    required String label,
-    required int count,
-    required bool isActive,
-    required Color activeColor,
-    bool compact = false,
-  }) {
-    final color = isActive ? activeColor : Colors.grey;
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 7 : 8,
-        vertical: compact ? 4 : 5,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: compact ? 6 : 7,
-            height: compact ? 6 : 7,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-          ),
-          SizedBox(width: compact ? 5 : 6),
-          Text(
-            '$label:$count',
-            style: TextStyle(
-              fontSize: compact ? 10 : 11,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCompactActivityIndicator({
     required bool rxActive,
     required bool txActive,
@@ -1186,48 +1147,13 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       );
                     },
-                    child: isTight
-                        ? _buildCompactActivityIndicator(
+                    child: _buildCompactActivityIndicator(
                             rxActive: provider.rxActivity,
                             txActive: provider.txActivity,
-                          )
-                        : Container(
-                            constraints: const BoxConstraints(minHeight: 48),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHigh
-                                  .withValues(alpha: 0.85),
-                              borderRadius: BorderRadius.circular(22),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                _buildActivityBadge(
-                                  label: 'RX',
-                                  count: provider.rxPacketCount,
-                                  isActive: provider.rxActivity,
-                                  activeColor: Colors.green,
-                                  compact: true,
-                                ),
-                                const SizedBox(height: 4),
-                                _buildActivityBadge(
-                                  label: 'TX',
-                                  count: provider.txPacketCount,
-                                  isActive: provider.txActivity,
-                                  activeColor: Colors.blue,
-                                  compact: true,
-                                ),
-                              ],
-                            ),
                           ),
                   )
                 else
-                  SizedBox(width: isTight ? 24 : 74),
+                  const SizedBox(width: 24),
               ],
             );
           },

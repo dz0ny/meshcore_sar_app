@@ -675,7 +675,7 @@ class _ContactsTabState extends State<ContactsTab> {
                       child: OutlinedButton.icon(
                         onPressed: () => _openAddContactScreen(context),
                         icon: const Icon(Icons.person_add_alt_1_outlined),
-                        label: const Text('Import Contact'),
+                        label: const Text('Add Contact'),
                       ),
                     ),
                 ],
@@ -737,7 +737,24 @@ class _ContactsTabState extends State<ContactsTab> {
                     title: l10n.repeaters,
                     count: repeaters.length,
                     icon: Icons.router,
-                    trailing: _buildSortMenu(context, ContactSection.repeaters),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (context.watch<ConnectionProvider>().deviceInfo.isConnected)
+                          IconButton(
+                            icon: const Icon(Icons.radar, size: 20),
+                            tooltip: 'Discover repeaters',
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () {
+                              context.read<ConnectionProvider>().discoverNodeType(advertType: 2);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Repeater discovery sent')),
+                              );
+                            },
+                          ),
+                        _buildSortMenu(context, ContactSection.repeaters),
+                      ],
+                    ),
                   ),
                   _buildSectionFilterField(
                     context,
@@ -789,7 +806,24 @@ class _ContactsTabState extends State<ContactsTab> {
                     title: 'Sensors',
                     count: sensors.length,
                     icon: Icons.sensors,
-                    trailing: _buildSortMenu(context, ContactSection.sensors),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (context.watch<ConnectionProvider>().deviceInfo.isConnected)
+                          IconButton(
+                            icon: const Icon(Icons.radar, size: 20),
+                            tooltip: 'Discover sensors',
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () {
+                              context.read<ConnectionProvider>().discoverNodeType(advertType: 4);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Sensor discovery sent')),
+                              );
+                            },
+                          ),
+                        _buildSortMenu(context, ContactSection.sensors),
+                      ],
+                    ),
                   ),
                   _buildSectionFilterField(
                     context,
@@ -887,7 +921,7 @@ class _ContactsTabState extends State<ContactsTab> {
                           child: OutlinedButton.icon(
                             onPressed: () => _openAddContactScreen(context),
                             icon: const Icon(Icons.person_add_alt_1_outlined),
-                            label: const Text('Import Contact'),
+                            label: const Text('Add Contact'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,

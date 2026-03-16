@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import '../../models/message.dart';
 import '../../models/contact.dart';
@@ -19,10 +20,18 @@ class MessageRetryManager {
   final Map<String, DateTime> _lastRetryTimes = {};
   final Map<String, int> _pathFailureStreaks = {};
 
-  static const int maxRetryAttempts = 4;
+  /// Max retry attempts when the contact has a known path.
+  /// Official MeshCore app uses 5 (with auto-retry) or 3 (without).
+  static const int maxRetryAttemptsWithPath = 5;
+
+  /// No retries for flood-only contacts (no known path).
+  static const int maxRetryAttemptsFloodOnly = 1;
+
+  @Deprecated('Use maxRetryAttemptsForContact instead')
+  static const int maxRetryAttempts = maxRetryAttemptsWithPath;
 
   // Retry backoff values in milliseconds.
-  static const List<int> _retryDelays = [1000, 2000, 4000, 8000];
+  static const List<int> _retryDelays = [1000, 2000, 4000, 8000, 8000];
   static const int _defaultLoRaSf = 10;
   static const int _defaultLoRaCr = 5;
   static const int _defaultLoRaBwHz = 250000;
@@ -38,32 +47,54 @@ class MessageRetryManager {
     return _retryDelays[attempt];
   }
 
-  /// Calculate a conservative delivery-ACK timeout when firmware doesn't
-  /// provide one or returns an invalid value.
+  static final math.Random _rng = math.Random();
+
+  /// Calculate a delivery-ACK timeout with random jitter.
+  ///
+  /// Matches the official MeshCore app: `suggestedTimeout + random(1-8s)`.
+  /// The jitter prevents collision when multiple messages are in flight.
   int calculateAckTimeoutMs({
     required String text,
     required Contact? contact,
     int? suggestedTimeoutMs,
   }) {
+    int baseTimeout;
     if (suggestedTimeoutMs != null && suggestedTimeoutMs > 0) {
-      return suggestedTimeoutMs;
+      baseTimeout = suggestedTimeoutMs;
+    } else {
+      final payloadBytes = utf8.encode(text).length;
+      final airtimeMs = _estimateLoRaAirtimeMs(payloadBytes);
+      final hopCount = contact?.routeHasPath == true
+          ? contact!.routeHopCount
+          : -1;
+
+      if (hopCount < 0) {
+        baseTimeout = ((airtimeMs * 10) + 4000).clamp(10000, 30000);
+      } else {
+        baseTimeout = ((airtimeMs * (hopCount + 1) * 2) + 1500).clamp(4000, 20000);
+      }
     }
 
-    final payloadBytes = utf8.encode(text).length;
-    final airtimeMs = _estimateLoRaAirtimeMs(payloadBytes);
-    final hopCount = contact?.routeHasPath == true
-        ? contact!.routeHopCount
-        : -1;
+    // Add random jitter: 1000-8000ms (matches official app)
+    final jitterMs = 1000 + _rng.nextInt(7001);
+    return baseTimeout + jitterMs;
+  }
 
-    if (hopCount < 0) {
-      return ((airtimeMs * 10) + 4000).clamp(10000, 30000);
-    }
-
-    return ((airtimeMs * (hopCount + 1) * 2) + 1500).clamp(4000, 20000);
+  /// Max attempts for a given contact based on whether it has a known path.
+  static int maxRetryAttemptsForContact(Contact? contact) {
+    final hasPath = contact?.routeHasPath ?? false;
+    return hasPath ? maxRetryAttemptsWithPath : maxRetryAttemptsFloodOnly;
   }
 
   bool canRetry(Message message, Contact contact) {
-    return message.retryAttempt < maxRetryAttempts;
+    return message.retryAttempt < maxRetryAttemptsForContact(contact);
+  }
+
+  /// Whether the next attempt is the last one.
+  /// When true, the caller should reset the path to force flood mode.
+  bool isLastAttempt(Message message, Contact contact) {
+    final maxAttempts = maxRetryAttemptsForContact(contact);
+    return maxAttempts > 1 && message.retryAttempt + 1 >= maxAttempts;
   }
 
   /// Track a retry attempt for a message

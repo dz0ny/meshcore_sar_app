@@ -586,7 +586,12 @@ class ContactsProvider with ChangeNotifier {
     );
 
     _contacts[contact.publicKeyHex] = updatedContact;
-    _pendingAdverts.remove(contact.publicKeyHex);
+    // Keep repeaters and sensors in pending adverts so they remain visible
+    // in the discovery list (with a checkmark). Remove others.
+    if (contact.type != ContactType.repeater &&
+        contact.type != ContactType.sensor) {
+      _pendingAdverts.remove(contact.publicKeyHex);
+    }
     debugPrint(
       '   ✅ Contact added/updated. Total contacts: ${_contacts.length}, channels: ${channels.length}',
     );
@@ -615,7 +620,10 @@ class ContactsProvider with ChangeNotifier {
         incomingContact: contact,
         existingContact: existingContact,
       );
-      _pendingAdverts.remove(contact.publicKeyHex);
+      if (contact.type != ContactType.repeater &&
+          contact.type != ContactType.sensor) {
+        _pendingAdverts.remove(contact.publicKeyHex);
+      }
     }
     if (excluded > 0) {
       debugPrint(

@@ -1723,6 +1723,16 @@ class AppProvider with ChangeNotifier {
     connectionProvider.resolveContactForDmCallback = (contactPublicKey) {
       return contactsProvider.findContactByKey(contactPublicKey);
     };
+    // Reset path before the last retry attempt to force flood mode
+    messagesProvider.resetPathBeforeLastRetryCallback = (contact) async {
+      if (connectionProvider.deviceInfo.isConnected) {
+        debugPrint(
+          '🔄 [AppProvider] Resetting path for ${contact.advName} before last retry (flood fallback)',
+        );
+        await connectionProvider.resetPath(contact.publicKey);
+      }
+    };
+
     messagesProvider.onFinalRouterFallbackCallback =
         ({required messageId, required contact, required message}) async {
           return _sendWithFinalNearestRouterFallback(

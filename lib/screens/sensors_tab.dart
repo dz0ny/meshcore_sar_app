@@ -867,11 +867,63 @@ class _SensorCandidatePreview extends StatelessWidget {
   }
 }
 
-class _EmptySensorsState extends StatelessWidget {
+class _EmptySensorsState extends StatefulWidget {
   const _EmptySensorsState();
 
   @override
+  State<_EmptySensorsState> createState() => _EmptySensorsStateState();
+}
+
+class _EmptySensorsStateState extends State<_EmptySensorsState> {
+  bool _discoveryTriggered = false;
+  bool _discoveryInProgress = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-trigger sensor discovery when the empty state is shown
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoDiscover();
+    });
+  }
+
+  Future<void> _autoDiscover() async {
+    if (_discoveryTriggered || !mounted) return;
+    final connectionProvider = context.read<ConnectionProvider>();
+    if (!connectionProvider.deviceInfo.isConnected) return;
+
+    _discoveryTriggered = true;
+    setState(() => _discoveryInProgress = true);
+    try {
+      await connectionProvider.discoverNodeType(advertType: 4);
+    } finally {
+      if (mounted) setState(() => _discoveryInProgress = false);
+    }
+  }
+
+  Future<void> _discoverSensors() async {
+    if (_discoveryInProgress || !mounted) return;
+    final connectionProvider = context.read<ConnectionProvider>();
+    if (!connectionProvider.deviceInfo.isConnected) return;
+
+    setState(() => _discoveryInProgress = true);
+    try {
+      await connectionProvider.discoverNodeType(advertType: 4);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sensor discovery sent')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _discoveryInProgress = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isConnected =
+        context.watch<ConnectionProvider>().deviceInfo.isConnected;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 64),
       child: Column(
@@ -901,6 +953,25 @@ class _EmptySensorsState extends StatelessWidget {
               'Use + to add discovered relays or nodes. Pull down to refresh telemetry after adding them.',
               textAlign: TextAlign.center,
             ),
+          ),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            onPressed: isConnected && !_discoveryInProgress
+                ? _discoverSensors
+                : null,
+            icon: _discoveryInProgress
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.sensors_outlined),
+            label: Text(_discoveryInProgress
+                ? 'Discovering...'
+                : 'Discover Sensors'),
           ),
         ],
       ),
