@@ -8,6 +8,7 @@ import '../models/message_contact_location.dart';
 import '../services/cayenne_lpp_parser.dart';
 import '../services/contact_storage_service.dart';
 import '../utils/fast_gps_packet.dart';
+import '../utils/rssi_location_estimator.dart';
 import '../utils/key_comparison.dart';
 
 class PendingAdvert {
@@ -129,6 +130,7 @@ class ContactsProvider with ChangeNotifier {
   final List<SavedContactGroup> _savedContactGroups = <SavedContactGroup>[];
   final Map<String, PendingAdvert> _pendingAdverts = {};
   final Map<String, LatLng> _estimatedLocations = {};
+  final Map<String, List<RssiObservation>> _rssiObservations = {};
   final ContactStorageService _storageService = ContactStorageService();
   bool _isInitialized = false;
   bool _isPersisting = false;
@@ -514,6 +516,44 @@ class ContactsProvider with ChangeNotifier {
   void setEstimatedLocation(String publicKeyHex, LatLng location) {
     _estimatedLocations[publicKeyHex] = location;
     notifyListeners();
+  }
+
+  /// Record an RSSI observation and re-trilaterate the contact's position.
+  ///
+  /// Keeps up to 5 observations per unique repeater (latest wins).
+  /// With multiple repeaters, trilateration produces a better estimate.
+  void addRssiObservation({
+    required String contactPublicKeyHex,
+    required List<int> contactPublicKey,
+    required RssiObservation observation,
+  }) {
+    final observations = _rssiObservations.putIfAbsent(
+      contactPublicKeyHex,
+      () => [],
+    );
+
+    // Replace existing observation from the same repeater, or add new
+    final repeaterKey =
+        '${observation.repeaterLocation.latitude},${observation.repeaterLocation.longitude}';
+    observations.removeWhere((o) =>
+        '${o.repeaterLocation.latitude},${o.repeaterLocation.longitude}' ==
+        repeaterKey);
+    observations.add(observation);
+
+    // Keep at most 8 observations (most recent per repeater)
+    if (observations.length > 8) {
+      observations.sort((a, b) => b.observedAt.compareTo(a.observedAt));
+      observations.removeRange(8, observations.length);
+    }
+
+    final estimated = RssiLocationEstimator.trilaterate(
+      observations: observations,
+      contactPublicKey: contactPublicKey,
+    );
+    if (estimated != null) {
+      _estimatedLocations[contactPublicKeyHex] = estimated;
+      notifyListeners();
+    }
   }
 
   /// Effective location: own GPS/advert > estimated from RSSI.

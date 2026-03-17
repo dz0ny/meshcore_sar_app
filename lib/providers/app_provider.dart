@@ -2016,17 +2016,15 @@ class AppProvider with ChangeNotifier {
     return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
   }
 
-  /// Estimate a contact's location from the last-hop repeater + RSSI distance.
+  /// Record RSSI observation from last-hop repeater for trilateration.
   void _estimateContactLocationFromRssi({
     required Contact contact,
     required int rssiDbm,
   }) {
-    // Find the first-hop repeater from the contact's path
     final pathHopCount = contact.routeHopCount;
     final pathHashSize = contact.routeHashSize;
     if (pathHopCount <= 0 || pathHashSize <= 0) return;
 
-    // Get first hop hash from path
     final pathBytes = contact.routePathBytes;
     if (pathBytes.length < pathHashSize) return;
     final firstHopHash = pathBytes
@@ -2035,7 +2033,6 @@ class AppProvider with ChangeNotifier {
         .join()
         .toLowerCase();
 
-    // Find a repeater whose public key starts with this hash
     Contact? lastHopRepeater;
     for (final c in contactsProvider.contacts) {
       if (c.publicKeyHex.toLowerCase().startsWith(firstHopHash) &&
@@ -2046,14 +2043,16 @@ class AppProvider with ChangeNotifier {
     }
     if (lastHopRepeater == null) return;
 
-    final estimated = RssiLocationEstimator.estimateFromRepeater(
-      repeaterLocation: lastHopRepeater.displayLocation!,
-      rssiDbm: rssiDbm,
+    // Record observation for trilateration
+    contactsProvider.addRssiObservation(
+      contactPublicKeyHex: contact.publicKeyHex,
       contactPublicKey: contact.publicKey,
+      observation: RssiObservation(
+        repeaterLocation: lastHopRepeater.displayLocation!,
+        rssiDbm: rssiDbm,
+        observedAt: DateTime.now(),
+      ),
     );
-    if (estimated != null) {
-      contactsProvider.setEstimatedLocation(contact.publicKeyHex, estimated);
-    }
   }
 
   Future<void> _learnPathFromPublicMessage({
