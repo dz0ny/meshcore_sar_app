@@ -207,9 +207,23 @@ List<SensorMetricOption> sensorMetricOptionsFor(
       ),
   ];
 
+  // Keys that are already shown as core telemetry fields above.
+  // Skip them from extraSensorData to avoid duplicates.
+  final coreFieldKeys = <String>{
+    if (batteryMilliVolts != null || batteryPercentage != null)
+      ...extraSensorData?.keys.where((k) =>
+          k.startsWith('voltage_') || k.startsWith('analog_input_')) ?? [],
+    if (temperature != null)
+      ...extraSensorData?.keys.where((k) => k.startsWith('temperature_')) ?? [],
+    if (humidity != null)
+      ...extraSensorData?.keys.where((k) => k.startsWith('humidity_')) ?? [],
+    if (pressure != null)
+      ...extraSensorData?.keys.where((k) => k.startsWith('pressure_')) ?? [],
+  };
+
   if (extraSensorData != null) {
     for (final key in extraSensorData.keys) {
-      if (_isTelemetryMetadataKey(key)) {
+      if (_isTelemetryMetadataKey(key) || coreFieldKeys.contains(key)) {
         continue;
       }
       final metricKey = _parseMetricKey(key);
