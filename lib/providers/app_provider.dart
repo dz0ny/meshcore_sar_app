@@ -1338,11 +1338,14 @@ class AppProvider with ChangeNotifier {
         return;
       }
       debugPrint(
-        '📊 [AppProvider] Binary response (0x8C) received - updating contact telemetry',
+        '📊 [AppProvider] Binary response (0x8C tag=$tag) received',
       );
-      // Binary response tag 0 = telemetry data (Cayenne LPP format)
-      // Other tags may be used for different data types in the future
-      contactsProvider.updateTelemetry(publicKeyPrefix, responseData);
+      // Binary responses carry Cayenne LPP telemetry data.
+      // The data starts with a channel byte — valid LPP always has at least
+      // 3 bytes (channel + type + value). Skip clearly non-telemetry payloads.
+      if (responseData.length >= 3) {
+        contactsProvider.updateTelemetry(publicKeyPrefix, responseData);
+      }
     };
 
     // When raw binary data is received (PUSH_CODE_RAW_DATA 0x84)

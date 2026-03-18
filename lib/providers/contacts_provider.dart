@@ -926,12 +926,31 @@ class ContactsProvider with ChangeNotifier {
   }
 
   /// Update contact telemetry
+  // Dedup: track last telemetry data hash per contact to avoid processing
+  // the same payload twice (0x8B + 0x8C can both fire for the same data).
+  final Map<String, (int, DateTime)> _lastTelemetryHash = {};
+
   void updateTelemetry(Uint8List publicKeyPrefix, Uint8List lppData) {
     debugPrint('📊 [ContactsProvider] updateTelemetry() called');
     debugPrint(
       '  Public key prefix (hex): ${publicKeyPrefix.map((b) => b.toRadixString(16).padLeft(2, '0')).join(':')}',
     );
     debugPrint('  LPP data size: ${lppData.length} bytes');
+
+    // Deduplicate: same data for same contact within 2 seconds = skip
+    final prefixHex = publicKeyPrefix
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
+    final dataHash = lppData.fold<int>(0, (h, b) => h * 31 + b);
+    final now = DateTime.now();
+    final last = _lastTelemetryHash[prefixHex];
+    if (last != null &&
+        last.$1 == dataHash &&
+        now.difference(last.$2).inSeconds < 2) {
+      debugPrint('  ⏭️ Duplicate telemetry payload, skipping');
+      return;
+    }
+    _lastTelemetryHash[prefixHex] = (dataHash, now);
 
     // Find contact by public key prefix
     final contact = _findContactByPrefix(publicKeyPrefix);
