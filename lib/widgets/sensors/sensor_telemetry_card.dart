@@ -2251,14 +2251,31 @@ class SensorMetricTile extends StatelessWidget {
         border: Border.all(color: data.accent.withValues(alpha: 0.14)),
       ),
       child: data.mapLocation == null || !allowMapPreview
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ? Stack(
               children: [
-                _MetricIcon(accent: data.accent, icon: data.icon),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _MetricText(data: data, keyPrefix: keyPrefix),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _MetricIcon(accent: data.accent, icon: data.icon),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _MetricText(data: data, keyPrefix: keyPrefix),
+                    ),
+                  ],
                 ),
+                if (data.channel != null)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Text(
+                      'ch${data.channel}',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: data.accent.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
               ],
             )
           : Column(
@@ -2395,39 +2412,14 @@ class _MetricText extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(
-                data.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: data.accent,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            if (data.channel != null) ...[
-              const SizedBox(width: 8),
-              Container(
-                key: ValueKey('${keyPrefix}_channel_${data.fieldKey}'),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: data.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  'ch${data.channel}',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: data.accent,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ],
+        Text(
+          data.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: data.accent,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
