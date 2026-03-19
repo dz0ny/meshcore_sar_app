@@ -8,11 +8,20 @@ import 'package:meshcore_sar_app/models/channel.dart';
 import 'package:meshcore_sar_app/models/contact.dart';
 import 'package:meshcore_sar_app/models/contact_group.dart';
 import 'package:meshcore_sar_app/models/device_info.dart' as device_info;
+import 'package:meshcore_sar_app/providers/app_provider.dart';
+import 'package:meshcore_sar_app/providers/channels_provider.dart';
 import 'package:meshcore_sar_app/providers/connection_provider.dart';
 import 'package:meshcore_sar_app/providers/contacts_provider.dart';
+import 'package:meshcore_sar_app/providers/drawing_provider.dart';
+import 'package:meshcore_sar_app/providers/image_provider.dart'
+    as image_provider;
 import 'package:meshcore_sar_app/providers/map_provider.dart';
 import 'package:meshcore_sar_app/providers/messages_provider.dart';
+import 'package:meshcore_sar_app/providers/voice_provider.dart';
 import 'package:meshcore_sar_app/screens/contacts_tab.dart';
+import 'package:meshcore_sar_app/services/profiles_feature_service.dart';
+import 'package:meshcore_sar_app/services/voice_codec_service.dart';
+import 'package:meshcore_sar_app/services/voice_player_service.dart';
 import 'package:meshcore_sar_app/utils/contact_grouping.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,11 +40,25 @@ class _FakeConnectionProvider extends ConnectionProvider {
   );
 }
 
+class _FakeMessagesProvider extends MessagesProvider {
+  @override
+  bool get isInitialized => true;
+}
+
+class _FakeDrawingProvider extends DrawingProvider {
+  @override
+  bool get isInitialized => true;
+}
+
 void main() {
   String? clipboardText;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    ProfileStorageScope.setScope(
+      profilesEnabled: false,
+      activeProfileId: 'default',
+    );
     clipboardText = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -122,6 +145,23 @@ void main() {
     final contactsProvider = ContactsProvider();
     final resolvedConnectionProvider =
         connectionProvider ?? ConnectionProvider();
+    final messagesProvider = _FakeMessagesProvider();
+    final drawingProvider = _FakeDrawingProvider();
+    final channelsProvider = ChannelsProvider();
+    final voiceProvider = VoiceProvider(
+      codec: VoiceCodecService(),
+      player: VoicePlayerService(),
+    );
+    final imageProvider = image_provider.ImageProvider();
+    final appProvider = AppProvider(
+      connectionProvider: resolvedConnectionProvider,
+      contactsProvider: contactsProvider,
+      messagesProvider: messagesProvider,
+      drawingProvider: drawingProvider,
+      channelsProvider: channelsProvider,
+      voiceProvider: voiceProvider,
+      imageProvider: imageProvider,
+    );
     for (final contact in contacts) {
       contactsProvider.addOrUpdateContact(contact);
     }
@@ -135,12 +175,17 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider.value(value: contactsProvider),
-          ChangeNotifierProvider<ConnectionProvider>.value(
-            value: resolvedConnectionProvider,
+          ChangeNotifierProvider<ContactsProvider>(
+            create: (_) => contactsProvider,
           ),
-          ChangeNotifierProvider(create: (_) => MessagesProvider()),
+          ChangeNotifierProvider<ConnectionProvider>(
+            create: (_) => resolvedConnectionProvider,
+          ),
+          ChangeNotifierProvider<MessagesProvider>(
+            create: (_) => messagesProvider,
+          ),
           ChangeNotifierProvider(create: (_) => MapProvider()),
+          ChangeNotifierProvider<AppProvider>(create: (_) => appProvider),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
