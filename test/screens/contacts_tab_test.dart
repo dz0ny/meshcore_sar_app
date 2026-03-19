@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore_sar_app/l10n/app_localizations.dart';
+import 'package:meshcore_sar_app/models/channel.dart';
 import 'package:meshcore_sar_app/models/contact.dart';
 import 'package:meshcore_sar_app/models/contact_group.dart';
 import 'package:meshcore_sar_app/providers/connection_provider.dart';
@@ -15,8 +17,28 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  String? clipboardText;
+
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    clipboardText = null;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+          switch (call.method) {
+            case 'Clipboard.setData':
+              clipboardText =
+                  (call.arguments as Map<dynamic, dynamic>)['text'] as String?;
+              return null;
+            case 'Clipboard.getData':
+              return <String, dynamic>{'text': clipboardText};
+          }
+          return null;
+        });
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null);
   });
 
   Contact buildChannel({required String name, required int channelIndex}) {
@@ -123,6 +145,7 @@ void main() {
     await tester.tap(find.text('Ops'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Export psk_base64'), findsNothing);
     expect(find.text('Delete Channel'), findsOneWidget);
 
     await tester.tap(find.text('Delete Channel'));
@@ -135,6 +158,26 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('hash channel activity card exports psk_base64', (tester) async {
+    await pumpContactsTab(
+      tester,
+      contacts: [buildChannel(name: '#ops', channelIndex: 3)],
+    );
+
+    expect(find.text('#ops'), findsOneWidget);
+    await tester.tap(find.text('#ops'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Export psk_base64'), findsOneWidget);
+
+    await tester.tap(find.text('Export psk_base64'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(clipboardText, Channel.pskBase64ForHashChannelName('#ops'));
+    expect(find.text('psk_base64 copied to clipboard'), findsOneWidget);
   });
 
   testWidgets('repeaters show Others group when multiple groups exist', (
@@ -218,7 +261,7 @@ void main() {
       contacts: [buildSensor(seed: 60, name: 'WX Station')],
     );
 
-    expect(find.text('Sensors'), findsOneWidget);
+    expect(find.text('Sensors'), findsWidgets);
     expect(find.text('WX Station'), findsOneWidget);
   });
 }

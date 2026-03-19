@@ -54,6 +54,14 @@ class ContactTile extends StatelessWidget {
     return l10n.daysAgo(diff.inDays);
   }
 
+  String _threeBytePrefix() {
+    final bytes = contact.publicKey.take(3);
+    return bytes
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join()
+        .toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isChannel = contact.type == ContactType.channel;
@@ -205,46 +213,73 @@ class ContactTile extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ContactAvatar(contact: contact, radius: 24),
-                    if (contact.isNew)
-                      Positioned(
-                        top: -2,
-                        right: -2,
-                        child: Container(
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
+                SizedBox(
+                  width: 58,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          ContactAvatar(contact: contact, radius: 24),
+                          if (contact.isNew)
+                            Positioned(
+                              top: -2,
+                              right: -2,
+                              child: Container(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (contact.type == ContactType.room &&
+                              roomLoginState != null)
+                            Positioned(
+                              bottom: -2,
+                              right: -2,
+                              child: Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: BoxDecoration(
+                                  color: _getRoomStatusColor(roomLoginState),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Icon(
+                                  _getRoomStatusIcon(roomLoginState),
+                                  size: 11,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _threeBytePrefix(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
                         ),
                       ),
-                    if (contact.type == ContactType.room &&
-                        roomLoginState != null)
-                      Positioned(
-                        bottom: -2,
-                        right: -2,
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: _getRoomStatusColor(roomLoginState),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: Icon(
-                            _getRoomStatusIcon(roomLoginState),
-                            size: 11,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(

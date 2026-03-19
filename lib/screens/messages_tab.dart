@@ -28,6 +28,7 @@ import '../services/voice_recorder_service.dart';
 import '../services/voice_codec_service.dart';
 import '../utils/toast_logger.dart';
 import '../utils/key_comparison.dart';
+import '../utils/contact_sorting.dart';
 import '../utils/voice_message_parser.dart';
 import '../utils/image_message_parser.dart';
 import '../utils/tictactoe_message_parser.dart';
@@ -299,27 +300,27 @@ class _MessagesTabState extends State<MessagesTab> {
     final contactsProvider = context.read<ContactsProvider>();
     final normalizedQuery = query.trim().toLowerCase();
     final contacts =
-        contactsProvider.contacts
-            .where((contact) => contact.type == ContactType.chat)
-            .where((contact) {
-              if (normalizedQuery.isEmpty) return true;
-              return contact.displayName.toLowerCase().contains(
-                normalizedQuery,
-              );
-            })
-            .toList()
-          ..sort((a, b) {
-            final aName = a.displayName.toLowerCase();
-            final bName = b.displayName.toLowerCase();
-            final aStarts =
-                normalizedQuery.isNotEmpty && aName.startsWith(normalizedQuery);
-            final bStarts =
-                normalizedQuery.isNotEmpty && bName.startsWith(normalizedQuery);
-            if (aStarts != bStarts) {
-              return aStarts ? -1 : 1;
-            }
-            return aName.compareTo(bName);
-          });
+        contactsProvider.chatContacts.where((contact) {
+          if (normalizedQuery.isEmpty) return true;
+          return contact.displayName.toLowerCase().contains(normalizedQuery);
+        }).toList()..sort((a, b) {
+          final primary = compareContactsByFavouriteThenLastSeen(a, b);
+          if (primary != 0) {
+            return primary;
+          }
+
+          final aName = a.displayName.toLowerCase();
+          final bName = b.displayName.toLowerCase();
+          final aStarts =
+              normalizedQuery.isNotEmpty && aName.startsWith(normalizedQuery);
+          final bStarts =
+              normalizedQuery.isNotEmpty && bName.startsWith(normalizedQuery);
+          if (aStarts != bStarts) {
+            return aStarts ? -1 : 1;
+          }
+
+          return compareContactsByDisplayName(a, b);
+        });
 
     return contacts.take(8).toList(growable: false);
   }
@@ -408,16 +409,33 @@ class _MessagesTabState extends State<MessagesTab> {
     final contactsProvider = context.read<ContactsProvider>();
     final messagesProvider = context.read<MessagesProvider>();
 
-    // Filter contacts by type
-    final contacts = contactsProvider.contacts
-        .where((c) => c.type == ContactType.chat)
-        .toList();
-    final rooms = contactsProvider.contacts
-        .where((c) => c.type == ContactType.room)
-        .toList();
-    final channels = contactsProvider.contacts
-        .where((c) => c.type == ContactType.channel)
-        .toList();
+    final contacts = List<Contact>.from(contactsProvider.chatContacts)
+      ..sort((a, b) {
+        final primary = compareContactsByFavouriteThenLastSeen(a, b);
+        if (primary != 0) {
+          return primary;
+        }
+
+        return compareContactsByDisplayName(a, b);
+      });
+    final rooms = List<Contact>.from(contactsProvider.rooms)
+      ..sort((a, b) {
+        final primary = compareContactsByLastSeen(a, b);
+        if (primary != 0) {
+          return primary;
+        }
+
+        return compareContactsByDisplayName(a, b);
+      });
+    final channels = List<Contact>.from(contactsProvider.channels)
+      ..sort((a, b) {
+        final primary = compareContactsByLastSeen(a, b);
+        if (primary != 0) {
+          return primary;
+        }
+
+        return compareContactsByDisplayName(a, b);
+      });
 
     showModalBottomSheet(
       context: context,
@@ -534,7 +552,10 @@ class _MessagesTabState extends State<MessagesTab> {
         }).firstOrNull;
 
         if (recipient == null) {
-          ToastLogger.error(context, AppLocalizations.of(context)!.cannotReplyContactNotFound);
+          ToastLogger.error(
+            context,
+            AppLocalizations.of(context)!.cannotReplyContactNotFound,
+          );
           return;
         }
       }
@@ -563,13 +584,19 @@ class _MessagesTabState extends State<MessagesTab> {
       } else {
         final senderPrefix = message.senderPublicKeyPrefix;
         if (senderPrefix == null || senderPrefix.length < 6) {
-          ToastLogger.error(context, AppLocalizations.of(context)!.cannotReplySenderMissing);
+          ToastLogger.error(
+            context,
+            AppLocalizations.of(context)!.cannotReplySenderMissing,
+          );
           return;
         }
 
         recipient = contactsProvider.findContactByPrefix(senderPrefix);
         if (recipient == null) {
-          ToastLogger.error(context, AppLocalizations.of(context)!.cannotReplyContactNotFound);
+          ToastLogger.error(
+            context,
+            AppLocalizations.of(context)!.cannotReplyContactNotFound,
+          );
           return;
         }
 

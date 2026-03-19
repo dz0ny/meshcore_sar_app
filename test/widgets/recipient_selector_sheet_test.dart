@@ -11,6 +11,8 @@ void main() {
     required String name,
     required ContactType type,
     int secondByte = 0,
+    int flags = 0,
+    int lastAdvert = 0,
   }) {
     final publicKey = Uint8List(32);
     publicKey[1] = secondByte;
@@ -18,11 +20,11 @@ void main() {
     return Contact(
       publicKey: publicKey,
       type: type,
-      flags: 0,
+      flags: flags,
       outPathLen: 0,
       outPath: Uint8List(0),
       advName: name,
-      lastAdvert: 0,
+      lastAdvert: lastAdvert,
       advLat: 0,
       advLon: 0,
       lastMod: 0,
@@ -97,5 +99,55 @@ void main() {
 
     expect(find.text('Show all'), findsNothing);
     expect(find.text('John Smith'), findsOneWidget);
+  });
+
+  testWidgets('sorts contacts with favourites first, then last seen', (
+    tester,
+  ) async {
+    final recentNonFavourite = buildContact(
+      name: 'Alpha',
+      type: ContactType.chat,
+      secondByte: 1,
+      lastAdvert: 300,
+    );
+    final olderFavourite = buildContact(
+      name: 'Bravo',
+      type: ContactType.chat,
+      secondByte: 2,
+      flags: 0x01,
+      lastAdvert: 100,
+    );
+    final newerFavourite = buildContact(
+      name: 'Charlie',
+      type: ContactType.chat,
+      secondByte: 3,
+      flags: 0x01,
+      lastAdvert: 200,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: RecipientSelectorSheet(
+            contacts: [recentNonFavourite, olderFavourite, newerFavourite],
+            rooms: const [],
+            channels: const [],
+            unreadCount: 0,
+            unreadCountsByPublicKey: const {},
+            showAllOption: false,
+            onSelect: (selectedRecipient, draftMessage) {},
+          ),
+        ),
+      ),
+    );
+
+    final charlieY = tester.getTopLeft(find.text('Charlie')).dy;
+    final bravoY = tester.getTopLeft(find.text('Bravo')).dy;
+    final alphaY = tester.getTopLeft(find.text('Alpha')).dy;
+
+    expect(charlieY, lessThan(bravoY));
+    expect(bravoY, lessThan(alphaY));
   });
 }

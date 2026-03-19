@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
+import '../models/channel.dart';
 import '../models/contact.dart';
 import '../models/contact_group.dart';
 import '../providers/contacts_provider.dart';
@@ -48,6 +50,7 @@ class _ContactsTabState extends State<ContactsTab> {
     ContactSection.repeaters: ContactSortMode.lastSeen,
     ContactSection.sensors: ContactSortMode.lastSeen,
     ContactSection.rooms: ContactSortMode.lastSeen,
+    ContactSection.channels: ContactSortMode.alphabetical,
   };
 
   @override
@@ -296,17 +299,19 @@ class _ContactsTabState extends State<ContactsTab> {
 
   List<Contact> _sortContacts(List<Contact> contacts, ContactSection section) {
     final sorted = List<Contact>.from(contacts);
-    if (section == ContactSection.channels) {
-      sorted.sort(
-        (a, b) =>
-            a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
-      );
-      return sorted;
-    }
-
-    final sortMode = _sortModes[section] ?? ContactSortMode.lastSeen;
+    final sortMode =
+        _sortModes[section] ??
+        (section == ContactSection.channels
+            ? ContactSortMode.alphabetical
+            : ContactSortMode.lastSeen);
 
     sorted.sort((a, b) {
+      if (sortMode == ContactSortMode.alphabetical) {
+        return a.displayName.toLowerCase().compareTo(
+          b.displayName.toLowerCase(),
+        );
+      }
+
       if (sortMode == ContactSortMode.distance) {
         final distanceA = _distanceFromCurrentPosition(a);
         final distanceB = _distanceFromCurrentPosition(b);
@@ -321,7 +326,12 @@ class _ContactsTabState extends State<ContactsTab> {
         }
       }
 
-      return b.lastSeenTime.compareTo(a.lastSeenTime);
+      final lastSeenCompare = b.lastSeenTime.compareTo(a.lastSeenTime);
+      if (lastSeenCompare != 0) {
+        return lastSeenCompare;
+      }
+
+      return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
     });
 
     return sorted;
@@ -480,8 +490,35 @@ class _ContactsTabState extends State<ContactsTab> {
     widget.onNavigateToMap?.call();
   }
 
+  Future<void> _exportHashChannelPskBase64(
+    BuildContext context,
+    Contact channel,
+  ) async {
+    final channelName = channel.advName.trim();
+    if (!Channel.isHashChannelName(channelName)) {
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    final copiedMessage = AppLocalizations.of(
+      context,
+    )!.copiedToClipboard('psk_base64');
+
+    await Clipboard.setData(
+      ClipboardData(text: Channel.pskBase64ForHashChannelName(channelName)),
+    );
+    if (!mounted) {
+      return;
+    }
+
+    messenger.showSnackBar(SnackBar(content: Text(copiedMessage)));
+  }
+
   void _showChannelActionSheet(BuildContext context, Contact channel) {
     final l10n = AppLocalizations.of(context)!;
+    final canExportHashChannelPsk = Channel.isHashChannelName(
+      channel.advName.trim(),
+    );
 
     showModalBottomSheet(
       context: context,
@@ -509,6 +546,15 @@ class _ContactsTabState extends State<ContactsTab> {
                   _showChannelOnMap(context, channel);
                 },
               ),
+            if (canExportHashChannelPsk)
+              ListTile(
+                leading: const Icon(Icons.key_outlined),
+                title: Text('${l10n.exportToClipboard} psk_base64'),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await _exportHashChannelPskBase64(context, channel);
+                },
+              ),
             if (!channel.isPublicChannel)
               ListTile(
                 leading: Icon(Icons.delete, color: Colors.red),
@@ -532,6 +578,60 @@ class _ContactsTabState extends State<ContactsTab> {
     );
   }
 
+  Color _sectionAccentColor(BuildContext context, ContactSection section) {
+    final colorScheme = Theme.of(context).colorScheme;
+    switch (section) {
+      case ContactSection.teamMembers:
+        return colorScheme.primary;
+      case ContactSection.repeaters:
+        return colorScheme.tertiary;
+      case ContactSection.sensors:
+        return colorScheme.secondary;
+      case ContactSection.rooms:
+        return colorScheme.primary;
+      case ContactSection.channels:
+        return Color.alphaBlend(
+          colorScheme.tertiary.withValues(alpha: 0.65),
+          colorScheme.primary.withValues(alpha: 0.35),
+        );
+    }
+  }
+
+  IconData _sortModeIcon(ContactSortMode mode) {
+    switch (mode) {
+      case ContactSortMode.lastSeen:
+        return Icons.schedule_rounded;
+      case ContactSortMode.distance:
+        return Icons.near_me_rounded;
+      case ContactSortMode.alphabetical:
+        return Icons.sort_by_alpha_rounded;
+    }
+  }
+
+  String _sortModeLabel(AppLocalizations l10n, ContactSortMode mode) {
+    switch (mode) {
+      case ContactSortMode.lastSeen:
+        return l10n.lastSeen;
+      case ContactSortMode.distance:
+        return l10n.distance;
+      case ContactSortMode.alphabetical:
+        return 'A-Z';
+    }
+  }
+
+  List<ContactSortMode> _availableSortModes(ContactSection section) {
+    switch (section) {
+      case ContactSection.channels:
+        return const [ContactSortMode.alphabetical, ContactSortMode.lastSeen];
+      default:
+        return const [
+          ContactSortMode.lastSeen,
+          ContactSortMode.distance,
+          ContactSortMode.alphabetical,
+        ];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -539,7 +639,10 @@ class _ContactsTabState extends State<ContactsTab> {
     return Scaffold(
       body: Consumer<ContactsProvider>(
         builder: (context, contactsProvider, child) {
+          final colorScheme = Theme.of(context).colorScheme;
+          final appProvider = context.watch<AppProvider>();
           final messagesProvider = context.watch<MessagesProvider>();
+          final connectionProvider = context.watch<ConnectionProvider>();
           final allChatContacts = _sortContacts(
             contactsProvider.chatContacts,
             ContactSection.teamMembers,
@@ -632,20 +735,49 @@ class _ContactsTabState extends State<ContactsTab> {
               _showSavedGroupsForSection(ContactSection.channels)
               ? savedChannelGroups
               : const <_RenderedSavedGroup>[];
-          final showTeamMembersSection = allChatContacts.isNotEmpty;
-          final showRepeatersSection = allRepeaters.isNotEmpty;
-          final showSensorsSection = allSensors.isNotEmpty;
-          final showRoomsSection = allRooms.isNotEmpty;
-          final showChannelsSection = allChannels.isNotEmpty;
-          // Check if there are any displayable contacts
-          final hasDisplayableContacts =
+          final showFavouritesSection =
+              appProvider.isContactsSectionEnabled(
+                ContactsTabSection.favourites,
+              ) &&
+              contactsProvider.favouriteContacts.isNotEmpty;
+          final showTeamMembersSection =
+              appProvider.isContactsSectionEnabled(
+                ContactsTabSection.teamMembers,
+              ) &&
+              allChatContacts.isNotEmpty;
+          final showRepeatersSection =
+              appProvider.isContactsSectionEnabled(
+                ContactsTabSection.repeaters,
+              ) &&
+              allRepeaters.isNotEmpty;
+          final showSensorsSection =
+              appProvider.isContactsSectionEnabled(
+                ContactsTabSection.sensors,
+              ) &&
+              allSensors.isNotEmpty;
+          final showRoomsSection =
+              appProvider.isContactsSectionEnabled(ContactsTabSection.rooms) &&
+              allRooms.isNotEmpty;
+          final showChannelsSection =
+              appProvider.isContactsSectionEnabled(
+                ContactsTabSection.channels,
+              ) &&
+              allChannels.isNotEmpty;
+          final hasAnyContactData =
               allChatContacts.isNotEmpty ||
               allRepeaters.isNotEmpty ||
               allSensors.isNotEmpty ||
               allRooms.isNotEmpty ||
               allChannels.isNotEmpty;
+          final hasAnyVisibleSection =
+              showFavouritesSection ||
+              showTeamMembersSection ||
+              showRepeatersSection ||
+              showSensorsSection ||
+              showRoomsSection ||
+              showChannelsSection;
 
-          if (!hasDisplayableContacts) {
+          if (!hasAnyContactData) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -666,10 +798,7 @@ class _ContactsTabState extends State<ContactsTab> {
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
-                  if (context
-                      .watch<ConnectionProvider>()
-                      .deviceInfo
-                      .isConnected)
+                  if (connectionProvider.deviceInfo.isConnected)
                     Padding(
                       padding: const EdgeInsets.only(top: 16),
                       child: OutlinedButton.icon(
@@ -683,289 +812,405 @@ class _ContactsTabState extends State<ContactsTab> {
             );
           }
 
+          if (!hasAnyVisibleSection) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.tune_rounded,
+                      size: 56,
+                      color: Theme.of(context).disabledColor,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'All contacts sections are hidden',
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Enable one or more sections in Settings to show contacts here.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           return RefreshIndicator(
             onRefresh: _handleRefresh,
             child: ListView(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
               children: [
-                // Favourites (contacts with firmware favourite flag set)
-                if (contactsProvider.favouriteContacts.isNotEmpty) ...[
-                  _SectionHeader(
-                    title: l10n.favourites,
-                    count: contactsProvider.favouriteContacts.length,
-                    icon: Icons.star,
-                  ),
-                  ..._buildContactSectionItems(
-                    contactsProvider.favouriteContacts,
-                  ),
-                  const Divider(height: 32),
-                ],
-
-                // Team Members (Chat contacts)
-                if (showTeamMembersSection) ...[
-                  _SectionHeader(
-                    title: l10n.teamMembers,
-                    count: chatContacts.length,
-                    icon: Icons.people,
-                    trailing: _buildSortMenu(
-                      context,
-                      ContactSection.teamMembers,
-                    ),
-                  ),
-                  _buildSectionFilterField(
-                    context,
-                    ContactSection.teamMembers,
-                    contactsProvider,
-                    onSecondaryAction: () => _createAutoGroupsForSection(
-                      context,
-                      contactsProvider,
-                      ContactSection.teamMembers,
-                      allChatContacts,
-                      emptyMessage: 'No contact auto groups available',
-                      successMessage: 'Updated contact auto groups',
-                    ),
-                    secondaryActionIcon: Icons.auto_awesome_outlined,
-                    secondaryActionTooltip: 'Auto group',
-                  ),
-                  ..._buildSavedGroupCards(
-                    visibleSavedTeamGroups,
-                    ContactSection.teamMembers,
-                  ),
-                  if (chatContacts.isEmpty &&
-                      _sectionHasActiveFilter(ContactSection.teamMembers))
-                    _buildNoFilterResults(context)
-                  else
-                    ..._buildContactSectionItems(
-                      _excludeGroupedContacts(
-                        chatContacts,
-                        visibleSavedTeamGroups,
-                      ),
-                    ),
-                  const Divider(height: 32),
-                ],
-
-                // Repeaters
-                if (showRepeatersSection) ...[
-                  _SectionHeader(
-                    title: l10n.repeaters,
-                    count: repeaters.length,
-                    icon: Icons.router,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+                if (showFavouritesSection)
+                  _SectionCard(
+                    accentColor: Colors.amber,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (context
-                            .watch<ConnectionProvider>()
-                            .deviceInfo
-                            .isConnected)
-                          IconButton(
-                            icon: const Icon(Icons.radar, size: 20),
-                            tooltip: 'Discover repeaters',
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () {
-                              context
-                                  .read<ConnectionProvider>()
-                                  .discoverNodeType(advertType: 2);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(l10n.repeaterDiscoverySent),
-                                ),
-                              );
-                            },
-                          ),
-                        _buildSortMenu(context, ContactSection.repeaters),
+                        _SectionHeader(
+                          title: l10n.favourites,
+                          count: contactsProvider.favouriteContacts.length,
+                          icon: Icons.star_rounded,
+                          accentColor: Colors.amber,
+                        ),
+                        ..._buildContactSectionItems(
+                          contactsProvider.favouriteContacts,
+                        ),
                       ],
                     ),
                   ),
-                  _buildSectionFilterField(
-                    context,
-                    ContactSection.repeaters,
-                    contactsProvider,
-                    onSecondaryAction: () => _createAutoGroupsForSection(
+
+                if (showTeamMembersSection)
+                  _SectionCard(
+                    accentColor: _sectionAccentColor(
                       context,
-                      contactsProvider,
+                      ContactSection.teamMembers,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SectionHeader(
+                          title: l10n.teamMembers,
+                          count: chatContacts.length,
+                          icon: Icons.people_alt_rounded,
+                          accentColor: _sectionAccentColor(
+                            context,
+                            ContactSection.teamMembers,
+                          ),
+                        ),
+                        _buildSectionFilterField(
+                          context,
+                          ContactSection.teamMembers,
+                          contactsProvider,
+                          onSecondaryAction: () => _createAutoGroupsForSection(
+                            context,
+                            contactsProvider,
+                            ContactSection.teamMembers,
+                            allChatContacts,
+                            emptyMessage: 'No contact auto groups available',
+                            successMessage: 'Updated contact auto groups',
+                          ),
+                          secondaryActionIcon: Icons.auto_awesome_outlined,
+                          secondaryActionTooltip: 'Auto group',
+                        ),
+                        ..._buildSavedGroupCards(
+                          visibleSavedTeamGroups,
+                          ContactSection.teamMembers,
+                        ),
+                        if (chatContacts.isEmpty &&
+                            _sectionHasActiveFilter(ContactSection.teamMembers))
+                          _buildNoFilterResults(context)
+                        else
+                          ..._buildContactSectionItems(
+                            _excludeGroupedContacts(
+                              chatContacts,
+                              visibleSavedTeamGroups,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                if (showRepeatersSection)
+                  _SectionCard(
+                    accentColor: _sectionAccentColor(
+                      context,
                       ContactSection.repeaters,
-                      allRepeaters,
-                      maxNamedGroups: 2,
-                      overflowGroupLabel: 'Others',
-                      emptyMessage: 'No repeater auto groups available',
-                      successMessage: 'Updated repeater auto groups',
                     ),
-                    secondaryActionIcon: Icons.auto_awesome_outlined,
-                    secondaryActionTooltip: 'Auto group',
-                  ),
-                  ..._buildSavedGroupCards(
-                    visibleSavedRepeaterGroups,
-                    ContactSection.repeaters,
-                  ),
-                  if (repeaters.isEmpty &&
-                      _sectionHasActiveFilter(ContactSection.repeaters))
-                    _buildNoFilterResults(context)
-                  else if (showRepeatersOthersGroup)
-                    _InferredContactGroupCard(
-                      label: l10n.others,
-                      contacts: ungroupedRepeaters,
-                      compactContacts: true,
-                      currentPosition: _currentPosition,
-                      calculateDistance: _calculateDistanceInMeters,
-                      formatDistance: _formatDistance,
-                      onNavigateToMap: widget.onNavigateToMap,
-                      onNavigateToMessages: widget.onNavigateToMessages,
-                    )
-                  else
-                    ..._buildContactSectionItems(
-                      ungroupedRepeaters,
-                      compact: true,
-                    ),
-                  const Divider(height: 32),
-                ],
-
-                // Sensors
-                if (showSensorsSection) ...[
-                  _SectionHeader(
-                    title: l10n.sensors,
-                    count: sensors.length,
-                    icon: Icons.sensors,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (context
-                            .watch<ConnectionProvider>()
-                            .deviceInfo
-                            .isConnected)
-                          IconButton(
-                            icon: const Icon(Icons.radar, size: 20),
-                            tooltip: 'Discover sensors',
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () {
-                              context
-                                  .read<ConnectionProvider>()
-                                  .discoverNodeType(advertType: 4);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(l10n.sensorDiscoverySent),
-                                ),
-                              );
-                            },
+                        _SectionHeader(
+                          title: l10n.repeaters,
+                          count: repeaters.length,
+                          icon: Icons.router_rounded,
+                          accentColor: _sectionAccentColor(
+                            context,
+                            ContactSection.repeaters,
                           ),
-                        _buildSortMenu(context, ContactSection.sensors),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (connectionProvider.deviceInfo.isConnected)
+                                IconButton(
+                                  icon: const Icon(Icons.radar, size: 20),
+                                  tooltip: 'Discover repeaters',
+                                  visualDensity: VisualDensity.compact,
+                                  style: IconButton.styleFrom(
+                                    foregroundColor: _sectionAccentColor(
+                                      context,
+                                      ContactSection.repeaters,
+                                    ),
+                                    backgroundColor: _sectionAccentColor(
+                                      context,
+                                      ContactSection.repeaters,
+                                    ).withValues(alpha: 0.10),
+                                  ),
+                                  onPressed: () {
+                                    context
+                                        .read<ConnectionProvider>()
+                                        .discoverNodeType(advertType: 2);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          l10n.repeaterDiscoverySent,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                        _buildSectionFilterField(
+                          context,
+                          ContactSection.repeaters,
+                          contactsProvider,
+                          onSecondaryAction: () => _createAutoGroupsForSection(
+                            context,
+                            contactsProvider,
+                            ContactSection.repeaters,
+                            allRepeaters,
+                            maxNamedGroups: 2,
+                            overflowGroupLabel: 'Others',
+                            emptyMessage: 'No repeater auto groups available',
+                            successMessage: 'Updated repeater auto groups',
+                          ),
+                          secondaryActionIcon: Icons.auto_awesome_outlined,
+                          secondaryActionTooltip: 'Auto group',
+                        ),
+                        ..._buildSavedGroupCards(
+                          visibleSavedRepeaterGroups,
+                          ContactSection.repeaters,
+                        ),
+                        if (repeaters.isEmpty &&
+                            _sectionHasActiveFilter(ContactSection.repeaters))
+                          _buildNoFilterResults(context)
+                        else if (showRepeatersOthersGroup)
+                          _InferredContactGroupCard(
+                            label: l10n.others,
+                            contacts: ungroupedRepeaters,
+                            compactContacts: true,
+                            currentPosition: _currentPosition,
+                            calculateDistance: _calculateDistanceInMeters,
+                            formatDistance: _formatDistance,
+                            onNavigateToMap: widget.onNavigateToMap,
+                            onNavigateToMessages: widget.onNavigateToMessages,
+                          )
+                        else
+                          ..._buildContactSectionItems(
+                            ungroupedRepeaters,
+                            compact: true,
+                          ),
                       ],
                     ),
                   ),
-                  _buildSectionFilterField(
-                    context,
-                    ContactSection.sensors,
-                    contactsProvider,
+
+                if (showSensorsSection)
+                  _SectionCard(
+                    accentColor: _sectionAccentColor(
+                      context,
+                      ContactSection.sensors,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SectionHeader(
+                          title: l10n.sensors,
+                          count: sensors.length,
+                          icon: Icons.sensors_rounded,
+                          accentColor: _sectionAccentColor(
+                            context,
+                            ContactSection.sensors,
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (connectionProvider.deviceInfo.isConnected)
+                                IconButton(
+                                  icon: const Icon(Icons.radar, size: 20),
+                                  tooltip: 'Discover sensors',
+                                  visualDensity: VisualDensity.compact,
+                                  style: IconButton.styleFrom(
+                                    foregroundColor: _sectionAccentColor(
+                                      context,
+                                      ContactSection.sensors,
+                                    ),
+                                    backgroundColor: _sectionAccentColor(
+                                      context,
+                                      ContactSection.sensors,
+                                    ).withValues(alpha: 0.10),
+                                  ),
+                                  onPressed: () {
+                                    context
+                                        .read<ConnectionProvider>()
+                                        .discoverNodeType(advertType: 4);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(l10n.sensorDiscoverySent),
+                                      ),
+                                    );
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                        _buildSectionFilterField(
+                          context,
+                          ContactSection.sensors,
+                          contactsProvider,
+                        ),
+                        ..._buildSavedGroupCards(
+                          visibleSavedSensorGroups,
+                          ContactSection.sensors,
+                        ),
+                        if (sensors.isEmpty &&
+                            _sectionHasActiveFilter(ContactSection.sensors))
+                          _buildNoFilterResults(context)
+                        else
+                          ..._buildContactSectionItems(
+                            _excludeGroupedContacts(
+                              sensors,
+                              visibleSavedSensorGroups,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                  ..._buildSavedGroupCards(
-                    visibleSavedSensorGroups,
-                    ContactSection.sensors,
+
+                if (showRoomsSection)
+                  _SectionCard(
+                    accentColor: _sectionAccentColor(
+                      context,
+                      ContactSection.rooms,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SectionHeader(
+                          title: l10n.rooms,
+                          count: rooms.length,
+                          icon: Icons.meeting_room_outlined,
+                          accentColor: _sectionAccentColor(
+                            context,
+                            ContactSection.rooms,
+                          ),
+                        ),
+                        _buildSectionFilterField(
+                          context,
+                          ContactSection.rooms,
+                          contactsProvider,
+                        ),
+                        ..._buildSavedGroupCards(
+                          visibleSavedRoomGroups,
+                          ContactSection.rooms,
+                        ),
+                        if (rooms.isEmpty &&
+                            _sectionHasActiveFilter(ContactSection.rooms))
+                          _buildNoFilterResults(context)
+                        else
+                          ..._buildContactSectionItems(
+                            _excludeGroupedContacts(
+                              rooms,
+                              visibleSavedRoomGroups,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                  if (sensors.isEmpty &&
-                      _sectionHasActiveFilter(ContactSection.sensors))
-                    _buildNoFilterResults(context)
-                  else
-                    ..._buildContactSectionItems(
-                      _excludeGroupedContacts(
-                        sensors,
-                        visibleSavedSensorGroups,
+
+                if (showChannelsSection)
+                  _SectionCard(
+                    accentColor: _sectionAccentColor(
+                      context,
+                      ContactSection.channels,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SectionHeader(
+                          title: l10n.channels,
+                          count: filteredChannels.length,
+                          icon: Icons.broadcast_on_personal_rounded,
+                          accentColor: _sectionAccentColor(
+                            context,
+                            ContactSection.channels,
+                          ),
+                        ),
+                        _buildSectionFilterField(
+                          context,
+                          ContactSection.channels,
+                          contactsProvider,
+                        ),
+                        ..._buildSavedGroupCards(
+                          visibleSavedChannelGroups,
+                          ContactSection.channels,
+                        ),
+                        if (filteredChannels.isEmpty &&
+                            _sectionHasActiveFilter(ContactSection.channels))
+                          _buildNoFilterResults(context)
+                        else
+                          ..._excludeGroupedContacts(
+                            filteredChannels,
+                            visibleSavedChannelGroups,
+                          ).map(
+                            (channel) => _ChannelActivityCard(
+                              channel: channel,
+                              messagesProvider: messagesProvider,
+                              contactsProvider: contactsProvider,
+                              onTap: () =>
+                                  _showChannelActionSheet(context, channel),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                if (connectionProvider.deviceInfo.isConnected)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.35,
+                        ),
                       ),
-                    ),
-                  const Divider(height: 32),
-                ],
-
-                // Rooms
-                if (showRoomsSection) ...[
-                  _SectionHeader(
-                    title: l10n.rooms,
-                    count: rooms.length,
-                    icon: Icons.tag,
-                    trailing: _buildSortMenu(context, ContactSection.rooms),
-                  ),
-                  _buildSectionFilterField(
-                    context,
-                    ContactSection.rooms,
-                    contactsProvider,
-                  ),
-                  ..._buildSavedGroupCards(
-                    visibleSavedRoomGroups,
-                    ContactSection.rooms,
-                  ),
-                  if (rooms.isEmpty &&
-                      _sectionHasActiveFilter(ContactSection.rooms))
-                    _buildNoFilterResults(context)
-                  else
-                    ..._buildContactSectionItems(
-                      _excludeGroupedContacts(rooms, visibleSavedRoomGroups),
-                    ),
-                  const Divider(height: 32),
-                ],
-
-                // Channels (visible in both simple and advanced mode)
-                if (showChannelsSection) ...[
-                  _SectionHeader(
-                    title: l10n.channels,
-                    count: filteredChannels.length,
-                    icon: Icons.broadcast_on_personal,
-                  ),
-                  _buildSectionFilterField(
-                    context,
-                    ContactSection.channels,
-                    contactsProvider,
-                  ),
-                  ..._buildSavedGroupCards(
-                    visibleSavedChannelGroups,
-                    ContactSection.channels,
-                  ),
-                  if (filteredChannels.isEmpty &&
-                      _sectionHasActiveFilter(ContactSection.channels))
-                    _buildNoFilterResults(context)
-                  else ...[
-                    ..._excludeGroupedContacts(
-                      filteredChannels,
-                      visibleSavedChannelGroups,
-                    ).map(
-                      (channel) => _ChannelActivityCard(
-                        channel: channel,
-                        messagesProvider: messagesProvider,
-                        contactsProvider: contactsProvider,
-                        onTap: () => _showChannelActionSheet(context, channel),
-                      ),
-                    ),
-                  ],
-                ],
-
-                // Add Channel Button (visible in both simple and advanced mode, only show when connected)
-                if (context.watch<ConnectionProvider>().deviceInfo.isConnected)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
                     ),
                     child: Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton.icon(
+                          child: FilledButton.tonalIcon(
                             onPressed: () => _openAddContactScreen(context),
-                            icon: Icon(Icons.person_add_alt_1_outlined),
+                            icon: const Icon(Icons.person_add_alt_1_outlined),
                             label: Text(l10n.addContact),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: OutlinedButton.icon(
+                          child: FilledButton.tonalIcon(
                             onPressed: () => _showAddChannelDialog(context),
-                            icon: Icon(Icons.add_circle_outline),
+                            icon: const Icon(Icons.add_circle_outline),
                             label: Text(l10n.addChannel),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: _sectionAccentColor(
+                                context,
+                                ContactSection.channels,
+                              ).withValues(alpha: 0.14),
+                              foregroundColor: _sectionAccentColor(
+                                context,
+                                ContactSection.channels,
                               ),
                             ),
                           ),
@@ -1139,6 +1384,10 @@ class _ContactsTabState extends State<ContactsTab> {
                       ),
                     ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: _buildSortMenu(context, section, compact: true),
+                  ),
                   if (hasFilter) ...[
                     if (onSecondaryAction != null &&
                         secondaryActionIcon != null)
@@ -1260,10 +1509,19 @@ class _ContactsTabState extends State<ContactsTab> {
     );
   }
 
-  Widget _buildSortMenu(BuildContext context, ContactSection section) {
+  Widget _buildSortMenu(
+    BuildContext context,
+    ContactSection section, {
+    bool compact = false,
+  }) {
     final l10n = AppLocalizations.of(context)!;
-    final selectedMode = _sortModes[section] ?? ContactSortMode.lastSeen;
+    final selectedMode =
+        _sortModes[section] ??
+        (section == ContactSection.channels
+            ? ContactSortMode.alphabetical
+            : ContactSortMode.lastSeen);
     final colorScheme = Theme.of(context).colorScheme;
+    final availableModes = _availableSortModes(section);
 
     return PopupMenuButton<ContactSortMode>(
       tooltip: 'Sort',
@@ -1273,53 +1531,75 @@ class _ContactsTabState extends State<ContactsTab> {
           _sortModes[section] = sortMode;
         });
       },
-      itemBuilder: (context) => [
-        PopupMenuItem<ContactSortMode>(
-          value: ContactSortMode.lastSeen,
-          child: Row(
-            children: [
-              Icon(
-                Icons.schedule,
-                size: 18,
-                color: selectedMode == ContactSortMode.lastSeen
-                    ? colorScheme.primary
-                    : null,
+      itemBuilder: (context) => availableModes
+          .map(
+            (mode) => PopupMenuItem<ContactSortMode>(
+              value: mode,
+              child: Row(
+                children: [
+                  Icon(
+                    _sortModeIcon(mode),
+                    size: 18,
+                    color: selectedMode == mode ? colorScheme.primary : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(_sortModeLabel(l10n, mode)),
+                ],
               ),
-              SizedBox(width: 8),
-              Text(l10n.lastSeen),
-            ],
-          ),
-        ),
-        PopupMenuItem<ContactSortMode>(
-          value: ContactSortMode.distance,
-          child: Row(
-            children: [
-              Icon(
-                Icons.near_me,
-                size: 18,
-                color: selectedMode == ContactSortMode.distance
-                    ? colorScheme.primary
-                    : null,
+            ),
+          )
+          .toList(),
+      child: compact
+          ? Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
               ),
-              SizedBox(width: 8),
-              Text(l10n.distance),
-            ],
-          ),
-        ),
-      ],
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Icon(
-          Icons.more_horiz,
-          size: 18,
-          color: colorScheme.onSurfaceVariant,
-        ),
-      ),
+              child: Icon(
+                _sortModeIcon(selectedMode),
+                size: 18,
+                color: colorScheme.primary,
+              ),
+            )
+          : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.38),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _sortModeIcon(selectedMode),
+                    size: 16,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _sortModeLabel(l10n, selectedMode),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.expand_more_rounded,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
 
-enum ContactSortMode { lastSeen, distance }
+enum ContactSortMode { lastSeen, distance, alphabetical }
 
 enum ContactSection { teamMembers, repeaters, sensors, rooms, channels }
 
@@ -1334,44 +1614,130 @@ class _SectionHeader extends StatelessWidget {
   final String title;
   final int count;
   final IconData icon;
+  final Color accentColor;
   final Widget? trailing;
 
   const _SectionHeader({
     required this.title,
     required this.count,
     required this.icon,
+    required this.accentColor,
     this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 8),
-          Text(
+    final colorScheme = Theme.of(context).colorScheme;
+    final titleBlock = Row(
+      children: [
+        Expanded(
+          child: Text(
             title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              count.toString(),
-              style: Theme.of(context).textTheme.labelSmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
             ),
           ),
-          if (trailing != null) ...[const Spacer(), trailing!],
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: accentColor.withValues(alpha: 0.18)),
+          ),
+          child: Text(
+            count.toString(),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: accentColor,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useStackedLayout = trailing != null && constraints.maxWidth < 430;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: accentColor.withValues(alpha: 0.18),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(icon, size: 20, color: accentColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: titleBlock),
+                  if (!useStackedLayout && trailing != null) ...[
+                    const SizedBox(width: 12),
+                    Flexible(child: trailing!),
+                  ],
+                ],
+              ),
+              if (useStackedLayout) ...[
+                const SizedBox(height: 10),
+                Align(alignment: Alignment.centerRight, child: trailing!),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  final Color accentColor;
+  final Widget child;
+
+  const _SectionCard({required this.accentColor, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.surface,
+            accentColor.withValues(alpha: 0.04),
+            colorScheme.surfaceContainerLow,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: accentColor.withValues(alpha: 0.14)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
         ],
       ),
+      child: child,
     );
   }
 }

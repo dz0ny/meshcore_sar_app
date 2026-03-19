@@ -190,9 +190,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _isDeveloperModeEnabled = false;
         _versionTapCount = 0;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.developerModeDisabled)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.developerModeDisabled),
+        ),
+      );
       return;
     }
 
@@ -204,9 +206,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _isDeveloperModeEnabled = true;
         _versionTapCount = 0;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.developerModeEnabled)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.developerModeEnabled),
+        ),
+      );
       return;
     }
 
@@ -559,7 +563,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.updateCheckIsOnlyAvailableOnAndroid),
+            content: Text(
+              AppLocalizations.of(context)!.updateCheckIsOnlyAvailableOnAndroid,
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -584,7 +590,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!updateInfo.isAvailable) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.youAreRunningTheLatestVersion),
+            content: Text(
+              AppLocalizations.of(context)!.youAreRunningTheLatestVersion,
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -594,7 +602,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (updateInfo.downloadUrl == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.updateAvailableButDownloadUrlNotFound),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              )!.updateAvailableButDownloadUrlNotFound,
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -1178,6 +1190,100 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ]),
 
+          _buildSectionHeader(AppLocalizations.of(context)!.contacts),
+          Consumer<AppProvider>(
+            builder: (context, appProvider, child) => _buildSettingsCard([
+              SwitchListTile(
+                secondary: const Icon(Icons.star_outline_rounded),
+                title: Text(AppLocalizations.of(context)!.favourites),
+                subtitle: const Text(
+                  'Show the favourites section in the contacts tab',
+                ),
+                value: appProvider.isContactsSectionEnabled(
+                  ContactsTabSection.favourites,
+                ),
+                onChanged: (value) async {
+                  await appProvider.setContactsSectionEnabled(
+                    ContactsTabSection.favourites,
+                    value,
+                  );
+                },
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.people_alt_outlined),
+                title: Text(AppLocalizations.of(context)!.teamMembers),
+                subtitle: const Text(
+                  'Show direct team contacts in the contacts tab',
+                ),
+                value: appProvider.isContactsSectionEnabled(
+                  ContactsTabSection.teamMembers,
+                ),
+                onChanged: (value) async {
+                  await appProvider.setContactsSectionEnabled(
+                    ContactsTabSection.teamMembers,
+                    value,
+                  );
+                },
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.router_outlined),
+                title: Text(AppLocalizations.of(context)!.repeaters),
+                subtitle: const Text('Show repeater nodes in the contacts tab'),
+                value: appProvider.isContactsSectionEnabled(
+                  ContactsTabSection.repeaters,
+                ),
+                onChanged: (value) async {
+                  await appProvider.setContactsSectionEnabled(
+                    ContactsTabSection.repeaters,
+                    value,
+                  );
+                },
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.sensors_outlined),
+                title: Text(AppLocalizations.of(context)!.sensors),
+                subtitle: const Text('Show sensor nodes in the contacts tab'),
+                value: appProvider.isContactsSectionEnabled(
+                  ContactsTabSection.sensors,
+                ),
+                onChanged: (value) async {
+                  await appProvider.setContactsSectionEnabled(
+                    ContactsTabSection.sensors,
+                    value,
+                  );
+                },
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.meeting_room_outlined),
+                title: Text(AppLocalizations.of(context)!.rooms),
+                subtitle: const Text('Show rooms in the contacts tab'),
+                value: appProvider.isContactsSectionEnabled(
+                  ContactsTabSection.rooms,
+                ),
+                onChanged: (value) async {
+                  await appProvider.setContactsSectionEnabled(
+                    ContactsTabSection.rooms,
+                    value,
+                  );
+                },
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.broadcast_on_personal_outlined),
+                title: Text(AppLocalizations.of(context)!.channels),
+                subtitle: const Text('Show channels in the contacts tab'),
+                value: appProvider.isContactsSectionEnabled(
+                  ContactsTabSection.channels,
+                ),
+                onChanged: (value) async {
+                  await appProvider.setContactsSectionEnabled(
+                    ContactsTabSection.channels,
+                    value,
+                  );
+                },
+              ),
+            ]),
+          ),
+
           _buildSectionHeader('Messaging'),
           _buildSettingsCard([
             ListTile(
@@ -1205,7 +1311,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
                 secondary: Icon(Icons.route),
-                title: Text(AppLocalizations.of(context)!.nearestRepeaterFallback),
+                title: Text(
+                  AppLocalizations.of(context)!.nearestRepeaterFallback,
+                ),
                 subtitle: const Text(
                   'After normal retries fail, try one final resend through the nearest repeater',
                 ),
@@ -1234,7 +1342,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 'Clear Messages',
                 style: TextStyle(color: Colors.red),
               ),
-              subtitle: Text(AppLocalizations.of(context)!.deleteAllStoredMessageHistory),
+              subtitle: Text(
+                AppLocalizations.of(context)!.deleteAllStoredMessageHistory,
+              ),
               onTap: _clearMessages,
             ),
             Consumer<AppProvider>(
@@ -1344,7 +1454,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               builder: (context, drawingProvider, child) => SwitchListTile(
                 secondary: Icon(Icons.fmd_good_outlined),
                 title: Text(AppLocalizations.of(context)!.showSarMarkersLabel),
-                subtitle: Text(AppLocalizations.of(context)!.displaySarMarkersOnTheMainMap),
+                subtitle: Text(
+                  AppLocalizations.of(context)!.displaySarMarkersOnTheMainMap,
+                ),
                 value: drawingProvider.showSarMarkers,
                 onChanged: (value) {
                   drawingProvider.toggleSarMarkers();
@@ -1354,7 +1466,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Consumer<MapProvider>(
               builder: (context, mapProvider, child) => SwitchListTile(
                 secondary: Icon(Icons.timeline),
-                title: Text(AppLocalizations.of(context)!.showAllContactTrailsLabel),
+                title: Text(
+                  AppLocalizations.of(context)!.showAllContactTrailsLabel,
+                ),
                 subtitle: const Text(
                   'Display location trails for all contacts that have history',
                 ),
@@ -1420,7 +1534,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               builder: (context, appProvider, child) => SwitchListTile(
                 secondary: Icon(Icons.compress),
                 title: Text(AppLocalizations.of(context)!.voiceCompressor),
-                subtitle: Text(AppLocalizations.of(context)!.balancesQuietAndLoudSpeechLevels),
+                subtitle: Text(
+                  AppLocalizations.of(
+                    context,
+                  )!.balancesQuietAndLoudSpeechLevels,
+                ),
                 value: appProvider.isVoiceCompressorEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceCompressorEnabled(value);
@@ -1431,7 +1549,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               builder: (context, appProvider, child) => SwitchListTile(
                 secondary: Icon(Icons.speed),
                 title: Text(AppLocalizations.of(context)!.voiceLimiter),
-                subtitle: Text(AppLocalizations.of(context)!.preventsClippingPeaksBeforeEncoding),
+                subtitle: Text(
+                  AppLocalizations.of(
+                    context,
+                  )!.preventsClippingPeaksBeforeEncoding,
+                ),
                 value: appProvider.isVoiceLimiterEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceLimiterEnabled(value);
@@ -1442,7 +1564,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               builder: (context, appProvider, child) => SwitchListTile(
                 secondary: Icon(Icons.auto_fix_high),
                 title: Text(AppLocalizations.of(context)!.micAutoGain),
-                subtitle: Text(AppLocalizations.of(context)!.letsTheRecorderAdjustInputLevel),
+                subtitle: Text(
+                  AppLocalizations.of(context)!.letsTheRecorderAdjustInputLevel,
+                ),
                 value: appProvider.isVoiceAutoGainEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceAutoGainEnabled(value);
@@ -1478,7 +1602,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
                 secondary: Icon(Icons.content_cut),
-                title: Text(AppLocalizations.of(context)!.trimSilenceInVoiceMessages),
+                title: Text(
+                  AppLocalizations.of(context)!.trimSilenceInVoiceMessages,
+                ),
                 subtitle: const Text(
                   'Removes long silent parts before sending voice',
                 ),
@@ -1648,7 +1774,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ListTile(
               leading: Icon(Icons.timer),
-              title: Text(AppLocalizations.of(context)!.activeuseUpdateInterval),
+              title: Text(
+                AppLocalizations.of(context)!.activeuseUpdateInterval,
+              ),
               subtitle: Text('$_fastLocationActiveCadenceSeconds s'),
               trailing: const Icon(Icons.chevron_right),
               onTap: _editFastLocationActiveCadence,

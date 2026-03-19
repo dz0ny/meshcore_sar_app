@@ -57,9 +57,7 @@ class Channel {
     } else {
       // Normal channel: require explicit secret
       if (explicitSecret == null || explicitSecret.length != 16) {
-        throw ArgumentError(
-          'Normal channels require a 16-byte secret',
-        );
+        throw ArgumentError('Normal channels require a 16-byte secret');
       }
       return Channel(
         index: index,
@@ -78,6 +76,18 @@ class Channel {
     return Uint8List.fromList(digest.bytes.sublist(0, 16));
   }
 
+  static bool isHashChannelName(String channelName) {
+    return channelName.trim().startsWith('#');
+  }
+
+  static String pskBase64ForHashChannelName(String channelName) {
+    final normalized = channelName.trim();
+    if (!isHashChannelName(normalized)) {
+      throw ArgumentError('Only #channels can export derived psk_base64');
+    }
+    return base64.encode(_generateHashChannelSecret(normalized));
+  }
+
   /// Create the default public channel (channel 0)
   /// Uses the well-known pre-shared key from MeshCore
   factory Channel.publicChannel() {
@@ -85,8 +95,22 @@ class Channel {
       index: 0,
       name: 'Public Channel',
       secret: Uint8List.fromList([
-        0x8b, 0x33, 0x87, 0xe9, 0xc5, 0xcd, 0xea, 0x6a,
-        0xc9, 0xe5, 0xed, 0xba, 0xa1, 0x15, 0xcd, 0x72,
+        0x8b,
+        0x33,
+        0x87,
+        0xe9,
+        0xc5,
+        0xcd,
+        0xea,
+        0x6a,
+        0xc9,
+        0xe5,
+        0xed,
+        0xba,
+        0xa1,
+        0x15,
+        0xcd,
+        0x72,
       ]),
       flags: null,
     );
@@ -94,6 +118,9 @@ class Channel {
 
   /// Check if this is a hash-based channel (name starts with '#')
   bool get isHashChannel => name.startsWith('#');
+
+  /// Base64-encoded PSK for sharing with firmware CLI and related tooling.
+  String get pskBase64 => base64.encode(secret);
 
   /// Display name for the channel
   /// Returns "Public" for channel 0, otherwise returns the custom name or "Channel N"
@@ -131,12 +158,7 @@ class Channel {
   }
 
   /// Create a copy with modified fields
-  Channel copyWith({
-    int? index,
-    String? name,
-    Uint8List? secret,
-    int? flags,
-  }) {
+  Channel copyWith({int? index, String? name, Uint8List? secret, int? flags}) {
     return Channel(
       index: index ?? this.index,
       name: name ?? this.name,

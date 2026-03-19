@@ -107,6 +107,15 @@ class _PendingRepeaterOwnerRequest {
   const _PendingRepeaterOwnerRequest({required this.publicKey});
 }
 
+enum ContactsTabSection {
+  favourites,
+  teamMembers,
+  repeaters,
+  sensors,
+  rooms,
+  channels,
+}
+
 /// Main App Provider - coordinates all other providers
 class AppProvider with ChangeNotifier {
   static const int _maxDirectPayloadHops = 3;
@@ -162,6 +171,9 @@ class AppProvider with ChangeNotifier {
   bool get isContactsEnabled => _isContactsEnabled;
   bool _isSensorsEnabled = true;
   bool get isSensorsEnabled => _isSensorsEnabled;
+  final Map<ContactsTabSection, bool> _contactsSectionVisibility = {
+    for (final section in ContactsTabSection.values) section: true,
+  };
 
   bool _isVoiceSilenceTrimmingEnabled = true;
   bool get isVoiceSilenceTrimmingEnabled => _isVoiceSilenceTrimmingEnabled;
@@ -238,6 +250,7 @@ class AppProvider with ChangeNotifier {
     _initializeLocationTracking();
     _loadMapEnabled();
     _loadContactsEnabled();
+    _loadContactsSectionVisibility();
     _loadSensorsEnabled();
     _loadVoiceSilenceTrimmingEnabled();
     _loadVoiceBandPassFilterEnabled();
@@ -257,6 +270,27 @@ class AppProvider with ChangeNotifier {
 
   String _scopedKey(String baseKey) {
     return ProfileStorageScope.scopedKey(baseKey);
+  }
+
+  bool isContactsSectionEnabled(ContactsTabSection section) {
+    return _contactsSectionVisibility[section] ?? true;
+  }
+
+  String _contactsSectionVisibilityKey(ContactsTabSection section) {
+    switch (section) {
+      case ContactsTabSection.favourites:
+        return 'contacts_section_favourites_enabled';
+      case ContactsTabSection.teamMembers:
+        return 'contacts_section_team_members_enabled';
+      case ContactsTabSection.repeaters:
+        return 'contacts_section_repeaters_enabled';
+      case ContactsTabSection.sensors:
+        return 'contacts_section_sensors_enabled';
+      case ContactsTabSection.rooms:
+        return 'contacts_section_rooms_enabled';
+      case ContactsTabSection.channels:
+        return 'contacts_section_channels_enabled';
+    }
   }
 
   void _startPacketCapturePersistence() {
@@ -562,6 +596,37 @@ class AppProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error saving contacts enabled setting: $e');
+    }
+  }
+
+  Future<void> _loadContactsSectionVisibility() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      for (final section in ContactsTabSection.values) {
+        _contactsSectionVisibility[section] =
+            prefs.getBool(_scopedKey(_contactsSectionVisibilityKey(section))) ??
+            true;
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading contacts section visibility settings: $e');
+    }
+  }
+
+  Future<void> setContactsSectionEnabled(
+    ContactsTabSection section,
+    bool enabled,
+  ) async {
+    try {
+      _contactsSectionVisibility[section] = enabled;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(
+        _scopedKey(_contactsSectionVisibilityKey(section)),
+        enabled,
+      );
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error saving contacts section visibility setting: $e');
     }
   }
 
@@ -933,9 +998,7 @@ class AppProvider with ChangeNotifier {
         // we also import into firmware so subsequent getContact calls work.
         // Matches the official app which calls cmdGetAdvertPath for all adverts.
         if (source == ContactReceiveSource.advert) {
-          unawaited(
-            connectionProvider.importReceivedAdvert(contact.publicKey),
-          );
+          unawaited(connectionProvider.importReceivedAdvert(contact.publicKey));
         }
         final isNewPendingAdvert = contactsProvider
             .addOrUpdatePendingAdvertContact(
@@ -1352,9 +1415,7 @@ class AppProvider with ChangeNotifier {
       if (_handlePendingRepeaterOwnerResponse(tag, responseData)) {
         return;
       }
-      debugPrint(
-        '📊 [AppProvider] Binary response (0x8C tag=$tag) received',
-      );
+      debugPrint('📊 [AppProvider] Binary response (0x8C tag=$tag) received');
       // Binary responses carry Cayenne LPP telemetry data.
       // The data starts with a channel byte — valid LPP always has at least
       // 3 bytes (channel + type + value). Skip clearly non-telemetry payloads.
@@ -2159,9 +2220,7 @@ class AppProvider with ChangeNotifier {
     // already added to pending adverts and showed notification.
     // Nothing else to do — the callback pipeline handles everything.
     if (wasKnown) {
-      debugPrint(
-        '   [pushAdvert] Existing contact refreshed',
-      );
+      debugPrint('   [pushAdvert] Existing contact refreshed');
     }
   }
 
@@ -2721,6 +2780,7 @@ class AppProvider with ChangeNotifier {
     await Future.wait([
       _loadMapEnabled(),
       _loadContactsEnabled(),
+      _loadContactsSectionVisibility(),
       _loadSensorsEnabled(),
       _loadVoiceSilenceTrimmingEnabled(),
       _loadVoiceBandPassFilterEnabled(),
