@@ -299,24 +299,28 @@ class _SensorsTabState extends State<SensorsTab> {
               final hasPersistedSensors =
                   sensorsProvider.watchedSensorKeys.isNotEmpty;
 
-              return RefreshIndicator(
-                onRefresh: () => _refreshAll(context),
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                  children: [
-                    if (displayKeys.isEmpty)
-                      const _EmptySensorsState()
-                    else
-                      ...displayKeys.map((key) {
-                        final contact = sensorsProvider.contactForDisplay(
-                          key,
-                          contactsProvider: contactsProvider,
-                          connectionProvider: connectionProvider,
-                        );
-                        final availableFieldKeys = sensorMetricKeysFor(contact);
-                        final visibleFields = sensorsProvider
-                            .effectiveVisibleFieldsFor(key, availableFieldKeys);
-                        return SensorTelemetryCard(
+              Widget buildSensorCard(String key, int index) {
+                final contact = sensorsProvider.contactForDisplay(
+                  key,
+                  contactsProvider: contactsProvider,
+                  connectionProvider: connectionProvider,
+                );
+                final availableFieldKeys = sensorMetricKeysFor(contact);
+                final visibleFields = sensorsProvider.effectiveVisibleFieldsFor(
+                  key,
+                  availableFieldKeys,
+                );
+
+                return Padding(
+                  key: ValueKey<String>('sensor_card_$key'),
+                  padding: EdgeInsets.only(
+                    bottom: index == displayKeys.length - 1 ? 0 : 12,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: SensorTelemetryCard(
                           contact: contact,
                           state: sensorsProvider.stateFor(key),
                           visibleFields: visibleFields,
@@ -348,10 +352,70 @@ class _SensorsTabState extends State<SensorsTab> {
                             contactsProvider: contactsProvider,
                             connectionProvider: connectionProvider,
                           ),
-                        );
-                      }),
-                  ],
-                ),
+                        ),
+                      ),
+                      if (hasPersistedSensors) ...[
+                        const SizedBox(width: 8),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: ReorderableDragStartListener(
+                            index: index,
+                            child: Tooltip(
+                              message: 'Move card',
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 12,
+                                ),
+                                child: Icon(
+                                  Icons.drag_indicator,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () => _refreshAll(context),
+                child: displayKeys.isEmpty
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                        children: const [_EmptySensorsState()],
+                      )
+                    : hasPersistedSensors
+                    ? ReorderableListView.builder(
+                        buildDefaultDragHandles: false,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                        itemCount: displayKeys.length,
+                        onReorder: (oldIndex, newIndex) =>
+                            sensorsProvider.reorderSensors(oldIndex, newIndex),
+                        itemBuilder: (context, index) =>
+                            buildSensorCard(displayKeys[index], index),
+                      )
+                    : ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                        children: [
+                          for (var i = 0; i < displayKeys.length; i++)
+                            buildSensorCard(displayKeys[i], i),
+                        ],
+                      ),
               );
             },
       ),

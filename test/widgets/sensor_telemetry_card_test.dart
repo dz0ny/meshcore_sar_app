@@ -189,4 +189,36 @@ void main() {
     expect(find.text('2°C'), findsOneWidget);
     expect(find.text('12.3 mm'), findsOneWidget);
   });
+
+  testWidgets('long pressing a telemetry bubble triggers refresh', (
+    tester,
+  ) async {
+    final contact = buildContact();
+    var refreshCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SensorTelemetryCard(
+            contact: contact,
+            state: SensorRefreshState.idle,
+            visibleFields: const {'temperature'},
+            fieldSpans: sensorFullWidthFieldSpans(const {'temperature'}),
+            onRefresh: () async {
+              refreshCount += 1;
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.longPress(
+      find.byKey(const ValueKey('sensor_metric_temperature')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(refreshCount, 1);
+  });
 }

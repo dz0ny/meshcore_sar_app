@@ -372,6 +372,8 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
                 mapProvider: mapProvider,
                 drawingProvider: context.read<DrawingProvider>(),
                 channelsProvider: context.read<ChannelsProvider>(),
+                voiceProvider: context.read<VoiceProvider>(),
+                imageProvider: context.read<ip.ImageProvider>(),
                 appProvider: appProvider,
               ),
         ),

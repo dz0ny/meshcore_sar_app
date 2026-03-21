@@ -486,7 +486,14 @@ class SensorsProvider with ChangeNotifier {
     final existing = contactsProvider.findContactByKey(
       Uint8List.fromList(selfKey),
     );
-    return existing ?? _buildSelfCandidate(connectionProvider);
+    final selfTelemetry = contactsProvider.selfTelemetry;
+    if (existing != null) {
+      return selfTelemetry == null
+          ? existing
+          : existing.copyWith(telemetry: selfTelemetry);
+    }
+
+    return _buildSelfCandidate(connectionProvider, telemetry: selfTelemetry);
   }
 
   Future<void> addSensor(Contact contact) async {
@@ -561,6 +568,31 @@ class SensorsProvider with ChangeNotifier {
     await _persistMetricLabels();
     await _persistMetricOrder();
     await _persistAutoRefreshMinutes();
+    notifyListeners();
+  }
+
+  Future<void> reorderSensors(int oldIndex, int newIndex) async {
+    if (_watchedSensorKeys.length < 2) {
+      return;
+    }
+    if (oldIndex < 0 ||
+        oldIndex >= _watchedSensorKeys.length ||
+        newIndex < 0 ||
+        newIndex > _watchedSensorKeys.length) {
+      return;
+    }
+
+    var targetIndex = newIndex;
+    if (oldIndex < targetIndex) {
+      targetIndex -= 1;
+    }
+    if (oldIndex == targetIndex) {
+      return;
+    }
+
+    final movedKey = _watchedSensorKeys.removeAt(oldIndex);
+    _watchedSensorKeys.insert(targetIndex, movedKey);
+    await _persistWatchedSensors();
     notifyListeners();
   }
 
@@ -748,7 +780,10 @@ class SensorsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Contact? _buildSelfCandidate(ConnectionProvider connectionProvider) {
+  Contact? _buildSelfCandidate(
+    ConnectionProvider connectionProvider, {
+    ContactTelemetry? telemetry,
+  }) {
     final deviceInfo = connectionProvider.deviceInfo;
     final selfKey = deviceInfo.publicKey;
     if (selfKey == null || selfKey.isEmpty) {
@@ -766,6 +801,7 @@ class SensorsProvider with ChangeNotifier {
       advLat: deviceInfo.advLat ?? 0,
       advLon: deviceInfo.advLon ?? 0,
       lastMod: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      telemetry: telemetry,
     );
   }
 }

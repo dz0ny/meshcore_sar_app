@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/contact.dart';
+import '../services/profiles_feature_service.dart';
 import 'helpers/raw_session_retransmit.dart';
 import '../utils/image_message_parser.dart';
 
@@ -74,6 +75,8 @@ class ImageProvider with ChangeNotifier {
   ImageProvider() {
     _restore();
   }
+
+  String _scopedStorageKey() => ProfileStorageScope.scopedKey(_storageKey);
 
   // ── Accessors ────────────────────────────────────────────────────────────
 
@@ -292,16 +295,20 @@ class ImageProvider with ChangeNotifier {
   // ── Persistence ──────────────────────────────────────────────────────────
 
   Future<void> clearAll() async {
-    _sessions.clear();
-    _outgoing.clear();
-    _ignoredIncomingSessions.clear();
+    _resetInMemoryState();
     notifyListeners();
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_storageKey);
+      await prefs.remove(_scopedStorageKey());
     } catch (e) {
       debugPrint('❌ [ImageProvider] Failed to clear storage: $e');
     }
+  }
+
+  Future<void> reloadProfileScopedState() async {
+    _resetInMemoryState();
+    await _restore();
+    notifyListeners();
   }
 
   void _evictExpiredOutgoing() {
@@ -343,7 +350,7 @@ class ImageProvider with ChangeNotifier {
             )
             .toList(),
       };
-      await prefs.setString(_storageKey, jsonEncode(payload));
+      await prefs.setString(_scopedStorageKey(), jsonEncode(payload));
     } catch (e) {
       debugPrint('❌ [ImageProvider] Failed to persist: $e');
     }
@@ -352,7 +359,7 @@ class ImageProvider with ChangeNotifier {
   Future<void> _restore() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_storageKey);
+      final raw = prefs.getString(_scopedStorageKey());
       if (raw == null || raw.isEmpty) return;
 
       final parsed = jsonDecode(raw) as Map<String, dynamic>;
@@ -427,6 +434,12 @@ class ImageProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('❌ [ImageProvider] Failed to restore: $e');
     }
+  }
+
+  void _resetInMemoryState() {
+    _sessions.clear();
+    _outgoing.clear();
+    _ignoredIncomingSessions.clear();
   }
 }
 

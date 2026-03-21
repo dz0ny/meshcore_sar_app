@@ -7,7 +7,8 @@ class ChannelsProvider with ChangeNotifier {
   int _selectedChannelIndex = 0; // Default to public channel
 
   /// Get all channels
-  List<Channel> get channels => _channels.values.toList()..sort((a, b) => a.index.compareTo(b.index));
+  List<Channel> get channels =>
+      _channels.values.toList()..sort((a, b) => a.index.compareTo(b.index));
 
   /// Get a specific channel by index
   Channel? getChannel(int index) => _channels[index];
@@ -54,12 +55,12 @@ class ChannelsProvider with ChangeNotifier {
   void removeChannel(int index) {
     if (_channels.containsKey(index)) {
       _channels.remove(index);
-      
+
       // If the deleted channel was selected, switch to public channel
       if (_selectedChannelIndex == index) {
         _selectedChannelIndex = 0;
       }
-      
+
       notifyListeners();
     }
   }
@@ -91,6 +92,13 @@ class ChannelsProvider with ChangeNotifier {
 
   /// Clear all channels
   void clear() {
+    _channels.clear();
+    _selectedChannelIndex = 0;
+    notifyListeners();
+  }
+
+  /// Clear runtime channel state before a live device sync begins.
+  void prepareForDeviceSync() {
     _channels.clear();
     _selectedChannelIndex = 0;
     notifyListeners();

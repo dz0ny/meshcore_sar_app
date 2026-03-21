@@ -13,6 +13,8 @@ import 'package:meshcore_sar_app/providers/drawing_provider.dart';
 import 'package:meshcore_sar_app/providers/map_provider.dart';
 import 'package:meshcore_sar_app/providers/messages_provider.dart';
 import 'package:meshcore_sar_app/providers/sensors_provider.dart';
+import 'package:meshcore_sar_app/providers/voice_provider.dart';
+import 'package:meshcore_sar_app/providers/image_provider.dart' as ip;
 import 'package:meshcore_sar_app/services/app_config_snapshot_service.dart';
 import 'package:meshcore_sar_app/services/contact_storage_service.dart';
 import 'package:meshcore_sar_app/services/device_config_applicator.dart';
@@ -207,15 +209,21 @@ void main() {
       final connectionProvider = _FakeConnectionProvider(
         deviceInfo: DeviceInfo(publicKey: Uint8List.fromList([1, 2, 3, 4])),
       );
+      final voiceProvider = _FakeVoiceProvider();
+      final imageProvider = _FakeImageProvider();
       final coordinator = _buildCoordinator(
         profileManager: manager,
         connectionProvider: connectionProvider,
+        voiceProvider: voiceProvider,
+        imageProvider: imageProvider,
       );
 
       await coordinator.syncActiveProfileForCurrentDevice();
 
       expect(manager.activeProfileId, alpha.id);
       expect(connectionProvider.disconnectCallCount, 0);
+      expect(voiceProvider.reloadCallCount, 1);
+      expect(imageProvider.reloadCallCount, 1);
     });
 
     test(
@@ -257,6 +265,8 @@ void main() {
 ProfileWorkspaceCoordinator _buildCoordinator({
   required ProfileManager profileManager,
   _FakeConnectionProvider? connectionProvider,
+  _FakeVoiceProvider? voiceProvider,
+  _FakeImageProvider? imageProvider,
 }) {
   return ProfileWorkspaceCoordinator(
     profileManager: profileManager,
@@ -267,6 +277,8 @@ ProfileWorkspaceCoordinator _buildCoordinator({
     mapProvider: _FakeMapProvider(),
     drawingProvider: _FakeDrawingProvider(),
     channelsProvider: _FakeChannelsProvider(),
+    voiceProvider: voiceProvider ?? _FakeVoiceProvider(),
+    imageProvider: imageProvider ?? _FakeImageProvider(),
     appProvider: _FakeAppProvider(),
     appConfigSnapshotService: _FakeAppConfigSnapshotService(),
     mapWorkspaceSnapshotService: _FakeMapWorkspaceSnapshotService(),
@@ -332,9 +344,8 @@ class _FakeDeviceConfigApplicator extends DeviceConfigApplicator {
 }
 
 class _FakeConnectionProvider implements ConnectionProvider {
-  _FakeConnectionProvider({
-    DeviceInfo? deviceInfo,
-  }) : deviceInfo = deviceInfo ?? DeviceInfo();
+  _FakeConnectionProvider({DeviceInfo? deviceInfo})
+    : deviceInfo = deviceInfo ?? DeviceInfo();
 
   int disconnectCallCount = 0;
 
@@ -403,6 +414,30 @@ class _FakeSensorsProvider implements SensorsProvider {
 }
 
 class _FakeChannelsProvider implements ChannelsProvider {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeVoiceProvider implements VoiceProvider {
+  int reloadCallCount = 0;
+
+  @override
+  Future<void> reloadProfileScopedState() async {
+    reloadCallCount += 1;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeImageProvider implements ip.ImageProvider {
+  int reloadCallCount = 0;
+
+  @override
+  Future<void> reloadProfileScopedState() async {
+    reloadCallCount += 1;
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

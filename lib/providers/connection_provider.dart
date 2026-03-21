@@ -547,6 +547,7 @@ class ConnectionProvider with ChangeNotifier {
         manufacturerModel: deviceInfo['manufacturerModel'] as String?,
         semanticVersion: deviceInfo['semanticVersion'] as String?,
         clientRepeat: deviceInfo['clientRepeat'] as bool?,
+        pathHashMode: deviceInfo['pathHashMode'] as int?,
         supportsSpectrumScan: deviceInfo['supportsSpectrumScan'] as bool?,
         spectrumScanMinKhz: deviceInfo['spectrumScanMinKhz'] as int?,
         spectrumScanMaxKhz: deviceInfo['spectrumScanMaxKhz'] as int?,
@@ -563,6 +564,9 @@ class ConnectionProvider with ChangeNotifier {
         publicKey: selfInfo['publicKey'] as Uint8List?,
         advLat: selfInfo['advLat'] as int?,
         advLon: selfInfo['advLon'] as int?,
+        multiAcks: selfInfo['multiAcks'] as int?,
+        advertLocPolicy: selfInfo['advertLocPolicy'] as int?,
+        telemetryModes: selfInfo['telemetryModes'] as int?,
         manualAddContacts: selfInfo['manualAddContacts'] as bool?,
         radioFreq: selfInfo['radioFreq'] as int?,
         radioBw: selfInfo['radioBw'] as int?,
@@ -605,6 +609,7 @@ class ConnectionProvider with ChangeNotifier {
         autoAddRoomServers: config['autoAddRoomServers'] as bool?,
         autoAddSensors: config['autoAddSensors'] as bool?,
         autoAddOverwriteOldest: config['autoAddOverwriteOldest'] as bool?,
+        autoAddMaxHops: config['autoAddMaxHops'] as int?,
       );
       notifyListeners();
     };
@@ -1853,11 +1858,13 @@ class ConnectionProvider with ChangeNotifier {
       return pendingPing;
     }
 
-    final future = _runSmartPing(
-      contactPublicKey: contactPublicKey,
-      hasPath: hasPath,
-      onRetryWithFlooding: onRetryWithFlooding,
-    );
+    final future = _isSelfPublicKey(contactPublicKey)
+        ? _runSelfTelemetryPing(contactPublicKey)
+        : _runSmartPing(
+            contactPublicKey: contactPublicKey,
+            hasPath: hasPath,
+            onRetryWithFlooding: onRetryWithFlooding,
+          );
     _pendingSmartPings[pingKey] = future;
     notifyListeners();
 
@@ -1944,8 +1951,51 @@ class ConnectionProvider with ChangeNotifier {
     }
   }
 
+  Future<PingResult> _runSelfTelemetryPing(Uint8List devicePublicKey) async {
+    if (!_activeService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return PingResult(success: false, usedFlooding: false, timedOut: true);
+    }
+
+    try {
+      final pingFuture = _pingTracker.trackPing(
+        publicKey: devicePublicKey,
+        wasDirectAttempt: true,
+      );
+
+      // Firmware treats a 4-byte telemetry request as "self telemetry".
+      await _activeService.requestTelemetry(Uint8List(0), zeroHop: true);
+
+      final gotResponse = await pingFuture;
+      return PingResult(
+        success: gotResponse,
+        usedFlooding: false,
+        timedOut: !gotResponse,
+      );
+    } catch (e) {
+      _error = 'Failed to request self telemetry: $e';
+      notifyListeners();
+      return PingResult(success: false, usedFlooding: false, timedOut: true);
+    }
+  }
+
   String _publicKeyToHex(Uint8List publicKey) {
     return publicKey.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
+  }
+
+  bool _isSelfPublicKey(Uint8List publicKey) {
+    final selfKey = _deviceInfo.publicKey;
+    if (selfKey == null || selfKey.length != publicKey.length) {
+      return false;
+    }
+
+    for (var i = 0; i < publicKey.length; i++) {
+      if (selfKey[i] != publicKey[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Send binary request to contact (modern replacement for requestTelemetry)
@@ -2292,6 +2342,7 @@ class ConnectionProvider with ChangeNotifier {
         autoAddRoomServers: config['autoAddRoomServers'] as bool?,
         autoAddSensors: config['autoAddSensors'] as bool?,
         autoAddOverwriteOldest: config['autoAddOverwriteOldest'] as bool?,
+        autoAddMaxHops: config['autoAddMaxHops'] as int?,
       );
       notifyListeners();
     } catch (e) {
@@ -2303,6 +2354,7 @@ class ConnectionProvider with ChangeNotifier {
           autoAddRoomServers: null,
           autoAddSensors: null,
           autoAddOverwriteOldest: null,
+          autoAddMaxHops: null,
         );
         notifyListeners();
         return;
@@ -2322,6 +2374,7 @@ class ConnectionProvider with ChangeNotifier {
     required bool autoAddRoomServers,
     required bool autoAddSensors,
     required bool overwriteOldest,
+    int maxHops = 0,
   }) async {
     if (!_activeService.isConnected) {
       _error = 'Not connected to device';
@@ -2336,6 +2389,7 @@ class ConnectionProvider with ChangeNotifier {
         autoAddRoomServers: autoAddRoomServers,
         autoAddSensors: autoAddSensors,
         overwriteOldest: overwriteOldest,
+        maxHops: maxHops,
       );
       _deviceInfo = _deviceInfo.copyWith(
         autoAddUsers: autoAddUsers,
@@ -2343,10 +2397,28 @@ class ConnectionProvider with ChangeNotifier {
         autoAddRoomServers: autoAddRoomServers,
         autoAddSensors: autoAddSensors,
         autoAddOverwriteOldest: overwriteOldest,
+        autoAddMaxHops: maxHops,
       );
       notifyListeners();
     } catch (e) {
       _error = 'Failed to set auto-add config: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> setPathHashMode(int mode) async {
+    if (!_activeService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await _activeService.setPathHashMode(mode);
+      _deviceInfo = _deviceInfo.copyWith(pathHashMode: mode);
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to set path hash mode: $e';
       notifyListeners();
     }
   }
@@ -2440,14 +2512,8 @@ class ConnectionProvider with ChangeNotifier {
   Future<void> requestSelfTelemetry() async {
     if (!_activeService.isConnected) return;
     try {
-      // Request own telemetry by sending telemetry req with zero-length key
-      final deviceKey = _deviceInfo.publicKey;
-      if (deviceKey != null) {
-        await _activeService.requestTelemetry(
-          Uint8List.fromList(deviceKey),
-          zeroHop: true,
-        );
-      }
+      // Firmware expects a 4-byte CMD_SEND_TELEMETRY_REQ frame for "self".
+      await _activeService.requestTelemetry(Uint8List(0), zeroHop: true);
     } catch (e) {
       debugPrint('⚠️ [Provider] requestSelfTelemetry failed: $e');
     }

@@ -352,6 +352,7 @@ class ContactTile extends StatelessWidget {
 
   void _showContactActionSheet(BuildContext context, Contact contact) {
     final l10n = AppLocalizations.of(context)!;
+    final canToggleFavourite = !contact.isChannel;
     final canMessage =
         contact.type == ContactType.chat ||
         contact.type == ContactType.room ||
@@ -369,192 +370,168 @@ class ContactTile extends StatelessWidget {
     final sensorsProvider = context.read<SensorsProvider>();
     final isInSensors = sensorsProvider.isWatched(contact.publicKeyHex);
 
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) => SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!contact.isChannel)
-                ListTile(
-                  leading: Icon(
-                    contact.isFavourite ? Icons.star : Icons.star_outline,
-                    color: contact.isFavourite ? Colors.amber : null,
-                  ),
-                  title: Text(
-                    contact.isFavourite
-                        ? 'Remove from Favourites'
-                        : 'Add to Favourites',
-                  ),
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-                    final toggled = contact.toggleFavourite();
-                    final connectionProvider = context
-                        .read<ConnectionProvider>();
-                    await connectionProvider.addOrUpdateContact(toggled);
-                    if (context.mounted) {
-                      // Refresh contact from device so the local cache is updated
-                      await connectionProvider.getContact(contact.publicKey);
-                    }
-                  },
-                ),
-              if (!contact.isChannel)
-                ListTile(
-                  leading: Icon(Icons.share_outlined),
-                  title: Text(l10n.shareContact),
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-                    final connectionProvider = context
-                        .read<ConnectionProvider>();
-                    final url = await connectionProvider.exportContactUrl(
-                      contact.publicKey,
-                    );
-                    if (url != null && context.mounted) {
-                      await Clipboard.setData(ClipboardData(text: url));
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.contactLinkCopiedToClipboard),
-                          ),
-                        );
-                      }
-                    } else if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.failedToExportContact)),
-                      );
-                    }
-                  },
-                ),
-              ListTile(
-                leading: Icon(Icons.message_outlined),
-                title: Text(l10n.messages),
-                enabled: canMessage,
-                onTap: !canMessage
-                    ? null
-                    : () async {
-                        Navigator.pop(sheetContext);
-                        await _openMessagesForContact(context, contact);
-                      },
-              ),
-              if (contact.displayLocation != null)
-                ListTile(
-                  leading: Icon(Icons.map_outlined),
-                  title: Text(l10n.viewOnMap),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _showContactOnMap(context, contact);
-                  },
-                ),
-              if (contact.type == ContactType.room && !contact.isPublicChannel)
-                ListTile(
-                  leading: const Icon(Icons.login),
-                  title: Text(
-                    context
-                                .read<ConnectionProvider>()
-                                .getRoomLoginState(contact.publicKeyPrefix)
-                                ?.isLoggedIn ==
-                            true
-                        ? AppLocalizations.of(context)!.reLoginToRoom
-                        : AppLocalizations.of(context)!.loginToRoom,
-                  ),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _showRoomLoginDialog(context, contact);
-                  },
-                ),
-              if (canPreviewSensor)
-                ListTile(
-                  leading: Icon(Icons.visibility_outlined),
-                  title: Text(l10n.preview),
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-                    await Future<void>.delayed(Duration.zero);
-                    if (!context.mounted) return;
-                    await _showSensorPreviewView(context, contact);
-                  },
-                ),
-              if (canAddToSensors)
-                ListTile(
-                  leading: Icon(
-                    isInSensors ? Icons.sensors : Icons.sensors_outlined,
-                  ),
-                  title: Text(
-                    isInSensors
-                        ? l10n.contactInSensors
-                        : l10n.contactAddToSensors,
-                  ),
-                  enabled: !isInSensors,
-                  onTap: isInSensors
-                      ? null
-                      : () async {
-                          Navigator.pop(sheetContext);
-                          await _addContactToSensors(context, contact);
-                        },
-                ),
-              if (canSetPath)
-                ListTile(
-                  leading: Icon(Icons.alt_route),
-                  title: Text(l10n.contactSetPath),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _showSetRouteDialog(context, contact);
-                  },
-                ),
-              if (!contact.isChannel)
-                ListTile(
-                  leading: Icon(Icons.route),
-                  title: Text(l10n.trace),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _showTraceSheet(context, contact);
-                  },
-                ),
-              if (contact.type == ContactType.repeater)
-                ListTile(
-                  leading: const Icon(Icons.hub_outlined),
-                  title: const Text('View Neighbours'),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _showNeighbours(context, contact);
-                  },
-                ),
-              if (!contact.isPublicChannel)
-                ListTile(
-                  leading: Icon(Icons.edit_outlined),
-                  title: Text(l10n.editName),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _showNameOverrideDialog(context, contact);
-                  },
-                ),
-              if (!contact.isPublicChannel)
-                ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text(
-                    contact.isChannel ? l10n.deleteChannel : l10n.deleteContact,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-                    await Future<void>.delayed(Duration.zero);
-                    if (!context.mounted) return;
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (!context.mounted) return;
-                      if (contact.isChannel) {
-                        _showDeleteChannelDialog(context, contact);
-                      } else {
-                        _showDeleteConfirmation(context, contact);
-                      }
-                    });
-                  },
-                ),
-            ],
-          ),
+    final primaryActions = <_ContactSheetAction>[
+      if (canMessage)
+        _ContactSheetAction(
+          icon: Icons.message_outlined,
+          label: l10n.messages,
+          onTap: () async {
+            Navigator.pop(context);
+            await _openMessagesForContact(context, contact);
+          },
         ),
+      if (!contact.isChannel)
+        _ContactSheetAction(
+          icon: Icons.share_outlined,
+          label: l10n.share,
+          onTap: () async {
+            Navigator.pop(context);
+            final connectionProvider = context.read<ConnectionProvider>();
+            final url = await connectionProvider.exportContactUrl(
+              contact.publicKey,
+            );
+            if (url != null && context.mounted) {
+              await Clipboard.setData(ClipboardData(text: url));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.contactLinkCopiedToClipboard)),
+                );
+              }
+            } else if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.failedToExportContact)),
+              );
+            }
+          },
+        ),
+      if (canSetPath)
+        _ContactSheetAction(
+          icon: Icons.alt_route,
+          label: l10n.contactSetPath,
+          onTap: () async {
+            Navigator.pop(context);
+            await _showSetRouteDialog(context, contact);
+          },
+        ),
+      if (!contact.isPublicChannel)
+        _ContactSheetAction(
+          icon: Icons.delete_outline_rounded,
+          label: l10n.delete,
+          destructive: true,
+          onTap: () async {
+            Navigator.pop(context);
+            await Future<void>.delayed(Duration.zero);
+            if (!context.mounted) return;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              if (contact.isChannel) {
+                _showDeleteChannelDialog(context, contact);
+              } else {
+                _showDeleteConfirmation(context, contact);
+              }
+            });
+          },
+        ),
+    ];
+
+    final secondaryActions = <_ContactSheetAction>[
+      if (contact.displayLocation != null)
+        _ContactSheetAction(
+          icon: Icons.map_outlined,
+          label: l10n.viewOnMap,
+          onTap: () async {
+            Navigator.pop(context);
+            _showContactOnMap(context, contact);
+          },
+        ),
+      if (contact.type == ContactType.room && !contact.isPublicChannel)
+        _ContactSheetAction(
+          icon: Icons.login,
+          label:
+              context
+                      .read<ConnectionProvider>()
+                      .getRoomLoginState(contact.publicKeyPrefix)
+                      ?.isLoggedIn ==
+                  true
+              ? l10n.reLoginToRoom
+              : l10n.loginToRoom,
+          onTap: () async {
+            Navigator.pop(context);
+            _showRoomLoginDialog(context, contact);
+          },
+        ),
+      if (canPreviewSensor)
+        _ContactSheetAction(
+          icon: Icons.visibility_outlined,
+          label: l10n.preview,
+          onTap: () async {
+            Navigator.pop(context);
+            await Future<void>.delayed(Duration.zero);
+            if (!context.mounted) return;
+            await _showSensorPreviewView(context, contact);
+          },
+        ),
+      if (canAddToSensors)
+        _ContactSheetAction(
+          icon: isInSensors ? Icons.sensors : Icons.sensors_outlined,
+          label: isInSensors ? l10n.contactInSensors : l10n.contactAddToSensors,
+          enabled: !isInSensors,
+          onTap: () async {
+            Navigator.pop(context);
+            await _addContactToSensors(context, contact);
+          },
+        ),
+      if (!contact.isChannel)
+        _ContactSheetAction(
+          icon: Icons.route,
+          label: l10n.trace,
+          onTap: () async {
+            Navigator.pop(context);
+            _showTraceSheet(context, contact);
+          },
+        ),
+      if (contact.type == ContactType.repeater)
+        _ContactSheetAction(
+          icon: Icons.hub_outlined,
+          label: 'View Neighbours',
+          onTap: () async {
+            Navigator.pop(context);
+            _showNeighbours(context, contact);
+          },
+        ),
+      if (!contact.isPublicChannel)
+        _ContactSheetAction(
+          icon: Icons.edit_outlined,
+          label: l10n.editName,
+          onTap: () async {
+            Navigator.pop(context);
+            _showNameOverrideDialog(context, contact);
+          },
+        ),
+    ];
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _ContactActionSheet(
+        contact: contact,
+        primaryActions: primaryActions,
+        secondaryActions: secondaryActions,
+        showFavouriteButton: canToggleFavourite,
+        initialFavourite: contact.isFavourite,
+        onClose: () => Navigator.pop(sheetContext),
+        onToggleFavourite: !canToggleFavourite
+            ? null
+            : () async {
+                final toggled = contact.toggleFavourite();
+                final connectionProvider = context.read<ConnectionProvider>();
+                await connectionProvider.addOrUpdateContact(toggled);
+                if (context.mounted) {
+                  await connectionProvider.getContact(contact.publicKey);
+                }
+              },
       ),
     );
   }
@@ -1164,6 +1141,464 @@ class _SensorPreviewView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _ContactSheetAction {
+  final IconData icon;
+  final String label;
+  final Future<void> Function() onTap;
+  final bool destructive;
+  final bool enabled;
+
+  const _ContactSheetAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.destructive = false,
+    this.enabled = true,
+  });
+}
+
+class _ContactActionSheet extends StatefulWidget {
+  final Contact contact;
+  final List<_ContactSheetAction> primaryActions;
+  final List<_ContactSheetAction> secondaryActions;
+  final bool showFavouriteButton;
+  final bool initialFavourite;
+  final VoidCallback onClose;
+  final Future<void> Function()? onToggleFavourite;
+
+  const _ContactActionSheet({
+    required this.contact,
+    required this.primaryActions,
+    required this.secondaryActions,
+    required this.showFavouriteButton,
+    required this.initialFavourite,
+    required this.onClose,
+    required this.onToggleFavourite,
+  });
+
+  @override
+  State<_ContactActionSheet> createState() => _ContactActionSheetState();
+}
+
+class _ContactActionSheetState extends State<_ContactActionSheet> {
+  late bool _isFavourite;
+  bool _isUpdatingFavourite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavourite = widget.initialFavourite;
+  }
+
+  Future<void> _toggleFavourite() async {
+    final callback = widget.onToggleFavourite;
+    if (callback == null || _isUpdatingFavourite) {
+      return;
+    }
+
+    setState(() {
+      _isUpdatingFavourite = true;
+    });
+
+    try {
+      await callback();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isFavourite = !_isFavourite;
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdatingFavourite = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final contact = widget.contact;
+    final title = contact.getLocalizedDisplayName(context);
+    final routeLabel = !contact.routeHasPath || contact.routeHopCount <= 0
+        ? l10n.direct
+        : contact.routeCanonicalText;
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.88,
+      ),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: colorScheme.surface,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.shadow.withValues(alpha: 0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ContactAvatar(
+                      contact: contact,
+                      radius: 28,
+                      displayName: title,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.45,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            contact.isPublicChannel
+                                ? l10n.broadcastToAllNearby
+                                : contact.publicKeyShort,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontFamily: contact.isPublicChannel
+                                  ? null
+                                  : 'monospace',
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _ContactSheetChip(
+                                icon:
+                                    contact.routeHasPath &&
+                                        contact.routeHopCount > 0
+                                    ? Icons.alt_route
+                                    : Icons.north_east_rounded,
+                                label: routeLabel,
+                                monospace:
+                                    contact.routeHasPath &&
+                                    contact.routeHopCount > 0,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.showFavouriteButton)
+                        IconButton.filledTonal(
+                          onPressed: _isUpdatingFavourite
+                              ? null
+                              : _toggleFavourite,
+                          tooltip: l10n.favourites,
+                          icon: _isUpdatingFavourite
+                              ? SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colorScheme.primary,
+                                  ),
+                                )
+                              : Icon(
+                                  _isFavourite
+                                      ? Icons.star_rounded
+                                      : Icons.star_outline,
+                                  color: _isFavourite ? Colors.amber : null,
+                                ),
+                        ),
+                      if (widget.showFavouriteButton) const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: widget.onClose,
+                        tooltip: l10n.close,
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              if (widget.primaryActions.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final columnCount = widget.primaryActions.length <= 1
+                        ? 1
+                        : widget.primaryActions.length == 2
+                        ? 2
+                        : 3;
+                    final itemWidth =
+                        (constraints.maxWidth - (12 * (columnCount - 1))) /
+                        columnCount;
+                    return Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        for (final action in widget.primaryActions)
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ContactPrimaryActionButton(action: action),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+              if (widget.secondaryActions.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      l10n.others,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.28),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      for (
+                        var index = 0;
+                        index < widget.secondaryActions.length;
+                        index++
+                      )
+                        _ContactSecondaryActionTile(
+                          action: widget.secondaryActions[index],
+                          showDivider:
+                              index != widget.secondaryActions.length - 1,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ContactPrimaryActionButton extends StatelessWidget {
+  final _ContactSheetAction action;
+
+  const _ContactPrimaryActionButton({required this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final accent = action.destructive ? colorScheme.error : colorScheme.primary;
+    final backgroundColor = action.destructive
+        ? colorScheme.errorContainer.withValues(alpha: 0.82)
+        : Color.alphaBlend(
+            accent.withValues(alpha: 0.12),
+            colorScheme.surfaceContainerLow,
+          );
+    final foregroundColor = action.destructive
+        ? colorScheme.onErrorContainer
+        : accent;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: action.enabled ? action.onTap : null,
+        child: Ink(
+          height: 80,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: action.destructive
+                  ? colorScheme.error.withValues(alpha: 0.18)
+                  : accent.withValues(alpha: 0.14),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: foregroundColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(action.icon, color: foregroundColor, size: 15),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  action.label,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: action.enabled
+                        ? (action.destructive
+                              ? colorScheme.onErrorContainer
+                              : colorScheme.onSurface)
+                        : colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ContactSecondaryActionTile extends StatelessWidget {
+  final _ContactSheetAction action;
+  final bool showDivider;
+
+  const _ContactSecondaryActionTile({
+    required this.action,
+    required this.showDivider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final iconColor = action.enabled
+        ? (action.destructive
+              ? colorScheme.error
+              : colorScheme.onSurfaceVariant)
+        : colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
+    final textColor = action.enabled
+        ? (action.destructive ? colorScheme.error : colorScheme.onSurface)
+        : colorScheme.onSurfaceVariant;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          enabled: action.enabled,
+          onTap: action.enabled ? action.onTap : null,
+          leading: Icon(action.icon, color: iconColor),
+          title: Text(
+            action.label,
+            style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+          ),
+          minLeadingWidth: 18,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+        if (showDivider)
+          Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.24),
+          ),
+      ],
+    );
+  }
+}
+
+class _ContactSheetChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool monospace;
+
+  const _ContactSheetChip({
+    required this.icon,
+    required this.label,
+    this.monospace = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 220),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                fontFamily: monospace ? 'monospace' : null,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

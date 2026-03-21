@@ -14,6 +14,8 @@ import '../providers/drawing_provider.dart';
 import '../providers/map_provider.dart';
 import '../providers/messages_provider.dart';
 import '../providers/sensors_provider.dart';
+import '../providers/voice_provider.dart';
+import '../providers/image_provider.dart' as ip;
 import 'app_config_snapshot_service.dart';
 import 'contact_storage_service.dart';
 import 'device_config_applicator.dart';
@@ -33,6 +35,8 @@ class ProfileWorkspaceCoordinator {
     required this.mapProvider,
     required this.drawingProvider,
     required this.channelsProvider,
+    required this.voiceProvider,
+    required this.imageProvider,
     required this.appProvider,
     AppConfigSnapshotService? appConfigSnapshotService,
     MapWorkspaceSnapshotService? mapWorkspaceSnapshotService,
@@ -58,13 +62,15 @@ class ProfileWorkspaceCoordinator {
   final MapProvider mapProvider;
   final DrawingProvider drawingProvider;
   final ChannelsProvider channelsProvider;
+  final VoiceProvider voiceProvider;
+  final ip.ImageProvider imageProvider;
   final AppProvider appProvider;
   final AppConfigSnapshotService _appConfigSnapshotService;
   final MapWorkspaceSnapshotService _mapWorkspaceSnapshotService;
   final DeviceConfigApplicator _deviceConfigApplicator;
   final MessageStorageService _messageStorageService;
   final ContactStorageService _contactStorageService;
-  bool _isSyncingDeviceProfile = false;
+  Future<void>? _deviceProfileSyncFuture;
 
   Future<void> setProfilesEnabled(bool enabled) async {
     final wasEnabled = profileManager.profilesEnabled;
@@ -279,41 +285,54 @@ class ProfileWorkspaceCoordinator {
   }
 
   Future<void> syncActiveProfileForCurrentDevice() async {
-    if (!profileManager.profilesEnabled || _isSyncingDeviceProfile) {
+    if (!profileManager.profilesEnabled) {
       return;
     }
+    final inFlightSync = _deviceProfileSyncFuture;
+    if (inFlightSync != null) {
+      await inFlightSync;
+      return;
+    }
+
+    final syncFuture = _syncActiveProfileForCurrentDeviceInternal();
+    _deviceProfileSyncFuture = syncFuture;
+    try {
+      await syncFuture;
+    } finally {
+      if (identical(_deviceProfileSyncFuture, syncFuture)) {
+        _deviceProfileSyncFuture = null;
+      }
+    }
+  }
+
+  Future<void> _syncActiveProfileForCurrentDeviceInternal() async {
     final deviceKey = _currentDeviceProfileKey;
     if (deviceKey == null) {
       return;
     }
 
-    _isSyncingDeviceProfile = true;
-    try {
-      final profile = await _ensureProfileForCurrentDevice();
-      final targetProfileId = profile.id;
-      if (targetProfileId == profileManager.activeProfileId) {
-        return;
-      }
-
-      await _persistCurrentState();
-      await profileManager.setActiveProfileIdForDevice(
-        targetProfileId,
-        deviceKey: deviceKey,
-      );
-      await _switchRuntimeScope(targetProfileId);
-
-      await _appConfigSnapshotService.apply(
-        profile.sections.appSettings,
-        appProvider,
-      );
-      await _mapWorkspaceSnapshotService.apply(
-        profile.sections.mapWorkspace,
-        mapProvider: mapProvider,
-        drawingProvider: drawingProvider,
-      );
-    } finally {
-      _isSyncingDeviceProfile = false;
+    final profile = await _ensureProfileForCurrentDevice();
+    final targetProfileId = profile.id;
+    if (targetProfileId == profileManager.activeProfileId) {
+      return;
     }
+
+    await _persistCurrentState();
+    await profileManager.setActiveProfileIdForDevice(
+      targetProfileId,
+      deviceKey: deviceKey,
+    );
+    await _switchRuntimeScope(targetProfileId);
+
+    await _appConfigSnapshotService.apply(
+      profile.sections.appSettings,
+      appProvider,
+    );
+    await _mapWorkspaceSnapshotService.apply(
+      profile.sections.mapWorkspace,
+      mapProvider: mapProvider,
+      drawingProvider: drawingProvider,
+    );
   }
 
   Future<ConfigProfile> _ensureProfileForCurrentDevice() async {
@@ -387,6 +406,8 @@ class ProfileWorkspaceCoordinator {
     await sensorsProvider.reloadProfileScopedState();
     await drawingProvider.reloadProfileScopedState();
     await mapProvider.reloadProfileScopedState();
+    await voiceProvider.reloadProfileScopedState();
+    await imageProvider.reloadProfileScopedState();
     await appProvider.reloadProfileScopedSettings();
   }
 

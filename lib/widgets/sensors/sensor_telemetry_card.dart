@@ -1243,6 +1243,11 @@ class SensorTelemetryCard extends StatelessWidget {
                                     metric.wide)
                                 ? constraints.maxWidth
                                 : compactWidth,
+                            onLongPress: onRefresh == null
+                                ? null
+                                : () async {
+                                    await onRefresh!();
+                                  },
                           ),
                         )
                         .toList(),
@@ -2190,6 +2195,7 @@ class SensorMetricTile extends StatelessWidget {
   final double width;
   final String keyPrefix;
   final bool allowMapPreview;
+  final GestureLongPressCallback? onLongPress;
 
   const SensorMetricTile({
     super.key,
@@ -2197,6 +2203,7 @@ class SensorMetricTile extends StatelessWidget {
     required this.width,
     this.keyPrefix = 'sensor_metric',
     this.allowMapPreview = true,
+    this.onLongPress,
   });
 
   Future<void> _showExpandedMap(BuildContext context) async {
@@ -2271,142 +2278,152 @@ class SensorMetricTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      key: ValueKey('${keyPrefix}_${data.fieldKey}'),
-      width: width,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: data.accent.withValues(alpha: 0.08),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: ValueKey('${keyPrefix}_${data.fieldKey}'),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: data.accent.withValues(alpha: 0.14)),
-      ),
-      child: data.mapLocation == null || !allowMapPreview
-          ? Stack(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        onLongPress: onLongPress,
+        child: Container(
+          width: width,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: data.accent.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: data.accent.withValues(alpha: 0.14)),
+          ),
+          child: data.mapLocation == null || !allowMapPreview
+              ? Stack(
                   children: [
-                    _MetricIcon(accent: data.accent, icon: data.icon),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _MetricText(data: data, keyPrefix: keyPrefix),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _MetricIcon(accent: data.accent, icon: data.icon),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _MetricText(data: data, keyPrefix: keyPrefix),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                if (data.channel != null)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Text(
-                      'ch${data.channel}',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: data.accent.withValues(alpha: 0.5),
+                    if (data.channel != null)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Text(
+                          'ch${data.channel}',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: data.accent.withValues(alpha: 0.5),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+                  ],
+                )
+              : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _MetricIcon(accent: data.accent, icon: data.icon),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _MetricText(data: data, keyPrefix: keyPrefix),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _MetricIcon(accent: data.accent, icon: data.icon),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _MetricText(data: data, keyPrefix: keyPrefix),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => _showExpandedMap(context),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: SizedBox(
-                        height: 104,
-                        width: double.infinity,
-                        child: Stack(
-                          children: [
-                            flutter_map.FlutterMap(
-                              options: flutter_map.MapOptions(
-                                initialCenter: data.mapLocation!,
-                                initialZoom: 14,
-                                interactionOptions:
-                                    const flutter_map.InteractionOptions(
-                                      flags: flutter_map.InteractiveFlag.none,
-                                    ),
-                              ),
+                    const SizedBox(height: 10),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () => _showExpandedMap(context),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: SizedBox(
+                            height: 104,
+                            width: double.infinity,
+                            child: Stack(
                               children: [
-                                flutter_map.TileLayer(
-                                  urlTemplate:
-                                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                  userAgentPackageName:
-                                      'com.meshcore.sar.meshcore_sar_app',
-                                ),
-                                flutter_map.MarkerLayer(
-                                  markers: [
-                                    flutter_map.Marker(
-                                      point: data.mapLocation!,
-                                      width: 32,
-                                      height: 32,
-                                      child: Icon(
-                                        Icons.location_on,
-                                        color: data.accent,
-                                        size: 28,
-                                      ),
+                                flutter_map.FlutterMap(
+                                  options: flutter_map.MapOptions(
+                                    initialCenter: data.mapLocation!,
+                                    initialZoom: 14,
+                                    interactionOptions:
+                                        const flutter_map.InteractionOptions(
+                                          flags:
+                                              flutter_map.InteractiveFlag.none,
+                                        ),
+                                  ),
+                                  children: [
+                                    flutter_map.TileLayer(
+                                      urlTemplate:
+                                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                      userAgentPackageName:
+                                          'com.meshcore.sar.meshcore_sar_app',
+                                    ),
+                                    flutter_map.MarkerLayer(
+                                      markers: [
+                                        flutter_map.Marker(
+                                          point: data.mapLocation!,
+                                          width: 32,
+                                          height: 32,
+                                          child: Icon(
+                                            Icons.location_on,
+                                            color: data.accent,
+                                            size: 28,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
+                                ),
+                                Positioned(
+                                  right: 8,
+                                  bottom: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.55,
+                                      ),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.open_in_full,
+                                          size: 12,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Open map',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                            Positioned(
-                              right: 8,
-                              bottom: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.55),
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.open_in_full,
-                                      size: 12,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'Open map',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+        ),
+      ),
     );
   }
 }

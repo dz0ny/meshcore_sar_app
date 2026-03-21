@@ -6,6 +6,7 @@ import 'package:meshcore_sar_app/models/device_info.dart';
 import 'package:meshcore_sar_app/providers/connection_provider.dart';
 import 'package:meshcore_sar_app/providers/contacts_provider.dart';
 import 'package:meshcore_sar_app/providers/sensors_provider.dart';
+import 'package:meshcore_sar_app/services/cayenne_lpp_parser.dart';
 import 'package:meshcore_sar_app/services/profiles_feature_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,10 +20,17 @@ class _FakeContactsProvider extends ContactsProvider {
 }
 
 class _FakeConnectionProvider extends ConnectionProvider {
-  _FakeConnectionProvider({required bool isConnected})
-    : _isConnected = isConnected;
+  _FakeConnectionProvider({
+    required bool isConnected,
+    Uint8List? publicKey,
+    String? selfName,
+  }) : _isConnected = isConnected,
+       _publicKey = publicKey,
+       _selfName = selfName;
 
   final bool _isConnected;
+  final Uint8List? _publicKey;
+  final String? _selfName;
 
   int pingCalls = 0;
 
@@ -31,6 +39,8 @@ class _FakeConnectionProvider extends ConnectionProvider {
     connectionState: _isConnected
         ? ConnectionState.connected
         : ConnectionState.disconnected,
+    publicKey: _publicKey,
+    selfName: _selfName,
   );
 
   @override
@@ -65,9 +75,12 @@ void main() {
     expect(provider.isLoaded, isTrue);
   }
 
-  Contact buildSensorContact() {
+  Contact buildSensorContact({
+    int firstByte = 0x44,
+    String name = 'WX Station',
+  }) {
     final publicKey = Uint8List(32);
-    publicKey[0] = 0x44;
+    publicKey[0] = firstByte;
 
     return Contact(
       publicKey: publicKey,
@@ -75,7 +88,7 @@ void main() {
       flags: 0,
       outPathLen: 0,
       outPath: Uint8List(64),
-      advName: 'WX Station',
+      advName: name,
       lastAdvert: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       advLat: 0,
       advLon: 0,
@@ -264,6 +277,36 @@ void main() {
     );
   });
 
+  test('watched sensor order persists across reloads', () async {
+    SharedPreferences.setMockInitialValues({});
+    final first = buildSensorContact(firstByte: 0x44, name: 'First');
+    final second = buildSensorContact(firstByte: 0x45, name: 'Second');
+    final third = buildSensorContact(firstByte: 0x46, name: 'Third');
+
+    final provider = SensorsProvider();
+    await waitUntilLoaded(provider);
+    await provider.addSensor(first);
+    await provider.addSensor(second);
+    await provider.addSensor(third);
+
+    await provider.reorderSensors(2, 0);
+
+    expect(provider.watchedSensorKeys, <String>[
+      third.publicKeyHex,
+      first.publicKeyHex,
+      second.publicKeyHex,
+    ]);
+
+    final reloadedProvider = SensorsProvider();
+    await waitUntilLoaded(reloadedProvider);
+
+    expect(reloadedProvider.watchedSensorKeys, <String>[
+      third.publicKeyHex,
+      first.publicKeyHex,
+      second.publicKeyHex,
+    ]);
+  });
+
   test(
     'unsupported auto refresh minutes normalize to nearest option',
     () async {
@@ -340,4 +383,32 @@ void main() {
       );
     },
   );
+
+  test('selfContact includes stored self telemetry', () async {
+    SharedPreferences.setMockInitialValues({});
+    final selfKey = Uint8List(32)..[0] = 0x66;
+    final contactsProvider = ContactsProvider();
+    await contactsProvider.initialize(devicePublicKey: selfKey);
+    contactsProvider.updateTelemetry(
+      selfKey.sublist(0, 6),
+      CayenneLppParser.createTemperatureData(19.5, channel: 1),
+    );
+
+    final connectionProvider = _FakeConnectionProvider(
+      isConnected: true,
+      publicKey: selfKey,
+      selfName: 'My Device',
+    );
+    final provider = SensorsProvider();
+    await waitUntilLoaded(provider);
+
+    final selfContact = provider.selfContact(
+      contactsProvider,
+      connectionProvider,
+    );
+
+    expect(selfContact, isNotNull);
+    expect(selfContact!.telemetry, isNotNull);
+    expect(selfContact.telemetry!.temperature, closeTo(19.5, 0.1));
+  });
 }

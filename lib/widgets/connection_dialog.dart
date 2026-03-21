@@ -5,7 +5,16 @@ import '../l10n/app_localizations.dart';
 import '../providers/app_provider.dart';
 import '../providers/connection_provider.dart';
 import '../services/network_scanner_service.dart';
+import '../services/profile_workspace_coordinator.dart';
 import '../services/serial/serial_transport.dart';
+
+Future<void> _initializeConnectedWorkspace({
+  required ProfileWorkspaceCoordinator profileWorkspaceCoordinator,
+  required AppProvider appProvider,
+}) async {
+  await profileWorkspaceCoordinator.syncActiveProfileForCurrentDevice();
+  await appProvider.initialize();
+}
 
 /// Connection Dialog with tabs for BLE devices and Network servers
 class ConnectionDialog extends StatefulWidget {
@@ -426,6 +435,8 @@ class _ConnectionDialogState extends State<ConnectionDialog>
 
                     Future<void> connectBle() async {
                       final appProvider = context.read<AppProvider>();
+                      final profileWorkspaceCoordinator = context
+                          .read<ProfileWorkspaceCoordinator>();
                       setState(() {
                         _connectingBleDeviceId = deviceId;
                       });
@@ -436,7 +447,11 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                         );
                         if (success &&
                             connectionProvider.deviceInfo.isConnected) {
-                          await appProvider.initialize();
+                          await _initializeConnectedWorkspace(
+                            profileWorkspaceCoordinator:
+                                profileWorkspaceCoordinator,
+                            appProvider: appProvider,
+                          );
                         }
                       } finally {
                         if (mounted) {
@@ -533,6 +548,8 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                       final connectionProvider = context
                           .read<ConnectionProvider>();
                       final appProvider = context.read<AppProvider>();
+                      final profileWorkspaceCoordinator = context
+                          .read<ProfileWorkspaceCoordinator>();
                       final navigator = Navigator.of(context);
                       final messenger = ScaffoldMessenger.of(context);
 
@@ -554,7 +571,11 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                           server.ipAddress,
                           server.port,
                         );
-                        await appProvider.initialize();
+                        await _initializeConnectedWorkspace(
+                          profileWorkspaceCoordinator:
+                              profileWorkspaceCoordinator,
+                          appProvider: appProvider,
+                        );
 
                         if (mounted) {
                           navigator.pop();
@@ -781,6 +802,8 @@ class _SerialDeviceListState extends State<_SerialDeviceList> {
     try {
       final connectionProvider = context.read<ConnectionProvider>();
       final appProvider = context.read<AppProvider>();
+      final profileWorkspaceCoordinator = context
+          .read<ProfileWorkspaceCoordinator>();
       final connection = await _transport.connect(device);
       final success = await connectionProvider.connectSerial(
         service: connection.service,
@@ -791,7 +814,10 @@ class _SerialDeviceListState extends State<_SerialDeviceList> {
       if (!mounted) return;
 
       if (success) {
-        await appProvider.initialize();
+        await _initializeConnectedWorkspace(
+          profileWorkspaceCoordinator: profileWorkspaceCoordinator,
+          appProvider: appProvider,
+        );
         widget.onConnected();
       } else {
         await connection.disconnect();

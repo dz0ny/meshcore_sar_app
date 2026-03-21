@@ -71,6 +71,7 @@ class DeviceInfo {
   final bool? autoAddRoomServers;
   final bool? autoAddSensors;
   final bool? autoAddOverwriteOldest;
+  final int? autoAddMaxHops;
   final int? radioFreq;
   final int? radioBw;
   final int? radioSf;
@@ -95,6 +96,7 @@ class DeviceInfo {
 
   // Repeat mode (firmware v9+)
   final bool? clientRepeat;
+  final int? pathHashMode;
   final bool? supportsSpectrumScan;
   final int? spectrumScanMinKhz;
   final int? spectrumScanMaxKhz;
@@ -123,6 +125,7 @@ class DeviceInfo {
     this.autoAddRoomServers,
     this.autoAddSensors,
     this.autoAddOverwriteOldest,
+    this.autoAddMaxHops,
     this.radioFreq,
     this.radioBw,
     this.radioSf,
@@ -139,6 +142,7 @@ class DeviceInfo {
     this.manufacturerModel,
     this.semanticVersion,
     this.clientRepeat,
+    this.pathHashMode,
     this.supportsSpectrumScan,
     this.spectrumScanMinKhz,
     this.spectrumScanMaxKhz,
@@ -254,6 +258,7 @@ class DeviceInfo {
     bool? autoAddRoomServers,
     bool? autoAddSensors,
     bool? autoAddOverwriteOldest,
+    int? autoAddMaxHops,
     int? radioFreq,
     int? radioBw,
     int? radioSf,
@@ -270,6 +275,7 @@ class DeviceInfo {
     String? manufacturerModel,
     String? semanticVersion,
     bool? clientRepeat,
+    int? pathHashMode,
     bool? supportsSpectrumScan,
     int? spectrumScanMinKhz,
     int? spectrumScanMaxKhz,
@@ -299,6 +305,7 @@ class DeviceInfo {
       autoAddSensors: autoAddSensors ?? this.autoAddSensors,
       autoAddOverwriteOldest:
           autoAddOverwriteOldest ?? this.autoAddOverwriteOldest,
+      autoAddMaxHops: autoAddMaxHops ?? this.autoAddMaxHops,
       radioFreq: radioFreq ?? this.radioFreq,
       radioBw: radioBw ?? this.radioBw,
       radioSf: radioSf ?? this.radioSf,
@@ -315,6 +322,7 @@ class DeviceInfo {
       manufacturerModel: manufacturerModel ?? this.manufacturerModel,
       semanticVersion: semanticVersion ?? this.semanticVersion,
       clientRepeat: clientRepeat ?? this.clientRepeat,
+      pathHashMode: pathHashMode ?? this.pathHashMode,
       supportsSpectrumScan: supportsSpectrumScan ?? this.supportsSpectrumScan,
       spectrumScanMinKhz: spectrumScanMinKhz ?? this.spectrumScanMinKhz,
       spectrumScanMaxKhz: spectrumScanMaxKhz ?? this.spectrumScanMaxKhz,

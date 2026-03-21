@@ -173,14 +173,8 @@ void main() {
           var updated = scopedProvider.findContactByKey(scopedKey)!;
           expect(updated.telemetry, isNotNull);
           expect(updated.telemetry!.gpsLocation, isNull);
-          expect(
-            updated.displayLocation!.latitude,
-            closeTo(45.1234, 0.0001),
-          );
-          expect(
-            updated.displayLocation!.longitude,
-            closeTo(13.8765, 0.0001),
-          );
+          expect(updated.displayLocation!.latitude, closeTo(45.1234, 0.0001));
+          expect(updated.displayLocation!.longitude, closeTo(13.8765, 0.0001));
 
           // Invalid 0,0 GPS frame should behave the same way.
           final invalidGps = CayenneLppParser.createGpsData(
@@ -192,14 +186,8 @@ void main() {
           updated = scopedProvider.findContactByKey(scopedKey)!;
           expect(updated.telemetry, isNotNull);
           expect(updated.telemetry!.gpsLocation, isNull);
-          expect(
-            updated.displayLocation!.latitude,
-            closeTo(45.1234, 0.0001),
-          );
-          expect(
-            updated.displayLocation!.longitude,
-            closeTo(13.8765, 0.0001),
-          );
+          expect(updated.displayLocation!.latitude, closeTo(45.1234, 0.0001));
+          expect(updated.displayLocation!.longitude, closeTo(13.8765, 0.0001));
         }
       },
     );
@@ -337,95 +325,107 @@ void main() {
       expect(updated.telemetry!.extraSensorData, containsPair('co2', 415.0));
     });
 
-    test('retains scalar telemetry but wipes stale extra sensor fields on refresh', () {
-      final fullTelemetry = ContactTelemetry(
-        gpsLocation: const LatLng(46.0569, 14.5058),
-        batteryPercentage: 54.0,
-        batteryMilliVolts: 3780,
-        temperature: 19.5,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-        humidity: 58.0,
-        pressure: 1011.2,
-        extraSensorData: const {'pm25': 8.0},
-      );
+    test(
+      'retains scalar telemetry but wipes stale extra sensor fields on refresh',
+      () {
+        final fullTelemetry = ContactTelemetry(
+          gpsLocation: const LatLng(46.0569, 14.5058),
+          batteryPercentage: 54.0,
+          batteryMilliVolts: 3780,
+          temperature: 19.5,
+          timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
+          humidity: 58.0,
+          pressure: 1011.2,
+          extraSensorData: const {'pm25': 8.0},
+        );
 
-      provider.addOrUpdateContact(
-        createContact(
-          key: publicKey,
-          type: ContactType.chat,
-        ).copyWith(telemetry: fullTelemetry),
-      );
+        provider.addOrUpdateContact(
+          createContact(
+            key: publicKey,
+            type: ContactType.chat,
+          ).copyWith(telemetry: fullTelemetry),
+        );
 
-      final batteryOnly = CayenneLppParser.createBatteryData(3.95);
-      provider.updateTelemetry(publicKey.sublist(0, 6), batteryOnly);
+        final batteryOnly = CayenneLppParser.createBatteryData(3.95);
+        provider.updateTelemetry(publicKey.sublist(0, 6), batteryOnly);
 
-      final updated = provider.findContactByKey(publicKey)!;
-      expect(updated.telemetry, isNotNull);
-      expect(updated.telemetry!.gpsLocation, isNull);
-      expect(updated.displayLocation, const LatLng(46.0569, 14.5058));
-      expect(updated.telemetry!.batteryMilliVolts, isNotNull);
-      expect(updated.telemetry!.batteryPercentage, isNotNull);
-      expect(updated.telemetry!.temperature, equals(19.5));
-      expect(updated.telemetry!.humidity, equals(58.0));
-      expect(updated.telemetry!.pressure, equals(1011.2));
-      expect(
-        updated.telemetry!.extraSensorData,
-        containsPair('__source_channel:battery', 0),
-      );
-      expect(
-        updated.telemetry!.extraSensorData,
-        containsPair('__source_channel:voltage', 0),
-      );
-      expect(updated.telemetry!.extraSensorData, isNot(contains('pm25')));
-    });
+        final updated = provider.findContactByKey(publicKey)!;
+        expect(updated.telemetry, isNotNull);
+        expect(updated.telemetry!.gpsLocation, isNull);
+        expect(updated.displayLocation, const LatLng(46.0569, 14.5058));
+        expect(updated.telemetry!.batteryMilliVolts, isNotNull);
+        expect(updated.telemetry!.batteryPercentage, isNotNull);
+        expect(updated.telemetry!.temperature, equals(19.5));
+        expect(updated.telemetry!.humidity, equals(58.0));
+        expect(updated.telemetry!.pressure, equals(1011.2));
+        expect(
+          updated.telemetry!.extraSensorData,
+          containsPair('__source_channel:battery', 0),
+        );
+        expect(
+          updated.telemetry!.extraSensorData,
+          containsPair('__source_channel:voltage', 0),
+        );
+        expect(updated.telemetry!.extraSensorData, isNot(contains('pm25')));
+      },
+    );
 
-    test('replaces old source-channel mappings when a metric moves channels', () {
-      final initialTelemetry = ContactTelemetry(
-        gpsLocation: null,
-        batteryPercentage: null,
-        batteryMilliVolts: null,
-        temperature: 21.5,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-        humidity: null,
-        pressure: null,
-        extraSensorData: const {
-          '__source_channel:temperature': 2,
-          'temperature_2': 21.5,
-          'humidity_4': 66.0,
-        },
-      );
+    test(
+      'replaces old source-channel mappings when a metric moves channels',
+      () {
+        final initialTelemetry = ContactTelemetry(
+          gpsLocation: null,
+          batteryPercentage: null,
+          batteryMilliVolts: null,
+          temperature: 21.5,
+          timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
+          humidity: null,
+          pressure: null,
+          extraSensorData: const {
+            '__source_channel:temperature': 2,
+            'temperature_2': 21.5,
+            'humidity_4': 66.0,
+          },
+        );
 
-      provider.addOrUpdateContact(
-        createContact(
-          key: publicKey,
-          type: ContactType.chat,
-        ).copyWith(telemetry: initialTelemetry),
-      );
+        provider.addOrUpdateContact(
+          createContact(
+            key: publicKey,
+            type: ContactType.chat,
+          ).copyWith(telemetry: initialTelemetry),
+        );
 
-      final movedChannelTelemetry = CayenneLppParser.createTemperatureData(
-        23.5,
-        channel: 3,
-      );
+        final movedChannelTelemetry = CayenneLppParser.createTemperatureData(
+          23.5,
+          channel: 3,
+        );
 
-      provider.updateTelemetry(publicKey.sublist(0, 6), movedChannelTelemetry);
+        provider.updateTelemetry(
+          publicKey.sublist(0, 6),
+          movedChannelTelemetry,
+        );
 
-      final updated = provider.findContactByKey(publicKey)!;
-      expect(updated.telemetry, isNotNull);
-      expect(updated.telemetry!.temperature, closeTo(23.5, 0.1));
-      expect(
-        updated.telemetry!.extraSensorData,
-        containsPair('__source_channel:temperature', 3),
-      );
-      expect(
-        updated.telemetry!.extraSensorData,
-        containsPair('temperature_3', closeTo(23.5, 0.1)),
-      );
-      expect(
-        updated.telemetry!.extraSensorData,
-        isNot(contains('temperature_2')),
-      );
-      expect(updated.telemetry!.extraSensorData, isNot(contains('humidity_4')));
-    });
+        final updated = provider.findContactByKey(publicKey)!;
+        expect(updated.telemetry, isNotNull);
+        expect(updated.telemetry!.temperature, closeTo(23.5, 0.1));
+        expect(
+          updated.telemetry!.extraSensorData,
+          containsPair('__source_channel:temperature', 3),
+        );
+        expect(
+          updated.telemetry!.extraSensorData,
+          containsPair('temperature_3', closeTo(23.5, 0.1)),
+        );
+        expect(
+          updated.telemetry!.extraSensorData,
+          isNot(contains('temperature_2')),
+        );
+        expect(
+          updated.telemetry!.extraSensorData,
+          isNot(contains('humidity_4')),
+        );
+      },
+    );
 
     test('builds message snapshot from latest valid telemetry', () {
       final telemetryData = CayenneLppParser.createGpsData(
@@ -869,6 +869,71 @@ void main() {
         isTrue,
       );
     });
+  });
+
+  group('ContactsProvider device sync preparation', () {
+    late ContactsProvider provider;
+
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      provider = ContactsProvider();
+    });
+
+    test(
+      'clears runtime contacts before sync without erasing persisted contacts or saved groups',
+      () async {
+        final key = createPublicKey(140);
+        final pendingKey = createPublicKey(180);
+
+        provider.addOrUpdateContact(
+          createContact(key: key, type: ContactType.chat, name: 'Synced Later'),
+        );
+        provider.addPendingAdvert(pendingKey);
+        await provider.addSavedGroupForFilter('teamMembers', 'alpha');
+
+        await provider.prepareForDeviceContactSync();
+
+        expect(provider.chatContacts, isEmpty);
+        expect(provider.pendingAdverts, isEmpty);
+        expect(provider.savedGroupsForSection('teamMembers'), hasLength(1));
+
+        final restored = ContactsProvider();
+        await restored.initializeEarly();
+
+        expect(
+          restored.chatContacts.map((contact) => contact.advName),
+          contains('Synced Later'),
+        );
+        expect(restored.savedGroupsForSection('teamMembers'), hasLength(1));
+      },
+    );
+  });
+
+  group('ContactsProvider self telemetry', () {
+    test(
+      'stores self telemetry without re-adding the device as a contact',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final provider = ContactsProvider();
+        final selfKey = createPublicKey(200);
+
+        await provider.initialize(devicePublicKey: selfKey);
+        provider.updateTelemetry(
+          selfKey.sublist(0, 6),
+          CayenneLppParser.createTemperatureData(23.5, channel: 1),
+        );
+
+        expect(provider.selfTelemetry, isNotNull);
+        expect(provider.selfTelemetry!.temperature, closeTo(23.5, 0.1));
+        expect(provider.findContactByKey(selfKey), isNull);
+        expect(
+          provider.contacts.any(
+            (contact) => contact.publicKeyHex == publicKeyHex(selfKey),
+          ),
+          isFalse,
+        );
+      },
+    );
   });
 }
 

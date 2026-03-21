@@ -178,12 +178,20 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   late TextEditingController _lonController;
   late TextEditingController _freqController;
   late TextEditingController _txPowerController;
+  late TextEditingController _gpsIntervalController;
+  late TextEditingController _autoAddMaxHopsController;
   late final ConnectionProvider _connectionProvider;
 
-  bool _telemetryEnabled = false;
+  int _baseTelemetryMode = 0;
+  int _locationTelemetryMode = 0;
+  int _environmentTelemetryMode = 0;
+  int _advertLocationPolicy = 0;
+  bool _multiAcksEnabled = false;
   bool _repeatEnabled = false;
   bool? _gpsEnabled; // null = not supported by hardware
   bool _gpsLoading = false;
+  bool _isSyncingDeviceTime = false;
+  int? _selectedPathHashMode;
   bool _autoAddDiscoveredContactsEnabled = true;
   bool _autoAddUsersEnabled = true;
   bool _autoAddRepeatersEnabled = true;
@@ -250,6 +258,10 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     _txPowerController = TextEditingController(
       text: deviceInfo.txPower?.toString() ?? '20',
     );
+    _gpsIntervalController = TextEditingController();
+    _autoAddMaxHopsController = TextEditingController(
+      text: (deviceInfo.autoAddMaxHops ?? 0).toString(),
+    );
 
     if (deviceInfo.radioBw != null &&
         deviceInfo.radioBw! >= 0 &&
@@ -275,10 +287,17 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     );
     _showCustomRadioSettings = _selectedRadioPreset == null;
 
-    // Check if telemetry is enabled (check if lat/lon are set and not zero)
-    _telemetryEnabled =
-        (deviceInfo.advLat != null && deviceInfo.advLat! != 0) ||
-        (deviceInfo.advLon != null && deviceInfo.advLon! != 0);
+    final telemetryModes = deviceInfo.telemetryModes;
+    _baseTelemetryMode = telemetryModes != null ? telemetryModes & 0x03 : 0;
+    _locationTelemetryMode = telemetryModes != null
+        ? (telemetryModes >> 2) & 0x03
+        : 0;
+    _environmentTelemetryMode = telemetryModes != null
+        ? (telemetryModes >> 4) & 0x03
+        : 0;
+    _advertLocationPolicy = deviceInfo.advertLocPolicy ?? 0;
+    _multiAcksEnabled = (deviceInfo.multiAcks ?? 0) != 0;
+    _selectedPathHashMode = deviceInfo.pathHashMode;
 
     // Initialize repeat mode from device info (firmware v9+)
     _repeatEnabled = deviceInfo.clientRepeat ?? false;
@@ -308,6 +327,8 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     _lonController.dispose();
     _freqController.dispose();
     _txPowerController.dispose();
+    _gpsIntervalController.dispose();
+    _autoAddMaxHopsController.dispose();
     super.dispose();
   }
 
@@ -428,6 +449,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       deviceInfo.autoAddRoomServers,
       deviceInfo.autoAddSensors,
       deviceInfo.autoAddOverwriteOldest,
+      deviceInfo.autoAddMaxHops,
     ].join('|');
   }
 
@@ -467,22 +489,22 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     _autoAddRoomServersEnabled = deviceInfo.autoAddRoomServers ?? true;
     _autoAddSensorsEnabled = deviceInfo.autoAddSensors ?? true;
     _overwriteOldestAutoAddEnabled = deviceInfo.autoAddOverwriteOldest ?? false;
+    _autoAddMaxHopsController.text = (deviceInfo.autoAddMaxHops ?? 0)
+        .toString();
   }
 
-  int _telemetryModesForSave(ConnectionProvider connectionProvider) {
-    final deviceInfo = connectionProvider.deviceInfo;
-    final telemetryEnabled =
-        (deviceInfo.advLat != null && deviceInfo.advLat != 0) ||
-        (deviceInfo.advLon != null && deviceInfo.advLon != 0);
-    return deviceInfo.telemetryModes ?? (telemetryEnabled ? 0x0A : 0x00);
+  int _telemetryModesForSave() {
+    return (_environmentTelemetryMode << 4) |
+        (_locationTelemetryMode << 2) |
+        _baseTelemetryMode;
   }
 
-  int _advertLocationPolicyForSave(ConnectionProvider connectionProvider) {
-    final deviceInfo = connectionProvider.deviceInfo;
-    final telemetryEnabled =
-        (deviceInfo.advLat != null && deviceInfo.advLat != 0) ||
-        (deviceInfo.advLon != null && deviceInfo.advLon != 0);
-    return deviceInfo.advertLocPolicy ?? (telemetryEnabled ? 1 : 0);
+  int _advertLocationPolicyForSave() {
+    return _advertLocationPolicy;
+  }
+
+  int _multiAcksForSave() {
+    return _multiAcksEnabled ? 1 : 0;
   }
 
   Future<void> _savePublicInfo() async {
@@ -501,8 +523,24 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
         await connectionProvider.setAdvertName(_nameController.text);
       }
 
-      // Save position and telemetry settings
-      if (_telemetryEnabled) {
+      final gpsIntervalText = _gpsIntervalController.text.trim();
+      if (gpsIntervalText.isNotEmpty) {
+        final gpsInterval = int.tryParse(gpsIntervalText);
+        if (gpsInterval == null || gpsInterval < 0 || gpsInterval > 86400) {
+          if (mounted) {
+            setState(() {
+              _publicInfoError =
+                  'GPS interval must be a whole number between 0 and 86400 seconds.';
+              _isSavingPublicInfo = false;
+            });
+          }
+          return;
+        }
+        await connectionProvider.setCustomVar('gps_interval', gpsIntervalText);
+      }
+
+      // Save stored coordinates only when the firmware advert policy uses prefs.
+      if (_advertLocationPolicy == 2) {
         // Parse and validate coordinates
         final latResult = validator.parseLatitude(_latController.text);
         if (!latResult.isSuccess) {
@@ -530,26 +568,14 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           latitude: latResult.value!,
           longitude: lonResult.value!,
         );
-
-        // Set telemetry modes to "Allow All" (mode 2 for both base and location)
-        final telemetryModes = 0x0A; // binary: 00001010 (base=2, location=2)
-        await connectionProvider.setOtherParams(
-          manualAddContacts: _autoAddFilterModeFlag,
-          telemetryModes: telemetryModes,
-          advertLocationPolicy: 1,
-        );
-      } else {
-        // Clear position
-        await connectionProvider.setAdvertLatLon(latitude: 0.0, longitude: 0.0);
-
-        // Set telemetry modes to "Deny" (mode 0)
-        final telemetryModes = 0x00;
-        await connectionProvider.setOtherParams(
-          manualAddContacts: _autoAddFilterModeFlag,
-          telemetryModes: telemetryModes,
-          advertLocationPolicy: 0,
-        );
       }
+
+      await connectionProvider.setOtherParams(
+        manualAddContacts: _autoAddFilterModeFlag,
+        telemetryModes: _telemetryModesForSave(),
+        advertLocationPolicy: _advertLocationPolicyForSave(),
+        multiAcks: _multiAcksForSave(),
+      );
 
       // Refetch device info to update UI with new settings
       await connectionProvider.refreshDeviceInfo();
@@ -625,6 +651,10 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       // Save TX power
       await connectionProvider.setTxPower(txPowerResult.value!);
 
+      if (_selectedPathHashMode != null) {
+        await connectionProvider.setPathHashMode(_selectedPathHashMode!);
+      }
+
       // Refetch device info to update UI with new settings
       await connectionProvider.refreshDeviceInfo();
 
@@ -658,6 +688,8 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
         _autoAddDiscoveredContactsEnabled && _autoAddSensorsEnabled;
     final overwriteOldest =
         _autoAddDiscoveredContactsEnabled && _overwriteOldestAutoAddEnabled;
+    final maxHopsText = _autoAddMaxHopsController.text.trim();
+    final maxHops = int.tryParse(maxHopsText);
 
     setState(() {
       _isSavingAutoDiscoverySettings = true;
@@ -666,18 +698,22 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     });
 
     try {
+      if (maxHops == null || maxHops < 0 || maxHops > 64) {
+        throw Exception('Auto-add max hops must be between 0 and 64.');
+      }
       await connectionProvider.setAutoaddConfig(
         autoAddUsers: autoAddUsers,
         autoAddRepeaters: autoAddRepeaters,
         autoAddRoomServers: autoAddRoomServers,
         autoAddSensors: autoAddSensors,
         overwriteOldest: overwriteOldest,
+        maxHops: maxHops,
       );
       await connectionProvider.setOtherParams(
         manualAddContacts: _autoAddFilterModeFlag,
-        telemetryModes: _telemetryModesForSave(connectionProvider),
-        advertLocationPolicy: _advertLocationPolicyForSave(connectionProvider),
-        multiAcks: connectionProvider.deviceInfo.multiAcks ?? 0,
+        telemetryModes: _telemetryModesForSave(),
+        advertLocationPolicy: _advertLocationPolicyForSave(),
+        multiAcks: _multiAcksForSave(),
       );
       await connectionProvider.getAutoaddConfig();
 
@@ -709,8 +745,12 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       final vars = await _connectionProvider.getCustomVars();
       if (!mounted) return;
       final gpsValue = vars['gps'];
+      final gpsIntervalValue = vars['gps_interval'];
       setState(() {
         _gpsEnabled = gpsValue != null ? gpsValue == '1' : null;
+        if (gpsIntervalValue != null) {
+          _gpsIntervalController.text = gpsIntervalValue;
+        }
       });
     } catch (_) {
       // Device may not support custom vars (old firmware / no GPS hardware)
@@ -794,7 +834,10 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       setState(() {
         _latController.text = position.latitude.toStringAsFixed(6);
         _lonController.text = position.longitude.toStringAsFixed(6);
-        _telemetryEnabled = true;
+        _advertLocationPolicy = 2;
+        if (_locationTelemetryMode == 0) {
+          _locationTelemetryMode = 2;
+        }
       });
 
       if (mounted) {
@@ -819,6 +862,37 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
             ),
           ),
         );
+      }
+    }
+  }
+
+  Future<void> _syncDeviceTime() async {
+    setState(() => _isSyncingDeviceTime = true);
+    try {
+      _connectionProvider.clearError();
+      await _connectionProvider.syncDeviceTime();
+      final syncError = _connectionProvider.error;
+      if (syncError != null) {
+        throw Exception(syncError);
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Device time synced to this phone.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to sync device time: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSyncingDeviceTime = false);
       }
     }
   }
@@ -1093,9 +1167,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     final deviceInfo = context.watch<ConnectionProvider>().deviceInfo;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final locationSet =
-        (deviceInfo.advLat != null && deviceInfo.advLat != 0) ||
-        (deviceInfo.advLon != null && deviceInfo.advLon != 0);
+    final locationSet = _advertLocationPolicy != 0;
 
     return Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context)!.settings)),
@@ -1170,6 +1242,130 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                     const SizedBox(height: 16),
                     _StorageUsageMeter(deviceInfo: deviceInfo),
                   ],
+                ),
+              ),
+              SizedBox(height: 20),
+              _ConfigSectionCard(
+                title: 'Device info',
+                subtitle:
+                    'Capabilities reported by the connected radio and maintenance tools.',
+                icon: Icons.info_outline_rounded,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cardWidth = constraints.maxWidth > 420
+                        ? (constraints.maxWidth - 24) / 3
+                        : (constraints.maxWidth - 12) / 2;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            SizedBox(
+                              width: cardWidth,
+                              child: _StorageStat(
+                                label: 'BLE PIN',
+                                value: _formatBlePin(deviceInfo.blePin),
+                                compact: true,
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: _StorageStat(
+                                label: AppLocalizations.of(
+                                  context,
+                                )!.maxContacts,
+                                value:
+                                    deviceInfo.maxContacts?.toString() ??
+                                    AppLocalizations.of(context)!.unknown,
+                                compact: true,
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: _StorageStat(
+                                label: AppLocalizations.of(
+                                  context,
+                                )!.maxChannels,
+                                value:
+                                    deviceInfo.maxChannels?.toString() ??
+                                    AppLocalizations.of(context)!.unknown,
+                                compact: true,
+                              ),
+                            ),
+                            if (deviceInfo.pathHashMode != null)
+                              SizedBox(
+                                width: cardWidth,
+                                child: _StorageStat(
+                                  label: 'Path hash',
+                                  value: _pathHashModeLabel(
+                                    deviceInfo.pathHashMode!,
+                                  ),
+                                  compact: true,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerLowest,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: colorScheme.outlineVariant,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Clock maintenance',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Refresh the radio clock if room logins or message timestamps look off.',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: _isSyncingDeviceTime
+                                      ? null
+                                      : _syncDeviceTime,
+                                  icon: _isSyncingDeviceTime
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(Icons.schedule_rounded),
+                                  label: Text(
+                                    _isSyncingDeviceTime
+                                        ? 'Syncing time...'
+                                        : 'Sync device time',
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    minimumSize: const Size.fromHeight(46),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
               SizedBox(height: 20),
@@ -1310,6 +1506,22 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                             : null,
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _autoAddMaxHopsController,
+                      onChanged: (_) => _markAutoDiscoverySettingsDirty(),
+                      decoration: InputDecoration(
+                        labelText: 'Auto-add max hops',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerLowest,
+                        helperText:
+                            '0 means no limit. 1 keeps auto-add to direct neighbors only.',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
                     const SizedBox(height: 18),
                     if (_autoDiscoverySettingsError != null) ...[
                       Text(
@@ -1346,27 +1558,87 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SettingHighlightCard(
-                      icon: _telemetryEnabled
-                          ? Icons.travel_explore
-                          : Icons.location_disabled,
-                      title: AppLocalizations.of(
-                        context,
-                      )!.telemetryAndLocationSharing,
-                      description: 'Share your location with nearby devices.',
-                      accentColor: _telemetryEnabled
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      trailing: Switch(
-                        value: _telemetryEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            _telemetryEnabled = value;
-                            _publicInfoSaved = false;
-                            _publicInfoError = null;
-                          });
-                        },
-                      ),
+                    _ConfigDropdownField(
+                      label: 'Base telemetry',
+                      value: _baseTelemetryMode,
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('Deny')),
+                        DropdownMenuItem(
+                          value: 1,
+                          child: Text('Use contact flags'),
+                        ),
+                        DropdownMenuItem(value: 2, child: Text('Allow all')),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() {
+                          _baseTelemetryMode = value;
+                          _markPublicInfoDirty();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _ConfigDropdownField(
+                      label: 'Location telemetry',
+                      value: _locationTelemetryMode,
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('Deny')),
+                        DropdownMenuItem(
+                          value: 1,
+                          child: Text('Use contact flags'),
+                        ),
+                        DropdownMenuItem(value: 2, child: Text('Allow all')),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() {
+                          _locationTelemetryMode = value;
+                          _markPublicInfoDirty();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _ConfigDropdownField(
+                      label: 'Environmental telemetry',
+                      value: _environmentTelemetryMode,
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('Deny')),
+                        DropdownMenuItem(
+                          value: 1,
+                          child: Text('Use contact flags'),
+                        ),
+                        DropdownMenuItem(value: 2, child: Text('Allow all')),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() {
+                          _environmentTelemetryMode = value;
+                          _markPublicInfoDirty();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _ConfigDropdownField(
+                      label: 'GPS advert policy',
+                      value: _advertLocationPolicy,
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('Hidden')),
+                        DropdownMenuItem(
+                          value: 1,
+                          child: Text('Share live GPS'),
+                        ),
+                        DropdownMenuItem(
+                          value: 2,
+                          child: Text('Use saved coordinates'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() {
+                          _advertLocationPolicy = value;
+                          _markPublicInfoDirty();
+                        });
+                      },
                     ),
                     if (_gpsEnabled != null) ...[
                       const SizedBox(height: 12),
@@ -1392,6 +1664,43 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                               ),
                       ),
                     ],
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _gpsIntervalController,
+                      onChanged: (_) => _markPublicInfoDirty(),
+                      decoration: InputDecoration(
+                        labelText: 'GPS interval (seconds)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerLowest,
+                        helperText:
+                            'Firmware supports 0-86400 seconds. Older builds may not report the current value back.',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 12),
+                    _SettingHighlightCard(
+                      icon: _multiAcksEnabled
+                          ? Icons.mark_email_read_outlined
+                          : Icons.mark_email_unread_outlined,
+                      title: 'Multi-ACK mode',
+                      description:
+                          'Ask the radio to request extra acknowledgements when the firmware supports it.',
+                      accentColor: _multiAcksEnabled
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                      trailing: Switch(
+                        value: _multiAcksEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            _multiAcksEnabled = value;
+                            _markPublicInfoDirty();
+                          });
+                        },
+                      ),
+                    ),
                     const SizedBox(height: 18),
                     TextField(
                       controller: _nameController,
@@ -1407,7 +1716,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                             'This is the name other devices will see on the mesh.',
                       ),
                     ),
-                    if (_telemetryEnabled) ...[
+                    if (_advertLocationPolicy == 2) ...[
                       const SizedBox(height: 16),
                       Container(
                         padding: const EdgeInsets.all(14),
@@ -1420,14 +1729,14 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Shared location',
+                              'Saved coordinates',
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Set coordinates manually or use your current location.',
+                              'These coordinates are used when advert policy is set to saved coordinates.',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -1461,6 +1770,22 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                               ],
                             ),
                           ],
+                        ),
+                      ),
+                    ] else if (_advertLocationPolicy == 1) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: colorScheme.outlineVariant),
+                        ),
+                        child: Text(
+                          'The firmware will advertise the live GPS fix from the onboard sensor manager when available.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],
@@ -1708,6 +2033,45 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                             ),
                             keyboardType: TextInputType.number,
                           ),
+                          if (_selectedPathHashMode != null) ...[
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<int>(
+                              key: ValueKey('path-hash-$_selectedPathHashMode'),
+                              initialValue: _selectedPathHashMode,
+                              decoration: InputDecoration(
+                                labelText: 'Advert path hash size',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                filled: true,
+                                fillColor: colorScheme.surfaceContainerLowest,
+                                helperText:
+                                    'Controls the low-level hash size used in adverts and flood paths.',
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 0,
+                                  child: Text('1 byte (mode 0)'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 1,
+                                  child: Text('2 bytes (mode 1)'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 2,
+                                  child: Text('3 bytes (mode 2)'),
+                                ),
+                              ],
+                              onChanged: (int? newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    _selectedPathHashMode = newValue;
+                                  });
+                                  _markRadioSettingsDirty();
+                                }
+                              },
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -1913,6 +2277,26 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       return '${(storageKb / 1024).toStringAsFixed(1)} MB';
     }
     return '$storageKb KB';
+  }
+
+  String _formatBlePin(int? blePin) {
+    if (blePin == null) {
+      return AppLocalizations.of(context)!.unknown;
+    }
+    return blePin.toString().padLeft(6, '0');
+  }
+
+  String _pathHashModeLabel(int mode) {
+    switch (mode) {
+      case 0:
+        return '1 byte';
+      case 1:
+        return '2 bytes';
+      case 2:
+        return '3 bytes';
+      default:
+        return 'Mode $mode';
+    }
   }
 }
 
@@ -2153,17 +2537,52 @@ class _ConfigSectionCard extends StatelessWidget {
   }
 }
 
+class _ConfigDropdownField<T> extends StatelessWidget {
+  final String label;
+  final T value;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?> onChanged;
+
+  const _ConfigDropdownField({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return DropdownButtonFormField<T>(
+      initialValue: value,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+        filled: true,
+        fillColor: colorScheme.surfaceContainerLowest,
+      ),
+      items: items,
+      onChanged: onChanged,
+    );
+  }
+}
+
 class _StorageStat extends StatelessWidget {
   final String label;
   final String value;
+  final bool compact;
 
-  const _StorageStat({required this.label, required this.value});
+  const _StorageStat({
+    required this.label,
+    required this.value,
+    this.compact = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(compact ? 12 : 14),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(20),
@@ -2177,14 +2596,16 @@ class _StorageStat extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurfaceVariant,
+              fontSize: compact ? 13 : null,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: compact ? 4 : 6),
           Text(
             value,
             style: TextStyle(
               fontWeight: FontWeight.w800,
               color: colorScheme.onSurface,
+              fontSize: compact ? 17 : null,
             ),
           ),
         ],

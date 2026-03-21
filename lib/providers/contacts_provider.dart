@@ -139,6 +139,8 @@ class ContactsProvider with ChangeNotifier {
   bool _isPersistingPendingAdverts = false;
   bool _persistPendingAdvertsRequested = false;
   String? _storageNamespace;
+  String? _selfPublicKeyHex;
+  ContactTelemetry? _selfTelemetry;
 
   // Add default public channel on initialization
   ContactsProvider()
@@ -162,6 +164,7 @@ class ContactsProvider with ChangeNotifier {
     Uint8List? devicePublicKey,
   }) async {
     _storageNamespace = namespace;
+    _setSelfDevicePublicKey(devicePublicKey);
     await _loadFromStorage(force: true, devicePublicKey: devicePublicKey);
   }
 
@@ -253,6 +256,7 @@ class ContactsProvider with ChangeNotifier {
   /// Initialize and load persisted contacts
   /// [devicePublicKey] - device's own public key to exclude from loaded contacts
   Future<void> initialize({Uint8List? devicePublicKey}) async {
+    _setSelfDevicePublicKey(devicePublicKey);
     if (_isInitialized) {
       // If already initialized (from early load), just filter out self-contact
       if (devicePublicKey != null) {
@@ -265,6 +269,36 @@ class ContactsProvider with ChangeNotifier {
     if (devicePublicKey != null) {
       _removeSelfContact(devicePublicKey);
     }
+  }
+
+  /// Clear runtime contact state before a live device contact sync begins.
+  ///
+  /// This intentionally does not touch persisted storage. It keeps any saved
+  /// contact groups for the active profile, but removes stale in-memory device
+  /// contacts and discovery state so a newly connected device starts from an
+  /// empty list while sync is in progress.
+  Future<void> prepareForDeviceContactSync({Uint8List? devicePublicKey}) async {
+    _setSelfDevicePublicKey(devicePublicKey);
+    _selfTelemetry = null;
+    if (!_isInitialized) {
+      final storedGroups = await _storageService.loadContactGroups(
+        namespace: _storageNamespace,
+      );
+      _savedContactGroups
+        ..clear()
+        ..addAll(storedGroups);
+      _isInitialized = true;
+    }
+
+    debugPrint(
+      '🧹 [ContactsProvider] Clearing runtime contacts before device sync',
+    );
+    _contacts.clear();
+    _pendingAdverts.clear();
+    _estimatedLocations.clear();
+    _rssiObservations.clear();
+    _ensurePublicChannelExists();
+    notifyListeners();
   }
 
   /// Remove self-contact from loaded contacts (called after BLE connection established)
@@ -347,6 +381,7 @@ class ContactsProvider with ChangeNotifier {
   }
 
   List<Contact> get contacts => _contacts.values.toList();
+  ContactTelemetry? get selfTelemetry => _selfTelemetry;
   List<Contact> get favouriteContacts =>
       _contacts.values.where((c) => c.isFavourite).toList();
   List<SavedContactGroup> get savedContactGroups =>
@@ -537,9 +572,11 @@ class ContactsProvider with ChangeNotifier {
     // Replace existing observation from the same repeater, or add new
     final repeaterKey =
         '${observation.repeaterLocation.latitude},${observation.repeaterLocation.longitude}';
-    observations.removeWhere((o) =>
-        '${o.repeaterLocation.latitude},${o.repeaterLocation.longitude}' ==
-        repeaterKey);
+    observations.removeWhere(
+      (o) =>
+          '${o.repeaterLocation.latitude},${o.repeaterLocation.longitude}' ==
+          repeaterKey,
+    );
     observations.add(observation);
 
     // Keep at most 8 observations (most recent per repeater)
@@ -956,13 +993,22 @@ class ContactsProvider with ChangeNotifier {
 
     // Find contact by public key prefix
     final contact = _findContactByPrefix(publicKeyPrefix);
-    if (contact == null) {
+    final isSelfTelemetry =
+        contact == null && _matchesSelfPrefix(publicKeyPrefix);
+    if (contact == null && !isSelfTelemetry) {
       debugPrint('  ❌ Contact not found for this prefix');
       return;
     }
 
-    debugPrint('  ✅ Found contact: ${contact.advName}');
-    debugPrint('  Old telemetry timestamp: ${contact.telemetry?.timestamp}');
+    if (isSelfTelemetry) {
+      debugPrint('  ✅ Matched self telemetry response');
+      debugPrint(
+        '  Old self telemetry timestamp: ${_selfTelemetry?.timestamp}',
+      );
+    } else {
+      debugPrint('  ✅ Found contact: ${contact!.advName}');
+      debugPrint('  Old telemetry timestamp: ${contact.telemetry?.timestamp}');
+    }
 
     try {
       // Parse Cayenne LPP data
@@ -985,7 +1031,9 @@ class ContactsProvider with ChangeNotifier {
         );
       }
 
-      final previousTelemetry = contact.telemetry;
+      final previousTelemetry = isSelfTelemetry
+          ? _selfTelemetry
+          : contact!.telemetry;
 
       final mergedTelemetry = _mergeTelemetryForContact(
         existingTelemetry: previousTelemetry,
@@ -1012,25 +1060,34 @@ class ContactsProvider with ChangeNotifier {
         );
       }
 
+      if (isSelfTelemetry) {
+        _selfTelemetry = telemetry;
+        notifyListeners();
+        debugPrint('  ✅ Updated self telemetry');
+        return;
+      }
+
+      final resolvedContact = contact!;
+
       // Update contact with new telemetry AND last seen time
       // lastAdvert is Unix timestamp in seconds
       final currentTimestamp = (DateTime.now().millisecondsSinceEpoch / 1000)
           .round();
-      debugPrint('  Old lastAdvert: ${contact.lastAdvert}');
+      debugPrint('  Old lastAdvert: ${resolvedContact.lastAdvert}');
       debugPrint('  New lastAdvert: $currentTimestamp');
 
       final persistedGps = _getValidGpsOrNull(telemetry.gpsLocation);
-      final updatedContact = contact.copyWith(
+      final updatedContact = resolvedContact.copyWith(
         telemetry: telemetry,
         lastAdvert: currentTimestamp, // Update last seen time
         advLat: persistedGps != null
             ? _coordinateToAdvertMicrodegrees(persistedGps.latitude)
-            : contact.advLat,
+            : resolvedContact.advLat,
         advLon: persistedGps != null
             ? _coordinateToAdvertMicrodegrees(persistedGps.longitude)
-            : contact.advLon,
+            : resolvedContact.advLon,
       );
-      _contacts[contact.publicKeyHex] = updatedContact;
+      _contacts[resolvedContact.publicKeyHex] = updatedContact;
       debugPrint('  ✅ Updated contact in map (with new lastAdvert)');
 
       _persistContacts();
@@ -1235,6 +1292,36 @@ class ContactsProvider with ChangeNotifier {
         .map((b) => b.toRadixString(16).padLeft(2, '0'))
         .join('');
     return _contacts[keyHex];
+  }
+
+  void _setSelfDevicePublicKey(Uint8List? devicePublicKey) {
+    final nextKeyHex = _publicKeyHexOrNull(devicePublicKey);
+    if (_selfPublicKeyHex != nextKeyHex) {
+      _selfTelemetry = null;
+    }
+    _selfPublicKeyHex = nextKeyHex;
+  }
+
+  String? _publicKeyHexOrNull(Uint8List? publicKey) {
+    if (publicKey == null || publicKey.isEmpty) {
+      return null;
+    }
+
+    return publicKey.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
+  }
+
+  bool _matchesSelfPrefix(Uint8List prefix) {
+    final selfKeyHex = _selfPublicKeyHex;
+    if (selfKeyHex == null || prefix.isEmpty) {
+      return false;
+    }
+
+    final takeLen = prefix.length < 6 ? prefix.length : 6;
+    final prefixHex = prefix
+        .sublist(0, takeLen)
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join('');
+    return selfKeyHex.startsWith(prefixHex);
   }
 
   /// Clear a contact's learned path locally so the UI and next send both
@@ -1642,6 +1729,7 @@ class ContactsProvider with ChangeNotifier {
     _pendingAdverts.clear();
     _estimatedLocations.clear();
     _rssiObservations.clear();
+    _selfTelemetry = null;
   }
 
   Map<String, dynamic> _pendingAdvertToJson(PendingAdvert advert) {

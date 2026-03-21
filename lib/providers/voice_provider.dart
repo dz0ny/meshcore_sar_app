@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/contact.dart';
+import '../services/profiles_feature_service.dart';
 import 'helpers/raw_session_retransmit.dart';
 import '../utils/voice_message_parser.dart';
 import '../services/voice_codec_service.dart';
@@ -91,6 +92,9 @@ class VoiceProvider with ChangeNotifier {
     });
     _restorePersistedVoiceData();
   }
+
+  String _storageKey() =>
+      ProfileStorageScope.scopedKey(_voiceSessionsStorageKey);
 
   // ── Session accessors ────────────────────────────────────────────────────
 
@@ -329,17 +333,20 @@ class VoiceProvider with ChangeNotifier {
   }
 
   Future<void> clearStoredVoiceData() async {
-    _sessions.clear();
-    _outgoingSessions.clear();
-    _ignoredIncomingSessions.clear();
-    _playingSessionId = null;
+    await _resetInMemoryState();
     notifyListeners();
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_voiceSessionsStorageKey);
+      await prefs.remove(_storageKey());
     } catch (e) {
       debugPrint('❌ [VoiceProvider] Failed to clear stored voice data: $e');
     }
+  }
+
+  Future<void> reloadProfileScopedState() async {
+    await _resetInMemoryState();
+    await _restorePersistedVoiceData();
+    notifyListeners();
   }
 
   Future<void> _persistVoiceData() async {
@@ -365,7 +372,7 @@ class VoiceProvider with ChangeNotifier {
             )
             .toList(),
       };
-      await prefs.setString(_voiceSessionsStorageKey, jsonEncode(payload));
+      await prefs.setString(_storageKey(), jsonEncode(payload));
     } catch (e) {
       debugPrint('❌ [VoiceProvider] Failed to persist voice data: $e');
     }
@@ -374,7 +381,7 @@ class VoiceProvider with ChangeNotifier {
   Future<void> _restorePersistedVoiceData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_voiceSessionsStorageKey);
+      final raw = prefs.getString(_storageKey());
       if (raw == null || raw.isEmpty) return;
 
       final parsed = jsonDecode(raw) as Map<String, dynamic>;
@@ -435,6 +442,16 @@ class VoiceProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('❌ [VoiceProvider] Failed to restore voice data: $e');
     }
+  }
+
+  Future<void> _resetInMemoryState() async {
+    if (_playingSessionId != null || _player.isPlaying) {
+      await _player.stop();
+    }
+    _sessions.clear();
+    _outgoingSessions.clear();
+    _ignoredIncomingSessions.clear();
+    _playingSessionId = null;
   }
 
   @override

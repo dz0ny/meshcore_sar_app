@@ -2553,12 +2553,10 @@ class AppProvider with ChangeNotifier {
     try {
       _isReconnectSyncInProgress = true;
       _hasCompletedConnectionBootstrap = false;
-      // Initialize contacts provider with device public key to exclude self
-      // If already initialized (from early load), this will just filter out self-contact
-      // This must happen before getContacts to ensure proper filtering
-      await contactsProvider.initialize(
+      await contactsProvider.prepareForDeviceContactSync(
         devicePublicKey: connectionProvider.deviceInfo.publicKey,
       );
+      channelsProvider.prepareForDeviceSync();
 
       // Note: Device clock is automatically synced during connection in MeshCoreBleService
       // No need to sync it again here
@@ -2634,10 +2632,14 @@ class AppProvider with ChangeNotifier {
         '🔄 [AppProvider] Device reconnected - syncing contacts and missed messages',
       );
 
-      await contactsProvider.initialize(
+      await contactsProvider.prepareForDeviceContactSync(
         devicePublicKey: connectionProvider.deviceInfo.publicKey,
       );
+      channelsProvider.prepareForDeviceSync();
       await connectionProvider.getContacts();
+      await connectionProvider.syncChannels(
+        maxChannels: connectionProvider.deviceInfo.maxChannels,
+      );
 
       final messageCount = await connectionProvider.syncAllMessages(
         force: true,
@@ -3642,6 +3644,7 @@ class AppProvider with ChangeNotifier {
       await connectionProvider.getContacts();
 
       // Sync all channels so refresh reflects the full device state.
+      channelsProvider.prepareForDeviceSync();
       await connectionProvider.syncChannels(
         maxChannels: connectionProvider.deviceInfo.maxChannels,
       );
