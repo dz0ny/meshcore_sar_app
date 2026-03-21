@@ -390,6 +390,38 @@ void main() {
       );
     });
 
+    test('incoming contact messages dedupe by sender handle and text', () {
+      final provider = MessagesProvider();
+
+      provider.addMessage(
+        Message(
+          id: 'handle-1',
+          messageType: MessageType.contact,
+          pathLen: 1,
+          textType: MessageTextType.plain,
+          senderTimestamp: 1700000800,
+          text: 'same payload',
+          senderName: 'Radio Alpha',
+          receivedAt: DateTime.now(),
+        ),
+      );
+      provider.addMessage(
+        Message(
+          id: 'handle-2',
+          messageType: MessageType.contact,
+          pathLen: 2,
+          textType: MessageTextType.plain,
+          senderTimestamp: 1700000810,
+          text: 'same payload',
+          senderName: 'Radio Alpha',
+          receivedAt: DateTime.now(),
+        ),
+      );
+
+      expect(provider.messages, hasLength(1));
+      expect(provider.messages.single.id, equals('handle-1'));
+    });
+
     test('display list collapses stored duplicates and sums copy counts', () {
       final provider = MessagesProvider();
       final sender = Uint8List.fromList([5, 4, 3, 2, 1, 0]);

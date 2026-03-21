@@ -667,7 +667,6 @@ class _MessagesTabState extends State<MessagesTab> {
     }
 
     _textController.clear();
-    _focusNode.unfocus();
 
     try {
       // Check destination type and send accordingly

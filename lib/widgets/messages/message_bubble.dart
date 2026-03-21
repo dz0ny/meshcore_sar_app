@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/contact.dart';
 import '../../models/message.dart';
 import '../../models/sar_marker.dart';
@@ -31,6 +33,7 @@ import '../../l10n/app_localizations.dart';
 import '../../utils/message_extensions.dart';
 import '../../utils/log_rx_route_decoder.dart';
 import '../../models/message_transfer_details.dart';
+import '../../screens/add_contact_screen.dart';
 import 'voice_message_bubble.dart';
 import 'image_message_bubble.dart';
 import 'tictactoe_message_bubble.dart';
@@ -72,9 +75,28 @@ class MessageBubble extends StatefulWidget {
 }
 
 class _MessageBubbleState extends State<MessageBubble> {
+  static const int _meshcoreAdvertMinBytes = 98;
   static final RegExp _mentionPattern = RegExp(r'@\[(.+?)\]');
+  static final RegExp _linkPattern = RegExp(
+    r'(?:(?:https?:\/\/)|(?:www\.)|(?:meshcore:\/\/))[^\s<]+',
+    caseSensitive: false,
+  );
+  static final RegExp _rawMeshcoreAdvertPattern = RegExp(
+    r'(?<![0-9a-fA-F])[0-9a-fA-F]{196,}(?![0-9a-fA-F])',
+  );
+  static final RegExp _messageTokenPattern = RegExp(
+    r'@\[(.+?)\]|(?:(?:https?:\/\/)|(?:www\.)|(?:meshcore:\/\/))[^\s<]+|(?<![0-9a-fA-F])[0-9a-fA-F]{196,}(?![0-9a-fA-F])',
+    caseSensitive: false,
+  );
   bool _isExpanded = false;
   bool _showReceivedStats = false;
+  final List<TapGestureRecognizer> _linkRecognizers = [];
+
+  @override
+  void dispose() {
+    _disposeLinkRecognizers();
+    super.dispose();
+  }
 
   @override
   void didUpdateWidget(MessageBubble oldWidget) {
@@ -100,14 +122,108 @@ class _MessageBubbleState extends State<MessageBubble> {
     });
   }
 
+  void _disposeLinkRecognizers() {
+    for (final recognizer in _linkRecognizers) {
+      recognizer.dispose();
+    }
+    _linkRecognizers.clear();
+  }
+
+  String _trimTrailingUrlPunctuation(String value) {
+    var trimmed = value;
+    while (trimmed.isNotEmpty) {
+      final lastChar = trimmed[trimmed.length - 1];
+      final shouldTrim = switch (lastChar) {
+        '.' || ',' || '!' || '?' || ':' || ';' => true,
+        ')' => '('.allMatches(trimmed).length < ')'.allMatches(trimmed).length,
+        ']' => '['.allMatches(trimmed).length < ']'.allMatches(trimmed).length,
+        '}' => '{'.allMatches(trimmed).length < '}'.allMatches(trimmed).length,
+        _ => false,
+      };
+      if (!shouldTrim) {
+        break;
+      }
+      trimmed = trimmed.substring(0, trimmed.length - 1);
+    }
+    return trimmed;
+  }
+
+  Uri? _parseMessageLink(String value) {
+    final trimmed = _trimTrailingUrlPunctuation(value);
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    if (_isRawMeshcoreAdvert(trimmed)) {
+      return Uri.parse('meshcore://$trimmed');
+    }
+
+    final normalized = trimmed.startsWith('www.')
+        ? 'https://$trimmed'
+        : trimmed;
+    final uri = Uri.tryParse(normalized);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return null;
+    }
+
+    return uri;
+  }
+
+  bool _isRawMeshcoreAdvert(String value) {
+    if (!_rawMeshcoreAdvertPattern.hasMatch(value)) {
+      return false;
+    }
+    return value.length.isEven && value.length >= _meshcoreAdvertMinBytes * 2;
+  }
+
+  Future<void> _openMessageLink(String rawUrl) async {
+    final uri = _parseMessageLink(rawUrl);
+    if (uri == null) {
+      ToastLogger.error(context, 'Invalid link');
+      return;
+    }
+
+    if (uri.scheme.toLowerCase() == 'meshcore') {
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => AddContactScreen(initialAdvert: rawUrl),
+        ),
+      );
+      return;
+    }
+
+    try {
+      if (!await canLaunchUrl(uri)) {
+        if (!mounted) {
+          return;
+        }
+        ToastLogger.error(context, 'Cannot open link');
+        return;
+      }
+
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ToastLogger.error(context, 'Failed to open link');
+    }
+  }
+
   Widget _buildMessageTextContent(String text, TextStyle? baseBodyStyle) {
-    final matches = _mentionPattern.allMatches(text).toList();
+    _disposeLinkRecognizers();
+
+    final matches = _messageTokenPattern.allMatches(text).toList();
     if (matches.isEmpty) {
       return Text(text, style: baseBodyStyle);
     }
 
     final textColor =
         baseBodyStyle?.color ?? Theme.of(context).colorScheme.onSurface;
+    final linkColor = Theme.of(context).colorScheme.primary;
     final mentionFontSize = (baseBodyStyle?.fontSize ?? 14) - 1;
     final backgroundColor = Theme.of(
       context,
@@ -129,8 +245,9 @@ class _MessageBubbleState extends State<MessageBubble> {
         );
       }
 
+      final rawMatch = match.group(0) ?? '';
       final mentionName = match.group(1)?.trim() ?? '';
-      if (mentionName.isNotEmpty) {
+      if (_mentionPattern.hasMatch(rawMatch) && mentionName.isNotEmpty) {
         spans.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
@@ -154,8 +271,34 @@ class _MessageBubbleState extends State<MessageBubble> {
             ),
           ),
         );
+      } else if (_linkPattern.hasMatch(rawMatch) ||
+          _isRawMeshcoreAdvert(rawMatch)) {
+        final trimmedUrl = _trimTrailingUrlPunctuation(rawMatch);
+        final trailingText = rawMatch.substring(trimmedUrl.length);
+        final uri = _parseMessageLink(rawMatch);
+        if (uri != null) {
+          final recognizer = TapGestureRecognizer()
+            ..onTap = () => _openMessageLink(rawMatch);
+          _linkRecognizers.add(recognizer);
+          spans.add(
+            TextSpan(
+              text: trimmedUrl,
+              style: baseBodyStyle?.copyWith(
+                color: linkColor,
+                decoration: TextDecoration.underline,
+                decorationColor: linkColor,
+              ),
+              recognizer: recognizer,
+            ),
+          );
+          if (trailingText.isNotEmpty) {
+            spans.add(TextSpan(text: trailingText, style: baseBodyStyle));
+          }
+        } else {
+          spans.add(TextSpan(text: rawMatch, style: baseBodyStyle));
+        }
       } else {
-        spans.add(TextSpan(text: match.group(0), style: baseBodyStyle));
+        spans.add(TextSpan(text: rawMatch, style: baseBodyStyle));
       }
 
       cursor = match.end;

@@ -737,8 +737,15 @@ class MessagesProvider with ChangeNotifier {
     if (message.isContactMessage) {
       // Match by sender key + sender timestamp (matches official app's DB
       // uniqueness: contactPublicKey + senderTimestamp + text + txtType).
-      return existing.senderKeyShort == message.senderKeyShort &&
-          existing.senderTimestamp == message.senderTimestamp;
+      if (existing.senderKeyShort == message.senderKeyShort &&
+          existing.senderTimestamp == message.senderTimestamp) {
+        return true;
+      }
+
+      // Fallback dedup when retransmits surface as separate inbound rows
+      // without a stable timestamp/message id, but still carry the same
+      // visible sender identity and payload.
+      return _matchesDuplicateSenderIdentity(existing, message);
     }
 
     if (message.isChannelMessage) {
@@ -760,27 +767,27 @@ class MessagesProvider with ChangeNotifier {
         return false;
       }
 
-      final existingSenderKey = existing.senderKeyShort;
-      final incomingSenderKey = message.senderKeyShort;
-      if (existingSenderKey != null &&
-          incomingSenderKey != null &&
-          existingSenderKey == incomingSenderKey) {
-        return true;
-      }
-
-      final existingSenderName = _normalizedResolvedSenderName(existing);
-      final incomingSenderName = _normalizedResolvedSenderName(message);
-      if (existingSenderName != null &&
-          incomingSenderName != null &&
-          existingSenderName == incomingSenderName) {
-        return true;
-      }
-
-      return false;
+      return _matchesDuplicateSenderIdentity(existing, message);
     }
 
     // System messages and other types: never deduplicate by scope alone.
     return false;
+  }
+
+  bool _matchesDuplicateSenderIdentity(Message existing, Message message) {
+    final existingSenderKey = existing.senderKeyShort;
+    final incomingSenderKey = message.senderKeyShort;
+    if (existingSenderKey != null &&
+        incomingSenderKey != null &&
+        existingSenderKey == incomingSenderKey) {
+      return true;
+    }
+
+    final existingSenderName = _normalizedResolvedSenderName(existing);
+    final incomingSenderName = _normalizedResolvedSenderName(message);
+    return existingSenderName != null &&
+        incomingSenderName != null &&
+        existingSenderName == incomingSenderName;
   }
 
   /// Add multiple messages

@@ -6,7 +6,9 @@ import '../providers/connection_provider.dart';
 import '../l10n/app_localizations.dart';
 
 class AddContactScreen extends StatefulWidget {
-  const AddContactScreen({super.key});
+  final String? initialAdvert;
+
+  const AddContactScreen({super.key, this.initialAdvert});
 
   @override
   State<AddContactScreen> createState() => _AddContactScreenState();
@@ -21,7 +23,12 @@ class _AddContactScreenState extends State<AddContactScreen> {
   @override
   void initState() {
     super.initState();
-    _loadClipboardIfPresent();
+    if (widget.initialAdvert != null &&
+        widget.initialAdvert!.trim().isNotEmpty) {
+      _advertController.text = widget.initialAdvert!.trim();
+    } else {
+      _loadClipboardIfPresent();
+    }
   }
 
   @override
@@ -79,9 +86,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
     final text = clipboardData?.text;
     if (text == null || text.trim().isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.clipboardIsEmpty)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.clipboardIsEmpty)),
+      );
       return;
     }
 
@@ -140,9 +147,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.contactImported)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.contactImported)),
+    );
     setState(() {
       _importSucceeded = true;
     });

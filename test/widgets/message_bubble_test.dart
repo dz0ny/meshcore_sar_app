@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore_sar_app/l10n/app_localizations.dart';
 import 'package:meshcore_sar_app/models/message.dart';
@@ -22,8 +23,36 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  final launchedUrls = <String>[];
+
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    launchedUrls.clear();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/url_launcher'),
+          (call) async {
+            switch (call.method) {
+              case 'canLaunch':
+                return true;
+              case 'launch':
+                final arguments = Map<dynamic, dynamic>.from(
+                  call.arguments as Map<dynamic, dynamic>,
+                );
+                launchedUrls.add(arguments['url'] as String);
+                return true;
+            }
+            return null;
+          },
+        );
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/url_launcher'),
+          null,
+        );
   });
 
   testWidgets('received bubbles show signal chips on double tap', (
@@ -153,6 +182,151 @@ void main() {
       await _disposeHarness(tester, harness);
     }
   });
+
+  testWidgets('message bubble detects and opens links', (tester) async {
+    final harness = await _TestHarness.create();
+    try {
+      final message = Message(
+        id: 'message-link',
+        messageType: MessageType.contact,
+        senderPublicKeyPrefix: _prefix(31),
+        pathLen: 0,
+        textType: MessageTextType.plain,
+        senderTimestamp: 1700000000,
+        text: 'Check https://example.com/docs, then ping @[Rescue Team].',
+        receivedAt: DateTime.fromMillisecondsSinceEpoch(1700000000500),
+        deliveryStatus: MessageDeliveryStatus.received,
+      );
+
+      await tester.pumpWidget(_buildApp(harness, message));
+      await tester.pumpAndSettle();
+
+      final richText = tester
+          .widgetList<RichText>(find.byType(RichText))
+          .firstWhere(
+            (widget) =>
+                widget.text.toPlainText().contains('https://example.com/docs'),
+          );
+      final linkSpan = _findTextSpan(
+        richText.text,
+        (span) => span.text == 'https://example.com/docs',
+      );
+
+      expect(richText.text.toPlainText(), contains('https://example.com/docs'));
+      expect(find.text('@Rescue Team'), findsOneWidget);
+
+      expect(linkSpan, isNotNull);
+
+      final recognizer = linkSpan!.recognizer;
+      expect(recognizer, isA<TapGestureRecognizer>());
+      (recognizer! as TapGestureRecognizer).onTap!();
+      await tester.pump();
+
+      expect(launchedUrls, ['https://example.com/docs']);
+    } finally {
+      await _disposeHarness(tester, harness);
+    }
+  });
+
+  testWidgets('message bubble opens meshcore links in add contact screen', (
+    tester,
+  ) async {
+    final harness = await _TestHarness.create();
+    try {
+      const payloadSegment = '00112233445566778899aabbccddeeff';
+      final advert =
+          'meshcore://'
+          '$payloadSegment'
+          '$payloadSegment'
+          '$payloadSegment'
+          '$payloadSegment'
+          '$payloadSegment'
+          '$payloadSegment'
+          '0011';
+      final message = Message(
+        id: 'message-meshcore-link',
+        messageType: MessageType.contact,
+        senderPublicKeyPrefix: _prefix(41),
+        pathLen: 0,
+        textType: MessageTextType.plain,
+        senderTimestamp: 1700000000,
+        text: 'Import $advert',
+        receivedAt: DateTime.fromMillisecondsSinceEpoch(1700000000500),
+        deliveryStatus: MessageDeliveryStatus.received,
+      );
+
+      await tester.pumpWidget(_buildApp(harness, message));
+      await tester.pumpAndSettle();
+
+      final richText = tester
+          .widgetList<RichText>(find.byType(RichText))
+          .firstWhere((widget) => widget.text.toPlainText().contains(advert));
+      final linkSpan = _findTextSpan(
+        richText.text,
+        (span) => span.text == advert,
+      );
+
+      expect(linkSpan, isNotNull);
+
+      final recognizer = linkSpan!.recognizer;
+      expect(recognizer, isA<TapGestureRecognizer>());
+      (recognizer! as TapGestureRecognizer).onTap!();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Import a shared contact advert'), findsOneWidget);
+      expect(find.text(advert), findsOneWidget);
+    } finally {
+      await _disposeHarness(tester, harness);
+    }
+  });
+
+  testWidgets('message bubble linkifies raw meshcore adverts', (tester) async {
+    final harness = await _TestHarness.create();
+    try {
+      const advert =
+          '00112233445566778899aabbccddeeff'
+          '00112233445566778899aabbccddeeff'
+          '00112233445566778899aabbccddeeff'
+          '00112233445566778899aabbccddeeff'
+          '00112233445566778899aabbccddeeff'
+          '00112233445566778899aabbccddeeff'
+          '0011';
+      final message = Message(
+        id: 'message-meshcore-raw',
+        messageType: MessageType.contact,
+        senderPublicKeyPrefix: _prefix(51),
+        pathLen: 0,
+        textType: MessageTextType.plain,
+        senderTimestamp: 1700000000,
+        text: 'Import raw advert: $advert',
+        receivedAt: DateTime.fromMillisecondsSinceEpoch(1700000000500),
+        deliveryStatus: MessageDeliveryStatus.received,
+      );
+
+      await tester.pumpWidget(_buildApp(harness, message));
+      await tester.pumpAndSettle();
+
+      final richText = tester
+          .widgetList<RichText>(find.byType(RichText))
+          .firstWhere((widget) => widget.text.toPlainText().contains(advert));
+      final linkSpan = _findTextSpan(
+        richText.text,
+        (span) => span.text == advert,
+      );
+
+      expect(linkSpan, isNotNull);
+
+      final recognizer = linkSpan!.recognizer;
+      expect(recognizer, isA<TapGestureRecognizer>());
+      (recognizer! as TapGestureRecognizer).onTap!();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Import a shared contact advert'), findsOneWidget);
+      expect(find.text(advert), findsOneWidget);
+    } finally {
+      await _disposeHarness(tester, harness);
+    }
+  });
 }
 
 Widget _buildApp(_TestHarness harness, Message message) {
@@ -241,4 +415,23 @@ Future<void> _doubleTap(WidgetTester tester, Finder finder) async {
   await tester.pump(kDoubleTapMinTime);
   await tester.tap(finder);
   await tester.pump();
+}
+
+TextSpan? _findTextSpan(
+  InlineSpan span,
+  bool Function(TextSpan span) predicate,
+) {
+  if (span is! TextSpan) {
+    return null;
+  }
+  if (predicate(span)) {
+    return span;
+  }
+  for (final child in span.children ?? const <InlineSpan>[]) {
+    final match = _findTextSpan(child, predicate);
+    if (match != null) {
+      return match;
+    }
+  }
+  return null;
 }
