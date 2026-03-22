@@ -38,7 +38,12 @@ void main() {
       telemetry: ContactTelemetry(
         temperature: 20.1,
         humidity: 52,
-        extraSensorData: const {'speed_2': 3.1, 'gust_2': 4.8, 'rain_2': 12.3},
+        extraSensorData: const {
+          'generic_sensor_1': 1,
+          'speed_2': 3.1,
+          'gust_2': 4.8,
+          'rain_2': 12.3,
+        },
         timestamp: DateTime(2026, 3, 21, 12),
       ),
     );
@@ -51,5 +56,29 @@ void main() {
       BTHomeMetMeasurement.rain,
     ]);
     expect(supportsBTHomeMetHistory(contact), isTrue);
+  });
+
+  test('does not enable BTHome MET history without channel 1 capability', () {
+    final contact = Contact(
+      publicKey: Uint8List(32),
+      type: ContactType.sensor,
+      flags: 0,
+      outPathLen: 0,
+      outPath: Uint8List(64),
+      advName: 'WX',
+      lastAdvert: 0,
+      advLat: 0,
+      advLon: 0,
+      lastMod: 0,
+      telemetry: ContactTelemetry(
+        temperature: 20.1,
+        humidity: 52,
+        extraSensorData: const {'speed_2': 3.1, 'gust_2': 4.8, 'rain_2': 12.3},
+        timestamp: DateTime(2026, 3, 21, 12),
+      ),
+    );
+
+    expect(bTHomeMetMeasurementsForContact(contact), isEmpty);
+    expect(supportsBTHomeMetHistory(contact), isFalse);
   });
 }

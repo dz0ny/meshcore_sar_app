@@ -513,7 +513,6 @@ class ContactTile extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      showDragHandle: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => _ContactActionSheet(
         contact: contact,
@@ -1252,10 +1251,21 @@ class _ContactActionSheetState extends State<_ContactActionSheet> {
       child: Material(
         color: colorScheme.surface,
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomInset),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + bottomInset),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1363,17 +1373,26 @@ class _ContactActionSheetState extends State<_ContactActionSheet> {
                 const SizedBox(height: 20),
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final columnCount = widget.primaryActions.length <= 1
-                        ? 1
-                        : widget.primaryActions.length == 2
-                        ? 2
-                        : 3;
+                    const spacing = 12.0;
+                    const minTileWidth = 104.0;
+                    final actionCount = widget.primaryActions.length;
+                    final maxColumnsByWidth =
+                        ((constraints.maxWidth + spacing) /
+                                (minTileWidth + spacing))
+                            .floor()
+                            .clamp(1, 4);
+                    var columnCount = actionCount.clamp(1, maxColumnsByWidth);
+                    if (actionCount > 3 &&
+                        columnCount > 2 &&
+                        actionCount % columnCount == 1) {
+                      columnCount -= 1;
+                    }
                     final itemWidth =
-                        (constraints.maxWidth - (12 * (columnCount - 1))) /
+                        (constraints.maxWidth - (spacing * (columnCount - 1))) /
                         columnCount;
                     return Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
+                      spacing: spacing,
+                      runSpacing: spacing,
                       children: [
                         for (final action in widget.primaryActions)
                           SizedBox(

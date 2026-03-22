@@ -105,74 +105,120 @@ class _SensorsTabState extends State<SensorsTab> {
       contactsProvider,
       connectionProvider: context.read<ConnectionProvider>(),
     );
+    final searchController = TextEditingController();
 
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        if (candidates.isEmpty) {
-          return const SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text(
-                'No eligible nodes available. Discover a relay or node first.',
-              ),
-            ),
-          );
-        }
-
-        return SafeArea(
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.only(bottom: 20),
-            children: [
-              ListTile(
-                title: const Text(
-                  'Add sensor node',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  AppLocalizations.of(
-                    context,
-                  )!.pickARelayOrNodeToWatchInSensors,
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (sheetContext) {
+          if (candidates.isEmpty) {
+            return const SafeArea(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'No eligible nodes available. Discover a relay or node first.',
                 ),
               ),
-              ...candidates.map(
-                (contact) => ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 4,
+            );
+          }
+
+          return StatefulBuilder(
+            builder: (context, setModalState) {
+              final query = searchController.text.trim().toLowerCase();
+              final filteredCandidates = candidates.where((contact) {
+                if (query.isEmpty) {
+                  return true;
+                }
+                return contact.displayName.toLowerCase().contains(query) ||
+                    contact.publicKeyHex.toLowerCase().contains(query);
+              }).toList();
+
+              return SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
                   ),
-                  leading: CircleAvatar(
-                    radius: 24,
-                    backgroundColor: const Color(0xFFDDEAF8),
-                    child: Icon(
-                      _typeIcon(contact),
-                      color: const Color(0xFF1E4F7A),
-                    ),
-                  ),
-                  title: Text(contact.displayName),
-                  subtitle: _SensorCandidatePreview(contact: contact),
-                  isThreeLine: true,
-                  onTap: () async {
-                    await sensorsProvider.addSensor(contact);
-                    if (!sheetContext.mounted) return;
-                    Navigator.of(sheetContext).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${contact.displayName} added to Sensors',
+                  child: ListView(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.only(bottom: 20),
+                    children: [
+                      ListTile(
+                        title: const Text(
+                          'Add sensor node',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.pickARelayOrNodeToWatchInSensors,
                         ),
                       ),
-                    );
-                  },
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                        child: TextField(
+                          controller: searchController,
+                          onChanged: (_) => setModalState(() {}),
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.search),
+                            hintText: 'Search sensors',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      if (filteredCandidates.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
+                          child: Text(
+                            'No sensor candidates match your search.',
+                          ),
+                        ),
+                      ...filteredCandidates.map(
+                        (contact) => ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 4,
+                          ),
+                          leading: CircleAvatar(
+                            radius: 24,
+                            backgroundColor: const Color(0xFFDDEAF8),
+                            child: Icon(
+                              _typeIcon(contact),
+                              color: const Color(0xFF1E4F7A),
+                            ),
+                          ),
+                          title: Text(contact.displayName),
+                          subtitle: _SensorCandidatePreview(contact: contact),
+                          isThreeLine: true,
+                          onTap: () async {
+                            await sensorsProvider.addSensor(contact);
+                            if (!sheetContext.mounted) return;
+                            Navigator.of(sheetContext).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${contact.displayName} added to Sensors',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      searchController.dispose();
+    }
   }
 
   Future<void> _showMetricSelector(
@@ -292,14 +338,21 @@ class _SensorsTabState extends State<SensorsTab> {
               connectionProvider,
               child,
             ) {
-              final displayKeys = sensorsProvider.displaySensorKeys(
+              final watchedKeys = sensorsProvider.watchedSensorKeys;
+              final hasPersistedSensors = watchedKeys.isNotEmpty;
+              final selfDisplayKey = sensorsProvider.displaySelfKey(
                 contactsProvider: contactsProvider,
                 connectionProvider: connectionProvider,
               );
-              final hasPersistedSensors =
-                  sensorsProvider.watchedSensorKeys.isNotEmpty;
+              final hasAnyCards =
+                  selfDisplayKey != null || watchedKeys.isNotEmpty;
 
-              Widget buildSensorCard(String key, int index) {
+              Widget buildSensorCard(
+                String key, {
+                required int index,
+                required int totalCount,
+                required bool isWatchedCard,
+              }) {
                 final contact = sensorsProvider.contactForDisplay(
                   key,
                   contactsProvider: contactsProvider,
@@ -314,106 +367,104 @@ class _SensorsTabState extends State<SensorsTab> {
                 return Padding(
                   key: ValueKey<String>('sensor_card_$key'),
                   padding: EdgeInsets.only(
-                    bottom: index == displayKeys.length - 1 ? 0 : 12,
+                    bottom: index == totalCount - 1 ? 0 : 12,
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: SensorTelemetryCard(
-                          contact: contact,
-                          state: sensorsProvider.stateFor(key),
-                          visibleFields: visibleFields,
-                          fieldOrder: sensorsProvider.metricOrderFor(
-                            key,
-                            availableFieldKeys,
-                          ),
-                          labelOverrides: sensorsProvider.labelOverridesFor(
-                            key,
-                          ),
-                          fieldSpans: {
-                            for (final field in visibleFields)
-                              field: sensorsProvider.fieldSpanFor(key, field),
-                          },
-                          onRemove: hasPersistedSensors
-                              ? () async {
-                                  await sensorsProvider.removeSensor(key);
-                                }
-                              : null,
-                          onCustomize: () =>
-                              _showMetricSelector(context, key, contact),
-                          onShowMetHistory: (contact) =>
-                              showBTHomeMetHistorySheet(
-                                context,
-                                contact: contact,
-                              ),
-                          onRefresh: () => sensorsProvider.refreshSensor(
-                            publicKeyHex: key,
-                            contactsProvider: contactsProvider,
-                            connectionProvider: connectionProvider,
-                          ),
-                        ),
+                  child: ReorderableDelayedDragStartListener(
+                    enabled: isWatchedCard,
+                    index: index,
+                    child: SensorTelemetryCard(
+                      contact: contact,
+                      state: sensorsProvider.stateFor(key),
+                      visibleFields: visibleFields,
+                      fieldOrder: sensorsProvider.metricOrderFor(
+                        key,
+                        availableFieldKeys,
                       ),
-                      if (hasPersistedSensors) ...[
-                        const SizedBox(width: 8),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: ReorderableDragStartListener(
-                            index: index,
-                            child: Tooltip(
-                              message: 'Move card',
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 12,
-                                ),
-                                child: Icon(
-                                  Icons.drag_indicator,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
+                      labelOverrides: sensorsProvider.labelOverridesFor(key),
+                      fieldSpans: {
+                        for (final field in visibleFields)
+                          field: sensorsProvider.fieldSpanFor(key, field),
+                      },
+                      onRemove: isWatchedCard
+                          ? () async {
+                              await sensorsProvider.removeSensor(key);
+                            }
+                          : null,
+                      onCustomize: () =>
+                          _showMetricSelector(context, key, contact),
+                      onShowMetHistory: (contact) =>
+                          showBTHomeMetHistorySheet(context, contact: contact),
+                      onMoveUp: isWatchedCard && index > 0
+                          ? () =>
+                                sensorsProvider.reorderSensors(index, index - 1)
+                          : null,
+                      onMoveDown: isWatchedCard && index < totalCount - 1
+                          ? () =>
+                                sensorsProvider.reorderSensors(index, index + 2)
+                          : null,
+                      onRefresh: () => sensorsProvider.refreshSensor(
+                        publicKeyHex: key,
+                        contactsProvider: contactsProvider,
+                        connectionProvider: connectionProvider,
+                      ),
+                    ),
                   ),
                 );
               }
 
               return RefreshIndicator(
                 onRefresh: () => _refreshAll(context),
-                child: displayKeys.isEmpty
+                child: !hasAnyCards
                     ? ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
                         children: const [_EmptySensorsState()],
                       )
-                    : hasPersistedSensors
+                    : hasPersistedSensors && selfDisplayKey == null
                     ? ReorderableListView.builder(
                         buildDefaultDragHandles: false,
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                        itemCount: displayKeys.length,
+                        itemCount: watchedKeys.length,
                         onReorder: (oldIndex, newIndex) =>
                             sensorsProvider.reorderSensors(oldIndex, newIndex),
-                        itemBuilder: (context, index) =>
-                            buildSensorCard(displayKeys[index], index),
+                        itemBuilder: (context, index) => buildSensorCard(
+                          watchedKeys[index],
+                          index: index,
+                          totalCount: watchedKeys.length,
+                          isWatchedCard: true,
+                        ),
                       )
                     : ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
                         children: [
-                          for (var i = 0; i < displayKeys.length; i++)
-                            buildSensorCard(displayKeys[i], i),
+                          if (selfDisplayKey != null)
+                            buildSensorCard(
+                              selfDisplayKey,
+                              index: 0,
+                              totalCount: watchedKeys.isEmpty ? 1 : 2,
+                              isWatchedCard: false,
+                            ),
+                          if (selfDisplayKey != null && watchedKeys.isEmpty)
+                            _SelfOnlySensorsCta(
+                              onAddSensor: () => _showAddSensorSheet(context),
+                            ),
+                          if (watchedKeys.isNotEmpty)
+                            ReorderableListView.builder(
+                              shrinkWrap: true,
+                              buildDefaultDragHandles: false,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: watchedKeys.length,
+                              onReorder: (oldIndex, newIndex) => sensorsProvider
+                                  .reorderSensors(oldIndex, newIndex),
+                              itemBuilder: (context, index) => buildSensorCard(
+                                watchedKeys[index],
+                                index: index,
+                                totalCount: watchedKeys.length,
+                                isWatchedCard: true,
+                              ),
+                            ),
                         ],
                       ),
               );
@@ -1003,6 +1054,81 @@ class _EmptySensorsStateState extends State<_EmptySensorsState> {
             child: Text(
               'Use + to add discovered relays or nodes. Your device will appear here automatically when available.',
               textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SelfOnlySensorsCta extends StatelessWidget {
+  final VoidCallback onAddSensor;
+
+  const _SelfOnlySensorsCta({required this.onAddSensor});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  Icons.add_chart_rounded,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Add another device',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Bring in weather stations, repeaters, or other devices to watch them here.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.icon(
+              onPressed: onAddSensor,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Choose'),
             ),
           ),
         ],

@@ -9,7 +9,7 @@ import '../providers/contacts_provider.dart';
 import '../services/mesh_map_nodes_service.dart';
 import '../widgets/compact_signal_indicator.dart' show SignalMetric;
 
-enum _DiscoveryMenuAction { repeaters, sensors }
+enum _DiscoveryListFilter { all, repeaters, sensors, others }
 
 class DiscoveryScreen extends StatefulWidget {
   const DiscoveryScreen({super.key});
@@ -23,7 +23,10 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   static const int _sensorAdvertType = 4;
   final Set<String> _resolvingAdvertKeys = <String>{};
   final Set<int> _runningDiscoveryTypes = <int>{};
+  final TextEditingController _searchController = TextEditingController();
   bool _isResolvingAll = false;
+  String _searchQuery = '';
+  _DiscoveryListFilter _selectedFilter = _DiscoveryListFilter.all;
   late final Future<List<MeshMapNode>> _cachedNodesFuture;
 
   @override
@@ -34,15 +37,10 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     );
   }
 
-  Future<void> _handleMenuAction(_DiscoveryMenuAction action) async {
-    switch (action) {
-      case _DiscoveryMenuAction.repeaters:
-        await _discoverNodeType(_repeaterAdvertType);
-        break;
-      case _DiscoveryMenuAction.sensors:
-        await _discoverNodeType(_sensorAdvertType);
-        break;
-    }
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _clearAllDiscoveries() async {
@@ -80,7 +78,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.clearedPendingDiscoveries)),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.clearedPendingDiscoveries),
+      ),
     );
   }
 
@@ -293,8 +293,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     };
   }
 
-  String? _typeLabelForAdvert(PendingAdvert advert) {
-    return switch (advert.typeValue) {
+  String? _typeLabelForValue(int? typeValue) {
+    return switch (typeValue) {
       _repeaterAdvertType => 'Repeater',
       _sensorAdvertType => 'Sensor',
       3 => 'Room',
@@ -303,28 +303,103 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     };
   }
 
-  String? _resolvedTypeLabelForAdvert(
+  int? _resolvedTypeValueForAdvert(
     PendingAdvert advert,
     List<MeshMapNode> cachedNodes,
   ) {
-    final directType = _typeLabelForAdvert(advert);
-    if (directType != null) {
+    final directType = advert.typeValue;
+    if (directType != null && directType != 0) {
       return directType;
     }
 
     for (final node in cachedNodes) {
       if (node.publicKey == advert.publicKeyHex.toLowerCase()) {
         return switch (node.type) {
-          1 => 'Repeater',
-          4 => 'Sensor',
-          3 => 'Room',
-          2 => 'Chat',
+          1 => _repeaterAdvertType,
+          4 => _sensorAdvertType,
+          3 => 3,
+          2 => 1,
           _ => null,
         };
       }
     }
 
     return null;
+  }
+
+  String? _resolvedTypeLabelForAdvert(
+    PendingAdvert advert,
+    List<MeshMapNode> cachedNodes,
+  ) {
+    return _typeLabelForValue(_resolvedTypeValueForAdvert(advert, cachedNodes));
+  }
+
+  bool get _hasActiveInlineFilter =>
+      _searchQuery.trim().isNotEmpty ||
+      _selectedFilter != _DiscoveryListFilter.all;
+
+  bool _matchesSelectedFilter(
+    PendingAdvert advert,
+    List<MeshMapNode> cachedNodes,
+  ) {
+    if (_selectedFilter == _DiscoveryListFilter.all) {
+      return true;
+    }
+
+    final resolvedType = _resolvedTypeValueForAdvert(advert, cachedNodes);
+    return switch (_selectedFilter) {
+      _DiscoveryListFilter.all => true,
+      _DiscoveryListFilter.repeaters => resolvedType == _repeaterAdvertType,
+      _DiscoveryListFilter.sensors => resolvedType == _sensorAdvertType,
+      _DiscoveryListFilter.others =>
+        resolvedType != _repeaterAdvertType &&
+            resolvedType != _sensorAdvertType,
+    };
+  }
+
+  bool _matchesSearchQuery(
+    PendingAdvert advert,
+    ContactsProvider contactsProvider,
+    List<MeshMapNode> cachedNodes,
+  ) {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) {
+      return true;
+    }
+
+    final displayName = _displayNameForAdvert(
+      advert,
+      contactsProvider,
+      cachedNodes,
+    ).toLowerCase();
+    final typeLabel = (_resolvedTypeLabelForAdvert(advert, cachedNodes) ?? '')
+        .toLowerCase();
+
+    return displayName.contains(query) ||
+        advert.publicKeyHex.toLowerCase().contains(query) ||
+        advert.shortDisplayKey.toLowerCase().contains(query) ||
+        typeLabel.contains(query);
+  }
+
+  List<PendingAdvert> _filteredPendingAdverts(
+    List<PendingAdvert> adverts,
+    ContactsProvider contactsProvider,
+    List<MeshMapNode> cachedNodes,
+  ) {
+    return adverts
+        .where((advert) => _matchesSelectedFilter(advert, cachedNodes))
+        .where(
+          (advert) =>
+              _matchesSearchQuery(advert, contactsProvider, cachedNodes),
+        )
+        .toList();
+  }
+
+  String _summaryTitle({required int totalCount, required int filteredCount}) {
+    if (filteredCount == totalCount) {
+      return 'Discovered nodes ($totalCount)';
+    }
+    return 'Discovered nodes ($filteredCount/$totalCount)';
   }
 
   Widget _buildAdvertTitle(
@@ -362,193 +437,236 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.discovery),
-        actions: [
-          Consumer<ConnectionProvider>(
-            builder: (context, connectionProvider, child) {
-              final isConnected = connectionProvider.deviceInfo.isConnected;
-              final repeatersBusy = _runningDiscoveryTypes.contains(
-                _repeaterAdvertType,
-              );
-              final sensorsBusy = _runningDiscoveryTypes.contains(
-                _sensorAdvertType,
-              );
-
-              return PopupMenuButton<_DiscoveryMenuAction>(
-                tooltip: 'Discovery tools',
-                onSelected: _handleMenuAction,
-                itemBuilder: (context) => [
-                  PopupMenuItem<_DiscoveryMenuAction>(
-                    value: _DiscoveryMenuAction.repeaters,
-                    enabled: isConnected && !repeatersBusy,
-                    child: Row(
-                      children: [
-                        repeatersBusy
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.router_outlined),
-                        SizedBox(width: 12),
-                        Text(l10n.discoverRepeaters),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem<_DiscoveryMenuAction>(
-                    value: _DiscoveryMenuAction.sensors,
-                    enabled: isConnected && !sensorsBusy,
-                    child: Row(
-                      children: [
-                        sensorsBusy
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.sensors_outlined),
-                        SizedBox(width: 12),
-                        Text(l10n.discoverSensors),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(l10n.discovery)),
       body: FutureBuilder<List<MeshMapNode>>(
         future: _cachedNodesFuture,
-        builder: (context, nodesSnapshot) => Consumer2<ContactsProvider, ConnectionProvider>(
-          builder: (context, contactsProvider, connectionProvider, child) {
-            final pendingAdverts = contactsProvider.pendingAdverts;
-            final isConnected = connectionProvider.deviceInfo.isConnected;
-            final cachedNodes = nodesSnapshot.data ?? const <MeshMapNode>[];
+        builder: (context, nodesSnapshot) =>
+            Consumer2<ContactsProvider, ConnectionProvider>(
+              builder: (context, contactsProvider, connectionProvider, child) {
+                final pendingAdverts = contactsProvider.pendingAdverts;
+                final isConnected = connectionProvider.deviceInfo.isConnected;
+                final cachedNodes = nodesSnapshot.data ?? const <MeshMapNode>[];
+                final repeatersBusy = _runningDiscoveryTypes.contains(
+                  _repeaterAdvertType,
+                );
+                final sensorsBusy = _runningDiscoveryTypes.contains(
+                  _sensorAdvertType,
+                );
 
-            // Track which pending adverts are already in the contacts list
-            final resolvedKeySet = <String>{};
-            for (final advert in pendingAdverts) {
-              if (contactsProvider.findContactByKey(advert.publicKey) != null) {
-                resolvedKeySet.add(advert.publicKeyHex);
-              }
-            }
+                // Track which pending adverts are already in the contacts list
+                final resolvedKeySet = <String>{};
+                for (final advert in pendingAdverts) {
+                  if (contactsProvider.findContactByKey(advert.publicKey) !=
+                      null) {
+                    resolvedKeySet.add(advert.publicKeyHex);
+                  }
+                }
 
-            final totalCount = pendingAdverts.length;
+                final totalCount = pendingAdverts.length;
+                final filteredAdverts = _filteredPendingAdverts(
+                  pendingAdverts,
+                  contactsProvider,
+                  cachedNodes,
+                );
+                final filteredCount = filteredAdverts.length;
 
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.person_search),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Discovered nodes ($totalCount)',
-                                style: Theme.of(context).textTheme.titleMedium,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.person_search),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _summaryTitle(
+                                      totalCount: totalCount,
+                                      filteredCount: filteredCount,
+                                    ),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Resolve entries manually so they do not auto-populate contacts.',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            if (totalCount > 0) ...[
+                              const SizedBox(height: 12),
+                              _buildInlineSearchField(context),
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _buildTypeFilterChip(
+                                    context,
+                                    label: l10n.all,
+                                    filter: _DiscoveryListFilter.all,
+                                  ),
+                                  _buildTypeFilterChip(
+                                    context,
+                                    label: l10n.repeatersFilter,
+                                    filter: _DiscoveryListFilter.repeaters,
+                                  ),
+                                  _buildTypeFilterChip(
+                                    context,
+                                    label: l10n.sensors,
+                                    filter: _DiscoveryListFilter.sensors,
+                                  ),
+                                  _buildTypeFilterChip(
+                                    context,
+                                    label: l10n.others,
+                                    filter: _DiscoveryListFilter.others,
+                                  ),
+                                ],
                               ),
+                            ],
+                            const SizedBox(height: 14),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                const spacing = 10.0;
+                                final useTwoColumns =
+                                    constraints.maxWidth >= 360;
+                                final buttonWidth = useTwoColumns
+                                    ? (constraints.maxWidth - spacing) / 2
+                                    : constraints.maxWidth;
+
+                                return Wrap(
+                                  spacing: spacing,
+                                  runSpacing: spacing,
+                                  children: [
+                                    _buildHeaderActionButton(
+                                      width: buttonWidth,
+                                      onPressed: isConnected && !repeatersBusy
+                                          ? () => _discoverNodeType(
+                                              _repeaterAdvertType,
+                                            )
+                                          : null,
+                                      icon: repeatersBusy
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Icon(Icons.router_outlined),
+                                      label: Text(l10n.discoverRepeaters),
+                                    ),
+                                    _buildHeaderActionButton(
+                                      width: buttonWidth,
+                                      onPressed: isConnected && !sensorsBusy
+                                          ? () => _discoverNodeType(
+                                              _sensorAdvertType,
+                                            )
+                                          : null,
+                                      icon: sensorsBusy
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Icon(Icons.sensors_outlined),
+                                      label: Text(l10n.discoverSensors),
+                                    ),
+                                    _buildHeaderActionButton(
+                                      width: buttonWidth,
+                                      onPressed:
+                                          isConnected &&
+                                              pendingAdverts.isNotEmpty &&
+                                              !_isResolvingAll
+                                          ? () => _resolveAll(pendingAdverts)
+                                          : null,
+                                      icon: _isResolvingAll
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons
+                                                  .download_for_offline_outlined,
+                                            ),
+                                      label: Text(l10n.resolveAll),
+                                    ),
+                                    _buildHeaderActionButton(
+                                      width: buttonWidth,
+                                      onPressed: pendingAdverts.isNotEmpty
+                                          ? _clearAllDiscoveries
+                                          : null,
+                                      icon: const Icon(Icons.clear_all_rounded),
+                                      label: Text(l10n.clearAllLabel),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Resolve entries manually so they do not auto-populate contacts.',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (totalCount == 0)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 48),
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed:
-                                    isConnected &&
-                                        pendingAdverts.isNotEmpty &&
-                                        !_isResolvingAll
-                                    ? () => _resolveAll(pendingAdverts)
-                                    : null,
-                                icon: _isResolvingAll
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(
-                                        Icons.download_for_offline_outlined,
-                                      ),
-                                label: Text(l10n.resolveAll),
-                              ),
+                            Icon(
+                              Icons.person_search_outlined,
+                              size: 64,
+                              color: Theme.of(context).disabledColor,
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: pendingAdverts.isNotEmpty
-                                    ? _clearAllDiscoveries
-                                    : null,
-                                icon: Icon(Icons.clear_all_rounded),
-                                label: Text(l10n.clearAllLabel),
-                              ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No discovered nodes',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Use the discovery actions above to find repeaters and sensors on the mesh.',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
                         ),
-                      ],
+                      ),
+                    if (_hasActiveInlineFilter &&
+                        totalCount > 0 &&
+                        filteredCount == 0)
+                      _buildNoFilterResults(context),
+                    ...filteredAdverts.map(
+                      (advert) => _buildPendingAdvertCard(
+                        context,
+                        advert: advert,
+                        contactsProvider: contactsProvider,
+                        isConnected: isConnected,
+                        isResolved: resolvedKeySet.contains(
+                          advert.publicKeyHex,
+                        ),
+                        cachedNodes: cachedNodes,
+                        l10n: l10n,
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (totalCount == 0)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 48),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.person_search_outlined,
-                          size: 64,
-                          color: Theme.of(context).disabledColor,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No discovered nodes',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Use the menu to discover repeaters and sensors on the mesh.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ...pendingAdverts.map((advert) =>
-                  _buildPendingAdvertCard(
-                    context,
-                    advert: advert,
-                    contactsProvider: contactsProvider,
-                    isConnected: isConnected,
-                    isResolved: resolvedKeySet.contains(advert.publicKeyHex),
-                    cachedNodes: cachedNodes,
-                    l10n: l10n,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+                  ],
+                );
+              },
+            ),
       ),
     );
   }
@@ -563,7 +681,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     required AppLocalizations l10n,
   }) {
     final isResolving = _resolvingAdvertKeys.contains(advert.publicKeyHex);
-    final displayName = _displayNameForAdvert(advert, contactsProvider, cachedNodes);
+    final displayName = _displayNameForAdvert(
+      advert,
+      contactsProvider,
+      cachedNodes,
+    );
     final typeLabel = _resolvedTypeLabelForAdvert(advert, cachedNodes);
     final downMetric = SignalMetric.fromValues(
       rssiDbm: advert.rxRssiDbm,
@@ -648,6 +770,180 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInlineSearchField(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final hasFilter = _searchQuery.trim().isNotEmpty;
+
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: hasFilter
+                ? colorScheme.primary.withValues(alpha: 0.38)
+                : colorScheme.outline.withValues(alpha: 0.32),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.025),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox(
+            height: 42,
+            child: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 12, right: 8),
+                  child: Icon(
+                    Icons.search_rounded,
+                    size: 17,
+                    color: hasFilter
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                    cursorColor: colorScheme.primary,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      height: 1.1,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Search discovered nodes',
+                      hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.85,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                ),
+                if (hasFilter)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Material(
+                      color: colorScheme.primary.withValues(alpha: 0.10),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 14,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeFilterChip(
+    BuildContext context, {
+    required String label,
+    required _DiscoveryListFilter filter,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final selected = _selectedFilter == filter;
+    final color = selected ? scheme.primary : scheme.outline;
+
+    return InkWell(
+      onTap: () {
+        if (_selectedFilter == filter) {
+          return;
+        }
+        setState(() {
+          _selectedFilter = filter;
+        });
+      },
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: selected ? 0.14 : 0.08),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: color.withValues(alpha: selected ? 0.45 : 0.22),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoFilterResults(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      child: Text(
+        'No matches',
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildHeaderActionButton({
+    required double width,
+    required VoidCallback? onPressed,
+    required Widget icon,
+    required Widget label,
+  }) {
+    return SizedBox(
+      width: width,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: icon,
+        label: label,
       ),
     );
   }

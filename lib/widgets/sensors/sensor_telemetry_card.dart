@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:latlong2/latlong.dart';
 
@@ -547,12 +548,15 @@ SensorMetricCardData? _buildOptionPreviewCardData(
         fieldKey: fieldKey,
         icon: Icons.explore_outlined,
         label: label,
-        value: previewValue,
+        value: degrees == null
+            ? previewValue
+            : '${_formatPreviewNumber(degrees, maxFractionDigits: 0)}°',
         secondaryValue: degrees == null
             ? null
             : _previewFormatCardinalDirection(degrees),
         accent: const Color(0xFF8A5A44),
         channel: metricKey.channel,
+        directionDegrees: degrees,
       );
     case 'unixtime':
       return SensorMetricCardData(
@@ -1007,6 +1011,13 @@ String _formatPreviewNumber(num value, {int maxFractionDigits = 2}) {
       ? math.min(maxFractionDigits, 1)
       : maxFractionDigits;
   final text = value.toStringAsFixed(digits);
+  return _trimFractionZeros(text);
+}
+
+String _trimFractionZeros(String text) {
+  if (!text.contains('.')) {
+    return text;
+  }
   return text.replaceFirst(RegExp(r'\.?0+$'), '');
 }
 
@@ -1030,6 +1041,8 @@ class SensorTelemetryCard extends StatelessWidget {
   final Future<void> Function()? onRefresh;
   final VoidCallback? onCustomize;
   final Future<void> Function(Contact contact)? onShowMetHistory;
+  final Future<void> Function()? onMoveUp;
+  final Future<void> Function()? onMoveDown;
   final EdgeInsetsGeometry margin;
   final String emptyMetricsMessage;
   final Map<String, String> labelOverrides;
@@ -1045,6 +1058,8 @@ class SensorTelemetryCard extends StatelessWidget {
     this.onRefresh,
     this.onCustomize,
     this.onShowMetHistory,
+    this.onMoveUp,
+    this.onMoveDown,
     this.margin = const EdgeInsets.only(bottom: 16),
     this.emptyMetricsMessage =
         'All fields are hidden. Use Visible fields to choose what to show.',
@@ -1055,6 +1070,9 @@ class SensorTelemetryCard extends StatelessWidget {
       onRefresh != null ||
       onCustomize != null ||
       onRemove != null ||
+      onMoveUp != null ||
+      onMoveDown != null ||
+      _rawTelemetryHex(contact?.telemetry) != null ||
       (contact != null &&
           onShowMetHistory != null &&
           supportsBTHomeMetHistory(contact));
@@ -1136,21 +1154,21 @@ class SensorTelemetryCard extends StatelessWidget {
                             ),
                             if (state == SensorRefreshState.refreshing)
                               _InlineStateMeta(
-                                label: l10n.refreshing,
                                 color: Color(0xFF266AC2),
                                 spinning: true,
+                                tooltip: l10n.refreshing,
                               ),
                             if (state == SensorRefreshState.success)
                               const _InlineStateMeta(
-                                label: 'Updated',
                                 color: Color(0xFF218B63),
                                 icon: Icons.check_circle,
+                                tooltip: 'Updated',
                               ),
                             if (state == SensorRefreshState.unavailable)
                               _InlineStateMeta(
-                                label: l10n.unavailable,
                                 color: Color(0xFFB13B55),
                                 icon: Icons.error_outline,
+                                tooltip: l10n.unavailable,
                               ),
                           ],
                         ),
@@ -1163,6 +1181,26 @@ class SensorTelemetryCard extends StatelessWidget {
                     onSelected: (value) async {
                       if (value == 'refresh' && onRefresh != null) {
                         await onRefresh!();
+                      } else if (value == 'move_up' && onMoveUp != null) {
+                        await onMoveUp!();
+                      } else if (value == 'move_down' && onMoveDown != null) {
+                        await onMoveDown!();
+                      } else if (value == 'copy_raw') {
+                        final rawTelemetry = _rawTelemetryHex(
+                          contact?.telemetry,
+                        );
+                        if (rawTelemetry != null && context.mounted) {
+                          await Clipboard.setData(
+                            ClipboardData(text: rawTelemetry),
+                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Raw response copied'),
+                              ),
+                            );
+                          }
+                        }
                       } else if (value == 'remove' && onRemove != null) {
                         await onRemove!();
                       } else if (value == 'customize' && onCustomize != null) {
@@ -1180,6 +1218,30 @@ class SensorTelemetryCard extends StatelessWidget {
                           PopupMenuItem<String>(
                             value: 'refresh',
                             child: Text(l10n.refresh),
+                          ),
+                        );
+                      }
+                      if (onMoveUp != null) {
+                        items.add(
+                          const PopupMenuItem<String>(
+                            value: 'move_up',
+                            child: Text('Move up'),
+                          ),
+                        );
+                      }
+                      if (onMoveDown != null) {
+                        items.add(
+                          const PopupMenuItem<String>(
+                            value: 'move_down',
+                            child: Text('Move down'),
+                          ),
+                        );
+                      }
+                      if (_rawTelemetryHex(contact?.telemetry) != null) {
+                        items.add(
+                          const PopupMenuItem<String>(
+                            value: 'copy_raw',
+                            child: Text('Copy raw response'),
                           ),
                         );
                       }
@@ -1811,10 +1873,11 @@ class SensorTelemetryCard extends StatelessWidget {
           fieldKey: _extraFieldKey(rawKey),
           icon: Icons.explore_outlined,
           label: label,
-          value: '${_formatNumber(degrees, maxFractionDigits: 0)} deg',
+          value: '${_formatNumber(degrees, maxFractionDigits: 0)}°',
           secondaryValue: _formatCardinalDirection(degrees),
           accent: const Color(0xFF8A5A44),
           channel: metricKey.channel,
+          directionDegrees: degrees,
         );
 
       case 'rotation':
@@ -2054,7 +2117,7 @@ class SensorTelemetryCard extends StatelessWidget {
         ? math.min(maxFractionDigits, 1)
         : maxFractionDigits;
     final text = value.toStringAsFixed(digits);
-    return text.replaceFirst(RegExp(r'\.?0+$'), '');
+    return _trimFractionZeros(text);
   }
 
   _Vector3? _asVector3(dynamic value) {
@@ -2118,31 +2181,28 @@ class SensorTelemetryCard extends StatelessWidget {
 }
 
 class _InlineStateMeta extends StatelessWidget {
-  final String label;
   final Color color;
   final IconData? icon;
   final bool spinning;
+  final String? tooltip;
 
   const _InlineStateMeta({
-    required this.label,
     required this.color,
     this.icon,
     this.spinning = false,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final badge = Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (spinning)
-            SizedBox(
+      child: spinning
+          ? SizedBox(
               width: 11,
               height: 11,
               child: CircularProgressIndicator(
@@ -2150,18 +2210,20 @@ class _InlineStateMeta extends StatelessWidget {
                 valueColor: AlwaysStoppedAnimation<Color>(color),
               ),
             )
-          else if (icon != null)
-            Icon(icon, size: 11, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          : Icon(
+              icon ?? Icons.info_outline,
+              size: 11,
               color: color,
-              fontWeight: FontWeight.w700,
             ),
-          ),
-        ],
-      ),
+    );
+
+    if (tooltip == null || tooltip!.isEmpty) {
+      return badge;
+    }
+
+    return Tooltip(
+      message: tooltip!,
+      child: badge,
     );
   }
 }
@@ -2292,7 +2354,40 @@ class SensorMetricTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: data.accent.withValues(alpha: 0.14)),
           ),
-          child: data.mapLocation == null || !allowMapPreview
+          child: data.directionDegrees != null
+              ? Stack(
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _DirectionDial(
+                          accent: data.accent,
+                          degrees: data.directionDegrees!,
+                          cardinal: data.secondaryValue ?? '',
+                          compact: true,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _MetricText(data: data, keyPrefix: keyPrefix),
+                        ),
+                      ],
+                    ),
+                    if (data.channel != null)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Text(
+                          'ch${data.channel}',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: data.accent.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                  ],
+                )
+              : data.mapLocation == null || !allowMapPreview
               ? Stack(
                   children: [
                     Row(
@@ -2456,6 +2551,10 @@ class _MetricText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (data.directionDegrees != null) {
+      return _DirectionMetricText(data: data);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2495,12 +2594,138 @@ class _MetricText extends StatelessWidget {
   }
 }
 
+class _DirectionMetricText extends StatelessWidget {
+  final SensorMetricCardData data;
+
+  const _DirectionMetricText({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final directionLabel = data.secondaryValue ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          data.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: data.accent,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              data.value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                height: 1.1,
+              ),
+            ),
+            if (directionLabel.isNotEmpty)
+              Text(
+                directionLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: data.accent.withValues(alpha: 0.9),
+                  fontWeight: FontWeight.w800,
+                  height: 1.1,
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _DirectionDial extends StatelessWidget {
+  final Color accent;
+  final double degrees;
+  final String cardinal;
+  final bool compact;
+
+  const _DirectionDial({
+    required this.accent,
+    required this.degrees,
+    required this.cardinal,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final normalized = ((degrees % 360) + 360) % 360;
+    final size = compact ? 34.0 : 44.0;
+    final innerSize = compact ? 24.0 : 30.0;
+    final arrowSize = compact ? 14.0 : 16.0;
+    final northTop = compact ? 1.0 : 3.0;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+              border: Border.all(color: accent.withValues(alpha: 0.2)),
+            ),
+          ),
+          Container(
+            width: innerSize,
+            height: innerSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: accent.withValues(alpha: 0.2)),
+            ),
+          ),
+          Transform.rotate(
+            angle: normalized * math.pi / 180,
+            child: Icon(
+              Icons.navigation_rounded,
+              size: arrowSize,
+              color: accent,
+            ),
+          ),
+          Positioned(
+            top: northTop,
+            child: Text(
+              'N',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: accent.withValues(alpha: 0.65),
+                fontWeight: FontWeight.w800,
+                fontSize: compact ? 7.5 : 9,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class SensorMetricCardData {
   final String fieldKey;
   final IconData icon;
   final String label;
   final String value;
   final String? secondaryValue;
+  final double? directionDegrees;
   final Color accent;
   final bool wide;
   final LatLng? mapLocation;
@@ -2512,6 +2737,7 @@ class SensorMetricCardData {
     required this.label,
     required this.value,
     this.secondaryValue,
+    this.directionDegrees,
     required this.accent,
     this.wide = false,
     this.mapLocation,
@@ -2543,13 +2769,20 @@ class _RgbColor {
 }
 
 const String _telemetrySourceChannelPrefix = '__source_channel:';
+const String _rawTelemetryHexKey = '__raw_lpp_hex';
 
 String _extraFieldKey(String label) {
   return 'extra:$label';
 }
 
 bool _isTelemetryMetadataKey(String key) {
-  return key.startsWith(_telemetrySourceChannelPrefix);
+  return key.startsWith(_telemetrySourceChannelPrefix) ||
+      key == _rawTelemetryHexKey;
+}
+
+String? _rawTelemetryHex(ContactTelemetry? telemetry) {
+  final value = telemetry?.extraSensorData?[_rawTelemetryHexKey];
+  return value is String && value.trim().isNotEmpty ? value : null;
 }
 
 String _telemetrySourceChannelKey(String fieldKey) {

@@ -356,6 +356,43 @@ void main() {
     expect(connectionProvider.pingCalls, 2);
   });
 
+  test('refreshDueSensors refreshes self every minute', () async {
+    SharedPreferences.setMockInitialValues({});
+    final selfKey = Uint8List(32)..[0] = 0x66;
+    final contactsProvider = ContactsProvider();
+    await contactsProvider.initialize(devicePublicKey: selfKey);
+    final connectionProvider = _FakeConnectionProvider(
+      isConnected: true,
+      publicKey: selfKey,
+      selfName: 'My Device',
+    );
+    final start = DateTime(2026, 3, 22, 9, 0);
+
+    final provider = SensorsProvider();
+    await waitUntilLoaded(provider);
+
+    await provider.refreshDueSensors(
+      now: start,
+      contactsProvider: contactsProvider,
+      connectionProvider: connectionProvider,
+    );
+    expect(connectionProvider.pingCalls, 1);
+
+    await provider.refreshDueSensors(
+      now: start.add(const Duration(seconds: 30)),
+      contactsProvider: contactsProvider,
+      connectionProvider: connectionProvider,
+    );
+    expect(connectionProvider.pingCalls, 1);
+
+    await provider.refreshDueSensors(
+      now: start.add(const Duration(minutes: 1)),
+      contactsProvider: contactsProvider,
+      connectionProvider: connectionProvider,
+    );
+    expect(connectionProvider.pingCalls, 2);
+  });
+
   test(
     'addSensor includes available extra telemetry fields by default',
     () async {
@@ -411,4 +448,32 @@ void main() {
     expect(selfContact!.telemetry, isNotNull);
     expect(selfContact.telemetry!.temperature, closeTo(19.5, 0.1));
   });
+
+  test(
+    'displaySelfKey still returns self when watched sensors exist',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final selfKey = Uint8List(32)..[0] = 0x66;
+      final sensor = buildSensorContact(firstByte: 0x44, name: 'Weather');
+      final contactsProvider = ContactsProvider();
+      await contactsProvider.initialize(devicePublicKey: selfKey);
+
+      final connectionProvider = _FakeConnectionProvider(
+        isConnected: true,
+        publicKey: selfKey,
+        selfName: 'My Device',
+      );
+      final provider = SensorsProvider();
+      await waitUntilLoaded(provider);
+      await provider.addSensor(sensor);
+
+      expect(
+        provider.displaySelfKey(
+          contactsProvider: contactsProvider,
+          connectionProvider: connectionProvider,
+        ),
+        selfKey.map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
+      );
+    },
+  );
 }

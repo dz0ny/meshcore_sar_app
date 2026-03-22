@@ -87,6 +87,9 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
           return lastSeenCompare;
         }
       } else if (_sortMode == _RecipientSortMode.activity) {
+        if (a.isFavourite != b.isFavourite) {
+          return a.isFavourite ? -1 : 1;
+        }
         final unreadCompare = _unreadFor(b).compareTo(_unreadFor(a));
         if (unreadCompare != 0) {
           return unreadCompare;
@@ -147,6 +150,30 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
     }
   }
 
+  String _sectionDescription(AppLocalizations l10n, String type) {
+    switch (type) {
+      case 'channel':
+        return 'Broadcast lanes for nearby mesh traffic';
+      case 'room':
+        return 'Shared spaces for ongoing team coordination';
+      case 'contact':
+        return 'Direct people and devices you can reach';
+      default:
+        return '';
+    }
+  }
+
+  String _channelSubtitle(BuildContext context, Contact channel) {
+    final l10n = AppLocalizations.of(context)!;
+    if (channel.isPublicChannel) {
+      return l10n.broadcastToAllNearby;
+    }
+
+    final channelIdx = channel.publicKey.length > 1 ? channel.publicKey[1] : 0;
+    final shortKey = channel.publicKeyShort.toUpperCase();
+    return '${l10n.channel} $channelIdx • $shortKey';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -194,21 +221,45 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
                 ),
                 const SizedBox(height: 12),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
-                        l10n.selectRecipient,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.selectRecipient,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.5,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Pick a channel, room, or direct contact.',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 12),
-                    IconButton.filledTonal(
-                      onPressed: () => Navigator.pop(context),
-                      tooltip: l10n.close,
-                      icon: const Icon(Icons.close_rounded),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.18,
+                          ),
+                        ),
+                      ),
+                      child: IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        tooltip: l10n.close,
+                        icon: const Icon(Icons.close_rounded),
+                      ),
                     ),
                   ],
                 ),
@@ -278,9 +329,7 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
                           type: 'channel',
                           contact: channel,
                           title: channel.getLocalizedDisplayName(context),
-                          subtitle: channel.isPublicChannel
-                              ? l10n.broadcastToAllNearby
-                              : '${l10n.channel} ${channel.publicKey[1]}',
+                          subtitle: _channelSubtitle(context, channel),
                           unreadCount: _unreadFor(channel),
                           isSelected: _isSelected('channel', channel),
                           onTap: () {
@@ -511,6 +560,13 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          Text(
+            _sectionDescription(AppLocalizations.of(context)!, type),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 12),
           if (children.isEmpty)
             Padding(
@@ -685,14 +741,42 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.2,
-                        ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.2,
+                                  ),
+                            ),
+                          ),
+                          if (contact.isPublicChannel) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accentColor.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'Public',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: accentColor,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(

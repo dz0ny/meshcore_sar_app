@@ -48,6 +48,110 @@ class MessagesTab extends StatefulWidget {
   State<MessagesTab> createState() => _MessagesTabState();
 }
 
+class _ComposerActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final bool enabled;
+  final VoidCallback? onTap;
+
+  const _ComposerActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    this.enabled = true,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final effectiveColor = enabled
+        ? color
+        : colorScheme.onSurfaceVariant.withValues(alpha: 0.45);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: enabled ? onTap : null,
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                enabled
+                    ? colorScheme.surfaceContainerLow
+                    : colorScheme.surfaceContainerHighest,
+                enabled
+                    ? effectiveColor.withValues(alpha: 0.08)
+                    : colorScheme.surfaceContainerHigh,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: enabled
+                  ? effectiveColor.withValues(alpha: 0.16)
+                  : colorScheme.outlineVariant.withValues(alpha: 0.16),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: effectiveColor.withValues(alpha: enabled ? 0.08 : 0.03),
+                blurRadius: 14,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: effectiveColor.withValues(alpha: enabled ? 0.14 : 0.10),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(icon, color: effectiveColor, size: 20),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                    color: enabled
+                        ? colorScheme.onSurface
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _MessagesTabState extends State<MessagesTab> {
   static const int _maxContactMessageBytes = 156;
   static const int _maxChannelMessageBytes = 127;
@@ -1468,81 +1572,207 @@ class _MessagesTabState extends State<MessagesTab> {
   void _showComposerActions() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        final colorScheme = theme.colorScheme;
+        final l10n = AppLocalizations.of(context)!;
+
+        Future<void> runAction(Future<void> Function() action) async {
+          await _runAfterSheetDismissal(sheetContext, action);
+        }
+
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.search),
-                title: Text(AppLocalizations.of(context)!.searchMessages),
-                onTap: () async {
-                  await _runAfterSheetDismissal(sheetContext, () async {
-                    _showFilteredMessageSearch();
-                  });
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.add_location_alt),
-                title: Text(AppLocalizations.of(context)!.sendSarMarker),
-                onTap: () async {
-                  await _runAfterSheetDismissal(sheetContext, () async {
-                    _showSarDialog();
-                  });
-                },
-              ),
-              if (_voiceSupported)
-                ListTile(
-                  enabled: !_isSendingVoice,
-                  leading: Icon(_isRecording ? Icons.stop : Icons.mic),
-                  title: Text(_isRecording ? 'Stop recording' : 'Record voice'),
-                  onTap: _isSendingVoice
-                      ? null
-                      : () async {
-                          await _runAfterSheetDismissal(sheetContext, () async {
-                            if (_isRecording) {
-                              await _stopAndSendVoice();
-                            } else {
-                              await _startVoiceRecording();
-                            }
-                          });
-                        },
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(sheetContext).size.height * 0.72,
+            ),
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    colorScheme.surface,
+                    colorScheme.surfaceContainerLow,
+                  ],
                 ),
-              ListTile(
-                enabled: !_isSendingImage,
-                leading: Icon(Icons.photo_library),
-                title: Text(AppLocalizations.of(context)!.sendImageFromGallery),
-                onTap: _isSendingImage
-                    ? null
-                    : () async {
-                        await _runAfterSheetDismissal(sheetContext, () async {
-                          await _pickAndSendImage(source: ImageSource.gallery);
-                        });
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                  bottom: Radius.circular(28),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.shadow.withValues(alpha: 0.14),
+                    blurRadius: 28,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: colorScheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'More actions',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.4,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Search, share, or start something from this chat.',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: colorScheme.outlineVariant.withValues(
+                                alpha: 0.18,
+                              ),
+                            ),
+                          ),
+                          child: IconButton(
+                            onPressed: () => Navigator.pop(sheetContext),
+                            tooltip: l10n.close,
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final actions = <Widget>[
+                        _ComposerActionTile(
+                          icon: Icons.search_rounded,
+                          title: l10n.searchMessages,
+                          subtitle: 'Find text in the current conversation',
+                          color: const Color(0xFF2B6CB0),
+                          onTap: () => runAction(() async {
+                            _showFilteredMessageSearch();
+                          }),
+                        ),
+                        _ComposerActionTile(
+                          icon: Icons.add_location_alt_rounded,
+                          title: l10n.sendSarMarker,
+                          subtitle: 'Share a marker with coordinates',
+                          color: const Color(0xFFB45309),
+                          onTap: () => runAction(() async {
+                            _showSarDialog();
+                          }),
+                        ),
+                        if (_voiceSupported)
+                          _ComposerActionTile(
+                            icon: _isRecording
+                                ? Icons.stop_rounded
+                                : Icons.mic_rounded,
+                            title: _isRecording
+                                ? 'Stop recording'
+                                : 'Record voice',
+                            subtitle: _isSendingVoice
+                                ? 'Voice message is sending'
+                                : _isRecording
+                                ? 'Finish and send your clip'
+                                : 'Capture and send a voice note',
+                            color: const Color(0xFF7C3AED),
+                            enabled: !_isSendingVoice,
+                            onTap: !_isSendingVoice
+                                ? () => runAction(() async {
+                                    if (_isRecording) {
+                                      await _stopAndSendVoice();
+                                    } else {
+                                      await _startVoiceRecording();
+                                    }
+                                  })
+                                : null,
+                          ),
+                        _ComposerActionTile(
+                          icon: Icons.photo_library_rounded,
+                          title: l10n.sendImageFromGallery,
+                          subtitle: 'Choose an image from your library',
+                          color: const Color(0xFF0F766E),
+                          enabled: !_isSendingImage,
+                          onTap: !_isSendingImage
+                              ? () => runAction(() async {
+                                  await _pickAndSendImage(
+                                    source: ImageSource.gallery,
+                                  );
+                                })
+                              : null,
+                        ),
+                        _ComposerActionTile(
+                          icon: Icons.camera_alt_rounded,
+                          title: l10n.takePhoto,
+                          subtitle: 'Capture something right now',
+                          color: const Color(0xFF2563EB),
+                          enabled: !_isSendingImage,
+                          onTap: !_isSendingImage
+                              ? () => runAction(() async {
+                                  await _pickAndSendImage(
+                                    source: ImageSource.camera,
+                                  );
+                                })
+                              : null,
+                        ),
+                        _ComposerActionTile(
+                          icon: Icons.grid_3x3_rounded,
+                          title: l10n.startTictactoe,
+                          subtitle: l10n.dmOnly,
+                          color: const Color(0xFFBE185D),
+                          onTap: () => runAction(() async {
+                            await _startTicTacToeGame();
+                          }),
+                        ),
+                      ];
+
+                        return GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: actions.length,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            mainAxisExtent: 126,
+                          ),
+                          itemBuilder: (context, index) => actions[index],
+                        );
                       },
+                    ),
+                  ],
+                ),
               ),
-              ListTile(
-                enabled: !_isSendingImage,
-                leading: Icon(Icons.camera_alt),
-                title: Text(AppLocalizations.of(context)!.takePhoto),
-                onTap: _isSendingImage
-                    ? null
-                    : () async {
-                        await _runAfterSheetDismissal(sheetContext, () async {
-                          await _pickAndSendImage(source: ImageSource.camera);
-                        });
-                      },
-              ),
-              ListTile(
-                leading: Icon(Icons.grid_3x3),
-                title: Text(AppLocalizations.of(context)!.startTictactoe),
-                subtitle: Text(AppLocalizations.of(context)!.dmOnly),
-                onTap: () async {
-                  await _runAfterSheetDismissal(sheetContext, () async {
-                    await _startTicTacToeGame();
-                  });
-                },
-              ),
-            ],
+            ),
           ),
         );
       },

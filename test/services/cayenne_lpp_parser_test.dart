@@ -488,6 +488,39 @@ void main() {
       },
     );
 
+    test('weather station payload keeps generic percentage and does not invent battery from ch1 voltage', () {
+      final payload = Uint8List.fromList([
+        0x01, 0x74, 0x00, 0x00,
+        0x02, 0x78, 0x64,
+        0x02, 0x73, 0x24, 0x32,
+        0x02, 0x65, 0x5A, 0x50,
+        0x02, 0x8A, 0xFF, 0xE4,
+        0x02, 0x74, 0x01, 0xE0,
+        0x02, 0x9D, 0x00,
+        0x02, 0x68, 0x76,
+        0x02, 0x81, 0x01, 0x4A,
+        0x02, 0x89, 0x01, 0xB8,
+        0x02, 0x67, 0x00, 0x2D,
+        0x02, 0xAD, 0x0A,
+        0x02, 0x84, 0x00, 0x56,
+        0x02, 0x8B, 0x00, 0xB3,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+      ]);
+
+      final decoded = CayenneLppParser.parse(payload);
+
+      expect(decoded.batteryPercentage, isNull);
+      expect(decoded.batteryMilliVolts, isNull);
+      expect(decoded.temperature, closeTo(4.5, 0.1));
+      expect(decoded.humidity, closeTo(59.0, 0.1));
+      expect(decoded.pressure, closeTo(926.6, 0.1));
+      expect(decoded.extraSensorData!['voltage_1'], closeTo(0.0, 0.001));
+      expect(decoded.extraSensorData!['percentage_2'], equals(100.0));
+      expect(decoded.extraSensorData!['uv_2'], equals(1.0));
+      expect(decoded.extraSensorData!['rain_2'], closeTo(17.9, 0.1));
+      expect(decoded.extraSensorData!.containsKey('__source_channel:battery'), isFalse);
+    });
+
     test('unknown sensor type is skipped gracefully', () {
       final buffer = ByteData(5);
       buffer.setUint8(0, 0);

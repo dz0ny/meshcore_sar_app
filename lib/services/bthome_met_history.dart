@@ -110,9 +110,44 @@ class BTHomeMetHistoryParser {
   }
 }
 
+bool _isTruthyCapabilityValue(Object? value) {
+  if (value is num) {
+    return value > 0;
+  }
+  if (value is bool) {
+    return value;
+  }
+  return false;
+}
+
+bool _hasBTHomeMetCapability(Contact? contact) {
+  final extraSensorData = contact?.telemetry?.extraSensorData;
+  if (extraSensorData == null) {
+    return false;
+  }
+
+  // MET history is only enabled when the node advertises an explicit
+  // capability marker on channel 1. Accept a small set of channel-1 marker
+  // keys so the app remains tolerant while firmware-side encoding settles.
+  const capabilityKeys = <String>[
+    'met_capability',
+    'met_capability_1',
+    'generic_sensor_1',
+    'light_level_1',
+  ];
+
+  for (final key in capabilityKeys) {
+    if (_isTruthyCapabilityValue(extraSensorData[key])) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 List<BTHomeMetMeasurement> bTHomeMetMeasurementsForContact(Contact? contact) {
   final telemetry = contact?.telemetry;
-  if (telemetry == null) {
+  if (telemetry == null || !_hasBTHomeMetCapability(contact)) {
     return const <BTHomeMetMeasurement>[];
   }
 

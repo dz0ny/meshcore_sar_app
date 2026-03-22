@@ -127,11 +127,13 @@ class _RetainedRoute {
 class ContactsProvider with ChangeNotifier {
   static const double _firstHopFallbackOffsetMeters = 100.0;
   static const String autoGroupIdPrefix = 'auto_group_';
+  static const String _rawTelemetryHexKey = '__raw_lpp_hex';
   final Map<String, Contact> _contacts = {};
   final List<SavedContactGroup> _savedContactGroups = <SavedContactGroup>[];
   final Map<String, PendingAdvert> _pendingAdverts = {};
   final Map<String, LatLng> _estimatedLocations = {};
   final Map<String, List<RssiObservation>> _rssiObservations = {};
+  final Map<String, Contact> _retainedContactsForSync = {};
   final ContactStorageService _storageService = ContactStorageService();
   bool _isInitialized = false;
   bool _isPersisting = false;
@@ -279,7 +281,6 @@ class ContactsProvider with ChangeNotifier {
   /// empty list while sync is in progress.
   Future<void> prepareForDeviceContactSync({Uint8List? devicePublicKey}) async {
     _setSelfDevicePublicKey(devicePublicKey);
-    _selfTelemetry = null;
     if (!_isInitialized) {
       final storedGroups = await _storageService.loadContactGroups(
         namespace: _storageNamespace,
@@ -293,6 +294,13 @@ class ContactsProvider with ChangeNotifier {
     debugPrint(
       '🧹 [ContactsProvider] Clearing runtime contacts before device sync',
     );
+    _retainedContactsForSync
+      ..clear()
+      ..addEntries(
+        _contactsForStorage().map(
+          (contact) => MapEntry(contact.publicKeyHex, contact),
+        ),
+      );
     _contacts.clear();
     _pendingAdverts.clear();
     _estimatedLocations.clear();
@@ -676,7 +684,9 @@ class ContactsProvider with ChangeNotifier {
     }
 
     // Check if this is a new contact
-    final existingContact = _contacts[contact.publicKeyHex];
+    final existingContact =
+        _contacts[contact.publicKeyHex] ??
+        _retainedContactsForSync[contact.publicKeyHex];
     final isNewContact = existingContact == null;
     debugPrint(
       '   isNew: $isNewContact, total contacts before: ${_contacts.length}',
@@ -688,6 +698,7 @@ class ContactsProvider with ChangeNotifier {
     );
 
     _contacts[contact.publicKeyHex] = updatedContact;
+    _retainedContactsForSync.remove(contact.publicKeyHex);
     // Keep repeaters and sensors in pending adverts so they remain visible
     // in the discovery list (with a checkmark). Remove others.
     if (contact.type != ContactType.repeater &&
@@ -717,11 +728,14 @@ class ContactsProvider with ChangeNotifier {
         excluded++;
         continue;
       }
-      final existingContact = _contacts[contact.publicKeyHex];
+      final existingContact =
+          _contacts[contact.publicKeyHex] ??
+          _retainedContactsForSync[contact.publicKeyHex];
       _contacts[contact.publicKeyHex] = _mergeIncomingContact(
         incomingContact: contact,
         existingContact: existingContact,
       );
+      _retainedContactsForSync.remove(contact.publicKeyHex);
       if (contact.type != ContactType.repeater &&
           contact.type != ContactType.sensor) {
         _pendingAdverts.remove(contact.publicKeyHex);
@@ -1012,7 +1026,10 @@ class ContactsProvider with ChangeNotifier {
 
     try {
       // Parse Cayenne LPP data
-      var telemetry = CayenneLppParser.parse(lppData);
+      var telemetry = _withRawTelemetryHex(
+        CayenneLppParser.parse(lppData),
+        lppData,
+      );
       debugPrint('  ✅ Parsed new telemetry');
       debugPrint('  New telemetry timestamp: ${telemetry.timestamp}');
 
@@ -1056,7 +1073,7 @@ class ContactsProvider with ChangeNotifier {
           timestamp: mergedTelemetry.timestamp,
           humidity: mergedTelemetry.humidity,
           pressure: mergedTelemetry.pressure,
-          extraSensorData: telemetry.extraSensorData,
+          extraSensorData: mergedTelemetry.extraSensorData,
         );
       }
 
@@ -1203,6 +1220,28 @@ class ContactsProvider with ChangeNotifier {
           ? null
           : mergedExtraSensorData,
     );
+  }
+
+  ContactTelemetry _withRawTelemetryHex(
+    ContactTelemetry telemetry,
+    Uint8List lppData,
+  ) {
+    final extraSensorData = <String, dynamic>{...?telemetry.extraSensorData};
+    extraSensorData[_rawTelemetryHexKey] = _bytesToHex(lppData);
+    return ContactTelemetry(
+      gpsLocation: telemetry.gpsLocation,
+      batteryPercentage: telemetry.batteryPercentage,
+      batteryMilliVolts: telemetry.batteryMilliVolts,
+      temperature: telemetry.temperature,
+      timestamp: telemetry.timestamp,
+      humidity: telemetry.humidity,
+      pressure: telemetry.pressure,
+      extraSensorData: extraSensorData,
+    );
+  }
+
+  String _bytesToHex(Uint8List bytes) {
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
   }
 
   Map<String, dynamic> _mergeExtraSensorData(
@@ -1621,6 +1660,7 @@ class ContactsProvider with ChangeNotifier {
   void clearContacts() {
     _contacts.clear();
     _pendingAdverts.clear();
+    _retainedContactsForSync.clear();
     _ensurePublicChannelExists();
     _persistContacts();
     _persistPendingAdverts();
@@ -1645,6 +1685,7 @@ class ContactsProvider with ChangeNotifier {
     // Then remove from local storage
     _contacts.remove(publicKeyHex);
     _pendingAdverts.remove(publicKeyHex);
+    _retainedContactsForSync.remove(publicKeyHex);
     _persistContacts();
     _persistPendingAdverts();
     notifyListeners();
@@ -1729,6 +1770,7 @@ class ContactsProvider with ChangeNotifier {
     _pendingAdverts.clear();
     _estimatedLocations.clear();
     _rssiObservations.clear();
+    _retainedContactsForSync.clear();
     _selfTelemetry = null;
   }
 

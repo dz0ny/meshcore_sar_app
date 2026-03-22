@@ -519,61 +519,58 @@ class _ContactsTabState extends State<ContactsTab> {
     final canExportHashChannelPsk = Channel.isHashChannelName(
       channel.advName.trim(),
     );
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    final actions = <_ChannelSheetAction>[
+      _ChannelSheetAction(
+        icon: Icons.message_outlined,
+        label: l10n.messages,
+        onTap: () async {
+          Navigator.pop(context);
+          await _openMessagesForChannel(context, channel);
+        },
       ),
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.message_outlined),
-              title: Text(l10n.messages),
-              onTap: () async {
-                Navigator.pop(sheetContext);
-                await _openMessagesForChannel(context, channel);
-              },
-            ),
-            if (channel.displayLocation != null)
-              ListTile(
-                leading: Icon(Icons.map_outlined),
-                title: Text(l10n.viewOnMap),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showChannelOnMap(context, channel);
-                },
-              ),
-            if (canExportHashChannelPsk)
-              ListTile(
-                leading: const Icon(Icons.key_outlined),
-                title: Text('${l10n.exportToClipboard} psk_base64'),
-                onTap: () async {
-                  Navigator.pop(sheetContext);
-                  await _exportHashChannelPskBase64(context, channel);
-                },
-              ),
-            if (!channel.isPublicChannel)
-              ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text(
-                  l10n.deleteChannel,
-                  style: const TextStyle(color: Colors.red),
-                ),
-                onTap: () async {
-                  Navigator.pop(sheetContext);
-                  await Future<void>.delayed(Duration.zero);
-                  if (!context.mounted) return;
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!context.mounted) return;
-                    _showDeleteChannelDialog(context, channel);
-                  });
-                },
-              ),
-          ],
+      if (channel.displayLocation != null)
+        _ChannelSheetAction(
+          icon: Icons.map_outlined,
+          label: l10n.viewOnMap,
+          onTap: () async {
+            Navigator.pop(context);
+            _showChannelOnMap(context, channel);
+          },
         ),
+      if (canExportHashChannelPsk)
+        _ChannelSheetAction(
+          icon: Icons.key_outlined,
+          label: '${l10n.exportToClipboard} psk_base64',
+          onTap: () async {
+            Navigator.pop(context);
+            await _exportHashChannelPskBase64(context, channel);
+          },
+        ),
+      if (!channel.isPublicChannel)
+        _ChannelSheetAction(
+          icon: Icons.delete_outline_rounded,
+          label: l10n.deleteChannel,
+          destructive: true,
+          onTap: () async {
+            Navigator.pop(context);
+            await Future<void>.delayed(Duration.zero);
+            if (!context.mounted) return;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              _showDeleteChannelDialog(context, channel);
+            });
+          },
+        ),
+    ];
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _ChannelActionSheet(
+        channel: channel,
+        actions: actions,
+        onClose: () => Navigator.pop(sheetContext),
       ),
     );
   }
@@ -1975,6 +1972,302 @@ class _ExpandableParticipantStackState
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ChannelSheetAction {
+  final IconData icon;
+  final String label;
+  final Future<void> Function() onTap;
+  final bool destructive;
+
+  const _ChannelSheetAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.destructive = false,
+  });
+}
+
+class _ChannelActionSheet extends StatelessWidget {
+  final Contact channel;
+  final List<_ChannelSheetAction> actions;
+  final VoidCallback onClose;
+
+  const _ChannelActionSheet({
+    required this.channel,
+    required this.actions,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final title = channel.getLocalizedDisplayName(context);
+    final subtitle = channel.isPublicChannel
+        ? l10n.broadcastToAllNearby
+        : '${l10n.channel} ${channel.publicKey[1]}';
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.82,
+      ),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: colorScheme.surface,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + bottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.shadow.withValues(alpha: 0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ContactAvatar(
+                      contact: channel,
+                      radius: 28,
+                      displayName: title,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.45,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          _ChannelSheetChip(
+                            icon: channel.isPublicChannel
+                                ? Icons.broadcast_on_personal_rounded
+                                : Icons.tag_rounded,
+                            label: channel.isPublicChannel
+                                ? l10n.broadcastToAllNearby
+                                : channel.publicKeyShort,
+                            monospace: !channel.isPublicChannel,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
+                    onPressed: onClose,
+                    tooltip: l10n.close,
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+              if (actions.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    const spacing = 12.0;
+                    const minTileWidth = 132.0;
+                    final actionCount = actions.length;
+                    final maxColumnsByWidth =
+                        ((constraints.maxWidth + spacing) /
+                                (minTileWidth + spacing))
+                            .floor()
+                            .clamp(1, 3);
+                    var columnCount = actionCount.clamp(1, maxColumnsByWidth);
+                    if (actionCount > 3 &&
+                        columnCount > 2 &&
+                        actionCount % columnCount == 1) {
+                      columnCount -= 1;
+                    }
+                    final itemWidth =
+                        (constraints.maxWidth - (spacing * (columnCount - 1))) /
+                        columnCount;
+
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: [
+                        for (final action in actions)
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ChannelPrimaryActionButton(action: action),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChannelPrimaryActionButton extends StatelessWidget {
+  final _ChannelSheetAction action;
+
+  const _ChannelPrimaryActionButton({required this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final accent = action.destructive ? colorScheme.error : colorScheme.primary;
+    final backgroundColor = action.destructive
+        ? colorScheme.errorContainer.withValues(alpha: 0.82)
+        : Color.alphaBlend(
+            accent.withValues(alpha: 0.12),
+            colorScheme.surfaceContainerLow,
+          );
+    final foregroundColor = action.destructive
+        ? colorScheme.onErrorContainer
+        : accent;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: action.onTap,
+        child: Ink(
+          height: 100,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: action.destructive
+                  ? colorScheme.error.withValues(alpha: 0.18)
+                  : accent.withValues(alpha: 0.14),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: foregroundColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: Icon(action.icon, color: foregroundColor, size: 16),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  action.label,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: action.destructive
+                        ? colorScheme.onErrorContainer
+                        : colorScheme.onSurface,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChannelSheetChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool monospace;
+
+  const _ChannelSheetChip({
+    required this.icon,
+    required this.label,
+    this.monospace = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 260),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                fontFamily: monospace ? 'monospace' : null,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

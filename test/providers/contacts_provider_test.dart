@@ -907,6 +907,56 @@ void main() {
         expect(restored.savedGroupsForSection('teamMembers'), hasLength(1));
       },
     );
+
+    test(
+      'retains cached telemetry when sync re-adds a contact without telemetry',
+      () async {
+        final key = createPublicKey(141);
+        final contact = createContact(
+          key: key,
+          type: ContactType.sensor,
+          name: 'Sparse Sync Sensor',
+        ).copyWith(
+          telemetry: ContactTelemetry(
+            temperature: 18.5,
+            humidity: 64.0,
+            timestamp: DateTime(2026, 3, 22, 8, 30),
+          ),
+        );
+
+        provider.addOrUpdateContact(contact);
+        await provider.prepareForDeviceContactSync();
+
+        provider.addOrUpdateContact(
+          createContact(
+            key: key,
+            type: ContactType.sensor,
+            name: 'Sparse Sync Sensor',
+          ),
+        );
+
+        final restored = provider.findContactByKey(key);
+        expect(restored, isNotNull);
+        expect(restored!.telemetry, isNotNull);
+        expect(restored.telemetry!.temperature, closeTo(18.5, 0.01));
+        expect(restored.telemetry!.humidity, closeTo(64.0, 0.01));
+      },
+    );
+
+    test('keeps self telemetry cached across reconnect for the same device', () async {
+      final selfKey = createPublicKey(200);
+
+      await provider.initialize(devicePublicKey: selfKey);
+      provider.updateTelemetry(
+        selfKey.sublist(0, 6),
+        CayenneLppParser.createTemperatureData(23.5, channel: 1),
+      );
+
+      await provider.prepareForDeviceContactSync(devicePublicKey: selfKey);
+
+      expect(provider.selfTelemetry, isNotNull);
+      expect(provider.selfTelemetry!.temperature, closeTo(23.5, 0.1));
+    });
   });
 
   group('ContactsProvider self telemetry', () {
@@ -934,6 +984,24 @@ void main() {
         );
       },
     );
+  });
+
+  test('stores raw telemetry hex in metadata for verification', () async {
+    SharedPreferences.setMockInitialValues({});
+    final provider = ContactsProvider();
+    final telemetryKey = createPublicKey(150);
+    final contact = createContact(
+      key: telemetryKey,
+      type: ContactType.chat,
+      name: 'Telemetry Node',
+    );
+    provider.addOrUpdateContact(contact);
+
+    final payload = Uint8List.fromList(<int>[0x01, 0x67, 0x00, 0xEB]);
+    provider.updateTelemetry(telemetryKey.sublist(0, 6), payload);
+
+    final updated = provider.findContactByKey(telemetryKey)!;
+    expect(updated.telemetry?.extraSensorData?['__raw_lpp_hex'], '01 67 00 eb');
   });
 }
 

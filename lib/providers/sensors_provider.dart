@@ -14,6 +14,7 @@ enum SensorRefreshState { idle, refreshing, success, timeout, unavailable }
 
 class SensorsProvider with ChangeNotifier {
   static const Duration _successStateRetention = Duration(minutes: 1);
+  static const int selfAutoRefreshMinutes = 1;
   static const String _watchedSensorsKey = 'watched_sensor_keys';
   static const String _visibleSensorMetricsKey = 'visible_sensor_metrics';
   static const String _fieldSpanKey = 'sensor_field_spans';
@@ -373,6 +374,20 @@ class SensorsProvider with ChangeNotifier {
     return List<String>.unmodifiable(dueKeys);
   }
 
+  bool _isRefreshDue(
+    String publicKeyHex, {
+    required int minutes,
+    required DateTime refreshTime,
+  }) {
+    if (minutes <= 0) {
+      return false;
+    }
+
+    final lastRefreshAt = _lastRefreshAttemptAt[publicKeyHex];
+    return lastRefreshAt == null ||
+        refreshTime.difference(lastRefreshAt) >= Duration(minutes: minutes);
+  }
+
   Future<void> toggleMetric(
     String publicKeyHex,
     String fieldKey,
@@ -636,6 +651,17 @@ class SensorsProvider with ChangeNotifier {
     return <String>[self.publicKeyHex];
   }
 
+  String? displaySelfKey({
+    required ContactsProvider contactsProvider,
+    required ConnectionProvider connectionProvider,
+  }) {
+    final self = selfContact(contactsProvider, connectionProvider);
+    if (self == null || _watchedSensorKeys.contains(self.publicKeyHex)) {
+      return null;
+    }
+    return self.publicKeyHex;
+  }
+
   Contact? contactForDisplay(
     String publicKeyHex, {
     required ContactsProvider contactsProvider,
@@ -659,7 +685,18 @@ class SensorsProvider with ChangeNotifier {
     required ContactsProvider contactsProvider,
     required ConnectionProvider connectionProvider,
   }) async {
-    if (_isRefreshingAll || _watchedSensorKeys.isEmpty) {
+    if (_isRefreshingAll) {
+      return;
+    }
+
+    final self = selfContact(contactsProvider, connectionProvider);
+    final keysToRefresh = <String>[
+      if (self != null) self.publicKeyHex,
+      ..._watchedSensorKeys.where(
+        (key) => self == null || key != self.publicKeyHex,
+      ),
+    ];
+    if (keysToRefresh.isEmpty) {
       return;
     }
 
@@ -667,7 +704,7 @@ class SensorsProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      for (final key in _watchedSensorKeys) {
+      for (final key in keysToRefresh) {
         await refreshSensor(
           publicKeyHex: key,
           contactsProvider: contactsProvider,
@@ -728,7 +765,17 @@ class SensorsProvider with ChangeNotifier {
     }
 
     final refreshTime = now ?? DateTime.now();
-    final dueKeys = dueAutoRefreshSensorKeys(now: refreshTime);
+    final dueKeys = dueAutoRefreshSensorKeys(now: refreshTime).toList();
+    final self = selfContact(contactsProvider, connectionProvider);
+    if (self != null &&
+        !dueKeys.contains(self.publicKeyHex) &&
+        _isRefreshDue(
+          self.publicKeyHex,
+          minutes: selfAutoRefreshMinutes,
+          refreshTime: refreshTime,
+        )) {
+      dueKeys.insert(0, self.publicKeyHex);
+    }
     if (dueKeys.isEmpty) {
       return;
     }

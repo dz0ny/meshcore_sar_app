@@ -88,10 +88,13 @@ class CayenneLppParser {
     LatLng? gpsLocation;
     double? batteryPercentage;
     double? batteryMilliVolts;
+    double? deferredBatteryMilliVolts;
+    double? deferredBatteryPercentage;
     double? temperature;
     double? humidity;
     double? pressure;
     final extraSensorData = <String, dynamic>{};
+    bool sawNonSelfChannel = false;
 
     int fieldCount = 0;
     while (reader.hasRemaining) {
@@ -112,6 +115,9 @@ class CayenneLppParser {
 
         final channel = reader.readByte();
         debugPrint('      Channel: $channel');
+        if (channel != _selfTelemetryChannel) {
+          sawNonSelfChannel = true;
+        }
 
         final type = reader.readByte();
         debugPrint(
@@ -136,7 +142,7 @@ class CayenneLppParser {
             final value = rawValue / 100.0;
             debugPrint('      Analog Input (raw): $rawValue');
             debugPrint('      Analog Input (volts): ${value}V');
-            if (_isBatteryChannel(channel)) {
+            if (_isDedicatedBatteryChannel(channel)) {
               batteryMilliVolts = value * 1000;
               batteryPercentage = _calculateBatteryPercentage(value);
               extraSensorData[_sourceChannelKey('battery')] = channel;
@@ -144,6 +150,10 @@ class CayenneLppParser {
               debugPrint(
                 '      → Battery: ${batteryPercentage.toStringAsFixed(1)}% (${batteryMilliVolts.toStringAsFixed(0)}mV)',
               );
+            } else if (_isDeferredBatteryChannel(channel)) {
+              deferredBatteryMilliVolts = value * 1000;
+              deferredBatteryPercentage = _calculateBatteryPercentage(value);
+              extraSensorData['analog_input_$channel'] = value;
             } else {
               extraSensorData['analog_input_$channel'] = value;
             }
@@ -237,7 +247,7 @@ class CayenneLppParser {
             final value = rawValue / 100.0;
             debugPrint('      Voltage (raw): $rawValue');
             debugPrint('      Voltage: ${value}V');
-            if (_isBatteryChannel(channel)) {
+            if (_isDedicatedBatteryChannel(channel)) {
               batteryMilliVolts = value * 1000;
               batteryPercentage = _calculateBatteryPercentage(value);
               extraSensorData[_sourceChannelKey('battery')] = channel;
@@ -245,6 +255,10 @@ class CayenneLppParser {
               debugPrint(
                 '      → Battery: ${batteryPercentage.toStringAsFixed(1)}% (${batteryMilliVolts.toStringAsFixed(0)}mV)',
               );
+            } else if (_isDeferredBatteryChannel(channel)) {
+              deferredBatteryMilliVolts = value * 1000;
+              deferredBatteryPercentage = _calculateBatteryPercentage(value);
+              extraSensorData['voltage_$channel'] = value;
             } else {
               extraSensorData['voltage_$channel'] = value;
             }
@@ -327,7 +341,7 @@ class CayenneLppParser {
           case _lppPercentage:
             final value = reader.readByte().toDouble();
             debugPrint('      Percentage: $value%');
-            if (_isBatteryChannel(channel)) {
+            if (_isDedicatedBatteryChannel(channel) || _isDeferredBatteryChannel(channel)) {
               batteryPercentage = value;
               extraSensorData[_sourceChannelKey('battery')] = channel;
             } else {
@@ -631,6 +645,21 @@ class CayenneLppParser {
       }
     }
 
+    if (batteryMilliVolts == null &&
+        batteryPercentage == null &&
+        deferredBatteryMilliVolts != null &&
+        deferredBatteryPercentage != null &&
+        !sawNonSelfChannel) {
+      batteryMilliVolts = deferredBatteryMilliVolts;
+      batteryPercentage = deferredBatteryPercentage;
+      extraSensorData[_sourceChannelKey('battery')] = _selfTelemetryChannel;
+      extraSensorData[_sourceChannelKey('voltage')] = _selfTelemetryChannel;
+      debugPrint(
+        '    Promoted self-channel voltage to battery: '
+        '${batteryPercentage.toStringAsFixed(1)}% (${batteryMilliVolts.toStringAsFixed(0)}mV)',
+      );
+    }
+
     debugPrint('    Parsed $fieldCount fields');
     debugPrint('  ✅ [CayenneLPP] Parsing complete');
     debugPrint(
@@ -677,8 +706,10 @@ class CayenneLppParser {
     return ((voltage - 3.0) / 1.2) * 100.0;
   }
 
-  static bool _isBatteryChannel(int channel) =>
-      channel == 0 || channel == _selfTelemetryChannel;
+  static bool _isDedicatedBatteryChannel(int channel) => channel == 0;
+
+  static bool _isDeferredBatteryChannel(int channel) =>
+      channel == _selfTelemetryChannel;
 
   static int _readUInt32BE(BufferReader reader) {
     final bytes = reader.readBytes(4);
