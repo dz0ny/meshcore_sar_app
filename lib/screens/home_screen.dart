@@ -23,13 +23,11 @@ import 'device_config_screen.dart';
 import 'packet_log_screen.dart';
 import 'live_traffic_screen.dart';
 import 'profiles_screen.dart';
-import 'spectrum_scan_screen.dart';
 import '../utils/toast_logger.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/permission_request_dialog.dart';
 import '../widgets/connection_dialog.dart';
 import '../utils/battery_display_helper.dart';
-import '../services/developer_mode_service.dart';
 import '../services/mesh_map_nodes_service.dart';
 import '../services/profile_device_key_resolver.dart';
 import '../services/profile_manager.dart';
@@ -68,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen>
   int _currentIndex = 0;
   bool _isMapFullscreen = false;
   bool _showRxTxIndicators = true;
-  bool _isDeveloperModeEnabled = false;
   bool _isMapEnabled = true;
   bool _isContactsEnabled = true;
   bool _isSensorsEnabled = false;
@@ -107,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen>
     // Initialize synchronously so first build always has a valid controller.
     _initTabController();
     _loadRxTxPreference();
-    _loadDeveloperModePreference();
     MeshMapNodesService.syncInBackgroundIfStale();
 
     // Show permission dialog after the first frame if needed
@@ -289,14 +285,6 @@ class _HomeScreenState extends State<HomeScreen>
             true;
       });
     }
-  }
-
-  Future<void> _loadDeveloperModePreference() async {
-    final isEnabled = await DeveloperModeService.isEnabled();
-    if (!mounted) return;
-    setState(() {
-      _isDeveloperModeEnabled = isEnabled;
-    });
   }
 
   void _showPermissionDialog() {
@@ -811,32 +799,6 @@ class _HomeScreenState extends State<HomeScreen>
                         .read<ProfileManager>()
                         .profilesEnabled;
 
-                    if (_isDeveloperModeEnabled) {
-                      items.add(
-                        PopupMenuItem(
-                          child: Row(
-                            children: [
-                              const Icon(Icons.radar),
-                              SizedBox(width: 8),
-                              Text(AppLocalizations.of(context)!.spectrumScan),
-                            ],
-                          ),
-                          onTap: () {
-                            final navigator = Navigator.of(context);
-                            Future.delayed(Duration.zero, () {
-                              if (!mounted) return;
-                              navigator.push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SpectrumScanScreen(),
-                                ),
-                              );
-                            });
-                          },
-                        ),
-                      );
-                    }
-
                     items.add(
                       PopupMenuItem(
                         child: Row(
@@ -954,7 +916,6 @@ class _HomeScreenState extends State<HomeScreen>
                               ),
                             );
                             _loadRxTxPreference();
-                            _loadDeveloperModePreference();
                           });
                         },
                       ),

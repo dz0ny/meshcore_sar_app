@@ -105,8 +105,6 @@ class ConnectionProvider with ChangeNotifier {
 
   bool _isScanning = false;
   bool get isScanning => _isScanning;
-  bool _isSpectrumScanActive = false;
-  bool get isSpectrumScanActive => _isSpectrumScanActive;
   final Set<int> _pendingDeletedChannelIndices = <int>{};
 
   String? _error;
@@ -212,6 +210,15 @@ class ConnectionProvider with ChangeNotifier {
   onMessageEchoDetected;
   Function(Uint8List publicKeyPrefix, Uint8List statusData)? onStatusResponse;
   Function(Uint8List payload, int snrRaw, int rssiDbm)? onRawDataReceived;
+  Function(
+    int channelIdx,
+    int pathLen,
+    int dataType,
+    Uint8List payload,
+    int snrRaw,
+    int? rssiDbm,
+  )?
+  onChannelDataReceived;
   Function(Uint8List payload, int snrRaw, int rssiDbm, int pathLen)?
   onControlDataReceived;
   Contact? Function(Uint8List contactPublicKey)? resolveContactForDmCallback;
@@ -463,10 +470,6 @@ class ConnectionProvider with ChangeNotifier {
     };
 
     service.onMessageWaiting = () {
-      if (_isSpectrumScanActive) {
-        debugPrint('📥 [Provider] MSG_WAITING ignored during spectrum scan');
-        return;
-      }
       if (!(canStartAutomaticMessageSyncCallback?.call() ?? true)) {
         _pendingAutomaticMessageSync = true;
         debugPrint(
@@ -533,6 +536,16 @@ class ConnectionProvider with ChangeNotifier {
 
     service.onRawDataReceived = (payload, snrRaw, rssiDbm) =>
         onRawDataReceived?.call(payload, snrRaw, rssiDbm);
+    service.onChannelDataReceived =
+        (channelIdx, pathLen, dataType, payload, snrRaw, rssiDbm) =>
+            onChannelDataReceived?.call(
+              channelIdx,
+              pathLen,
+              dataType,
+              payload,
+              snrRaw,
+              rssiDbm,
+            );
     service.onControlDataReceived = (payload, snrRaw, rssiDbm, pathLen) =>
         onControlDataReceived?.call(payload, snrRaw, rssiDbm, pathLen);
 
@@ -548,9 +561,6 @@ class ConnectionProvider with ChangeNotifier {
         semanticVersion: deviceInfo['semanticVersion'] as String?,
         clientRepeat: deviceInfo['clientRepeat'] as bool?,
         pathHashMode: deviceInfo['pathHashMode'] as int?,
-        supportsSpectrumScan: deviceInfo['supportsSpectrumScan'] as bool?,
-        spectrumScanMinKhz: deviceInfo['spectrumScanMinKhz'] as int?,
-        spectrumScanMaxKhz: deviceInfo['spectrumScanMaxKhz'] as int?,
       );
       notifyListeners();
     };
@@ -1804,6 +1814,30 @@ class ConnectionProvider with ChangeNotifier {
     );
   }
 
+  Future<void> sendChannelData({
+    required int channelIdx,
+    required int dataType,
+    required Uint8List payload,
+  }) async {
+    if (!_activeService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await _activeService.sendChannelData(
+        channelIdx: channelIdx,
+        dataType: dataType,
+        payload: payload,
+      );
+    } catch (e) {
+      _error = 'Failed to send channel data: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   /// Request telemetry from contact
   ///
   /// COMPATIBILITY NOTE: This method sends CMD_SEND_TELEMETRY_REQ (39).
@@ -2238,43 +2272,6 @@ class ConnectionProvider with ChangeNotifier {
     }
   }
 
-  Future<SpectrumScanResult?> scanSpectrum({
-    required int startFrequencyKhz,
-    required int stopFrequencyKhz,
-    required int bandwidthKhz,
-    required int stepKhz,
-    required int dwellMs,
-    required int thresholdDb,
-  }) async {
-    if (!_activeService.isConnected) {
-      _error = 'Not connected to device';
-      notifyListeners();
-      return null;
-    }
-
-    try {
-      _isSpectrumScanActive = true;
-      _activeService.setSpectrumScanActive(true);
-      notifyListeners();
-      return await _activeService.scanSpectrum(
-        startFrequencyKhz: startFrequencyKhz,
-        stopFrequencyKhz: stopFrequencyKhz,
-        bandwidthKhz: bandwidthKhz,
-        stepKhz: stepKhz,
-        dwellMs: dwellMs,
-        thresholdDb: thresholdDb,
-      );
-    } catch (e) {
-      _error = 'Failed to scan spectrum: $e';
-      notifyListeners();
-      return null;
-    } finally {
-      _isSpectrumScanActive = false;
-      _activeService.setSpectrumScanActive(false);
-      notifyListeners();
-    }
-  }
-
   /// Set transmit power
   Future<void> setTxPower(int powerDbm) async {
     if (!_activeService.isConnected) {
@@ -2464,7 +2461,6 @@ class ConnectionProvider with ChangeNotifier {
   }
 
   Future<void> refreshDeviceInfo() async {
-    if (_isSpectrumScanActive) return;
     if (!_activeService.isConnected) {
       _error = 'Not connected to device';
       notifyListeners();
@@ -2537,7 +2533,6 @@ class ConnectionProvider with ChangeNotifier {
   /// Sync messages from device queue
   /// Call this repeatedly until no more messages are available
   Future<bool> syncNextMessage() async {
-    if (_isSpectrumScanActive) return false;
     // Prevent re-entrancy and too-fast triggers
     if (_isSyncingMessages) {
       // Another sync (single or loop) is in progress
@@ -2576,10 +2571,6 @@ class ConnectionProvider with ChangeNotifier {
 
   /// Sync all waiting messages from device
   Future<int> syncAllMessages({bool force = false}) async {
-    if (_isSpectrumScanActive) {
-      debugPrint('⏸️ [Provider] Message sync skipped during spectrum scan');
-      return 0;
-    }
     if (!force && !(canStartAutomaticMessageSyncCallback?.call() ?? true)) {
       _pendingAutomaticMessageSync = true;
       debugPrint(

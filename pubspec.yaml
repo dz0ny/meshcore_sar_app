@@ -44,7 +44,7 @@ dependencies:
   meshcore_client:
     git:
       url: https://github.com/dz0ny/meshcore_client.git
-      ref: main
+      ref: dfc5b82c3f8a7f160ca77e45dc65a9eb39cebc5a
 
   # Codec2 ultra-low-bitrate speech codec (FFI plugin)
   codec2_flutter:

@@ -16,6 +16,7 @@ import '../providers/app_provider.dart';
 import '../providers/connection_provider.dart';
 import '../providers/drawing_provider.dart';
 import '../providers/map_provider.dart';
+import '../models/contact.dart';
 import '../models/config_profile.dart';
 import '../services/location_tracking_service.dart';
 import '../services/locale_preferences.dart';
@@ -79,6 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _fastLocationUpdatesEnabled = false;
   double _fastLocationMovementThresholdMeters = 10.0;
   int _fastLocationActiveCadenceSeconds = 10;
+  int? _fastLocationChannelIdx;
   bool _rotateMapWithHeading = false;
   bool _showMapDebugInfo = false;
   bool _openMapInFullscreen = false;
@@ -314,6 +316,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _locationService.fastLocationMovementThresholdMeters;
       _fastLocationActiveCadenceSeconds =
           _locationService.fastLocationActiveCadenceSeconds;
+      _fastLocationChannelIdx = _locationService.fastLocationChannelIdx;
     });
   }
 
@@ -404,6 +407,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _fastLocationActiveCadenceSeconds =
           _locationService.fastLocationActiveCadenceSeconds;
+    });
+  }
+
+  String _describeFastLocationChannel(List<Contact> channels) {
+    final channelIdx = _fastLocationChannelIdx;
+    if (channelIdx == null) {
+      return 'Not set';
+    }
+
+    for (final channel in channels) {
+      final idx = channel.publicKey.length > 1 ? channel.publicKey[1] : 0;
+      if (idx == channelIdx) {
+        return '${channel.getLocalizedDisplayName(context)} (slot $channelIdx)';
+      }
+    }
+
+    return 'Channel $channelIdx unavailable';
+  }
+
+  Future<void> _editFastLocationChannel() async {
+    final channels =
+        List<Contact>.from(context.read<ContactsProvider>().channels)
+          ..sort((a, b) {
+            final aIdx = a.publicKey.length > 1 ? a.publicKey[1] : 0;
+            final bIdx = b.publicKey.length > 1 ? b.publicKey[1] : 0;
+            return aIdx.compareTo(bIdx);
+          });
+
+    final selected = await showModalBottomSheet<int?>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.block),
+              title: const Text('Disable fast GPS publishing'),
+              trailing: _fastLocationChannelIdx == null
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => Navigator.pop(sheetContext, -1),
+            ),
+            for (final channel in channels)
+              ListTile(
+                leading: const Icon(Icons.tag),
+                title: Text(channel.getLocalizedDisplayName(sheetContext)),
+                subtitle: Text(
+                  'Channel ${channel.publicKey.length > 1 ? channel.publicKey[1] : 0}',
+                ),
+                trailing:
+                    _fastLocationChannelIdx ==
+                        (channel.publicKey.length > 1
+                            ? channel.publicKey[1]
+                            : 0)
+                    ? const Icon(Icons.check)
+                    : null,
+                onTap: () => Navigator.pop(
+                  sheetContext,
+                  channel.publicKey.length > 1 ? channel.publicKey[1] : 0,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    if (selected == null) return;
+    await _locationService.updateFastLocationChannelIdx(
+      selected < 0 ? null : selected,
+    );
+    if (!mounted) return;
+    setState(() {
+      _fastLocationChannelIdx = _locationService.fastLocationChannelIdx;
     });
   }
 
@@ -1765,6 +1841,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: Text('$_fastLocationActiveCadenceSeconds s'),
               trailing: const Icon(Icons.chevron_right),
               onTap: _editFastLocationActiveCadence,
+            ),
+            ListTile(
+              leading: const Icon(Icons.forum),
+              title: const Text('Fast GPS target channel'),
+              subtitle: Text(
+                _describeFastLocationChannel(
+                  context.watch<ContactsProvider>().channels,
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _editFastLocationChannel,
             ),
             ListTile(
               leading: Icon(Icons.location_on),

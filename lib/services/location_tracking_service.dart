@@ -49,6 +49,7 @@ class LocationTrackingService {
       'fast_location_movement_threshold_meters';
   static const String _prefKeyFastActiveCadence =
       'fast_location_active_cadence_seconds';
+  static const String _prefKeyFastChannelIdx = 'fast_location_channel_idx';
 
   String _scopedKey(String baseKey) {
     return ProfileStorageScope.scopedKey(baseKey);
@@ -78,6 +79,9 @@ class LocationTrackingService {
 
   /// Cadence for active-use fast GPS updates
   int fastLocationActiveCadenceSeconds = 10;
+
+  /// Target channel index for fast GPS updates; null means disabled/unset.
+  int? fastLocationChannelIdx;
 
   // ============================================================================
   // State Properties
@@ -528,8 +532,14 @@ class LocationTrackingService {
     _refreshFastLocationTimer();
   }
 
+  Future<void> updateFastLocationChannelIdx(int? channelIdx) async {
+    fastLocationChannelIdx = channelIdx;
+    await saveSettings();
+    _refreshFastLocationTimer();
+  }
+
   void _evaluateFastLocationMovement(Position position) {
-    if (!fastLocationUpdatesEnabled) return;
+    if (!fastLocationUpdatesEnabled || fastLocationChannelIdx == null) return;
     final previous = _lastFastLocationSentPosition;
     if (previous == null) {
       _emitFastLocationUpdate(position, reason: 'initial');
@@ -552,6 +562,7 @@ class LocationTrackingService {
     _fastLocationTimer = null;
     if (!isTracking ||
         !fastLocationUpdatesEnabled ||
+        fastLocationChannelIdx == null ||
         !_isFastLocationActiveUse) {
       return;
     }
@@ -567,7 +578,7 @@ class LocationTrackingService {
   }
 
   void _emitFastLocationUpdate(Position position, {required String reason}) {
-    if (!fastLocationUpdatesEnabled) return;
+    if (!fastLocationUpdatesEnabled || fastLocationChannelIdx == null) return;
 
     final now = DateTime.now();
     final previous = _lastFastLocationSentPosition;
@@ -669,6 +680,7 @@ class LocationTrackingService {
           5,
           60,
         );
+    fastLocationChannelIdx = prefs.getInt(_scopedKey(_prefKeyFastChannelIdx));
 
     debugPrint('✅ [LocationTracking] Settings loaded');
     debugPrint('    Min distance: ${minDistanceMeters}m');
@@ -680,6 +692,7 @@ class LocationTrackingService {
       '    Fast movement threshold: ${fastLocationMovementThresholdMeters}m',
     );
     debugPrint('    Fast active cadence: ${fastLocationActiveCadenceSeconds}s');
+    debugPrint('    Fast channel idx: ${fastLocationChannelIdx ?? "unset"}');
   }
 
   /// Save settings to SharedPreferences
@@ -709,6 +722,12 @@ class LocationTrackingService {
       _scopedKey(_prefKeyFastActiveCadence),
       fastLocationActiveCadenceSeconds,
     );
+    final channelKey = _scopedKey(_prefKeyFastChannelIdx);
+    if (fastLocationChannelIdx == null) {
+      await prefs.remove(channelKey);
+    } else {
+      await prefs.setInt(channelKey, fastLocationChannelIdx!);
+    }
 
     debugPrint('✅ [LocationTracking] Settings saved');
   }

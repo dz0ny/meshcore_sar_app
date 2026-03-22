@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
-import 'package:meshcore_client/meshcore_client.dart' show BufferReader;
+import 'package:meshcore_client/meshcore_client.dart'
+    show BufferReader, MeshCoreConstants;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'connection_provider.dart';
 import 'contacts_provider.dart';
@@ -211,6 +212,8 @@ class AppProvider with ChangeNotifier {
   static const int _maxPacketRetryAttempts = 4;
   final Map<String, String> _voiceSessionSenderKey6 = {};
   final Map<String, String> _imageSessionSenderKey6 = {};
+  final Map<String, Map<int, VoicePacket>> _pendingChannelVoicePackets = {};
+  final Map<String, Map<int, ImagePacket>> _pendingChannelImageFragments = {};
   final Map<String, Timer> _voiceMissingRetryTimers = {};
   final Map<String, int> _voiceMissingRetryAttempts = {};
   final Map<String, Timer> _imageMissingRetryTimers = {};
@@ -1315,6 +1318,7 @@ class AppProvider with ChangeNotifier {
               .toLowerCase();
         }
         voiceProvider.registerEnvelope(voiceEnvelope);
+        _replayPendingChannelVoicePackets(voiceEnvelope.sessionId);
         enrichedMessage = enrichedMessage.copyWith(
           isVoice: true,
           voiceId: voiceEnvelope.sessionId,
@@ -1352,6 +1356,7 @@ class AppProvider with ChangeNotifier {
               .toLowerCase();
         }
         imageProvider.registerEnvelope(imageEnvelope);
+        _replayPendingChannelImageFragments(imageEnvelope.sessionId);
         messagesProvider.addMessage(
           enrichedMessage,
           contactLookup: (name) {
@@ -1469,15 +1474,7 @@ class AppProvider with ChangeNotifier {
         return;
       }
 
-      final fastGpsPacket = FastGpsPacket.tryParseBinary(payload);
-      if (fastGpsPacket != null) {
-        final sender = _resolveContactByPrefixHex(fastGpsPacket.senderKey6);
-        if (sender != null) {
-          contactsProvider.updateFastGps(
-            sender.publicKey.sublist(0, 6),
-            fastGpsPacket,
-          );
-        }
+      if (_handleFastGpsPayload(payload)) {
         return;
       }
 
@@ -1614,65 +1611,43 @@ class AppProvider with ChangeNotifier {
         return;
       }
 
-      if (ImagePacket.isImageBinary(payload)) {
-        final frag = ImagePacket.tryParseBinary(payload);
-        if (frag == null) return;
-        debugPrint('📷 [AppProvider] Binary image fragment received: $frag');
-        final session = imageProvider.session(frag.sessionId);
-        if (session == null && frag.total < 1) {
-          debugPrint(
-            '⚠️ [AppProvider] Dropping compact image fragment without envelope '
-            'for session ${frag.sessionId}',
-          );
-          return;
-        }
-        imageProvider.addFragment(
-          session == null
-              ? frag
-              : ImagePacket(
-                  sessionId: frag.sessionId,
-                  format: session.format,
-                  index: frag.index,
-                  total: session.total,
-                  data: frag.data,
-                ),
-          width: session?.width ?? 0,
-          height: session?.height ?? 0,
-        );
-        _scheduleImageMissingRetry(
-          frag.sessionId,
-          justComplete: imageProvider.isComplete(frag.sessionId),
-        );
+      if (_handleIncomingImageBinaryPayload(payload)) {
         return;
       }
-
-      if (!VoicePacket.isVoiceBinary(payload)) return;
-      final pkt = VoicePacket.tryParseBinary(payload);
-      if (pkt == null) return;
-      debugPrint('🎙️ [AppProvider] Binary voice packet received: $pkt');
-      final session = voiceProvider.session(pkt.sessionId);
-      if (session == null && pkt.total < 1) {
-        debugPrint(
-          '⚠️ [AppProvider] Dropping compact voice packet without envelope '
-          'for session ${pkt.sessionId}',
-        );
-        return;
-      }
-      final justComplete = voiceProvider.addPacket(
-        session == null
-            ? pkt
-            : VoicePacket(
-                sessionId: pkt.sessionId,
-                mode: session.mode,
-                index: pkt.index,
-                total: session.total,
-                codec2Data: pkt.codec2Data,
-              ),
-      );
-      _scheduleVoiceMissingRetry(pkt.sessionId, justComplete: justComplete);
-      // Insert or update the placeholder message in the chat list
-      _handleIncomingVoicePacket(pkt, justComplete: justComplete);
+      _handleIncomingVoiceBinaryPayload(payload);
     };
+
+    connectionProvider.onChannelDataReceived =
+        (channelIdx, pathLen, dataType, payload, snrRaw, rssiDbm) {
+          if (dataType != MeshCoreConstants.dataTypeDev) {
+            debugPrint(
+              '📦 [AppProvider] Ignoring channel datagram type '
+              '0x${dataType.toRadixString(16).padLeft(4, '0')} on channel $channelIdx',
+            );
+            return;
+          }
+
+          if (_handleFastGpsPayload(payload)) {
+            return;
+          }
+          if (_handleIncomingImageBinaryPayload(
+            payload,
+            allowPreEnvelopeBuffer: true,
+          )) {
+            return;
+          }
+          if (_handleIncomingVoiceBinaryPayload(
+            payload,
+            allowPreEnvelopeBuffer: true,
+          )) {
+            return;
+          }
+
+          debugPrint(
+            '📦 [AppProvider] Unknown developer channel payload on channel '
+            '$channelIdx: ${payload.isNotEmpty ? payload.first : -1}',
+          );
+        };
 
     connectionProvider.onControlDataReceived =
         (payload, snrRaw, rssiDbm, pathLen) {
@@ -2805,6 +2780,23 @@ class AppProvider with ChangeNotifier {
       return;
     }
 
+    final channelIdx = locationTrackingService.fastLocationChannelIdx;
+    if (channelIdx == null) {
+      return;
+    }
+
+    final hasTargetChannel = contactsProvider.channels.any(
+      (channel) =>
+          (channel.publicKey.length > 1 ? channel.publicKey[1] : 0) ==
+          channelIdx,
+    );
+    if (!hasTargetChannel) {
+      debugPrint(
+        '⚠️ [AppProvider] Fast GPS target channel $channelIdx is unavailable',
+      );
+      return;
+    }
+
     final publicKey = connectionProvider.deviceInfo.publicKey;
     if (publicKey == null || publicKey.length < 6) {
       return;
@@ -2822,10 +2814,14 @@ class AppProvider with ChangeNotifier {
     );
     debugPrint(
       '📍 [AppProvider] Sending fast GPS update ($reason): '
-      '${position.latitude}, ${position.longitude}',
+      '${position.latitude}, ${position.longitude} via channel $channelIdx',
     );
     try {
-      await connectionProvider.sendRawPrivateMulticast(packet.encodeBinary());
+      await connectionProvider.sendChannelData(
+        channelIdx: channelIdx,
+        dataType: MeshCoreConstants.dataTypeDev,
+        payload: packet.encodeBinary(),
+      );
     } catch (e) {
       debugPrint('⚠️ [AppProvider] Fast GPS send failed: $e');
     }
@@ -3363,6 +3359,173 @@ class AppProvider with ChangeNotifier {
     });
   }
 
+  bool _handleFastGpsPayload(Uint8List payload) {
+    final fastGpsPacket = FastGpsPacket.tryParseBinary(payload);
+    if (fastGpsPacket == null) {
+      return false;
+    }
+
+    final sender = _resolveContactByPrefixHex(fastGpsPacket.senderKey6);
+    if (sender != null) {
+      contactsProvider.updateFastGps(
+        sender.publicKey.sublist(0, 6),
+        fastGpsPacket,
+      );
+    }
+    return true;
+  }
+
+  bool _handleIncomingImageBinaryPayload(
+    Uint8List payload, {
+    bool allowPreEnvelopeBuffer = false,
+  }) {
+    if (!ImagePacket.isImageBinary(payload)) {
+      return false;
+    }
+    final frag = ImagePacket.tryParseBinary(payload);
+    if (frag == null) {
+      return true;
+    }
+    debugPrint('📷 [AppProvider] Binary image fragment received: $frag');
+    final session = imageProvider.session(frag.sessionId);
+    if (session == null && frag.total < 1) {
+      if (allowPreEnvelopeBuffer) {
+        _pendingChannelImageFragments.putIfAbsent(
+          frag.sessionId,
+          () => <int, ImagePacket>{},
+        )[frag.index] = frag;
+        debugPrint(
+          '📷 [AppProvider] Buffered compact image fragment before envelope '
+          'for session ${frag.sessionId} index=${frag.index}',
+        );
+      } else {
+        debugPrint(
+          '⚠️ [AppProvider] Dropping compact image fragment without envelope '
+          'for session ${frag.sessionId}',
+        );
+      }
+      return true;
+    }
+
+    imageProvider.addFragment(
+      session == null
+          ? frag
+          : ImagePacket(
+              sessionId: frag.sessionId,
+              format: session.format,
+              index: frag.index,
+              total: session.total,
+              data: frag.data,
+            ),
+      width: session?.width ?? 0,
+      height: session?.height ?? 0,
+    );
+    _scheduleImageMissingRetry(
+      frag.sessionId,
+      justComplete: imageProvider.isComplete(frag.sessionId),
+    );
+    return true;
+  }
+
+  bool _handleIncomingVoiceBinaryPayload(
+    Uint8List payload, {
+    bool allowPreEnvelopeBuffer = false,
+  }) {
+    if (!VoicePacket.isVoiceBinary(payload)) {
+      return false;
+    }
+    final pkt = VoicePacket.tryParseBinary(payload);
+    if (pkt == null) {
+      return true;
+    }
+    debugPrint('🎙️ [AppProvider] Binary voice packet received: $pkt');
+    final session = voiceProvider.session(pkt.sessionId);
+    if (session == null && pkt.total < 1) {
+      if (allowPreEnvelopeBuffer) {
+        _pendingChannelVoicePackets.putIfAbsent(
+          pkt.sessionId,
+          () => <int, VoicePacket>{},
+        )[pkt.index] = pkt;
+        debugPrint(
+          '🎙️ [AppProvider] Buffered compact voice packet before envelope '
+          'for session ${pkt.sessionId} index=${pkt.index}',
+        );
+      } else {
+        debugPrint(
+          '⚠️ [AppProvider] Dropping compact voice packet without envelope '
+          'for session ${pkt.sessionId}',
+        );
+      }
+      return true;
+    }
+
+    final normalizedPacket = session == null
+        ? pkt
+        : VoicePacket(
+            sessionId: pkt.sessionId,
+            mode: session.mode,
+            index: pkt.index,
+            total: session.total,
+            codec2Data: pkt.codec2Data,
+          );
+    final justComplete = voiceProvider.addPacket(normalizedPacket);
+    _scheduleVoiceMissingRetry(pkt.sessionId, justComplete: justComplete);
+    _handleIncomingVoicePacket(normalizedPacket, justComplete: justComplete);
+    return true;
+  }
+
+  void _replayPendingChannelVoicePackets(String sessionId) {
+    final pending = _pendingChannelVoicePackets.remove(sessionId);
+    final session = voiceProvider.session(sessionId);
+    if (pending == null || pending.isEmpty || session == null) {
+      return;
+    }
+
+    final indices = pending.keys.toList()..sort();
+    for (final index in indices) {
+      final packet = pending[index]!;
+      final normalizedPacket = VoicePacket(
+        sessionId: packet.sessionId,
+        mode: session.mode,
+        index: packet.index,
+        total: session.total,
+        codec2Data: packet.codec2Data,
+      );
+      final justComplete = voiceProvider.addPacket(normalizedPacket);
+      _scheduleVoiceMissingRetry(sessionId, justComplete: justComplete);
+      _handleIncomingVoicePacket(normalizedPacket, justComplete: justComplete);
+    }
+  }
+
+  void _replayPendingChannelImageFragments(String sessionId) {
+    final pending = _pendingChannelImageFragments.remove(sessionId);
+    final session = imageProvider.session(sessionId);
+    if (pending == null || pending.isEmpty || session == null) {
+      return;
+    }
+
+    final indices = pending.keys.toList()..sort();
+    for (final index in indices) {
+      final fragment = pending[index]!;
+      final normalizedFragment = ImagePacket(
+        sessionId: fragment.sessionId,
+        format: session.format,
+        index: fragment.index,
+        total: session.total,
+        data: fragment.data,
+      );
+      imageProvider.addFragment(
+        normalizedFragment,
+        width: session.width,
+        height: session.height,
+      );
+      _scheduleImageMissingRetry(
+        sessionId,
+        justComplete: imageProvider.isComplete(sessionId),
+      );
+    }
+  }
+
   /// Insert or update a voice placeholder message for binary raw-data packets.
   ///
   /// Binary voice packets arrive without a chat message, so we synthesise one
@@ -3767,6 +3930,8 @@ class AppProvider with ChangeNotifier {
     _imageMissingRetryAttempts.clear();
     _voiceSessionSenderKey6.clear();
     _imageSessionSenderKey6.clear();
+    _pendingChannelVoicePackets.clear();
+    _pendingChannelImageFragments.clear();
     _lowBatteryNotifiedNodeIds.clear();
     notifyListeners();
   }
@@ -3876,6 +4041,8 @@ class AppProvider with ChangeNotifier {
     for (final timer in _imageMissingRetryTimers.values) {
       timer.cancel();
     }
+    _pendingChannelVoicePackets.clear();
+    _pendingChannelImageFragments.clear();
     super.dispose();
   }
 }

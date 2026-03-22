@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meshcore_client/meshcore_client.dart' show MeshCoreConstants;
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import '../providers/messages_provider.dart';
@@ -114,7 +115,9 @@ class _ComposerActionTile extends StatelessWidget {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: effectiveColor.withValues(alpha: enabled ? 0.14 : 0.10),
+                    color: effectiveColor.withValues(
+                      alpha: enabled ? 0.14 : 0.10,
+                    ),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   alignment: Alignment.center,
@@ -964,6 +967,7 @@ class _MessagesTabState extends State<MessagesTab> {
     if (!shouldContinue) return;
     if (!mounted) return;
     final connectionProvider = context.read<ConnectionProvider>();
+    final messagesProvider = context.read<MessagesProvider>();
     if (!connectionProvider.deviceInfo.isConnected) {
       ToastLogger.error(context, 'Not connected to device');
       return;
@@ -975,6 +979,7 @@ class _MessagesTabState extends State<MessagesTab> {
     final rawBytes = await picked.readAsBytes();
 
     setState(() => _isSendingImage = true);
+    String? failedMessageId;
     try {
       // Compress AVIF using user-selected size, compression and color mode.
       final maxSize = await ImagePreferences.getMaxSize();
@@ -1052,8 +1057,8 @@ class _MessagesTabState extends State<MessagesTab> {
       imageProvider.cacheOutgoingSession(sessionId, fragments, envelope);
 
       // Add local placeholder message.
-      final messagesProvider = context.read<MessagesProvider>();
       final msgId = 'img_${sessionId}_sent';
+      failedMessageId = msgId;
       final isChannel =
           _destinationType ==
           MessageDestinationPreferences.destinationTypeChannel;
@@ -1111,10 +1116,23 @@ class _MessagesTabState extends State<MessagesTab> {
         'chunk=${imageDataBytesPerFragment}B',
       );
 
+      if (isChannel) {
+        for (final fragment in fragments) {
+          await connectionProvider.sendChannelData(
+            channelIdx: channelIdx ?? 0,
+            dataType: MeshCoreConstants.dataTypeDev,
+            payload: fragment.encodeBinary(),
+          );
+        }
+      }
+
       // Image fragments are always served on demand after an explicit IR2
       // fetch request, including direct contacts.
     } catch (e, st) {
       debugPrint('❌ [Image] _pickAndSendImage: $e\n$st');
+      if (failedMessageId != null) {
+        messagesProvider.markMessageFailed(failedMessageId);
+      }
       if (!mounted) return;
       ToastLogger.error(context, 'Image send failed');
     } finally {
@@ -1423,6 +1441,15 @@ class _MessagesTabState extends State<MessagesTab> {
     }
 
     debugPrint('🎙️ [Voice] envelope sent for session $sessionId');
+    if (isChannel) {
+      for (final packet in encodedPackets) {
+        await connectionProvider.sendChannelData(
+          channelIdx: channelIdx ?? 0,
+          dataType: MeshCoreConstants.dataTypeDev,
+          payload: packet.encodeBinary(),
+        );
+      }
+    }
     // Mark the placeholder message as "sent" (ackTag=0, timeout=0 = no ACK tracking).
     // addSentMessage() forces deliveryStatus.sending; we upgrade it here so the
     // bubble shows "Sent" instead of "Sending" once all packets are on the wire.
@@ -1673,98 +1700,99 @@ class _MessagesTabState extends State<MessagesTab> {
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final actions = <Widget>[
-                        _ComposerActionTile(
-                          icon: Icons.search_rounded,
-                          title: l10n.searchMessages,
-                          subtitle: 'Find text in the current conversation',
-                          color: const Color(0xFF2B6CB0),
-                          onTap: () => runAction(() async {
-                            _showFilteredMessageSearch();
-                          }),
-                        ),
-                        _ComposerActionTile(
-                          icon: Icons.add_location_alt_rounded,
-                          title: l10n.sendSarMarker,
-                          subtitle: 'Share a marker with coordinates',
-                          color: const Color(0xFFB45309),
-                          onTap: () => runAction(() async {
-                            _showSarDialog();
-                          }),
-                        ),
-                        if (_voiceSupported)
                           _ComposerActionTile(
-                            icon: _isRecording
-                                ? Icons.stop_rounded
-                                : Icons.mic_rounded,
-                            title: _isRecording
-                                ? 'Stop recording'
-                                : 'Record voice',
-                            subtitle: _isSendingVoice
-                                ? 'Voice message is sending'
-                                : _isRecording
-                                ? 'Finish and send your clip'
-                                : 'Capture and send a voice note',
-                            color: const Color(0xFF7C3AED),
-                            enabled: !_isSendingVoice,
-                            onTap: !_isSendingVoice
+                            icon: Icons.search_rounded,
+                            title: l10n.searchMessages,
+                            subtitle: 'Find text in the current conversation',
+                            color: const Color(0xFF2B6CB0),
+                            onTap: () => runAction(() async {
+                              _showFilteredMessageSearch();
+                            }),
+                          ),
+                          _ComposerActionTile(
+                            icon: Icons.add_location_alt_rounded,
+                            title: l10n.sendSarMarker,
+                            subtitle: 'Share a marker with coordinates',
+                            color: const Color(0xFFB45309),
+                            onTap: () => runAction(() async {
+                              _showSarDialog();
+                            }),
+                          ),
+                          if (_voiceSupported)
+                            _ComposerActionTile(
+                              icon: _isRecording
+                                  ? Icons.stop_rounded
+                                  : Icons.mic_rounded,
+                              title: _isRecording
+                                  ? 'Stop recording'
+                                  : 'Record voice',
+                              subtitle: _isSendingVoice
+                                  ? 'Voice message is sending'
+                                  : _isRecording
+                                  ? 'Finish and send your clip'
+                                  : 'Capture and send a voice note',
+                              color: const Color(0xFF7C3AED),
+                              enabled: !_isSendingVoice,
+                              onTap: !_isSendingVoice
+                                  ? () => runAction(() async {
+                                      if (_isRecording) {
+                                        await _stopAndSendVoice();
+                                      } else {
+                                        await _startVoiceRecording();
+                                      }
+                                    })
+                                  : null,
+                            ),
+                          _ComposerActionTile(
+                            icon: Icons.photo_library_rounded,
+                            title: l10n.sendImageFromGallery,
+                            subtitle: 'Choose an image from your library',
+                            color: const Color(0xFF0F766E),
+                            enabled: !_isSendingImage,
+                            onTap: !_isSendingImage
                                 ? () => runAction(() async {
-                                    if (_isRecording) {
-                                      await _stopAndSendVoice();
-                                    } else {
-                                      await _startVoiceRecording();
-                                    }
+                                    await _pickAndSendImage(
+                                      source: ImageSource.gallery,
+                                    );
                                   })
                                 : null,
                           ),
-                        _ComposerActionTile(
-                          icon: Icons.photo_library_rounded,
-                          title: l10n.sendImageFromGallery,
-                          subtitle: 'Choose an image from your library',
-                          color: const Color(0xFF0F766E),
-                          enabled: !_isSendingImage,
-                          onTap: !_isSendingImage
-                              ? () => runAction(() async {
-                                  await _pickAndSendImage(
-                                    source: ImageSource.gallery,
-                                  );
-                                })
-                              : null,
-                        ),
-                        _ComposerActionTile(
-                          icon: Icons.camera_alt_rounded,
-                          title: l10n.takePhoto,
-                          subtitle: 'Capture something right now',
-                          color: const Color(0xFF2563EB),
-                          enabled: !_isSendingImage,
-                          onTap: !_isSendingImage
-                              ? () => runAction(() async {
-                                  await _pickAndSendImage(
-                                    source: ImageSource.camera,
-                                  );
-                                })
-                              : null,
-                        ),
-                        _ComposerActionTile(
-                          icon: Icons.grid_3x3_rounded,
-                          title: l10n.startTictactoe,
-                          subtitle: l10n.dmOnly,
-                          color: const Color(0xFFBE185D),
-                          onTap: () => runAction(() async {
-                            await _startTicTacToeGame();
-                          }),
-                        ),
-                      ];
+                          _ComposerActionTile(
+                            icon: Icons.camera_alt_rounded,
+                            title: l10n.takePhoto,
+                            subtitle: 'Capture something right now',
+                            color: const Color(0xFF2563EB),
+                            enabled: !_isSendingImage,
+                            onTap: !_isSendingImage
+                                ? () => runAction(() async {
+                                    await _pickAndSendImage(
+                                      source: ImageSource.camera,
+                                    );
+                                  })
+                                : null,
+                          ),
+                          _ComposerActionTile(
+                            icon: Icons.grid_3x3_rounded,
+                            title: l10n.startTictactoe,
+                            subtitle: l10n.dmOnly,
+                            color: const Color(0xFFBE185D),
+                            onTap: () => runAction(() async {
+                              await _startTicTacToeGame();
+                            }),
+                          ),
+                        ];
 
                         return GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: actions.length,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            mainAxisExtent: 126,
-                          ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                mainAxisExtent: 126,
+                              ),
                           itemBuilder: (context, index) => actions[index],
                         );
                       },
