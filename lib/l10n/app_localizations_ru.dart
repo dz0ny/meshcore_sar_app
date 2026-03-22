@@ -1891,6 +1891,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Используйте журналы пакетов, сканирование спектра и диагностику разработчика для устранения проблем mesh-сети.';
 
   @override
+  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+
+  @override
+  String get postConnectDiscoveryDescription =>
+      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+
+  @override
   String get contactInSensors => 'В датчиках';
 
   @override

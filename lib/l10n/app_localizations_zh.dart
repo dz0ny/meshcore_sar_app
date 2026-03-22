@@ -1797,6 +1797,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get wizardToolsFeature3 => '在排查 mesh 网络问题时使用数据包日志、频谱扫描和开发者诊断。';
 
   @override
+  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+
+  @override
+  String get postConnectDiscoveryDescription =>
+      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+
+  @override
   String get contactInSensors => '在传感器中';
 
   @override

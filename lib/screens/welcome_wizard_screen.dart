@@ -221,14 +221,13 @@ class _WelcomeWizardScreenState extends State<WelcomeWizardScreen> {
   }
 
   Future<void> _openConnectionDialog() async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => const ConnectionDialog(),
+    final connected = await showConnectionDialogFlow(
+      context,
+      offerPostConnectRepeaterDiscovery: true,
     );
     if (!mounted) return;
     final connectionProvider = context.read<ConnectionProvider>();
-    if (connectionProvider.deviceInfo.isConnected) {
+    if (connected) {
       await connectionProvider.refreshDeviceInfo();
     }
     if (!mounted) return;

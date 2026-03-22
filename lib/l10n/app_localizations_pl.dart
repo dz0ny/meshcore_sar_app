@@ -1894,6 +1894,13 @@ class AppLocalizationsPl extends AppLocalizations {
       'Używaj logów pakietów, skanowania widma i diagnostyki deweloperskiej podczas rozwiązywania problemów z mesh.';
 
   @override
+  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+
+  @override
+  String get postConnectDiscoveryDescription =>
+      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+
+  @override
   String get contactInSensors => 'W Czujnikach';
 
   @override

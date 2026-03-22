@@ -1906,6 +1906,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Utilisez les journaux de paquets, le balayage du spectre et les diagnostics développeur pour dépanner le réseau maillé.';
 
   @override
+  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+
+  @override
+  String get postConnectDiscoveryDescription =>
+      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+
+  @override
   String get contactInSensors => 'Dans Capteurs';
 
   @override

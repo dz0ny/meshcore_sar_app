@@ -737,12 +737,10 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  void _showConnectionDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
+  Future<void> _showConnectionDialog(BuildContext context) async {
+    await showConnectionDialogFlow(
+      context,
       backgroundColor: Colors.transparent,
-      builder: (context) => const ConnectionDialog(),
     );
   }
 

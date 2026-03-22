@@ -38,6 +38,7 @@ Future<void> _pumpDiscoveryScreen(
   WidgetTester tester, {
   ContactsProvider? contactsProvider,
   ConnectionProvider? connectionProvider,
+  DiscoveryScreen screen = const DiscoveryScreen(),
 }) async {
   final resolvedContactsProvider = contactsProvider ?? ContactsProvider();
   final resolvedConnectionProvider =
@@ -56,7 +57,7 @@ Future<void> _pumpDiscoveryScreen(
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const DiscoveryScreen(),
+        home: screen,
       ),
     ),
   );
@@ -112,6 +113,21 @@ void main() {
       expect(find.text('Repeater discovery sent'), findsOneWidget);
     },
   );
+
+  testWidgets('auto discovery can trigger repeater discovery on open', (
+    tester,
+  ) async {
+    final connectionProvider = _FakeConnectionProvider(isConnected: true);
+
+    await _pumpDiscoveryScreen(
+      tester,
+      connectionProvider: connectionProvider,
+      screen: const DiscoveryScreen(autoDiscoverRepeatersOnOpen: true),
+    );
+
+    expect(connectionProvider.discoveredAdvertTypes, [2]);
+    expect(find.text('Repeater discovery sent'), findsOneWidget);
+  });
 
   testWidgets('search and inline type filters narrow discovered nodes', (
     tester,

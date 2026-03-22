@@ -2285,7 +2285,7 @@
   "@change": {
     "description": "Generic change action"
   },
-  "wizardOverviewDescription": "This app combines MeshCore messaging, SAR field updates, mapping, and device tools in one place.",
+  "wizardOverviewDescription": "This app combines MeshCore messaging, SAR field updates, discovery, mapping, and device tools in one place.",
   "@wizardOverviewDescription": {
     "description": "Updated onboarding overview description"
   },
@@ -2297,7 +2297,7 @@
   "@wizardOverviewFeature2": {
     "description": "Updated onboarding overview feature 2"
   },
-  "wizardOverviewFeature3": "Connect over BLE or TCP, then manage the companion radio from inside the app.",
+  "wizardOverviewFeature3": "Connect over BLE, WiFi, or Serial, then manage the companion radio from inside the app.",
   "@wizardOverviewFeature3": {
     "description": "Updated onboarding overview feature 3"
   },
@@ -2410,11 +2410,11 @@
   "@wizardNetworkTitle": {
     "description": "Updated onboarding network page title"
   },
-  "wizardNetworkDescription": "The Contacts tab organizes the network you discover and the routes you learn over time.",
+  "wizardNetworkDescription": "The Contacts and Discovery flows help you find nearby nodes, store repeaters, and manage the routes you learn over time.",
   "@wizardNetworkDescription": {
     "description": "Updated onboarding network page description"
   },
-  "wizardNetworkFeature1": "Review team members, repeaters, rooms, channels, and pending adverts in one list.",
+  "wizardNetworkFeature1": "Discover repeaters and sensors, then review team members, rooms, channels, and pending adverts in one list.",
   "@wizardNetworkFeature1": {
     "description": "Updated onboarding network feature 1"
   },
@@ -2422,7 +2422,7 @@
   "@wizardNetworkFeature2": {
     "description": "Updated onboarding network feature 2"
   },
-  "wizardNetworkFeature3": "Create channels and manage network destinations without leaving the app.",
+  "wizardNetworkFeature3": "Add new repeaters right after you connect, then create channels and manage network destinations without leaving the app.",
   "@wizardNetworkFeature3": {
     "description": "Updated onboarding network feature 3"
   },
@@ -2462,9 +2462,17 @@
   "@wizardToolsFeature2": {
     "description": "Updated onboarding tools feature 2"
   },
-  "wizardToolsFeature3": "Use packet logs, spectrum scan, and developer diagnostics when troubleshooting the mesh.",
+  "wizardToolsFeature3": "Use live traffic, packet logs, spectrum scan, and developer diagnostics when troubleshooting the mesh.",
   "@wizardToolsFeature3": {
     "description": "Updated onboarding tools feature 3"
+  },
+  "postConnectDiscoveryTitle": "Discover repeaters now?",
+  "@postConnectDiscoveryTitle": {
+    "description": "Title for the prompt shown after a successful device connection"
+  },
+  "postConnectDiscoveryDescription": "Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.",
+  "@postConnectDiscoveryDescription": {
+    "description": "Body text for the prompt shown after a successful device connection"
   },
   "contactInSensors": "In Sensors",
   "@contactInSensors": {

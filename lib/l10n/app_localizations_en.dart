@@ -1717,7 +1717,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wizardOverviewDescription =>
-      'This app combines MeshCore messaging, SAR field updates, mapping, and device tools in one place.';
+      'This app combines MeshCore messaging, SAR field updates, discovery, mapping, and device tools in one place.';
 
   @override
   String get wizardOverviewFeature1 =>
@@ -1729,7 +1729,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wizardOverviewFeature3 =>
-      'Connect over BLE or TCP, then manage the companion radio from inside the app.';
+      'Connect over BLE, WiFi, or Serial, then manage the companion radio from inside the app.';
 
   @override
   String get wizardMessagingTitle => 'Messaging and Field Reports';
@@ -1819,11 +1819,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wizardNetworkDescription =>
-      'The Contacts tab organizes the network you discover and the routes you learn over time.';
+      'The Contacts and Discovery flows help you find nearby nodes, store repeaters, and manage the routes you learn over time.';
 
   @override
   String get wizardNetworkFeature1 =>
-      'Review team members, repeaters, rooms, channels, and pending adverts in one list.';
+      'Discover repeaters and sensors, then review team members, rooms, channels, and pending adverts in one list.';
 
   @override
   String get wizardNetworkFeature2 =>
@@ -1831,7 +1831,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wizardNetworkFeature3 =>
-      'Create channels and manage network destinations without leaving the app.';
+      'Add new repeaters right after you connect, then create channels and manage network destinations without leaving the app.';
 
   @override
   String get wizardMapOpsTitle => 'Map, Trails, and Shared Geometry';
@@ -1869,7 +1869,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wizardToolsFeature3 =>
-      'Use packet logs, spectrum scan, and developer diagnostics when troubleshooting the mesh.';
+      'Use live traffic, packet logs, spectrum scan, and developer diagnostics when troubleshooting the mesh.';
+
+  @override
+  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+
+  @override
+  String get postConnectDiscoveryDescription =>
+      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
 
   @override
   String get contactInSensors => 'In Sensors';

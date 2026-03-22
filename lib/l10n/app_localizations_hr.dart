@@ -1882,6 +1882,13 @@ class AppLocalizationsHr extends AppLocalizations {
       'Koristite zapisnike paketa, skeniranje spektra i razvojnu dijagnostiku pri rješavanju problema s mesh mrežom.';
 
   @override
+  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+
+  @override
+  String get postConnectDiscoveryDescription =>
+      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+
+  @override
   String get contactInSensors => 'U Senzorima';
 
   @override

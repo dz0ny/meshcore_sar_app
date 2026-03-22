@@ -1,1 +1,66 @@
-{}
+{
+  "de": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "el": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "es": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "fr": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "hr": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "it": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "pl": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "pt": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "ru": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "sl": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "tr": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "uk": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ],
+
+  "zh": [
+    "postConnectDiscoveryTitle",
+    "postConnectDiscoveryDescription"
+  ]
+}

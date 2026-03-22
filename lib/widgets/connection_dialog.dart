@@ -4,9 +4,13 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_provider.dart';
 import '../providers/connection_provider.dart';
+import '../providers/contacts_provider.dart';
+import '../screens/discovery_screen.dart';
 import '../services/network_scanner_service.dart';
 import '../services/profile_workspace_coordinator.dart';
 import '../services/serial/serial_transport.dart';
+
+enum _ConnectionDialogResult { connected }
 
 Future<void> _initializeConnectedWorkspace({
   required ProfileWorkspaceCoordinator profileWorkspaceCoordinator,
@@ -14,6 +18,64 @@ Future<void> _initializeConnectedWorkspace({
 }) async {
   await profileWorkspaceCoordinator.syncActiveProfileForCurrentDevice();
   await appProvider.initialize();
+}
+
+Future<bool> showConnectionDialogFlow(
+  BuildContext context, {
+  Color? backgroundColor,
+  bool offerPostConnectRepeaterDiscovery = false,
+}) async {
+  final result = await showModalBottomSheet<_ConnectionDialogResult>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: backgroundColor,
+    builder: (context) => const ConnectionDialog(),
+  );
+
+  if (result != _ConnectionDialogResult.connected || !context.mounted) {
+    return result == _ConnectionDialogResult.connected;
+  }
+
+  if (!offerPostConnectRepeaterDiscovery) {
+    return true;
+  }
+
+  final contactsProvider = context.read<ContactsProvider>();
+  if (contactsProvider.repeaters.isNotEmpty) {
+    return true;
+  }
+
+  final l10n = AppLocalizations.of(context)!;
+  final openDiscovery = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.postConnectDiscoveryTitle),
+      content: Text(l10n.postConnectDiscoveryDescription),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(l10n.continue_),
+        ),
+        FilledButton.icon(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          icon: const Icon(Icons.router_outlined),
+          label: Text(l10n.discoverRepeaters),
+        ),
+      ],
+    ),
+  );
+
+  if (openDiscovery != true || !context.mounted) {
+    return true;
+  }
+
+  await Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) =>
+          const DiscoveryScreen(autoDiscoverRepeatersOnOpen: true),
+    ),
+  );
+  return true;
 }
 
 /// Connection Dialog with tabs for BLE devices and Network servers
@@ -33,16 +95,13 @@ class _ConnectionDialogState extends State<ConnectionDialog>
   int _scannedCount = 0;
   int _totalToScan = 0;
   int _lastTabIndex = 0;
+  bool _hasRequestedBleScan = false;
   String? _connectingToServerKey;
   String? _connectingBleDeviceId;
 
   void _onTabChanged() {
     if (_tabController.index == _lastTabIndex) return;
     _lastTabIndex = _tabController.index;
-
-    if (_tabController.index == 0) {
-      _refreshBleDevices();
-    }
 
     if (_tabController.index == 1) {
       if (_networkScanner.hasCachedResults && _discoveredServers.isEmpty) {
@@ -64,11 +123,6 @@ class _ConnectionDialogState extends State<ConnectionDialog>
       context,
       listen: false,
     );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _refreshBleDevices();
-    });
 
     _networkScanner.onServerDiscovered = (server) {
       if (!mounted) return;
@@ -110,6 +164,13 @@ class _ConnectionDialogState extends State<ConnectionDialog>
   }
 
   Future<void> _refreshBleDevices() async {
+    if (!_hasRequestedBleScan && mounted) {
+      setState(() {
+        _hasRequestedBleScan = true;
+      });
+    } else {
+      _hasRequestedBleScan = true;
+    }
     await _connectionProvider.stopScan();
     if (!mounted) return;
     await _connectionProvider.startScan();
@@ -119,6 +180,45 @@ class _ConnectionDialogState extends State<ConnectionDialog>
     if (rssi >= -60) return Colors.green;
     if (rssi >= -75) return Colors.orange;
     return Colors.red;
+  }
+
+  Future<void> _handleSuccessfulConnection() async {
+    final appProvider = context.read<AppProvider>();
+    final profileWorkspaceCoordinator = context
+        .read<ProfileWorkspaceCoordinator>();
+
+    await _initializeConnectedWorkspace(
+      profileWorkspaceCoordinator: profileWorkspaceCoordinator,
+      appProvider: appProvider,
+    );
+
+    if (!mounted) return;
+    Navigator.of(context).pop(_ConnectionDialogResult.connected);
+  }
+
+  String _normalizeConnectionError(Object error) {
+    var message = error.toString();
+    if (message.startsWith('Exception: ')) {
+      message = message.substring('Exception: '.length);
+    }
+    if (message.startsWith('Connection failed: Exception: ')) {
+      return message.substring('Connection failed: Exception: '.length);
+    }
+    if (message.startsWith('Connection failed: ')) {
+      return message.substring('Connection failed: '.length);
+    }
+    return message;
+  }
+
+  void _showConnectionError(Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_normalizeConnectionError(error)),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      ),
+    );
   }
 
   @override
@@ -401,11 +501,13 @@ class _ConnectionDialogState extends State<ConnectionDialog>
   }
 
   Widget _buildBleDevicesTab(ConnectionProvider connectionProvider) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       children: [
         _buildSectionBanner(
           icon: Icons.bluetooth_searching_rounded,
-          message: AppLocalizations.of(context)!.defaultPinInfo,
+          message: l10n.defaultPinInfo,
           onRefresh: _refreshBleDevices,
         ),
         if (connectionProvider.error != null)
@@ -418,8 +520,10 @@ class _ConnectionDialogState extends State<ConnectionDialog>
               : connectionProvider.scannedDevices.isEmpty
               ? _buildEmptyState(
                   icon: Icons.bluetooth_searching_rounded,
-                  title: AppLocalizations.of(context)!.noDevicesFound,
-                  actionLabel: AppLocalizations.of(context)!.scanAgain,
+                  title: _hasRequestedBleScan
+                      ? l10n.noDevicesFound
+                      : 'Press scan to search for nearby devices',
+                  actionLabel: _hasRequestedBleScan ? l10n.scanAgain : 'Scan',
                   onAction: _refreshBleDevices,
                 )
               : ListView.builder(
@@ -434,25 +538,25 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                     final isConnecting = _connectingBleDeviceId == deviceId;
 
                     Future<void> connectBle() async {
-                      final appProvider = context.read<AppProvider>();
-                      final profileWorkspaceCoordinator = context
-                          .read<ProfileWorkspaceCoordinator>();
                       setState(() {
                         _connectingBleDeviceId = deviceId;
                       });
                       try {
-                        Navigator.pop(context);
                         final success = await connectionProvider.connect(
                           device,
                         );
-                        if (success &&
-                            connectionProvider.deviceInfo.isConnected) {
-                          await _initializeConnectedWorkspace(
-                            profileWorkspaceCoordinator:
-                                profileWorkspaceCoordinator,
-                            appProvider: appProvider,
+                        if (!success) {
+                          final name = device.platformName.isNotEmpty
+                              ? device.platformName
+                              : 'device';
+                          throw Exception(
+                            connectionProvider.error ??
+                                'Failed to connect to $name',
                           );
                         }
+                        await _handleSuccessfulConnection();
+                      } catch (error) {
+                        _showConnectionError(error);
                       } finally {
                         if (mounted) {
                           setState(() {
@@ -547,11 +651,6 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                     Future<void> connectServer() async {
                       final connectionProvider = context
                           .read<ConnectionProvider>();
-                      final appProvider = context.read<AppProvider>();
-                      final profileWorkspaceCoordinator = context
-                          .read<ProfileWorkspaceCoordinator>();
-                      final navigator = Navigator.of(context);
-                      final messenger = ScaffoldMessenger.of(context);
 
                       setState(() {
                         _connectingToServerKey = serverKey;
@@ -567,52 +666,23 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                           );
                         }
 
-                        await connectionProvider.connectTcp(
+                        final success = await connectionProvider.connectTcp(
                           server.ipAddress,
                           server.port,
                         );
-                        await _initializeConnectedWorkspace(
-                          profileWorkspaceCoordinator:
-                              profileWorkspaceCoordinator,
-                          appProvider: appProvider,
-                        );
-
-                        if (mounted) {
-                          navigator.pop();
+                        if (!success) {
+                          throw Exception(
+                            connectionProvider.error ??
+                                'Failed to connect to ${server.ipAddress}:${server.port}',
+                          );
                         }
+                        await _handleSuccessfulConnection();
                       } catch (e) {
                         if (!mounted) return;
                         setState(() {
                           _connectingToServerKey = null;
                         });
-
-                        var errorMessage = e.toString();
-                        if (errorMessage.startsWith('Exception: ')) {
-                          errorMessage = errorMessage.substring(
-                            'Exception: '.length,
-                          );
-                        }
-                        if (errorMessage.startsWith(
-                          'Connection failed: Exception: ',
-                        )) {
-                          errorMessage = errorMessage.substring(
-                            'Connection failed: Exception: '.length,
-                          );
-                        } else if (errorMessage.startsWith(
-                          'Connection failed: ',
-                        )) {
-                          errorMessage = errorMessage.substring(
-                            'Connection failed: '.length,
-                          );
-                        }
-
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(errorMessage),
-                            backgroundColor: Colors.red,
-                            duration: const Duration(seconds: 5),
-                          ),
-                        );
+                        _showConnectionError(e);
                       }
                     }
 
@@ -679,8 +749,10 @@ class _ConnectionDialogState extends State<ConnectionDialog>
             actionLabel: actionLabel,
             onAction: onAction,
           ),
-      onConnected: () {
-        if (mounted) Navigator.of(context).pop();
+      onConnected: (result) {
+        if (mounted) {
+          Navigator.of(context).pop(result);
+        }
       },
     );
   }
@@ -706,7 +778,7 @@ typedef _EmptyStateBuilder =
     });
 
 class _SerialDeviceList extends StatefulWidget {
-  final VoidCallback onConnected;
+  final ValueChanged<_ConnectionDialogResult> onConnected;
   final _TransportCardBuilder buildTransportCard;
   final _EmptyStateBuilder buildEmptyState;
 
@@ -801,9 +873,6 @@ class _SerialDeviceListState extends State<_SerialDeviceList> {
     setState(() => _isConnecting = true);
     try {
       final connectionProvider = context.read<ConnectionProvider>();
-      final appProvider = context.read<AppProvider>();
-      final profileWorkspaceCoordinator = context
-          .read<ProfileWorkspaceCoordinator>();
       final connection = await _transport.connect(device);
       final success = await connectionProvider.connectSerial(
         service: connection.service,
@@ -815,10 +884,11 @@ class _SerialDeviceListState extends State<_SerialDeviceList> {
 
       if (success) {
         await _initializeConnectedWorkspace(
-          profileWorkspaceCoordinator: profileWorkspaceCoordinator,
-          appProvider: appProvider,
+          profileWorkspaceCoordinator: context
+              .read<ProfileWorkspaceCoordinator>(),
+          appProvider: context.read<AppProvider>(),
         );
-        widget.onConnected();
+        widget.onConnected(_ConnectionDialogResult.connected);
       } else {
         await connection.disconnect();
         connection.service.dispose();

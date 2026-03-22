@@ -3219,7 +3219,7 @@ abstract class AppLocalizations {
   /// Updated onboarding overview description
   ///
   /// In en, this message translates to:
-  /// **'This app combines MeshCore messaging, SAR field updates, mapping, and device tools in one place.'**
+  /// **'This app combines MeshCore messaging, SAR field updates, discovery, mapping, and device tools in one place.'**
   String get wizardOverviewDescription;
 
   /// Updated onboarding overview feature 1
@@ -3237,7 +3237,7 @@ abstract class AppLocalizations {
   /// Updated onboarding overview feature 3
   ///
   /// In en, this message translates to:
-  /// **'Connect over BLE or TCP, then manage the companion radio from inside the app.'**
+  /// **'Connect over BLE, WiFi, or Serial, then manage the companion radio from inside the app.'**
   String get wizardOverviewFeature3;
 
   /// Updated onboarding messaging page title
@@ -3387,13 +3387,13 @@ abstract class AppLocalizations {
   /// Updated onboarding network page description
   ///
   /// In en, this message translates to:
-  /// **'The Contacts tab organizes the network you discover and the routes you learn over time.'**
+  /// **'The Contacts and Discovery flows help you find nearby nodes, store repeaters, and manage the routes you learn over time.'**
   String get wizardNetworkDescription;
 
   /// Updated onboarding network feature 1
   ///
   /// In en, this message translates to:
-  /// **'Review team members, repeaters, rooms, channels, and pending adverts in one list.'**
+  /// **'Discover repeaters and sensors, then review team members, rooms, channels, and pending adverts in one list.'**
   String get wizardNetworkFeature1;
 
   /// Updated onboarding network feature 2
@@ -3405,7 +3405,7 @@ abstract class AppLocalizations {
   /// Updated onboarding network feature 3
   ///
   /// In en, this message translates to:
-  /// **'Create channels and manage network destinations without leaving the app.'**
+  /// **'Add new repeaters right after you connect, then create channels and manage network destinations without leaving the app.'**
   String get wizardNetworkFeature3;
 
   /// Updated onboarding map page title
@@ -3465,8 +3465,20 @@ abstract class AppLocalizations {
   /// Updated onboarding tools feature 3
   ///
   /// In en, this message translates to:
-  /// **'Use packet logs, spectrum scan, and developer diagnostics when troubleshooting the mesh.'**
+  /// **'Use live traffic, packet logs, spectrum scan, and developer diagnostics when troubleshooting the mesh.'**
   String get wizardToolsFeature3;
+
+  /// Title for the prompt shown after a successful device connection
+  ///
+  /// In en, this message translates to:
+  /// **'Discover repeaters now?'**
+  String get postConnectDiscoveryTitle;
+
+  /// Body text for the prompt shown after a successful device connection
+  ///
+  /// In en, this message translates to:
+  /// **'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.'**
+  String get postConnectDiscoveryDescription;
 
   /// Contact actions label when already in sensors
   ///

@@ -12,7 +12,9 @@ import '../widgets/compact_signal_indicator.dart' show SignalMetric;
 enum _DiscoveryListFilter { all, repeaters, sensors, others }
 
 class DiscoveryScreen extends StatefulWidget {
-  const DiscoveryScreen({super.key});
+  final bool autoDiscoverRepeatersOnOpen;
+
+  const DiscoveryScreen({super.key, this.autoDiscoverRepeatersOnOpen = false});
 
   @override
   State<DiscoveryScreen> createState() => _DiscoveryScreenState();
@@ -25,6 +27,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   final Set<int> _runningDiscoveryTypes = <int>{};
   final TextEditingController _searchController = TextEditingController();
   bool _isResolvingAll = false;
+  bool _hasQueuedAutoRepeaterDiscovery = false;
   String _searchQuery = '';
   _DiscoveryListFilter _selectedFilter = _DiscoveryListFilter.all;
   late final Future<List<MeshMapNode>> _cachedNodesFuture;
@@ -35,6 +38,13 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     _cachedNodesFuture = MeshMapNodesService.loadCachedNodes(
       cacheTtl: MeshMapNodesService.traceCacheTtl,
     );
+
+    if (widget.autoDiscoverRepeatersOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _autoDiscoverRepeaters();
+      });
+    }
   }
 
   @override
@@ -96,9 +106,10 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         advertType: advertType,
       );
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       final label = switch (advertType) {
-        _repeaterAdvertType => 'Repeater discovery sent',
-        _sensorAdvertType => 'Sensor discovery sent',
+        _repeaterAdvertType => l10n.repeaterDiscoverySent,
+        _sensorAdvertType => l10n.sensorDiscoverySent,
         _ => 'Discovery sent',
       };
       ScaffoldMessenger.of(
@@ -111,6 +122,14 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         });
       }
     }
+  }
+
+  Future<void> _autoDiscoverRepeaters() async {
+    if (_hasQueuedAutoRepeaterDiscovery) {
+      return;
+    }
+    _hasQueuedAutoRepeaterDiscovery = true;
+    await _discoverNodeType(_repeaterAdvertType);
   }
 
   Future<void> _resolveAdvert(PendingAdvert advert) async {

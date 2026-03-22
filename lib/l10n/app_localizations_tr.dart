@@ -1884,6 +1884,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Mesh sorunlarını giderirken paket günlükleri, spektrum taraması ve geliştirici tanılamalarını kullanın.';
 
   @override
+  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+
+  @override
+  String get postConnectDiscoveryDescription =>
+      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+
+  @override
   String get contactInSensors => 'Sensörlerde';
 
   @override
