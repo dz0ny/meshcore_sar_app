@@ -664,6 +664,11 @@ class MessagesProvider with ChangeNotifier {
       return; // Skip duplicate
     }
 
+    final matchingSentReplayIndex = _findMatchingSentReplayIndex(finalMessage);
+    if (matchingSentReplayIndex != -1) {
+      _clearChannelSendWarning(_messages[matchingSentReplayIndex].id);
+    }
+
     _messages.add(finalMessage);
     if (contactLocationSnapshot != null) {
       _messageContactLocations[finalMessage.id] = contactLocationSnapshot;
@@ -712,7 +717,8 @@ class MessagesProvider with ChangeNotifier {
 
     for (int index = 0; index < _messages.length; index++) {
       final existing = _messages[index];
-      if (!_matchesDuplicateScope(existing, message) ||
+      if (existing.isSentMessage ||
+          !_matchesDuplicateScope(existing, message) ||
           existing.text != message.text) {
         continue;
       }
@@ -788,6 +794,27 @@ class MessagesProvider with ChangeNotifier {
     return existingSenderName != null &&
         incomingSenderName != null &&
         existingSenderName == incomingSenderName;
+  }
+
+  int _findMatchingSentReplayIndex(Message message) {
+    if (!message.isChannelMessage || message.isSentMessage) {
+      return -1;
+    }
+
+    for (int index = 0; index < _messages.length; index++) {
+      final existing = _messages[index];
+      if (!existing.isSentMessage ||
+          !existing.isChannelMessage ||
+          existing.text != message.text) {
+        continue;
+      }
+
+      if (_matchesDuplicateScope(existing, message)) {
+        return index;
+      }
+    }
+
+    return -1;
   }
 
   /// Add multiple messages

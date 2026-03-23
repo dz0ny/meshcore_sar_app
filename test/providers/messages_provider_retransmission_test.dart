@@ -214,7 +214,7 @@ void main() {
       });
     });
 
-    test('channel warning clears when replay is deduped into sent bubble', () {
+    test('channel warning clears when replay arrives after send', () {
       fakeAsync((async) {
         final provider = MessagesProvider();
         provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
@@ -239,11 +239,11 @@ void main() {
         );
 
         expect(provider.hasChannelSendWarning('c-warn-replay'), isFalse);
-        expect(provider.messages, hasLength(1));
+        expect(provider.messages, hasLength(2));
       });
     });
 
-    test('channel replay is deduped for self sender within repeat window', () {
+    test('channel replay is kept separate for self sender within repeat window', () {
       final provider = MessagesProvider();
       provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
       provider.addSentMessage(
@@ -259,9 +259,10 @@ void main() {
         ),
       );
 
-      expect(provider.messages, hasLength(1));
-      expect(provider.messages.single.id, equals('c-echo'));
-      expect(provider.messages.single.senderName, equals('dz0ny (SI)'));
+      expect(provider.messages, hasLength(2));
+      expect(provider.messages.first.id, equals('c-echo'));
+      expect(provider.messages.last.id, equals('c-echo-incoming'));
+      expect(provider.messages.last.senderName, equals('dz0ny (SI)'));
     });
 
     test(
@@ -308,7 +309,7 @@ void main() {
       expect(provider.messages, hasLength(2));
     });
 
-    test('channel replay can dedupe using lazily resolved self name', () {
+    test('channel replay stays separate using lazily resolved self name', () {
       final provider = MessagesProvider();
       provider.addSentMessage(
         _buildSentChannelMessage(id: 'c-lazy', senderTimestamp: 1700000400),
@@ -324,11 +325,12 @@ void main() {
         ),
       );
 
-      expect(provider.messages, hasLength(1));
-      expect(provider.messages.single.id, equals('c-lazy'));
+      expect(provider.messages, hasLength(2));
+      expect(provider.messages.first.id, equals('c-lazy'));
+      expect(provider.messages.last.id, equals('c-lazy-incoming'));
     });
 
-    test('channel replay dedupes meshcore-prefixed self sender name', () {
+    test('channel replay stays separate for meshcore-prefixed self sender name', () {
       final provider = MessagesProvider();
       provider.resolveContactNameCallback = (_) => 'MeshCore-dz0ny (SI)';
       provider.addSentMessage(
@@ -344,8 +346,9 @@ void main() {
         ),
       );
 
-      expect(provider.messages, hasLength(1));
-      expect(provider.messages.single.id, equals('c-prefix'));
+      expect(provider.messages, hasLength(2));
+      expect(provider.messages.first.id, equals('c-prefix'));
+      expect(provider.messages.last.id, equals('c-prefix-incoming'));
     });
 
     test('duplicate incoming message increments received copy count', () {
