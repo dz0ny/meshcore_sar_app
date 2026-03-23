@@ -21,8 +21,8 @@ class MessageRetryManager {
   final Map<String, int> _pathFailureStreaks = {};
 
   /// Max retry attempts when the contact has a known path.
-  /// Official MeshCore app uses 5 (with auto-retry) or 3 (without).
-  static const int maxRetryAttemptsWithPath = 5;
+  /// Sequence: 2 direct attempts, flood, then last successful route.
+  static const int maxRetryAttemptsWithPath = 3;
 
   /// No retries for flood-only contacts (no known path).
   /// Value 0 means: don't retry at all, go straight to fallback/fail.

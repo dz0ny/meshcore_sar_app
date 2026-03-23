@@ -2354,17 +2354,6 @@ class MessagesProvider with ChangeNotifier {
           return;
         }
 
-        // On the last attempt, reset the path to force flood mode
-        // (matches official MeshCore app behaviour)
-        if (_retryManager.isLastAttempt(currentMessage, contact)) {
-          debugPrint(
-            '🔄 [MessagesProvider] Last attempt — resetting path to flood for $messageId',
-          );
-          if (resetPathBeforeLastRetryCallback != null) {
-            await resetPathBeforeLastRetryCallback!(contact);
-          }
-        }
-
         if (sendMessageCallback != null) {
           final queued = await sendMessageCallback!(
             contactPublicKey: contact.publicKey,

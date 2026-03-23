@@ -1761,6 +1761,7 @@ class AppProvider with ChangeNotifier {
           return _prepareDirectMessageSend(
             messageId: messageId,
             contact: contact,
+            retryAttempt: retryAttempt,
           );
         };
 
@@ -1830,22 +1831,46 @@ class AppProvider with ChangeNotifier {
   Future<Contact> _prepareDirectMessageSend({
     required String messageId,
     required Contact contact,
+    required int retryAttempt,
   }) async {
     final latestContact =
         contactsProvider.findContactByKey(contact.publicKey) ?? contact;
     var session = _directMessageRouteSessions[messageId];
     if (session == null) {
-      final selection = await _pathHistoryService.getSelectionForContact(
-        latestContact,
-        autoRouteRotationEnabled: _autoRouteRotationEnabled,
-      );
+      final selection = latestContact.routeHasPath && latestContact.routeHopCount > 0
+          ? PathSelection(
+              mode: PathSelectionMode.directCurrent,
+              pathBytes: Uint8List.fromList(latestContact.routePathBytes),
+              hopCount: latestContact.routeHopCount,
+              hashSize: latestContact.routeHashSize,
+            )
+          : await _pathHistoryService.getSelectionForContact(
+              latestContact,
+              autoRouteRotationEnabled: _autoRouteRotationEnabled,
+            );
       session = _DirectMessageRouteSession(
         currentSelection: selection,
         originalRoute: ContactRouteCodec.fromContact(latestContact),
         routerFallbackAttempted: false,
       );
-      _directMessageRouteSessions[messageId] = session;
     }
+
+    if (!session.routerFallbackAttempted) {
+      final currentSignature =
+          latestContact.routeHasPath && latestContact.routeHopCount > 0
+          ? latestContact.routePathBytes
+                .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+                .join()
+          : null;
+      final selection = await _resolveDirectMessageSelectionForRetry(
+        latestContact,
+        retryAttempt: retryAttempt,
+        currentSignature: currentSignature,
+        fallbackSelection: session.currentSelection,
+      );
+      session = session.copyWith(currentSelection: selection);
+    }
+    _directMessageRouteSessions[messageId] = session;
 
     await _applyPathSelection(
       latestContact,
@@ -1855,6 +1880,43 @@ class AppProvider with ChangeNotifier {
     );
     return contactsProvider.findContactByKey(contact.publicKey) ??
         latestContact;
+  }
+
+  Future<PathSelection> _resolveDirectMessageSelectionForRetry(
+    Contact contact, {
+    required int retryAttempt,
+    required String? currentSignature,
+    required PathSelection fallbackSelection,
+  }) async {
+    if (contact.routeHasPath && contact.routeHopCount > 0 && retryAttempt <= 1) {
+      return PathSelection(
+        mode: PathSelectionMode.directCurrent,
+        pathBytes: Uint8List.fromList(contact.routePathBytes),
+        hopCount: contact.routeHopCount,
+        hashSize: contact.routeHashSize,
+      );
+    }
+
+    if (retryAttempt == 2) {
+      return PathSelection.flood();
+    }
+
+    if (retryAttempt >= 3) {
+      final historicalSelection = await _pathHistoryService
+          .getLastSuccessfulDirectSelection(
+            contact,
+            excludeSignature: currentSignature,
+            senderLatitude: locationTrackingService.currentPosition?.latitude,
+            senderLongitude: locationTrackingService.currentPosition?.longitude,
+            recipientLatitude: contact.displayLocation?.latitude,
+            recipientLongitude: contact.displayLocation?.longitude,
+          );
+      if (historicalSelection != null) {
+        return historicalSelection;
+      }
+    }
+
+    return fallbackSelection;
   }
 
   Future<void> _applyPathSelection(
@@ -2031,6 +2093,10 @@ class AppProvider with ChangeNotifier {
         session.currentSelection,
         success: true,
         roundTripTimeMs: roundTripTimeMs,
+        senderLatitude: locationTrackingService.currentPosition?.latitude,
+        senderLongitude: locationTrackingService.currentPosition?.longitude,
+        recipientLatitude: contact.displayLocation?.latitude,
+        recipientLongitude: contact.displayLocation?.longitude,
       ),
     );
   }

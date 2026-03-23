@@ -206,4 +206,59 @@ void main() {
       expect(history.directPaths.single.source, PathRecordSource.observed);
     },
   );
+
+  test('last successful direct path is chosen by location fit', () async {
+    final service = PathHistoryService();
+    final contact = _buildContact(
+      seed: 7,
+      pathBytes: [0xAA],
+      hopCount: 1,
+      hashSize: 1,
+    );
+
+    await service.initialize();
+    await service.recordPathResult(
+      contact.publicKeyHex,
+      PathSelection(
+        mode: PathSelectionMode.directHistorical,
+        pathBytes: Uint8List.fromList([0x11]),
+        hopCount: 1,
+        hashSize: 1,
+      ),
+      success: true,
+      roundTripTimeMs: 120,
+      senderLatitude: 46.0,
+      senderLongitude: 14.0,
+      recipientLatitude: 46.1,
+      recipientLongitude: 14.1,
+    );
+    await service.recordPathResult(
+      contact.publicKeyHex,
+      PathSelection(
+        mode: PathSelectionMode.directHistorical,
+        pathBytes: Uint8List.fromList([0x22]),
+        hopCount: 1,
+        hashSize: 1,
+      ),
+      success: true,
+      roundTripTimeMs: 90,
+      senderLatitude: 46.0001,
+      senderLongitude: 14.0001,
+      recipientLatitude: 46.1001,
+      recipientLongitude: 14.1001,
+    );
+
+    final selection = await service.getLastSuccessfulDirectSelection(
+      contact,
+      excludeSignature: 'aa',
+      senderLatitude: 46.0002,
+      senderLongitude: 14.0002,
+      recipientLatitude: 46.1002,
+      recipientLongitude: 14.1002,
+    );
+
+    expect(selection, isNotNull);
+    expect(selection!.mode, PathSelectionMode.directHistorical);
+    expect(selection.canonicalPath, '22');
+  });
 }

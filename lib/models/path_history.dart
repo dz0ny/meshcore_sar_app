@@ -9,6 +9,11 @@ class PathRecord {
   final int failureCount;
   final int lastRoundTripTimeMs;
   final DateTime lastUsedAt;
+  final DateTime? lastSucceededAt;
+  final double? senderLatitude;
+  final double? senderLongitude;
+  final double? recipientLatitude;
+  final double? recipientLongitude;
 
   const PathRecord({
     required this.pathBytes,
@@ -19,6 +24,11 @@ class PathRecord {
     required this.failureCount,
     required this.lastRoundTripTimeMs,
     required this.lastUsedAt,
+    required this.lastSucceededAt,
+    required this.senderLatitude,
+    required this.senderLongitude,
+    required this.recipientLatitude,
+    required this.recipientLongitude,
   });
 
   String get signature =>
@@ -36,6 +46,11 @@ class PathRecord {
     int? failureCount,
     int? lastRoundTripTimeMs,
     DateTime? lastUsedAt,
+    DateTime? lastSucceededAt,
+    double? senderLatitude,
+    double? senderLongitude,
+    double? recipientLatitude,
+    double? recipientLongitude,
   }) {
     return PathRecord(
       pathBytes: pathBytes ?? this.pathBytes,
@@ -46,6 +61,11 @@ class PathRecord {
       failureCount: failureCount ?? this.failureCount,
       lastRoundTripTimeMs: lastRoundTripTimeMs ?? this.lastRoundTripTimeMs,
       lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      lastSucceededAt: lastSucceededAt ?? this.lastSucceededAt,
+      senderLatitude: senderLatitude ?? this.senderLatitude,
+      senderLongitude: senderLongitude ?? this.senderLongitude,
+      recipientLatitude: recipientLatitude ?? this.recipientLatitude,
+      recipientLongitude: recipientLongitude ?? this.recipientLongitude,
     );
   }
 
@@ -59,6 +79,11 @@ class PathRecord {
       'failure_count': failureCount,
       'last_round_trip_time_ms': lastRoundTripTimeMs,
       'last_used_at': lastUsedAt.toIso8601String(),
+      'last_succeeded_at': lastSucceededAt?.toIso8601String(),
+      'sender_latitude': senderLatitude,
+      'sender_longitude': senderLongitude,
+      'recipient_latitude': recipientLatitude,
+      'recipient_longitude': recipientLongitude,
     };
   }
 
@@ -79,6 +104,13 @@ class PathRecord {
       lastUsedAt:
           DateTime.tryParse(json['last_used_at'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
+      lastSucceededAt: DateTime.tryParse(
+        json['last_succeeded_at'] as String? ?? '',
+      ),
+      senderLatitude: (json['sender_latitude'] as num?)?.toDouble(),
+      senderLongitude: (json['sender_longitude'] as num?)?.toDouble(),
+      recipientLatitude: (json['recipient_latitude'] as num?)?.toDouble(),
+      recipientLongitude: (json['recipient_longitude'] as num?)?.toDouble(),
     );
   }
 }

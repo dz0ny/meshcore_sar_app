@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/contact.dart';
@@ -9,7 +10,7 @@ import '../models/path_selection.dart';
 import '../utils/log_rx_route_decoder.dart';
 
 class PathHistoryService {
-  static const String _storageKey = 'contact_path_history_v1';
+  static const String _storageKey = 'contact_path_history_v2';
   static const int _maxDirectPaths = 20;
   static const int _topRotationCount = 3;
 
@@ -59,6 +60,11 @@ class PathHistoryService {
       failureCount: existing?.failureCount ?? 0,
       lastRoundTripTimeMs: existing?.lastRoundTripTimeMs ?? 0,
       lastUsedAt: DateTime.now(),
+      lastSucceededAt: existing?.lastSucceededAt,
+      senderLatitude: existing?.senderLatitude,
+      senderLongitude: existing?.senderLongitude,
+      recipientLatitude: existing?.recipientLatitude,
+      recipientLongitude: existing?.recipientLongitude,
     );
 
     await _saveHistory(
@@ -104,6 +110,11 @@ class PathHistoryService {
       failureCount: existing?.failureCount ?? 0,
       lastRoundTripTimeMs: existing?.lastRoundTripTimeMs ?? 0,
       lastUsedAt: DateTime.now(),
+      lastSucceededAt: existing?.lastSucceededAt,
+      senderLatitude: existing?.senderLatitude,
+      senderLongitude: existing?.senderLongitude,
+      recipientLatitude: existing?.recipientLatitude,
+      recipientLongitude: existing?.recipientLongitude,
     );
 
     await _saveHistory(
@@ -172,6 +183,10 @@ class PathHistoryService {
     PathSelection selection, {
     required bool success,
     int? roundTripTimeMs,
+    double? senderLatitude,
+    double? senderLongitude,
+    double? recipientLatitude,
+    double? recipientLongitude,
   }) async {
     await initialize();
     final history = _historyFor(contactPublicKeyHex);
@@ -206,12 +221,67 @@ class PathHistoryService {
           ? (roundTripTimeMs ?? existing?.lastRoundTripTimeMs ?? 0)
           : (existing?.lastRoundTripTimeMs ?? 0),
       lastUsedAt: DateTime.now(),
+      lastSucceededAt: success ? DateTime.now() : existing?.lastSucceededAt,
+      senderLatitude: success ? senderLatitude : existing?.senderLatitude,
+      senderLongitude: success ? senderLongitude : existing?.senderLongitude,
+      recipientLatitude:
+          success ? recipientLatitude : existing?.recipientLatitude,
+      recipientLongitude:
+          success ? recipientLongitude : existing?.recipientLongitude,
     );
     await _saveHistory(
       contactPublicKeyHex,
       history.copyWith(
         directPaths: _upsertDirectPath(history.directPaths, updated),
       ),
+    );
+  }
+
+  Future<PathSelection?> getLastSuccessfulDirectSelection(
+    Contact contact, {
+    String? excludeSignature,
+    double? senderLatitude,
+    double? senderLongitude,
+    double? recipientLatitude,
+    double? recipientLongitude,
+  }) async {
+    await initialize();
+    final history = _historyFor(contact.publicKeyHex);
+    final ranked = history.directPaths
+        .where(
+          (record) =>
+              record.successCount > 0 &&
+              record.lastSucceededAt != null &&
+              record.signature != excludeSignature,
+        )
+        .toList()
+      ..sort((a, b) {
+        final locationCompare = _compareLocationFit(
+          a,
+          b,
+          senderLatitude: senderLatitude,
+          senderLongitude: senderLongitude,
+          recipientLatitude: recipientLatitude,
+          recipientLongitude: recipientLongitude,
+        );
+        if (locationCompare != 0) return locationCompare;
+        final succeededCompare = b.lastSucceededAt!.compareTo(
+          a.lastSucceededAt!,
+        );
+        if (succeededCompare != 0) return succeededCompare;
+        return _comparePathRecords(a, b);
+      });
+
+    if (ranked.isEmpty) {
+      return null;
+    }
+
+    final record = ranked.first;
+    return PathSelection(
+      mode: PathSelectionMode.directHistorical,
+      pathBytes: Uint8List.fromList(record.pathBytes),
+      hopCount: record.hopCount,
+      hashSize: record.hashSize,
     );
   }
 
@@ -279,4 +349,68 @@ class PathHistoryService {
 
   String _signature(Uint8List bytes) =>
       bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+
+  int _compareLocationFit(
+    PathRecord a,
+    PathRecord b, {
+    required double? senderLatitude,
+    required double? senderLongitude,
+    required double? recipientLatitude,
+    required double? recipientLongitude,
+  }) {
+    final aDistance = _locationDistanceScore(
+      a,
+      senderLatitude: senderLatitude,
+      senderLongitude: senderLongitude,
+      recipientLatitude: recipientLatitude,
+      recipientLongitude: recipientLongitude,
+    );
+    final bDistance = _locationDistanceScore(
+      b,
+      senderLatitude: senderLatitude,
+      senderLongitude: senderLongitude,
+      recipientLatitude: recipientLatitude,
+      recipientLongitude: recipientLongitude,
+    );
+    return aDistance.compareTo(bDistance);
+  }
+
+  double _locationDistanceScore(
+    PathRecord record, {
+    required double? senderLatitude,
+    required double? senderLongitude,
+    required double? recipientLatitude,
+    required double? recipientLongitude,
+  }) {
+    var total = 0.0;
+    var matched = false;
+
+    if (senderLatitude != null &&
+        senderLongitude != null &&
+        record.senderLatitude != null &&
+        record.senderLongitude != null) {
+      matched = true;
+      total += Geolocator.distanceBetween(
+        senderLatitude,
+        senderLongitude,
+        record.senderLatitude!,
+        record.senderLongitude!,
+      );
+    }
+
+    if (recipientLatitude != null &&
+        recipientLongitude != null &&
+        record.recipientLatitude != null &&
+        record.recipientLongitude != null) {
+      matched = true;
+      total += Geolocator.distanceBetween(
+        recipientLatitude,
+        recipientLongitude,
+        record.recipientLatitude!,
+        record.recipientLongitude!,
+      );
+    }
+
+    return matched ? total : double.infinity;
+  }
 }
