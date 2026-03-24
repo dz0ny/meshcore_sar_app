@@ -356,7 +356,7 @@ void main() {
     expect(connectionProvider.pingCalls, 2);
   });
 
-  test('refreshDueSensors refreshes self every minute', () async {
+  test('refreshDueSensors refreshes self every 30 seconds', () async {
     SharedPreferences.setMockInitialValues({});
     final selfKey = Uint8List(32)..[0] = 0x66;
     final contactsProvider = ContactsProvider();
@@ -383,14 +383,21 @@ void main() {
       contactsProvider: contactsProvider,
       connectionProvider: connectionProvider,
     );
-    expect(connectionProvider.pingCalls, 1);
+    expect(connectionProvider.pingCalls, 2);
+
+    await provider.refreshDueSensors(
+      now: start.add(const Duration(seconds: 59)),
+      contactsProvider: contactsProvider,
+      connectionProvider: connectionProvider,
+    );
+    expect(connectionProvider.pingCalls, 2);
 
     await provider.refreshDueSensors(
       now: start.add(const Duration(minutes: 1)),
       contactsProvider: contactsProvider,
       connectionProvider: connectionProvider,
     );
-    expect(connectionProvider.pingCalls, 2);
+    expect(connectionProvider.pingCalls, 3);
   });
 
   test(

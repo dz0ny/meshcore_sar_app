@@ -14,7 +14,7 @@ enum SensorRefreshState { idle, refreshing, success, timeout, unavailable }
 
 class SensorsProvider with ChangeNotifier {
   static const Duration _successStateRetention = Duration(minutes: 1);
-  static const int selfAutoRefreshMinutes = 1;
+  static const Duration selfAutoRefreshInterval = Duration(seconds: 30);
   static const String _watchedSensorsKey = 'watched_sensor_keys';
   static const String _visibleSensorMetricsKey = 'visible_sensor_metrics';
   static const String _fieldSpanKey = 'sensor_field_spans';
@@ -374,18 +374,18 @@ class SensorsProvider with ChangeNotifier {
     return List<String>.unmodifiable(dueKeys);
   }
 
-  bool _isRefreshDue(
+  bool _isRefreshDueForInterval(
     String publicKeyHex, {
-    required int minutes,
+    required Duration interval,
     required DateTime refreshTime,
   }) {
-    if (minutes <= 0) {
+    if (interval <= Duration.zero) {
       return false;
     }
 
     final lastRefreshAt = _lastRefreshAttemptAt[publicKeyHex];
     return lastRefreshAt == null ||
-        refreshTime.difference(lastRefreshAt) >= Duration(minutes: minutes);
+        refreshTime.difference(lastRefreshAt) >= interval;
   }
 
   Future<void> toggleMetric(
@@ -769,9 +769,9 @@ class SensorsProvider with ChangeNotifier {
     final self = selfContact(contactsProvider, connectionProvider);
     if (self != null &&
         !dueKeys.contains(self.publicKeyHex) &&
-        _isRefreshDue(
+        _isRefreshDueForInterval(
           self.publicKeyHex,
-          minutes: selfAutoRefreshMinutes,
+          interval: selfAutoRefreshInterval,
           refreshTime: refreshTime,
         )) {
       dueKeys.insert(0, self.publicKeyHex);

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../models/contact.dart';
 import '../providers/connection_provider.dart';
 import '../providers/contacts_provider.dart';
+import '../providers/map_provider.dart';
 import '../providers/sensors_provider.dart';
 import '../widgets/sensors/bthome_met_history_sheet.dart';
 import '../widgets/sensors/sensor_telemetry_card.dart';
@@ -21,7 +22,10 @@ class SensorsTab extends StatefulWidget {
 }
 
 class _SensorsTabState extends State<SensorsTab> {
+  static const Duration _autoRefreshTickInterval = Duration(seconds: 30);
   Timer? _minuteTicker;
+  final Map<String, DateTime> _lastCenteredTelemetryAtBySensor =
+      <String, DateTime>{};
 
   @override
   void initState() {
@@ -61,22 +65,8 @@ class _SensorsTabState extends State<SensorsTab> {
       return;
     }
 
-    final now = DateTime.now();
-    final nextMinute = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      now.hour,
-      now.minute + 1,
-    );
-    final delay = nextMinute.difference(now);
-
-    _minuteTicker = Timer(delay, () {
-      if (!mounted) return;
+    _minuteTicker = Timer.periodic(_autoRefreshTickInterval, (_) {
       unawaited(_handleMinuteTick());
-      _minuteTicker = Timer.periodic(const Duration(minutes: 1), (_) {
-        unawaited(_handleMinuteTick());
-      });
     });
   }
 
@@ -225,6 +215,65 @@ class _SensorsTabState extends State<SensorsTab> {
     );
   }
 
+  void _maybeCenterMapOnTelemetryUpdate(
+    Iterable<String> sensorKeys, {
+    required SensorsProvider sensorsProvider,
+    required ContactsProvider contactsProvider,
+    required ConnectionProvider connectionProvider,
+  }) {
+    if (!widget.isActive) {
+      return;
+    }
+
+    Contact? latestContact;
+    DateTime? latestTimestamp;
+
+    for (final key in sensorKeys) {
+      final contact = sensorsProvider.contactForDisplay(
+        key,
+        contactsProvider: contactsProvider,
+        connectionProvider: connectionProvider,
+      );
+      final timestamp = contact?.telemetry?.timestamp;
+      final location = contact?.displayLocation;
+      if (contact == null || timestamp == null || location == null) {
+        continue;
+      }
+
+      final previousTimestamp = _lastCenteredTelemetryAtBySensor[key];
+      if (previousTimestamp != null && !timestamp.isAfter(previousTimestamp)) {
+        continue;
+      }
+
+      if (latestTimestamp == null || timestamp.isAfter(latestTimestamp)) {
+        latestContact = contact;
+        latestTimestamp = timestamp;
+      }
+    }
+
+    if (latestContact == null || latestTimestamp == null) {
+      return;
+    }
+
+    _lastCenteredTelemetryAtBySensor[latestContact.publicKeyHex] =
+        latestTimestamp;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !widget.isActive) {
+        return;
+      }
+
+      final location = latestContact!.displayLocation;
+      if (location == null) {
+        return;
+      }
+
+      context.read<MapProvider>().navigateToLocation(
+        location: location,
+        zoom: 15.0,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -244,6 +293,16 @@ class _SensorsTabState extends State<SensorsTab> {
               final watchedKeys = sensorsProvider.watchedSensorKeys;
               final hasPersistedSensors = watchedKeys.isNotEmpty;
               final selfDisplayKey = sensorsProvider.displaySelfKey(
+                contactsProvider: contactsProvider,
+                connectionProvider: connectionProvider,
+              );
+              final displayKeys = <String>[
+                ...?selfDisplayKey == null ? null : <String>[selfDisplayKey],
+                ...watchedKeys,
+              ];
+              _maybeCenterMapOnTelemetryUpdate(
+                displayKeys,
+                sensorsProvider: sensorsProvider,
                 contactsProvider: contactsProvider,
                 connectionProvider: connectionProvider,
               );

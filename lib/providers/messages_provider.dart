@@ -666,7 +666,23 @@ class MessagesProvider with ChangeNotifier {
 
     final matchingSentReplayIndex = _findMatchingSentReplayIndex(finalMessage);
     if (matchingSentReplayIndex != -1) {
-      _clearChannelSendWarning(_messages[matchingSentReplayIndex].id);
+      final existingId = _messages[matchingSentReplayIndex].id;
+      _clearChannelSendWarning(existingId);
+      if (contactLocationSnapshot != null) {
+        _messageContactLocations[existingId] = contactLocationSnapshot;
+      }
+      _messageReceptionDetails[existingId] =
+          MessageReceptionDetails.mergeDuplicate(
+            existing: _messageReceptionDetails[existingId],
+            incoming: receptionDetailsSnapshot,
+          );
+      final existingMessage = _messages[matchingSentReplayIndex];
+      _messages[matchingSentReplayIndex] = existingMessage.copyWith(
+        pathLen: finalMessage.pathLen > 0 ? finalMessage.pathLen : existingMessage.pathLen,
+        pathBytes: finalMessage.pathBytes ?? existingMessage.pathBytes,
+      );
+      _persistMessages();
+      return;
     }
 
     _messages.add(finalMessage);
@@ -1214,9 +1230,7 @@ class MessagesProvider with ChangeNotifier {
     for (final message in messages) {
       final occurrenceCount = _messageOccurrenceCount(message);
       final existingIndex = entries.indexWhere(
-        (entry) =>
-            entry.message.text == message.text &&
-            _matchesDuplicateScope(entry.message, message),
+        (entry) => _shouldCollapseDisplayMessage(entry.message, message),
       );
 
       if (existingIndex == -1) {
@@ -1232,6 +1246,15 @@ class MessagesProvider with ChangeNotifier {
     }
 
     return entries;
+  }
+
+  bool _shouldCollapseDisplayMessage(Message existing, Message message) {
+    if (existing.isSentMessage || message.isSentMessage) {
+      return false;
+    }
+
+    return existing.text == message.text &&
+        _matchesDuplicateScope(existing, message);
   }
 
   int _messageOccurrenceCount(Message message) =>
