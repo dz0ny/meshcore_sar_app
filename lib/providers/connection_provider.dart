@@ -47,6 +47,23 @@ class PingResult {
   });
 }
 
+/// Result of a relay ping (trace path) operation
+class RelayPingResult {
+  final bool success;
+  final int durationMs;
+  final double snrThere;
+  final double snrBack;
+  final int hopCount;
+
+  const RelayPingResult({
+    required this.success,
+    required this.durationMs,
+    required this.snrThere,
+    required this.snrBack,
+    required this.hopCount,
+  });
+}
+
 /// Scanned device with RSSI information
 class ScannedDevice {
   final BluetoothDevice device;
@@ -172,6 +189,8 @@ class ConnectionProvider with ChangeNotifier {
       MessageDeliveryTracker();
   final PingTracker _pingTracker = PingTracker();
   final Map<String, Future<PingResult>> _pendingSmartPings = {};
+  final Map<int, Completer<RelayPingResult>> _pendingRelayPings = {};
+  final Map<int, int> _relayPingStartTimes = {};
 
   // Expose room login states
   Map<String, RoomLoginState> get roomLoginStates =>
@@ -629,6 +648,10 @@ class ConnectionProvider with ChangeNotifier {
         autoAddMaxHops: config['autoAddMaxHops'] as int?,
       );
       notifyListeners();
+    };
+
+    service.onTraceDataReceived = (nonce, hopCount, snrThere, snrBack) {
+      _handleTraceDataReceived(nonce, hopCount, snrThere, snrBack);
     };
 
     service.onTxActivity = () {
@@ -2033,6 +2056,88 @@ class ConnectionProvider with ChangeNotifier {
       _error = 'Failed to request self telemetry: $e';
       notifyListeners();
       return PingResult(success: false, usedFlooding: false, timedOut: true);
+    }
+  }
+
+  /// Ping a relay/repeater using trace path (command 36).
+  /// Returns RTT, SNR there/back, and hop count.
+  Future<RelayPingResult> pingRelay(Contact contact) async {
+    if (!_activeService.isConnected) {
+      return const RelayPingResult(
+        success: false, durationMs: 0, snrThere: 0, snrBack: 0, hopCount: 0,
+      );
+    }
+
+    final nonce = Random().nextInt(0xFFFFFFFF);
+    final completer = Completer<RelayPingResult>();
+    _pendingRelayPings[nonce] = completer;
+    _relayPingStartTimes[nonce] = DateTime.now().millisecondsSinceEpoch;
+
+    // Map ContactType to hop type: chat=0, repeater=1, room=2, sensor=3
+    int hopType;
+    switch (contact.type) {
+      case ContactType.chat:
+        hopType = 0;
+        break;
+      case ContactType.repeater:
+        hopType = 1;
+        break;
+      case ContactType.room:
+        hopType = 2;
+        break;
+      case ContactType.sensor:
+        hopType = 3;
+        break;
+      default:
+        hopType = 0;
+    }
+
+    // Timeout after 10 seconds
+    final timer = Timer(const Duration(seconds: 10), () {
+      _pendingRelayPings.remove(nonce);
+      _relayPingStartTimes.remove(nonce);
+      if (!completer.isCompleted) {
+        completer.complete(const RelayPingResult(
+          success: false, durationMs: 0, snrThere: 0, snrBack: 0, hopCount: 0,
+        ));
+      }
+    });
+
+    try {
+      await _activeService.sendTracePath(
+        nonce: nonce,
+        hopType: hopType,
+        contactPublicKey: contact.publicKey,
+      );
+      final result = await completer.future;
+      timer.cancel();
+      return result;
+    } catch (e) {
+      timer.cancel();
+      _pendingRelayPings.remove(nonce);
+      _relayPingStartTimes.remove(nonce);
+      return const RelayPingResult(
+        success: false, durationMs: 0, snrThere: 0, snrBack: 0, hopCount: 0,
+      );
+    }
+  }
+
+  void _handleTraceDataReceived(
+    int nonce, int hopCount, double snrThere, double snrBack,
+  ) {
+    final completer = _pendingRelayPings.remove(nonce);
+    final startTime = _relayPingStartTimes.remove(nonce);
+    if (completer != null && !completer.isCompleted) {
+      final durationMs = startTime != null
+          ? DateTime.now().millisecondsSinceEpoch - startTime
+          : 0;
+      completer.complete(RelayPingResult(
+        success: true,
+        durationMs: durationMs,
+        snrThere: snrThere,
+        snrBack: snrBack,
+        hopCount: hopCount,
+      ));
     }
   }
 

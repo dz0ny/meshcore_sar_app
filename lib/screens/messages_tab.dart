@@ -148,11 +148,13 @@ class _MessagesTabState extends State<MessagesTab> {
   TextRange? _activeMentionRange;
   String _mentionQuery = '';
   List<Contact> _mentionSuggestions = const [];
+  ContactsProvider? _contactsProvider;
 
   // Message destination state
   String _destinationType =
       MessageDestinationPreferences.destinationTypeChannel;
   Contact? _selectedRecipient;
+  bool _isDestinationLocked = false;
 
   // Region scope state
   String? _channelRegionScopeName;
@@ -183,13 +185,9 @@ class _MessagesTabState extends State<MessagesTab> {
     super.initState();
     _textController.addListener(_handleComposerChanged);
     _focusNode.addListener(_handleFocusChanged);
-    // Load saved message destination
-    _loadSavedDestination();
     _loadVoiceSettings();
     _loadAllChannelRegionScopes();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForNavigationRequest();
-    });
+    _scheduleDestinationSync();
   }
 
   Future<void> _loadVoiceSettings() async {
@@ -203,11 +201,13 @@ class _MessagesTabState extends State<MessagesTab> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Reload saved destination and check for navigation request whenever dependencies change
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadSavedDestination();
-      _checkForNavigationRequest();
-    });
+    final contactsProvider = context.read<ContactsProvider>();
+    if (!identical(_contactsProvider, contactsProvider)) {
+      _contactsProvider?.removeListener(_handleContactsChanged);
+      _contactsProvider = contactsProvider;
+      _contactsProvider?.addListener(_handleContactsChanged);
+    }
+    _scheduleDestinationSync();
   }
 
   @override
@@ -216,6 +216,7 @@ class _MessagesTabState extends State<MessagesTab> {
     _channelReadTimer?.cancel();
     _voiceStreamSub?.cancel();
     _voiceRecorder.dispose();
+    _contactsProvider?.removeListener(_handleContactsChanged);
     _focusNode.removeListener(_handleFocusChanged);
     _textController.dispose();
     _focusNode.dispose();
@@ -228,13 +229,37 @@ class _MessagesTabState extends State<MessagesTab> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isActive != widget.isActive) {
       _syncChannelAutoReadTimer(context.read<MessagesProvider>());
+      if (widget.isActive) {
+        _scheduleDestinationSync();
+      }
     }
   }
 
-  void _checkForNavigationRequest() {
+  void _scheduleDestinationSync() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _synchronizeDestinationState();
+    });
+  }
+
+  void _handleContactsChanged() {
+    if (!mounted) return;
+    _scheduleDestinationSync();
+  }
+
+  Future<void> _synchronizeDestinationState() async {
+    if (!mounted) return;
     final messagesProvider = context.read<MessagesProvider>();
     final targetMessageId = messagesProvider.targetMessageId;
     final targetDestinationType = messagesProvider.targetDestinationType;
+    final targetRecipientPublicKeyHex =
+        messagesProvider.targetRecipientPublicKeyHex;
+
+    await _restoreDestinationState(
+      overrideType: targetDestinationType,
+      overrideRecipientPublicKeyHex: targetRecipientPublicKeyHex,
+    );
+
+    if (!mounted) return;
 
     if (targetMessageId != null) {
       _scrollToMessage(targetMessageId);
@@ -242,11 +267,8 @@ class _MessagesTabState extends State<MessagesTab> {
     }
 
     if (targetDestinationType != null) {
-      _applyPendingDestination(
-        type: targetDestinationType,
-        recipientPublicKeyHex: messagesProvider.targetRecipientPublicKeyHex,
-      );
       messagesProvider.clearDestinationNavigation();
+      _focusNode.requestFocus();
     }
   }
 
@@ -447,56 +469,91 @@ class _MessagesTabState extends State<MessagesTab> {
     _updateCharacterCount();
   }
 
-  /// Load saved message destination from preferences
-  Future<void> _loadSavedDestination() async {
+  Future<void> _restoreDestinationState({
+    String? overrideType,
+    String? overrideRecipientPublicKeyHex,
+  }) async {
+    final lockedDestination =
+        await MessageDestinationPreferences.getLockedDestination();
     final savedDestination =
         await MessageDestinationPreferences.getDestination();
+    final effectiveType =
+        overrideType ??
+        lockedDestination?['type'] ??
+        savedDestination?['type'] ??
+        MessageDestinationPreferences.destinationTypeChannel;
+    final effectivePublicKeyHex =
+        overrideRecipientPublicKeyHex ??
+        lockedDestination?['publicKey'] ??
+        savedDestination?['publicKey'];
+    if (!mounted) return;
+    final contactsProvider = context.read<ContactsProvider>();
+    final recipient = _resolveDestinationRecipient(
+      contactsProvider,
+      effectiveType,
+      effectivePublicKeyHex,
+    );
+    final allowsEmptyRecipient =
+        effectiveType == MessageDestinationPreferences.destinationTypeAll ||
+        (effectiveType == MessageDestinationPreferences.destinationTypeChannel &&
+            effectivePublicKeyHex == null);
+    final shouldFallbackToPublicChannel =
+        recipient == null && !allowsEmptyRecipient;
+    final destinationType = shouldFallbackToPublicChannel
+        ? MessageDestinationPreferences.destinationTypeChannel
+        : effectiveType;
+    final selectedRecipient = shouldFallbackToPublicChannel ? null : recipient;
+    final shouldClearSavedDestination =
+        lockedDestination == null &&
+        overrideType == null &&
+        shouldFallbackToPublicChannel &&
+        savedDestination != null;
 
-    if (savedDestination == null || !mounted) {
-      // Default to public channel
-      return;
-    }
-
-    final type = savedDestination['type']!;
-    final publicKey = savedDestination['publicKey'];
+    if (!mounted) return;
 
     setState(() {
-      _destinationType = type;
+      _isDestinationLocked = lockedDestination != null;
+      _destinationType = destinationType;
+      _selectedRecipient = selectedRecipient;
     });
 
-    // If it's a contact or room, try to find it in the contacts list
-    if (publicKey != null && mounted) {
-      final contactsProvider = context.read<ContactsProvider>();
-      final contact = contactsProvider.contacts.where((c) {
-        return c.publicKeyHex == publicKey;
-      }).firstOrNull;
-
-      if (contact != null) {
-        setState(() {
-          _selectedRecipient = contact;
-        });
-      } else {
-        // Contact/room not found, fallback to public channel
-        debugPrint(
-          '⚠️ [MessagesTab] Saved recipient not found, falling back to public channel',
-        );
-        setState(() {
-          _destinationType =
-              MessageDestinationPreferences.destinationTypeChannel;
-          _selectedRecipient = null;
-        });
-        await MessageDestinationPreferences.clearDestination();
-      }
+    if (shouldClearSavedDestination) {
+      await MessageDestinationPreferences.clearDestination();
     }
 
     _enforceMessageByteLimit();
-
-    // Load region scope for channel destinations
     await _loadRegionScope();
+  }
+
+  Contact? _resolveDestinationRecipient(
+    ContactsProvider contactsProvider,
+    String type,
+    String? publicKeyHex,
+  ) {
+    if (publicKeyHex == null) {
+      return null;
+    }
+
+    final candidates = switch (type) {
+      MessageDestinationPreferences.destinationTypeChannel =>
+        contactsProvider.channels,
+      MessageDestinationPreferences.destinationTypeRoom => contactsProvider.rooms,
+      MessageDestinationPreferences.destinationTypeContact =>
+        contactsProvider.chatContacts,
+      _ => contactsProvider.contacts,
+    };
+
+    return candidates.where((contact) {
+      return contact.publicKeyHex == publicKeyHex;
+    }).firstOrNull;
   }
 
   /// Show recipient selector bottom sheet
   void _showRecipientSelector() {
+    if (_isDestinationLocked) {
+      return;
+    }
+
     final contactsProvider = context.read<ContactsProvider>();
     final messagesProvider = context.read<MessagesProvider>();
 
@@ -552,7 +609,11 @@ class _MessagesTabState extends State<MessagesTab> {
   }
 
   /// Handle recipient selection
-  Future<void> _onRecipientSelected(String type, Contact? recipient) async {
+  Future<void> _onRecipientSelected(
+    String type,
+    Contact? recipient, {
+    bool persistSelection = true,
+  }) async {
     setState(() {
       _destinationType = type;
       _selectedRecipient = recipient;
@@ -565,11 +626,12 @@ class _MessagesTabState extends State<MessagesTab> {
     // Load region scope for channel destinations
     await _loadRegionScope();
 
-    // Save to preferences
-    await MessageDestinationPreferences.setDestination(
-      type,
-      recipientPublicKey: recipient?.publicKeyHex,
-    );
+    if (persistSelection) {
+      await MessageDestinationPreferences.setDestination(
+        type,
+        recipientPublicKey: recipient?.publicKeyHex,
+      );
+    }
 
     // Show confirmation toast
     if (!mounted) return;
@@ -618,23 +680,6 @@ class _MessagesTabState extends State<MessagesTab> {
     setState(() {
       _channelRegionScopes = scopes;
     });
-  }
-
-  Future<void> _applyPendingDestination({
-    required String type,
-    String? recipientPublicKeyHex,
-  }) async {
-    Contact? recipient;
-    if (recipientPublicKeyHex != null) {
-      final contactsProvider = context.read<ContactsProvider>();
-      recipient = contactsProvider.contacts.where((contact) {
-        return contact.publicKeyHex == recipientPublicKeyHex;
-      }).firstOrNull;
-    }
-
-    await _onRecipientSelected(type, recipient);
-    if (!mounted) return;
-    _focusNode.requestFocus();
   }
 
   void _insertReplyMention(String displayName, {TextRange? replacementRange}) {
@@ -746,7 +791,11 @@ class _MessagesTabState extends State<MessagesTab> {
       }
     }
 
-    await _onRecipientSelected(destinationType, recipient);
+    await _onRecipientSelected(
+      destinationType,
+      recipient,
+      persistSelection: !_isDestinationLocked,
+    );
     if (!mounted) return;
     if ((message.isChannelMessage || recipient?.isRoom == true) &&
         senderDisplayName != null &&
@@ -2442,6 +2491,7 @@ class _MessagesTabState extends State<MessagesTab> {
                   bottomPadding: composerBottomPadding,
                   destinationLabel: _getDestinationLabel(),
                   destinationAvatar: _buildDestinationAvatar(context),
+                  destinationLocked: _isDestinationLocked,
                   mentionSuggestions: _mentionSuggestions,
                   mentionQuery: _mentionQuery,
                   onMentionSelected: _selectMention,

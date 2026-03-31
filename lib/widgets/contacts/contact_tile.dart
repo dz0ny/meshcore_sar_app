@@ -11,6 +11,7 @@ import '../../providers/contacts_provider.dart';
 import '../../providers/map_provider.dart';
 import '../../providers/messages_provider.dart';
 import '../../providers/sensors_provider.dart';
+import '../../services/location_tracking_service.dart';
 import '../../services/message_destination_preferences.dart';
 import 'contact_route_dialog.dart';
 import 'contact_trace_sheet.dart';
@@ -529,6 +530,16 @@ class ContactTile extends StatelessWidget {
             _showNeighbours(context, contact);
           },
         ),
+      if (contact.type == ContactType.repeater ||
+          contact.type == ContactType.room)
+        _ContactSheetAction(
+          icon: Icons.network_ping,
+          label: 'Ping',
+          onTap: () async {
+            Navigator.pop(context);
+            _pingRelay(context, contact);
+          },
+        ),
       if (!contact.isPublicChannel)
         _ContactSheetAction(
           icon: Icons.edit_outlined,
@@ -661,6 +672,18 @@ class ContactTile extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) => ContactTraceSheet(contact: contact),
+    );
+  }
+
+  void _pingRelay(BuildContext context, Contact contact) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _PingRelaySheet(contact: contact),
     );
   }
 
@@ -2324,4 +2347,182 @@ class _MappedNeighbour {
     required this.contact,
     required this.location,
   });
+}
+
+/// Bottom sheet for pinging a relay/repeater with history and distance.
+class _PingRelaySheet extends StatefulWidget {
+  final Contact contact;
+
+  const _PingRelaySheet({required this.contact});
+
+  @override
+  State<_PingRelaySheet> createState() => _PingRelaySheetState();
+}
+
+class _PingRelaySheetState extends State<_PingRelaySheet> {
+  bool _pinging = false;
+  final List<RelayPingResult> _history = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _doPing();
+  }
+
+  Future<void> _doPing() async {
+    setState(() => _pinging = true);
+    final connectionProvider = context.read<ConnectionProvider>();
+    final result = await connectionProvider.pingRelay(widget.contact);
+    if (!mounted) return;
+    setState(() {
+      _pinging = false;
+      _history.insert(0, result);
+    });
+  }
+
+  String? _distanceText() {
+    final location = widget.contact.displayLocation;
+    if (location == null) return null;
+    final currentPosition =
+        LocationTrackingService().currentPosition;
+    if (currentPosition == null) return null;
+    final meters = Geolocator.distanceBetween(
+      currentPosition.latitude,
+      currentPosition.longitude,
+      location.latitude,
+      location.longitude,
+    );
+    if (meters < 1000) return '${meters.round()} m';
+    if (meters < 10000) return '${(meters / 1000).toStringAsFixed(2)} km';
+    return '${(meters / 1000).toStringAsFixed(1)} km';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final displayName = widget.contact.displayName;
+    final distance = _distanceText();
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Ping $displayName',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: _pinging ? null : _doPing,
+                  icon: _pinging
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.refresh, size: 18),
+                  label: Text(_pinging ? 'Pinging...' : 'Ping Again'),
+                ),
+              ],
+            ),
+            if (distance != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Distance: $distance',
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
+            const SizedBox(height: 12),
+            if (_history.isEmpty && _pinging)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_history.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text(
+                    'No results yet',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+              )
+            else
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 300),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _history.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final r = _history[index];
+                    final seq = _history.length - index;
+                    if (!r.success) {
+                      return ListTile(
+                        dense: true,
+                        leading: CircleAvatar(
+                          radius: 14,
+                          backgroundColor: theme.colorScheme.error,
+                          child: Text(
+                            '$seq',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        title: const Text('Timeout'),
+                        subtitle: const Text('No response received'),
+                      );
+                    }
+                    return ListTile(
+                      dense: true,
+                      leading: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: Colors.green,
+                        child: Text(
+                          '$seq',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      title: Text('${r.durationMs} ms'),
+                      subtitle: Text(
+                        'SNR there: ${r.snrThere.toStringAsFixed(1)} dB  '
+                        'SNR back: ${r.snrBack.toStringAsFixed(1)} dB',
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }

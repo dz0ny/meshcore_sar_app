@@ -25,6 +25,7 @@ import '../services/update_checker_service.dart';
 import '../services/voice_bitrate_preferences.dart';
 import '../services/image_preferences.dart';
 import '../services/route_hash_preferences.dart';
+import '../services/message_destination_preferences.dart';
 import '../services/image_codec_service.dart';
 import '../services/developer_mode_service.dart';
 import '../services/notification_service.dart';
@@ -60,6 +61,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  static const String _publicChannelPublicKeyHex =
+      '0000000000000000000000000000000000000000000000000000000000000000';
   late AppThemeMode _selectedTheme;
   late Locale? _selectedLocale;
   PackageInfo? _packageInfo;
@@ -91,6 +94,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _muteForegroundNotifications = true;
   bool _isDeveloperModeEnabled = false;
   bool _profilesEnabled = false;
+  bool _messageDestinationLockEnabled = false;
+  String _messageDestinationLockType =
+      MessageDestinationPreferences.destinationTypeChannel;
+  String? _messageDestinationLockPublicKey = _publicChannelPublicKeyHex;
   DateTime? _onlineTraceCacheUpdatedAt;
   bool _isClearingOnlineTraceCache = false;
   int _versionTapCount = 0;
@@ -114,6 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadOnlineTraceCacheStatus();
     _loadMapPreferences();
     _loadNotificationPreferences();
+    _loadMessageDestinationLock();
   }
 
   @override
@@ -181,6 +189,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     setState(() {
       _onlineTraceCacheUpdatedAt = cachedAt;
+    });
+  }
+
+  Future<void> _loadMessageDestinationLock() async {
+    final lockedDestination =
+        await MessageDestinationPreferences.getLockedDestination();
+    if (!mounted) return;
+
+    setState(() {
+      _messageDestinationLockEnabled = lockedDestination != null;
+      _messageDestinationLockType =
+          lockedDestination?['publicKey'] == null
+          ? MessageDestinationPreferences.destinationTypeChannel
+          : lockedDestination?['type'] ??
+                MessageDestinationPreferences.destinationTypeChannel;
+      _messageDestinationLockPublicKey =
+          lockedDestination?['publicKey'] ?? _publicChannelPublicKeyHex;
+    });
+  }
+
+  List<Contact> _messageDestinationLockOptions(
+    ContactsProvider contactsProvider,
+  ) {
+    final channels = List<Contact>.from(contactsProvider.channels)
+      ..sort((a, b) {
+        if (a.isPublicChannel != b.isPublicChannel) {
+          return a.isPublicChannel ? -1 : 1;
+        }
+        return a.displayName.toLowerCase().compareTo(
+          b.displayName.toLowerCase(),
+        );
+      });
+    final rooms = List<Contact>.from(contactsProvider.rooms)
+      ..sort(
+        (a, b) => a.displayName.toLowerCase().compareTo(
+          b.displayName.toLowerCase(),
+        ),
+      );
+
+    return [...channels, ...rooms];
+  }
+
+  String _messageDestinationLockLabel(BuildContext context, Contact contact) {
+    final name = contact.isChannel
+        ? contact.getLocalizedDisplayName(context)
+        : contact.displayName;
+    return contact.isRoom ? 'Room: $name' : 'Channel: $name';
+  }
+
+  String _messageDestinationLockTypeForContact(Contact contact) {
+    return contact.isRoom
+        ? MessageDestinationPreferences.destinationTypeRoom
+        : MessageDestinationPreferences.destinationTypeChannel;
+  }
+
+  String? _selectedMessageDestinationLockValue(List<Contact> destinations) {
+    final currentValue = _messageDestinationLockPublicKey;
+    if (currentValue != null &&
+        destinations.any((contact) => contact.publicKeyHex == currentValue)) {
+      return currentValue;
+    }
+
+    return destinations.isEmpty ? null : destinations.first.publicKeyHex;
+  }
+
+  Future<void> _setMessageDestinationLock({
+    required bool enabled,
+    String? type,
+    String? recipientPublicKey,
+  }) async {
+    final nextType = type ?? _messageDestinationLockType;
+    final nextRecipientPublicKey =
+        recipientPublicKey ??
+        _messageDestinationLockPublicKey ??
+        _publicChannelPublicKeyHex;
+
+    await MessageDestinationPreferences.setLockedDestination(
+      enabled: enabled,
+      type: nextType,
+      recipientPublicKey: enabled ? nextRecipientPublicKey : null,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _messageDestinationLockEnabled = enabled;
+      _messageDestinationLockType = nextType;
+      _messageDestinationLockPublicKey = nextRecipientPublicKey;
     });
   }
 
@@ -1429,6 +1525,90 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await appProvider.toggleClearPathOnMaxRetry(value);
                 },
               ),
+            ),
+            SwitchListTile(
+              secondary: const Icon(Icons.lock_outline),
+              title: const Text('Lock messages to one channel or room'),
+              subtitle: const Text(
+                'Keep the Messages tab and composer fixed on one destination. Direct messages from Contacts still open as usual.',
+              ),
+              value: _messageDestinationLockEnabled,
+              onChanged: (value) async {
+                final contactsProvider = context.read<ContactsProvider>();
+                final options = _messageDestinationLockOptions(
+                  contactsProvider,
+                );
+                final selectedPublicKey =
+                    _selectedMessageDestinationLockValue(options) ??
+                    _publicChannelPublicKeyHex;
+                final selectedContact = options.where((contact) {
+                  return contact.publicKeyHex == selectedPublicKey;
+                }).firstOrNull;
+
+                await _setMessageDestinationLock(
+                  enabled: value,
+                  type: selectedContact == null
+                      ? MessageDestinationPreferences.destinationTypeChannel
+                      : _messageDestinationLockTypeForContact(selectedContact),
+                  recipientPublicKey: selectedPublicKey,
+                );
+              },
+            ),
+            Consumer<ContactsProvider>(
+              builder: (context, contactsProvider, child) {
+                final options = _messageDestinationLockOptions(
+                  contactsProvider,
+                );
+                final selectedValue =
+                    _selectedMessageDestinationLockValue(options);
+
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: DropdownButtonFormField<String>(
+                    key: ValueKey(selectedValue),
+                    initialValue: selectedValue,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Locked channel or room',
+                      prefixIcon: Icon(Icons.forum_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      for (final contact in options)
+                        DropdownMenuItem<String>(
+                          value: contact.publicKeyHex,
+                          child: Text(
+                            _messageDestinationLockLabel(context, contact),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                    onChanged:
+                        _messageDestinationLockEnabled && options.isNotEmpty
+                        ? (value) async {
+                            if (value == null) {
+                              return;
+                            }
+
+                            final selectedContact = options.where((contact) {
+                              return contact.publicKeyHex == value;
+                            }).firstOrNull;
+                            if (selectedContact == null) {
+                              return;
+                            }
+
+                            await _setMessageDestinationLock(
+                              enabled: true,
+                              type: _messageDestinationLockTypeForContact(
+                                selectedContact,
+                              ),
+                              recipientPublicKey: value,
+                            );
+                          }
+                        : null,
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.delete_sweep, color: Colors.red),

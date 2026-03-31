@@ -19,6 +19,7 @@ class MessagesComposer extends StatelessWidget {
   final double bottomPadding;
   final String destinationLabel;
   final Widget destinationAvatar;
+  final bool destinationLocked;
   final List<Contact> mentionSuggestions;
   final String mentionQuery;
   final ValueChanged<Contact> onMentionSelected;
@@ -44,6 +45,7 @@ class MessagesComposer extends StatelessWidget {
     required this.bottomPadding,
     required this.destinationLabel,
     required this.destinationAvatar,
+    required this.destinationLocked,
     required this.mentionSuggestions,
     required this.mentionQuery,
     required this.onMentionSelected,
@@ -118,10 +120,13 @@ class MessagesComposer extends StatelessWidget {
                           ],
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _DestinationSelector(
+                            child: _DestinationPill(
                               destinationLabel: destinationLabel,
                               destinationAvatar: destinationAvatar,
-                              onTap: onShowRecipientSelector,
+                              isLocked: destinationLocked,
+                              onTap: destinationLocked
+                                  ? null
+                                  : onShowRecipientSelector,
                             ),
                           ),
                         ],
@@ -297,59 +302,73 @@ class _ComposerActionButton extends StatelessWidget {
   }
 }
 
-class _DestinationSelector extends StatelessWidget {
+class _DestinationPill extends StatelessWidget {
   final String destinationLabel;
   final Widget destinationAvatar;
-  final VoidCallback onTap;
+  final bool isLocked;
+  final VoidCallback? onTap;
 
-  const _DestinationSelector({
+  const _DestinationPill({
     required this.destinationLabel,
     required this.destinationAvatar,
-    required this.onTap,
+    required this.isLocked,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final content = Ink(
+      key: ValueKey(
+        isLocked
+            ? 'messages_composer_destination_locked'
+            : 'messages_composer_destination_selector',
+      ),
+      height: 40,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: [
+            destinationAvatar,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                destinationLabel,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+            if (!isLocked)
+              Icon(
+                Icons.expand_more_rounded,
+                size: 18,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+          ],
+        ),
+      ),
+    );
+
+    if (onTap == null) {
+      return Material(color: Colors.transparent, child: content);
+    }
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
-        child: Ink(
-          height: 40,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Theme.of(context).dividerColor.withValues(alpha: 0.35),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                destinationAvatar,
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    destinationLabel,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.expand_more_rounded,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ),
-          ),
-        ),
+        child: content,
       ),
     );
   }

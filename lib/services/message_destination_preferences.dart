@@ -5,12 +5,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 class MessageDestinationPreferences {
   static const String _destinationTypeKey = 'message_destination_type';
   static const String _recipientPublicKeyKey = 'message_recipient_public_key';
+  static const String _lockedDestinationEnabledKey =
+      'message_locked_destination_enabled';
+  static const String _lockedDestinationTypeKey =
+      'message_locked_destination_type';
+  static const String _lockedRecipientPublicKeyKey =
+      'message_locked_recipient_public_key';
 
   /// Destination types
   static const String destinationTypeAll = 'all';
   static const String destinationTypeChannel = 'channel';
   static const String destinationTypeContact = 'contact';
   static const String destinationTypeRoom = 'room';
+
+  static bool isLockableDestinationType(String type) {
+    return type == destinationTypeChannel || type == destinationTypeRoom;
+  }
 
   /// Get the saved destination configuration
   /// Returns a map with 'type' and optional 'publicKey'
@@ -51,6 +61,53 @@ class MessageDestinationPreferences {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_destinationTypeKey);
     await prefs.remove(_recipientPublicKeyKey);
+  }
+
+  /// Get the saved locked destination configuration.
+  /// Returns null when the lock is disabled.
+  static Future<Map<String, String>?> getLockedDestination() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isEnabled = prefs.getBool(_lockedDestinationEnabledKey) ?? false;
+
+    if (!isEnabled) {
+      return null;
+    }
+
+    final savedType =
+        prefs.getString(_lockedDestinationTypeKey) ?? destinationTypeChannel;
+    final type = isLockableDestinationType(savedType)
+        ? savedType
+        : destinationTypeChannel;
+    final publicKey = prefs.getString(_lockedRecipientPublicKeyKey);
+
+    return {'type': type, 'publicKey': ?publicKey};
+  }
+
+  static Future<void> setLockedDestination({
+    required bool enabled,
+    String type = destinationTypeChannel,
+    String? recipientPublicKey,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setBool(_lockedDestinationEnabledKey, enabled);
+
+    if (!enabled) {
+      await prefs.remove(_lockedDestinationTypeKey);
+      await prefs.remove(_lockedRecipientPublicKeyKey);
+      return;
+    }
+
+    final sanitizedType = isLockableDestinationType(type)
+        ? type
+        : destinationTypeChannel;
+    await prefs.setString(_lockedDestinationTypeKey, sanitizedType);
+
+    if (recipientPublicKey != null) {
+      await prefs.setString(_lockedRecipientPublicKeyKey, recipientPublicKey);
+    } else {
+      await prefs.remove(_lockedRecipientPublicKeyKey);
+    }
   }
 
   /// Get display name for destination type
