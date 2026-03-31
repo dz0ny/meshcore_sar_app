@@ -2073,25 +2073,6 @@ class ConnectionProvider with ChangeNotifier {
     _pendingRelayPings[nonce] = completer;
     _relayPingStartTimes[nonce] = DateTime.now().millisecondsSinceEpoch;
 
-    // Map ContactType to hop type: chat=0, repeater=1, room=2, sensor=3
-    int hopType;
-    switch (contact.type) {
-      case ContactType.chat:
-        hopType = 0;
-        break;
-      case ContactType.repeater:
-        hopType = 1;
-        break;
-      case ContactType.room:
-        hopType = 2;
-        break;
-      case ContactType.sensor:
-        hopType = 3;
-        break;
-      default:
-        hopType = 0;
-    }
-
     // Timeout after 10 seconds
     final timer = Timer(const Duration(seconds: 10), () {
       _pendingRelayPings.remove(nonce);
@@ -2104,9 +2085,10 @@ class ConnectionProvider with ChangeNotifier {
     });
 
     try {
+      // Zero-hop ping: prefixSize=1 sends 1 byte of public key, hopType=0
       await _activeService.sendTracePath(
         nonce: nonce,
-        hopType: hopType,
+        prefixSize: 1,
         contactPublicKey: contact.publicKey,
       );
       final result = await completer.future;

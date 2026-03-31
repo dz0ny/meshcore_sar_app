@@ -2359,9 +2359,21 @@ class _PingRelaySheet extends StatefulWidget {
   State<_PingRelaySheet> createState() => _PingRelaySheetState();
 }
 
+class _PingEntry {
+  final RelayPingResult result;
+  final DateTime timestamp;
+  final String? distance;
+
+  const _PingEntry({
+    required this.result,
+    required this.timestamp,
+    this.distance,
+  });
+}
+
 class _PingRelaySheetState extends State<_PingRelaySheet> {
   bool _pinging = false;
-  final List<RelayPingResult> _history = [];
+  final List<_PingEntry> _history = [];
 
   @override
   void initState() {
@@ -2372,19 +2384,26 @@ class _PingRelaySheetState extends State<_PingRelaySheet> {
   Future<void> _doPing() async {
     setState(() => _pinging = true);
     final connectionProvider = context.read<ConnectionProvider>();
+    final distance = _distanceText();
     final result = await connectionProvider.pingRelay(widget.contact);
     if (!mounted) return;
     setState(() {
       _pinging = false;
-      _history.insert(0, result);
+      _history.insert(
+        0,
+        _PingEntry(
+          result: result,
+          timestamp: DateTime.now(),
+          distance: distance,
+        ),
+      );
     });
   }
 
   String? _distanceText() {
     final location = widget.contact.displayLocation;
     if (location == null) return null;
-    final currentPosition =
-        LocationTrackingService().currentPosition;
+    final currentPosition = LocationTrackingService().currentPosition;
     if (currentPosition == null) return null;
     final meters = Geolocator.distanceBetween(
       currentPosition.latitude,
@@ -2397,11 +2416,183 @@ class _PingRelaySheetState extends State<_PingRelaySheet> {
     return '${(meters / 1000).toStringAsFixed(1)} km';
   }
 
+  Widget _buildPill(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    Color? iconColor,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: iconColor ?? colorScheme.onSurfaceVariant),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSnrPill(BuildContext context, String direction, double snrDb) {
+    final quality = linkQualityLabel(null, snrDb);
+    final color = linkQualityColor(quality);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            direction == 'there'
+                ? Icons.arrow_upward_rounded
+                : Icons.arrow_downward_rounded,
+            size: 12,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${snrDb.toStringAsFixed(1)} dB',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResultRow(BuildContext context, _PingEntry entry, int seq) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final r = entry.result;
+    final age = DateTime.now().difference(entry.timestamp);
+    final timeAgo = age.toLocalizedTimeAgoWithSeconds(context);
+
+    if (!r.success) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 12,
+              backgroundColor: colorScheme.error.withValues(alpha: 0.15),
+              child: Text(
+                '$seq',
+                style: TextStyle(
+                  color: colorScheme.error,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Timeout',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              timeAgo,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                child: Text(
+                  '$seq',
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              _buildPill(
+                context,
+                icon: Icons.timer_outlined,
+                label: '${r.durationMs} ms',
+              ),
+              const SizedBox(width: 6),
+              _buildSnrPill(context, 'there', r.snrThere),
+              const SizedBox(width: 6),
+              _buildSnrPill(context, 'back', r.snrBack),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 34, top: 4),
+            child: Row(
+              children: [
+                if (entry.distance != null) ...[
+                  Icon(Icons.straighten, size: 10,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                  const SizedBox(width: 3),
+                  Text(
+                    entry.distance!,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      fontSize: 10,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Icon(Icons.schedule, size: 10,
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                const SizedBox(width: 3),
+                Text(
+                  timeAgo,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final displayName = widget.contact.displayName;
-    final distance = _distanceText();
 
     return SafeArea(
       child: Padding(
@@ -2429,30 +2620,32 @@ class _PingRelaySheetState extends State<_PingRelaySheet> {
                     style: theme.textTheme.titleLarge,
                   ),
                 ),
+                if (_history.isNotEmpty)
+                  IconButton(
+                    onPressed: () => setState(() => _history.clear()),
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    tooltip: 'Clear history',
+                    style: IconButton.styleFrom(
+                      foregroundColor: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 FilledButton.icon(
                   onPressed: _pinging ? null : _doPing,
                   icon: _pinging
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 16,
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: colorScheme.onPrimary,
                           ),
                         )
-                      : const Icon(Icons.refresh, size: 18),
+                      : const Icon(Icons.network_ping, size: 18),
                   label: Text(_pinging ? 'Pinging...' : 'Ping Again'),
                 ),
               ],
             ),
-            if (distance != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Distance: $distance',
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             if (_history.isEmpty && _pinging)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
@@ -2474,49 +2667,12 @@ class _PingRelaySheetState extends State<_PingRelaySheet> {
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: _history.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  separatorBuilder: (_, _) =>
+                      Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
                   itemBuilder: (context, index) {
-                    final r = _history[index];
+                    final entry = _history[index];
                     final seq = _history.length - index;
-                    if (!r.success) {
-                      return ListTile(
-                        dense: true,
-                        leading: CircleAvatar(
-                          radius: 14,
-                          backgroundColor: theme.colorScheme.error,
-                          child: Text(
-                            '$seq',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        title: const Text('Timeout'),
-                        subtitle: const Text('No response received'),
-                      );
-                    }
-                    return ListTile(
-                      dense: true,
-                      leading: CircleAvatar(
-                        radius: 14,
-                        backgroundColor: Colors.green,
-                        child: Text(
-                          '$seq',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      title: Text('${r.durationMs} ms'),
-                      subtitle: Text(
-                        'SNR there: ${r.snrThere.toStringAsFixed(1)} dB  '
-                        'SNR back: ${r.snrBack.toStringAsFixed(1)} dB',
-                      ),
-                    );
+                    return _buildResultRow(context, entry, seq);
                   },
                 ),
               ),
