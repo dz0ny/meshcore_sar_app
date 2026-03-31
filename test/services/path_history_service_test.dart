@@ -207,6 +207,22 @@ void main() {
     },
   );
 
+  test('clear history removes stored direct paths for one contact', () async {
+    final service = PathHistoryService();
+
+    await service.initialize();
+    await service.recordReceivedBytePath('abc123', [0x01, 0x02], 1);
+    await service.recordReceivedBytePath('def456', [0x03, 0x04], 1);
+
+    expect(service.historyFor('abc123').directPaths, hasLength(1));
+    expect(service.historyFor('def456').directPaths, hasLength(1));
+
+    await service.clearHistoryFor('abc123');
+
+    expect(service.historyFor('abc123').directPaths, isEmpty);
+    expect(service.historyFor('def456').directPaths, hasLength(1));
+  });
+
   test('last successful direct path is chosen by location fit', () async {
     final service = PathHistoryService();
     final contact = _buildContact(

@@ -290,6 +290,17 @@ class PathHistoryService {
         ContactPathHistory.empty(contactPublicKeyHex);
   }
 
+  Future<void> clearHistoryFor(String contactPublicKeyHex) async {
+    await initialize();
+    _cache.remove(contactPublicKeyHex);
+    final prefs = await SharedPreferences.getInstance();
+    final payload = <String, dynamic>{};
+    for (final entry in _cache.entries) {
+      payload[entry.key] = entry.value.toJson();
+    }
+    await prefs.setString(_storageKey, jsonEncode(payload));
+  }
+
   ContactPathHistory _historyFor(String contactPublicKeyHex) {
     return _cache.putIfAbsent(
       contactPublicKeyHex,

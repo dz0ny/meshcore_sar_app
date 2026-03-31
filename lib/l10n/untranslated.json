@@ -1,5 +1,11 @@
 {
   "de": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -16,6 +22,12 @@
   ],
 
   "el": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -32,6 +44,12 @@
   ],
 
   "es": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -48,6 +66,12 @@
   ],
 
   "fr": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -64,6 +88,12 @@
   ],
 
   "hr": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -80,6 +110,12 @@
   ],
 
   "it": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -96,6 +132,12 @@
   ],
 
   "pl": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -112,6 +154,12 @@
   ],
 
   "pt": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -128,6 +176,12 @@
   ],
 
   "ru": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -144,6 +198,12 @@
   ],
 
   "sl": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -160,6 +220,12 @@
   ],
 
   "tr": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -176,6 +242,12 @@
   ],
 
   "uk": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",
@@ -192,6 +264,12 @@
   ],
 
   "zh": [
+    "autoSend",
+    "autoSendDescription",
+    "sendDirect",
+    "sendDirectDescription",
+    "sendFlood",
+    "sendFloodDescription",
     "postConnectDiscoveryTitle",
     "postConnectDiscoveryDescription",
     "setRegionScope",

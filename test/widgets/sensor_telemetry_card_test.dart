@@ -415,8 +415,11 @@ void main() {
       ),
     );
 
+    final scaffoldKey = GlobalKey<ScaffoldMessengerState>();
+
     await tester.pumpWidget(
       MaterialApp(
+        scaffoldMessengerKey: scaffoldKey,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -431,15 +434,43 @@ void main() {
     );
 
     await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Copy raw response'), findsOneWidget);
 
+    // Capture clipboard writes via the test platform channel mock.
+    String? clipboardText;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (MethodCall call) async {
+        if (call.method == 'Clipboard.setData') {
+          final args = call.arguments as Map<dynamic, dynamic>;
+          clipboardText = args['text'] as String?;
+        }
+        if (call.method == 'Clipboard.getData') {
+          return <String, dynamic>{'text': clipboardText};
+        }
+        return null;
+      },
+    );
+    addTearDown(() {
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      );
+    });
+
     await tester.tap(find.text('Copy raw response'));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
-    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-    expect(clipboardData?.text, '01 67 00 d7');
+    expect(clipboardText, '01 67 00 d7');
     expect(find.text('Raw response copied'), findsOneWidget);
+
+    // Clear the SnackBar to prevent its timer from blocking teardown.
+    scaffoldKey.currentState?.clearSnackBars();
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(seconds: 5));
   });
 }

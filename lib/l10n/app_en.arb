@@ -660,6 +660,30 @@
   "@flood": {
     "description": "Flood routing indicator"
   },
+  "autoSend": "Auto Send",
+  "@autoSend": {
+    "description": "Auto send mode - uses current path"
+  },
+  "autoSendDescription": "Send via current path.",
+  "@autoSendDescription": {
+    "description": "Description for auto send mode"
+  },
+  "sendDirect": "Send Direct",
+  "@sendDirect": {
+    "description": "Send direct mode - zero-hop to contact"
+  },
+  "sendDirectDescription": "Send directly to this contact.",
+  "@sendDirectDescription": {
+    "description": "Description for send direct mode"
+  },
+  "sendFlood": "Send Flood",
+  "@sendFlood": {
+    "description": "Send flood mode - via all repeaters"
+  },
+  "sendFloodDescription": "Send via all repeaters.",
+  "@sendFloodDescription": {
+    "description": "Description for send flood mode"
+  },
   "loggedIn": "Logged In",
   "@loggedIn": {
     "description": "Logged in status badge"

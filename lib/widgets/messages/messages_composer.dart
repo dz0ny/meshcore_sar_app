@@ -27,6 +27,7 @@ class MessagesComposer extends StatelessWidget {
   final Future<void> Function() onStartVoiceRecording;
   final Future<void> Function() onStopAndSendVoice;
   final Future<void> Function() onSendMessage;
+  final VoidCallback? onLongPressSend;
   final String? regionScopeName;
   final VoidCallback? onRegionScopeTap;
 
@@ -51,6 +52,7 @@ class MessagesComposer extends StatelessWidget {
     required this.onStartVoiceRecording,
     required this.onStopAndSendVoice,
     required this.onSendMessage,
+    this.onLongPressSend,
     this.regionScopeName,
     this.onRegionScopeTap,
   });
@@ -163,6 +165,7 @@ class MessagesComposer extends StatelessWidget {
                                 messageByteCount: messageByteCount,
                                 maxMessageBytes: maxMessageBytes,
                                 onSendMessage: onSendMessage,
+                                onLongPressSend: onLongPressSend,
                                 onStartVoiceRecording: onStartVoiceRecording,
                                 onStopAndSendVoice: onStopAndSendVoice,
                               ),
@@ -433,6 +436,7 @@ class _SendButton extends StatelessWidget {
   final int messageByteCount;
   final int maxMessageBytes;
   final Future<void> Function() onSendMessage;
+  final VoidCallback? onLongPressSend;
   final Future<void> Function() onStartVoiceRecording;
   final Future<void> Function() onStopAndSendVoice;
 
@@ -445,6 +449,7 @@ class _SendButton extends StatelessWidget {
     required this.messageByteCount,
     required this.maxMessageBytes,
     required this.onSendMessage,
+    this.onLongPressSend,
     required this.onStartVoiceRecording,
     required this.onStopAndSendVoice,
   });
@@ -456,28 +461,32 @@ class _SendButton extends StatelessWidget {
       enabled: canSendText || (voiceSupported && !isSendingVoice),
       label: semanticsLabel,
       onTap: canSendText ? onSendMessage : null,
-      onLongPress: (voiceSupported && !isSendingVoice)
-          ? () {
-              if (isRecording) {
-                onStopAndSendVoice();
-                return;
-              }
-              onStartVoiceRecording();
-            }
-          : null,
+      onLongPress: canSendText && onLongPressSend != null
+          ? onLongPressSend
+          : (voiceSupported && !isSendingVoice)
+              ? () {
+                  if (isRecording) {
+                    onStopAndSendVoice();
+                    return;
+                  }
+                  onStartVoiceRecording();
+                }
+              : null,
       child: Tooltip(
         message: semanticsLabel,
         excludeFromSemantics: true,
         child: GestureDetector(
           excludeFromSemantics: true,
           onTap: canSendText ? onSendMessage : null,
-          onLongPressStart: (voiceSupported && !isSendingVoice)
-              ? (_) => onStartVoiceRecording()
-              : null,
-          onLongPressEnd: (voiceSupported && isRecording)
+          onLongPressStart: canSendText && onLongPressSend != null
+              ? (_) => onLongPressSend!()
+              : (voiceSupported && !isSendingVoice)
+                  ? (_) => onStartVoiceRecording()
+                  : null,
+          onLongPressEnd: (!canSendText && voiceSupported && isRecording)
               ? (_) => onStopAndSendVoice()
               : null,
-          onLongPressCancel: (voiceSupported && isRecording)
+          onLongPressCancel: (!canSendText && voiceSupported && isRecording)
               ? onStopAndSendVoice
               : null,
           child: Column(

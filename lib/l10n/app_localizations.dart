@@ -961,6 +961,42 @@ abstract class AppLocalizations {
   /// **'Flood'**
   String get flood;
 
+  /// Auto send mode - uses current path
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Send'**
+  String get autoSend;
+
+  /// Description for auto send mode
+  ///
+  /// In en, this message translates to:
+  /// **'Send via current path.'**
+  String get autoSendDescription;
+
+  /// Send direct mode - zero-hop to contact
+  ///
+  /// In en, this message translates to:
+  /// **'Send Direct'**
+  String get sendDirect;
+
+  /// Description for send direct mode
+  ///
+  /// In en, this message translates to:
+  /// **'Send directly to this contact.'**
+  String get sendDirectDescription;
+
+  /// Send flood mode - via all repeaters
+  ///
+  /// In en, this message translates to:
+  /// **'Send Flood'**
+  String get sendFlood;
+
+  /// Description for send flood mode
+  ///
+  /// In en, this message translates to:
+  /// **'Send via all repeaters.'**
+  String get sendFloodDescription;
+
   /// Logged in status badge
   ///
   /// In en, this message translates to:

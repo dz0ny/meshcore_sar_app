@@ -482,6 +482,24 @@ class AppLocalizationsPl extends AppLocalizations {
   String get flood => 'Rozgłoszeniowo';
 
   @override
+  String get autoSend => 'Auto Send';
+
+  @override
+  String get autoSendDescription => 'Send via current path.';
+
+  @override
+  String get sendDirect => 'Send Direct';
+
+  @override
+  String get sendDirectDescription => 'Send directly to this contact.';
+
+  @override
+  String get sendFlood => 'Send Flood';
+
+  @override
+  String get sendFloodDescription => 'Send via all repeaters.';
+
+  @override
   String get loggedIn => 'Zalogowano';
 
   @override

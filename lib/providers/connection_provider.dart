@@ -2880,6 +2880,32 @@ class ConnectionProvider with ChangeNotifier {
     }
   }
 
+  /// Set a contact to zero-hop direct mode (no mesh forwarding).
+  ///
+  /// This forces the firmware to send directly to this contact without
+  /// using any repeaters, matching the "Send Direct" option in the
+  /// official MeshCore client.
+  Future<void> setContactDirect(Contact contact) async {
+    if (!_activeService.isConnected) {
+      _error = 'Not connected to device';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      _error = null;
+      final updatedContact = contact.copyWith(
+        outPathLen: 0, // descriptor: hashSize=1, hopCount=0 → zero-hop direct
+        outPath: Uint8List(64),
+      );
+      await _activeService.addOrUpdateContact(updatedContact);
+    } catch (e) {
+      _error = 'Failed to set direct path: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   /// Remove a contact from the companion radio
   ///
   /// Deletes the contact from the device's internal contact table.

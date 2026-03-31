@@ -943,6 +943,69 @@ class _MessagesTabState extends State<MessagesTab> {
     }
   }
 
+  bool _isContactDestination() {
+    return _destinationType ==
+            MessageDestinationPreferences.destinationTypeContact &&
+        _selectedRecipient != null;
+  }
+
+  void _showSendModeSheet() {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.route),
+                title: Text(l10n.autoSend),
+                subtitle: Text(l10n.autoSendDescription),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _sendMessage();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.near_me),
+                title: Text(l10n.sendDirect),
+                subtitle: Text(l10n.sendDirectDescription),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  final connectionProvider = context.read<ConnectionProvider>();
+                  if (_selectedRecipient != null &&
+                      connectionProvider.deviceInfo.isConnected) {
+                    await connectionProvider
+                        .setContactDirect(_selectedRecipient!);
+                  }
+                  await _sendMessage();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.cell_tower),
+                title: Text(l10n.sendFlood),
+                subtitle: Text(l10n.sendFloodDescription),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  final connectionProvider = context.read<ConnectionProvider>();
+                  if (_selectedRecipient != null &&
+                      connectionProvider.deviceInfo.isConnected) {
+                    await connectionProvider
+                        .resetPath(_selectedRecipient!.publicKey);
+                  }
+                  await _sendMessage();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _startTicTacToeGame() async {
     if (!mounted) return;
     if (_destinationType !=
@@ -2387,6 +2450,9 @@ class _MessagesTabState extends State<MessagesTab> {
                   onStartVoiceRecording: _startVoiceRecording,
                   onStopAndSendVoice: _stopAndSendVoice,
                   onSendMessage: _sendMessage,
+                  onLongPressSend: _isContactDestination()
+                      ? _showSendModeSheet
+                      : null,
                   regionScopeName: _channelRegionScopeName,
                   onRegionScopeTap: _channelRegionScopeName != null
                       ? _showRegionScopeSheet
