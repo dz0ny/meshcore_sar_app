@@ -42,7 +42,9 @@ dependencies:
 
   # MeshCore BLE protocol client
   meshcore_client:
-    path: ../meshcore_client
+    git:
+      url: ../meshcore_client
+      ref: 0bb339f
 
   # Codec2 ultra-low-bitrate speech codec (FFI plugin)
   codec2_flutter:
