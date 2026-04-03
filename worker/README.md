@@ -10,6 +10,7 @@ This worker follows the same split as `/Users/dz0ny/site-vendorvigilance`:
 - `src/pages/index.astro` - dashboard shell
 - `worker/index.ts` - Cloudflare Worker entrypoint
 - `worker/stats.ts` - D1 queries, payload validation, and aggregation helpers
+- `public/.assetsignore` - keeps Astro's private `_worker.js` bundle out of public asset uploads
 - `schema.sql` - D1 schema
 
 ## Setup

@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+@layer base {
+  :root {
+    --background: 206 46% 97%;
+    --foreground: 208 50% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 208 50% 13%;
+    --primary: 178 83% 31%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 207 66% 92%;
+    --secondary-foreground: 208 50% 13%;
+    --muted: 204 31% 93%;
+    --muted-foreground: 208 19% 45%;
+    --accent: 28 100% 62%;
+    --accent-foreground: 208 50% 13%;
+    --destructive: 347 54% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 206 22% 87%;
+    --input: 206 22% 87%;
+    --ring: 178 83% 31%;
+    --radius: 1rem;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, hsl(178 83% 31% / 0.14), transparent 30%),
+      radial-gradient(circle at top right, hsl(211 64% 39% / 0.12), transparent 24%),
+      linear-gradient(180deg, #f8fbfd 0%, hsl(var(--background)) 100%);
+    color: hsl(var(--foreground));
+  }
+}
