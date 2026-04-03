@@ -37,7 +37,7 @@ class _PingEntry {
 }
 
 class _PingContactSheetState extends State<PingContactSheet> {
-  static const Duration _autoPingInterval = Duration(milliseconds: 3890);
+  static const Duration _autoPingInterval = Duration(seconds: 2);
   static const Duration _maxAutoPingDelay = Duration(seconds: 5);
   static const int _maxHistoryEntries = 24;
   static const double _maxHistoryHeight = 320;
@@ -309,19 +309,6 @@ class _PingContactSheetState extends State<PingContactSheet> {
                   ),
                   const SizedBox(width: 8),
                 ],
-                Icon(
-                  Icons.schedule,
-                  size: 10,
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  'Ping sample',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                    fontSize: 10,
-                  ),
-                ),
               ],
             ),
           ),
@@ -408,7 +395,7 @@ class _PingContactSheetState extends State<PingContactSheet> {
                           ),
                         ),
                         Text(
-                          '3.89s sonar cues for there/back SNR',
+                          '2s sonar cues for there/back SNR',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
