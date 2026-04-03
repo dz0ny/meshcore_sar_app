@@ -42,7 +42,7 @@ void main() {
         );
   });
 
-  testWidgets('toggles reporting with a fixed 5 minute interval', (
+  testWidgets('starts enabled by default and can be disabled', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
@@ -76,12 +76,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Reporting interval'), findsNothing);
-    expect(service.isEnabled, isFalse);
+    expect(service.isEnabled, isTrue);
 
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
 
-    expect(service.isEnabled, isTrue);
+    expect(service.isEnabled, isFalse);
     expect(service.intervalMinutes, 5);
 
     await tester.tap(find.widgetWithText(TextButton, 'View public stats'));

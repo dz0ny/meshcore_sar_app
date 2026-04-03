@@ -139,6 +139,7 @@ class TrafficStatsReportingService extends ChangeNotifier {
   static final Uri dashboardUri = Uri.parse(workerBaseUrl);
   static final Uri ingestUri = Uri.parse('$workerBaseUrl/api/ingest');
 
+  static const bool defaultEnabled = true;
   static const int defaultIntervalMinutes = 5;
   static const String _enabledKey = 'traffic_stats_reporting_enabled';
   static const String _legacyIntervalKey =
@@ -161,7 +162,7 @@ class TrafficStatsReportingService extends ChangeNotifier {
   String? Function()? _deviceKey6Provider;
   Timer? _retryTimer;
   String? _appVersion;
-  bool _enabled = false;
+  bool _enabled = defaultEnabled;
   DateTime? _lastSuccessAt;
   String? _lastError;
   bool _isInitialized = false;
@@ -191,7 +192,7 @@ class TrafficStatsReportingService extends ChangeNotifier {
   }) async {
     _deviceKey6Provider = deviceKey6Provider;
     final prefs = await _prefsProvider();
-    _enabled = prefs.getBool(_enabledKey) ?? false;
+    _enabled = prefs.getBool(_enabledKey) ?? defaultEnabled;
     if (prefs.containsKey(_legacyIntervalKey)) {
       await prefs.remove(_legacyIntervalKey);
     }

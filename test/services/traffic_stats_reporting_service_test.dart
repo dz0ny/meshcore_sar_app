@@ -68,7 +68,7 @@ void main() {
     await service.initialize(
       deviceKey6Provider: () => 'a1b2c3d4e5f6',
     );
-    await service.setEnabled(true);
+    expect(service.isEnabled, isTrue);
     await service.processLogs(<BlePacketLog>[
       _log(
         timestamp: DateTime.utc(2026, 4, 3, 10, 0, 5),

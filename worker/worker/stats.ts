@@ -171,6 +171,35 @@ export interface ReporterSummary {
   longitude: number | null;
 }
 
+export interface AppVersionEntry {
+  version: string;
+  reporters: number;
+  packets: number;
+}
+
+export interface ColoEntry {
+  colo: string;
+  reporters: number;
+  packets: number;
+}
+
+export interface TrafficComposition {
+  human: number;
+  overhead: number;
+  acks: number;
+}
+
+export interface MultiHopRatio {
+  direct: number;
+  multiHop: number;
+}
+
+export interface CompositionPoint {
+  label: string;
+  human: number;
+  overhead: number;
+}
+
 export interface DashboardSummary {
   filter: WindowFilter;
   reportCount: number;
@@ -182,6 +211,11 @@ export interface DashboardSummary {
   recentReporters: ReporterSummary[];
   chartPoints: ChartPoint[];
   locationPoints: LocationPoint[];
+  appVersions: AppVersionEntry[];
+  coloDistribution: ColoEntry[];
+  trafficComposition: TrafficComposition;
+  multiHopRatio: MultiHopRatio;
+  compositionOverTime: CompositionPoint[];
 }
 
 export const REPORT_INSERT_SQL = `
@@ -292,6 +326,11 @@ export function summarizeRows(
   const reporterMap = new Map<string, ReporterSummary>();
   const chartBuckets = new Map<string, ChartPoint>();
 
+  // per-version and per-colo accumulators
+  const versionMap = new Map<string, { reporters: Set<string>; packets: number }>();
+  const coloMap = new Map<string, { reporters: Set<string>; packets: number }>();
+  const compositionBuckets = new Map<string, { human: number; overhead: number }>();
+
   for (const row of rows) {
     const packetTotal =
       decodeFailuresForRow(row) +
@@ -331,6 +370,37 @@ export function summarizeRows(
         reports: 1,
       });
     }
+
+    // app version
+    const ver = row.app_version ?? "unknown";
+    const verEntry = versionMap.get(ver);
+    if (verEntry) {
+      verEntry.reporters.add(row.device_key6);
+      verEntry.packets += packetTotal;
+    } else {
+      versionMap.set(ver, { reporters: new Set([row.device_key6]), packets: packetTotal });
+    }
+
+    // CF colo
+    const colo = row.cf_colo ?? "unknown";
+    const coloEntry = coloMap.get(colo);
+    if (coloEntry) {
+      coloEntry.reporters.add(row.device_key6);
+      coloEntry.packets += packetTotal;
+    } else {
+      coloMap.set(colo, { reporters: new Set([row.device_key6]), packets: packetTotal });
+    }
+
+    // composition over time (human = text + group_text, overhead = rest)
+    const humanPackets = row.pt_02 + row.pt_05;
+    const overheadPackets = packetTotal - humanPackets;
+    const compBucket = compositionBuckets.get(bucketKey);
+    if (compBucket) {
+      compBucket.human += humanPackets;
+      compBucket.overhead += overheadPackets;
+    } else {
+      compositionBuckets.set(bucketKey, { human: humanPackets, overhead: overheadPackets });
+    }
   }
 
   const recentReporters = [...reporterMap.values()]
@@ -351,6 +421,15 @@ export function summarizeRows(
       longitude: reporter.longitude,
     }));
 
+  // human = text messages (pt_02 + pt_05), acks = pt_03, overhead = everything else
+  const humanTotal = sumRows(rows, "pt_02") + sumRows(rows, "pt_05");
+  const acksTotal = sumRows(rows, "pt_03");
+  const overheadTotal = decodedPackets - humanTotal - acksTotal;
+
+  // multi-hop: direct = path_mode_none, multiHop = 1b+2b+3b
+  const directTotal = sumRows(rows, "path_mode_none");
+  const multiHopTotal = sumRows(rows, "path_mode_1b") + sumRows(rows, "path_mode_2b") + sumRows(rows, "path_mode_3b");
+
   return {
     filter,
     reportCount: rows.length,
@@ -364,6 +443,17 @@ export function summarizeRows(
       left.label.localeCompare(right.label),
     ),
     locationPoints,
+    appVersions: [...versionMap.entries()]
+      .map(([version, entry]) => ({ version, reporters: entry.reporters.size, packets: entry.packets }))
+      .sort((left, right) => right.packets - left.packets),
+    coloDistribution: [...coloMap.entries()]
+      .map(([colo, entry]) => ({ colo, reporters: entry.reporters.size, packets: entry.packets }))
+      .sort((left, right) => right.packets - left.packets),
+    trafficComposition: { human: humanTotal, overhead: overheadTotal, acks: acksTotal },
+    multiHopRatio: { direct: directTotal, multiHop: multiHopTotal },
+    compositionOverTime: [...compositionBuckets.entries()]
+      .map(([label, entry]) => ({ label, ...entry }))
+      .sort((left, right) => left.label.localeCompare(right.label)),
   };
 }
 

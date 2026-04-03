@@ -28,23 +28,23 @@
 
 @layer base {
   :root {
-    --background: 206 46% 97%;
-    --foreground: 208 50% 13%;
+    --background: 220 33% 97%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 208 50% 13%;
-    --primary: 178 83% 31%;
+    --card-foreground: 222 47% 11%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 207 66% 92%;
-    --secondary-foreground: 208 50% 13%;
-    --muted: 204 31% 93%;
-    --muted-foreground: 208 19% 45%;
-    --accent: 28 100% 62%;
-    --accent-foreground: 208 50% 13%;
-    --destructive: 347 54% 48%;
+    --secondary: 220 50% 93%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 220 26% 93%;
+    --muted-foreground: 220 13% 46%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 206 22% 87%;
-    --input: 206 22% 87%;
-    --ring: 178 83% 31%;
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 217 91% 60%;
     --radius: 1rem;
   }
 
@@ -59,9 +59,9 @@
   body {
     min-height: 100vh;
     background:
-      radial-gradient(circle at top left, hsl(178 83% 31% / 0.14), transparent 30%),
-      radial-gradient(circle at top right, hsl(211 64% 39% / 0.12), transparent 24%),
-      linear-gradient(180deg, #f8fbfd 0%, hsl(var(--background)) 100%);
+      radial-gradient(circle at top left, hsl(217 91% 60% / 0.10), transparent 30%),
+      radial-gradient(circle at top right, hsl(217 70% 50% / 0.08), transparent 24%),
+      linear-gradient(180deg, #f5f8fc 0%, hsl(var(--background)) 100%);
     color: hsl(var(--foreground));
   }
 }

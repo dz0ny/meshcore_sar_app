@@ -43,6 +43,35 @@ type LocationPoint = {
   longitude: number;
 };
 
+type AppVersionEntry = {
+  version: string;
+  reporters: number;
+  packets: number;
+};
+
+type ColoEntry = {
+  colo: string;
+  reporters: number;
+  packets: number;
+};
+
+type TrafficComposition = {
+  human: number;
+  overhead: number;
+  acks: number;
+};
+
+type MultiHopRatio = {
+  direct: number;
+  multiHop: number;
+};
+
+type CompositionPoint = {
+  label: string;
+  human: number;
+  overhead: number;
+};
+
 type DashboardResponse = {
   generatedAt: string;
   filter: {
@@ -60,6 +89,11 @@ type DashboardResponse = {
   recentReporters: ReporterSummary[];
   chartPoints: ChartPoint[];
   locationPoints: LocationPoint[];
+  appVersions: AppVersionEntry[];
+  coloDistribution: ColoEntry[];
+  trafficComposition: TrafficComposition;
+  multiHopRatio: MultiHopRatio;
+  compositionOverTime: CompositionPoint[];
 };
 
 const WINDOW_OPTIONS: Array<{ key: WindowKey; label: string }> = [
@@ -145,6 +179,13 @@ export function DashboardShell() {
     ? ((summary!.decodedPackets / totalPackets) * 100).toFixed(1)
     : "0";
   const maxTrend = Math.max(...(summary?.chartPoints ?? []).map((p) => p.totalPackets), 1);
+  const multiHopTotal = (summary?.multiHopRatio.direct ?? 0) + (summary?.multiHopRatio.multiHop ?? 0);
+  const multiHopPct = multiHopTotal > 0
+    ? ((summary!.multiHopRatio.multiHop / multiHopTotal) * 100).toFixed(1)
+    : "0";
+  const comp = summary?.trafficComposition;
+  const compTotal = comp ? comp.human + comp.overhead + comp.acks : 0;
+  const humanPct = compTotal > 0 ? ((comp!.human / compTotal) * 100).toFixed(1) : "0";
 
   return (
     <div className="mx-auto max-w-[1320px] px-5 py-8">
@@ -152,8 +193,8 @@ export function DashboardShell() {
         {/* Header */}
         <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">M</span>
+            <div className="flex items-center gap-2.5">
+              <img src="/favicon.png" alt="MeshCore SAR" className="h-8 w-8 rounded-lg" />
               <h1 className="text-2xl font-semibold tracking-tight">MeshCore SAR</h1>
             </div>
             <p className="max-w-xl text-sm text-muted-foreground">
@@ -185,26 +226,36 @@ export function DashboardShell() {
 
         <TabsContent value={windowKey} className="space-y-6">
           {/* Key metrics */}
-          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <MetricCard
               label="Active Nodes"
               value={summary?.uniqueDevices ?? 0}
-              note="Unique reporting nodes in this window"
+              note="Unique reporting nodes"
             />
             <MetricCard
               label="Total Packets"
               value={totalPackets}
-              note="All received packets (decoded + failed)"
+              note="Decoded + failed"
             />
             <MetricCard
               label="Decode Rate"
               value={`${decodeRate}%`}
-              note={`${summary?.decodedPackets ?? 0} decoded, ${summary?.decodeFailures ?? 0} failed`}
+              note={`${summary?.decodeFailures ?? 0} failed`}
             />
             <MetricCard
-              label="Packet Types"
+              label="Multi-Hop"
+              value={`${multiHopPct}%`}
+              note={`${summary?.multiHopRatio.multiHop ?? 0} relayed`}
+            />
+            <MetricCard
+              label="Messages"
+              value={`${humanPct}%`}
+              note={`${comp?.human ?? 0} text + group`}
+            />
+            <MetricCard
+              label="Protocol Types"
               value={activePacketTypes.length}
-              note={`of 16 protocol types observed`}
+              note="of 16 types active"
             />
           </section>
 
@@ -345,11 +396,247 @@ export function DashboardShell() {
               </Card>
             </div>
           </section>
+
+          {/* Messages vs Overhead over time */}
+          <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle>Messages vs Protocol Overhead</CardTitle>
+                <CardDescription>
+                  Human messages (text + group text) compared to protocol overhead (acks, advertisements, routing, control) over time.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {summary?.compositionOverTime.length ? (
+                  <CompositionChart points={summary.compositionOverTime} />
+                ) : (
+                  <EmptyState label="No composition data yet." />
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Traffic Breakdown</CardTitle>
+                <CardDescription>What the mesh is carrying</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {comp && compTotal > 0 ? (
+                  <>
+                    {/* stacked bar */}
+                    <div className="flex h-6 overflow-hidden rounded-full">
+                      <div className="bg-primary" style={{ width: `${(comp.human / compTotal) * 100}%` }} title={`Messages: ${comp.human}`} />
+                      <div className="bg-amber-400" style={{ width: `${(comp.acks / compTotal) * 100}%` }} title={`Acks: ${comp.acks}`} />
+                      <div className="bg-secondary" style={{ width: `${(comp.overhead / compTotal) * 100}%` }} title={`Overhead: ${comp.overhead}`} />
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <div className="mx-auto mb-1 h-2.5 w-2.5 rounded-full bg-primary" />
+                        <div className="text-lg font-semibold tabular-nums">{comp.human.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">Messages</div>
+                      </div>
+                      <div>
+                        <div className="mx-auto mb-1 h-2.5 w-2.5 rounded-full bg-amber-400" />
+                        <div className="text-lg font-semibold tabular-nums">{comp.acks.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">Acks</div>
+                      </div>
+                      <div>
+                        <div className="mx-auto mb-1 h-2.5 w-2.5 rounded-full bg-secondary" />
+                        <div className="text-lg font-semibold tabular-nums">{comp.overhead.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">Overhead</div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <EmptyState label="No traffic data yet." />
+                )}
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* App versions + CF edge */}
+          <section className="grid gap-4 xl:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>App Versions</CardTitle>
+                <CardDescription>Distribution of reporting app versions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {summary?.appVersions.length ? (
+                  <div className="space-y-3">
+                    {summary.appVersions.map((entry) => {
+                      const maxPkts = summary.appVersions[0].packets;
+                      return (
+                        <div key={entry.version} className="space-y-1.5">
+                          <div className="flex items-baseline justify-between gap-3 text-sm">
+                            <span className="font-mono font-medium">{entry.version}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {entry.reporters} {entry.reporters === 1 ? "node" : "nodes"} / {entry.packets.toLocaleString()} pkts
+                            </span>
+                          </div>
+                          <div className="h-2 overflow-hidden rounded-full bg-secondary">
+                            <div
+                              className="h-full rounded-full bg-primary/70"
+                              style={{ width: `${(entry.packets / maxPkts) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <EmptyState label="No version data yet." />
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Cloudflare Edge PoPs</CardTitle>
+                <CardDescription>Which Cloudflare datacenters are serving mesh traffic</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {summary?.coloDistribution.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {summary.coloDistribution.map((entry) => (
+                      <div key={entry.colo} className="rounded-xl border border-border/50 bg-secondary/30 px-4 py-3 text-center">
+                        <div className="text-base font-bold font-mono">{entry.colo}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {entry.reporters} {entry.reporters === 1 ? "node" : "nodes"}
+                        </div>
+                        <div className="text-xs tabular-nums text-muted-foreground">
+                          {entry.packets.toLocaleString()} pkts
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState label="No edge data yet." />
+                )}
+              </CardContent>
+            </Card>
+          </section>
         </TabsContent>
       </Tabs>
     </div>
   );
 }
+
+// --- Composition stacked area chart ---
+
+function CompositionChart({ points }: { points: CompositionPoint[] }) {
+  const [hover, setHover] = useState<number | null>(null);
+  const count = points.length;
+  if (count === 0) return null;
+
+  const maxVal = Math.max(...points.map((p) => p.human + p.overhead), 1);
+  const innerW = 100;
+  const innerH = 188;
+  const pad = { top: 16, right: 16, bottom: 32, left: 48 };
+
+  const xs = points.map((_, i) => i / Math.max(count - 1, 1));
+
+  // stacked: overhead on bottom, human on top
+  const overheadYs = points.map((p) => 1 - p.overhead / maxVal);
+  const totalYs = points.map((p) => 1 - (p.overhead + p.human) / maxVal);
+
+  const overheadArea = buildAreaPath(xs, overheadYs, innerW, innerH);
+  const humanArea = buildStackedAreaPath(xs, totalYs, overheadYs, innerW, innerH);
+
+  const labelStep = Math.max(1, Math.floor(count / 6));
+  const gridLines = niceGridLines(maxVal, 3);
+
+  return (
+    <div className="relative select-none">
+      <svg
+        viewBox={`${-pad.left} ${-pad.top} ${innerW + pad.left + pad.right} ${innerH + pad.top + pad.bottom}`}
+        className="h-auto w-full"
+        preserveAspectRatio="none"
+        onMouseLeave={() => setHover(null)}
+      >
+        <defs>
+          <linearGradient id="humanFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.5} />
+            <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1} />
+          </linearGradient>
+          <linearGradient id="overheadFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="hsl(206, 22%, 75%)" stopOpacity={0.5} />
+            <stop offset="100%" stopColor="hsl(206, 22%, 75%)" stopOpacity={0.1} />
+          </linearGradient>
+        </defs>
+
+        {gridLines.map((val) => {
+          const y = (1 - val / maxVal) * innerH;
+          return (
+            <g key={val}>
+              <line x1={0} y1={y} x2={innerW} y2={y} stroke="hsl(206, 22%, 87%)" strokeWidth={0.3} />
+              <text x={-6} y={y} textAnchor="end" dominantBaseline="middle" fill="hsl(208, 19%, 55%)" fontSize={3.2} fontFamily="var(--font-sans)">
+                {formatCompact(val)}
+              </text>
+            </g>
+          );
+        })}
+        <line x1={0} y1={innerH} x2={innerW} y2={innerH} stroke="hsl(206, 22%, 87%)" strokeWidth={0.4} />
+
+        <path d={overheadArea} fill="url(#overheadFill)" />
+        <path d={humanArea} fill="url(#humanFill)" />
+
+        {/* X labels */}
+        {points.map((p, i) => (i % labelStep === 0 || i === count - 1) ? (
+          <text key={i} x={xs[i] * innerW} y={innerH + 10} textAnchor="middle" fill="hsl(208, 19%, 55%)" fontSize={2.8} fontFamily="var(--font-sans)">
+            {p.label.slice(5)}
+          </text>
+        ) : null)}
+
+        {/* hover zones */}
+        {points.map((point, i) => (
+          <rect
+            key={point.label}
+            x={xs[i] * innerW - innerW / count / 2}
+            y={0}
+            width={innerW / count}
+            height={innerH}
+            fill="transparent"
+            onMouseEnter={() => setHover(i)}
+          />
+        ))}
+
+        {hover !== null && (
+          <line x1={xs[hover] * innerW} y1={0} x2={xs[hover] * innerW} y2={innerH} stroke="hsl(217, 91%, 60%)" strokeWidth={0.3} strokeDasharray="1.5 1" />
+        )}
+      </svg>
+
+      {hover !== null && (
+        <div
+          className="pointer-events-none absolute -top-2 z-10 -translate-x-1/2 rounded-lg border border-border/50 bg-card px-3 py-1.5 text-xs shadow-lg"
+          style={{ left: `${(pad.left + xs[hover] * innerW) / (innerW + pad.left + pad.right) * 100}%` }}
+        >
+          <div className="font-semibold">{points[hover].label}</div>
+          <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-primary" /> Messages: {points[hover].human.toLocaleString()}</div>
+          <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-secondary" /> Overhead: {points[hover].overhead.toLocaleString()}</div>
+        </div>
+      )}
+
+      <div className="mt-2 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-primary/60" /> Messages</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-secondary/70" /> Overhead</span>
+      </div>
+    </div>
+  );
+}
+
+function buildAreaPath(xs: number[], ys: number[], w: number, h: number): string {
+  const line = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x * w},${ys[i] * h}`).join(" ");
+  return `${line} L${xs[xs.length - 1] * w},${h} L0,${h} Z`;
+}
+
+function buildStackedAreaPath(xs: number[], topYs: number[], bottomYs: number[], w: number, h: number): string {
+  const top = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x * w},${topYs[i] * h}`).join(" ");
+  const bottom = [...xs].reverse().map((x, i) => `L${x * w},${bottomYs[xs.length - 1 - i] * h}`).join(" ");
+  return `${top} ${bottom} Z`;
+}
+
+// --- Traffic trend chart ---
 
 const CHART_H = 240;
 const CHART_PAD = { top: 20, right: 16, bottom: 32, left: 48 };
@@ -393,12 +680,12 @@ function TrafficChart({ points, maxValue }: { points: ChartPoint[]; maxValue: nu
       >
         <defs>
           <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="hsl(178, 83%, 31%)" stopOpacity={0.35} />
-            <stop offset="100%" stopColor="hsl(178, 83%, 31%)" stopOpacity={0.03} />
+            <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.35} />
+            <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.03} />
           </linearGradient>
           <linearGradient id="lineStroke" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="hsl(178, 83%, 38%)" />
-            <stop offset="100%" stopColor="hsl(178, 60%, 28%)" />
+            <stop offset="0%" stopColor="hsl(217, 91%, 65%)" />
+            <stop offset="100%" stopColor="hsl(217, 70%, 50%)" />
           </linearGradient>
         </defs>
 
@@ -429,7 +716,7 @@ function TrafficChart({ points, maxValue }: { points: ChartPoint[]; maxValue: nu
           cx={xs[peakIdx] * innerW}
           cy={ys[peakIdx] * innerH}
           r={1.5}
-          fill="hsl(178, 83%, 31%)"
+          fill="hsl(217, 91%, 60%)"
           stroke="white"
           strokeWidth={0.6}
         />
@@ -439,7 +726,7 @@ function TrafficChart({ points, maxValue }: { points: ChartPoint[]; maxValue: nu
           x={xs[peakIdx] * innerW}
           y={ys[peakIdx] * innerH - 4}
           textAnchor="middle"
-          fill="hsl(178, 83%, 28%)"
+          fill="hsl(217, 91%, 45%)"
           fontSize={3}
           fontWeight={600}
           fontFamily="var(--font-sans)"
@@ -486,7 +773,7 @@ function TrafficChart({ points, maxValue }: { points: ChartPoint[]; maxValue: nu
               y1={0}
               x2={xs[hover] * innerW}
               y2={innerH}
-              stroke="hsl(178, 83%, 31%)"
+              stroke="hsl(217, 91%, 60%)"
               strokeWidth={0.3}
               strokeDasharray="1.5 1"
             />
@@ -495,7 +782,7 @@ function TrafficChart({ points, maxValue }: { points: ChartPoint[]; maxValue: nu
               cy={ys[hover] * innerH}
               r={1.2}
               fill="white"
-              stroke="hsl(178, 83%, 31%)"
+              stroke="hsl(217, 91%, 60%)"
               strokeWidth={0.6}
             />
           </>
@@ -638,8 +925,8 @@ function LeafletMap({ locations }: { locations: LocationPoint[] }) {
               center={[loc.latitude, loc.longitude]}
               radius={8}
               pathOptions={{
-                color: "hsl(178, 83%, 31%)",
-                fillColor: "hsl(178, 83%, 45%)",
+                color: "hsl(217, 91%, 60%)",
+                fillColor: "hsl(217, 91%, 70%)",
                 fillOpacity: 0.6,
                 weight: 2,
               }}

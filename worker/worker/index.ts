@@ -114,7 +114,8 @@ async function handleDashboard(request: Request, env: Env): Promise<Response> {
     {
       headers: {
         ...jsonHeaders,
-        "cache-control": "no-store",
+        "cache-control": "public, max-age=60, s-maxage=60",
+        "cdn-cache-control": "max-age=60",
       },
     },
   );
