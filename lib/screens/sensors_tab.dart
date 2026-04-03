@@ -11,6 +11,7 @@ import '../providers/sensors_provider.dart';
 import '../widgets/sensors/bthome_met_history_sheet.dart';
 import '../widgets/sensors/sensor_telemetry_card.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/toast_logger.dart';
 
 class SensorsTab extends StatefulWidget {
   final bool isActive;
@@ -337,6 +338,7 @@ class _SensorsTabState extends State<SensorsTab> {
                     child: SensorTelemetryCard(
                       contact: contact,
                       state: sensorsProvider.stateFor(key),
+                      showActionSheetOnTap: true,
                       visibleFields: visibleFields,
                       fieldOrder: sensorsProvider.metricOrderFor(
                         key,
@@ -369,6 +371,30 @@ class _SensorsTabState extends State<SensorsTab> {
                         contactsProvider: contactsProvider,
                         connectionProvider: connectionProvider,
                       ),
+                      onPing: contact == null
+                          ? null
+                          : () async {
+                              final result = await connectionProvider.smartPing(
+                                contactPublicKey: contact.publicKey,
+                                hasPath: contact.routeHasPath,
+                                onRetryWithFlooding: () {
+                                  if (context.mounted) {
+                                    ToastLogger.warning(
+                                      context,
+                                      AppLocalizations.of(context)!
+                                          .directPingTimeout(contact.displayName),
+                                    );
+                                  }
+                                },
+                              );
+                              if (context.mounted && !result.success) {
+                                ToastLogger.error(
+                                  context,
+                                  AppLocalizations.of(context)!
+                                      .pingFailed(contact.displayName),
+                                );
+                              }
+                            },
                     ),
                   ),
                 );

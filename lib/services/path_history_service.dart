@@ -11,33 +11,58 @@ import '../utils/log_rx_route_decoder.dart';
 
 class PathHistoryService {
   static const String _storageKey = 'contact_path_history_v2';
+  static const String _suppressedRouteStorageKey =
+      'contact_path_history_suppressed_routes_v1';
   static const int _maxDirectPaths = 20;
   static const int _topRotationCount = 3;
 
   final Map<String, ContactPathHistory> _cache = {};
+  final Map<String, String> _suppressedCurrentRoutes = {};
   bool _isLoaded = false;
 
   Future<void> initialize() async {
     if (_isLoaded) return;
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_storageKey);
+    final suppressedRaw = prefs.getString(_suppressedRouteStorageKey);
     if (raw == null || raw.isEmpty) {
-      _isLoaded = true;
-      return;
+      if (suppressedRaw == null || suppressedRaw.isEmpty) {
+        _isLoaded = true;
+        return;
+      }
     }
 
     try {
-      final decoded = jsonDecode(raw);
-      if (decoded is Map<String, dynamic>) {
-        for (final entry in decoded.entries) {
-          final value = entry.value;
-          if (value is Map<String, dynamic>) {
-            _cache[entry.key] = ContactPathHistory.fromJson(entry.key, value);
+      if (raw != null && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map<String, dynamic>) {
+          for (final entry in decoded.entries) {
+            final value = entry.value;
+            if (value is Map<String, dynamic>) {
+              _cache[entry.key] = ContactPathHistory.fromJson(entry.key, value);
+            }
           }
         }
       }
     } catch (error) {
       debugPrint('⚠️ [PathHistoryService] Failed to load history: $error');
+    }
+    try {
+      if (suppressedRaw != null && suppressedRaw.isNotEmpty) {
+        final decoded = jsonDecode(suppressedRaw);
+        if (decoded is Map<String, dynamic>) {
+          for (final entry in decoded.entries) {
+            final value = entry.value;
+            if (value is String && value.isNotEmpty) {
+              _suppressedCurrentRoutes[entry.key] = value;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      debugPrint(
+        '⚠️ [PathHistoryService] Failed to load suppressed routes: $error',
+      );
     }
     _isLoaded = true;
   }
@@ -50,6 +75,9 @@ class PathHistoryService {
 
     final history = _historyFor(contact.publicKeyHex);
     final signature = _signature(contact.routePathBytes);
+    if (_suppressedCurrentRoutes[contact.publicKeyHex] == signature) {
+      return;
+    }
     final existing = _findDirectPath(history.directPaths, signature);
     final updated = PathRecord(
       pathBytes: contact.routePathBytes.toList(),
@@ -100,6 +128,10 @@ class PathHistoryService {
     final signature = normalizedPathBytes
         .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
         .join();
+    _clearSuppressedRoute(
+      contactPublicKeyHex,
+      signature: signature,
+    );
     final existing = _findDirectPath(history.directPaths, signature);
     final updated = PathRecord(
       pathBytes: normalizedPathBytes,
@@ -209,6 +241,10 @@ class PathHistoryService {
     }
 
     final signature = _signature(selection.pathBytes);
+    _clearSuppressedRoute(
+      contactPublicKeyHex,
+      signature: signature,
+    );
     final existing = _findDirectPath(history.directPaths, signature);
     final updated = PathRecord(
       pathBytes: selection.pathBytes.toList(),
@@ -295,12 +331,21 @@ class PathHistoryService {
   Future<void> clearHistoryFor(String contactPublicKeyHex) async {
     await initialize();
     _cache.remove(contactPublicKeyHex);
-    final prefs = await SharedPreferences.getInstance();
-    final payload = <String, dynamic>{};
-    for (final entry in _cache.entries) {
-      payload[entry.key] = entry.value.toJson();
+    _suppressedCurrentRoutes.remove(contactPublicKeyHex);
+    await _persistState();
+  }
+
+  Future<void> clearHistoryForContact(Contact contact) async {
+    await initialize();
+    _cache.remove(contact.publicKeyHex);
+    if (contact.routeHasPath && contact.routeHopCount > 0) {
+      _suppressedCurrentRoutes[contact.publicKeyHex] = _signature(
+        contact.routePathBytes,
+      );
+    } else {
+      _suppressedCurrentRoutes.remove(contact.publicKeyHex);
     }
-    await prefs.setString(_storageKey, jsonEncode(payload));
+    await _persistState();
   }
 
   ContactPathHistory _historyFor(String contactPublicKeyHex) {
@@ -315,12 +360,34 @@ class PathHistoryService {
     ContactPathHistory history,
   ) async {
     _cache[contactPublicKeyHex] = history;
+    await _persistState();
+  }
+
+  void _clearSuppressedRoute(String contactPublicKeyHex, {String? signature}) {
+    final suppressedSignature = _suppressedCurrentRoutes[contactPublicKeyHex];
+    if (suppressedSignature == null) {
+      return;
+    }
+    if (signature == null || suppressedSignature == signature) {
+      _suppressedCurrentRoutes.remove(contactPublicKeyHex);
+    }
+  }
+
+  Future<void> _persistState() async {
     final prefs = await SharedPreferences.getInstance();
     final payload = <String, dynamic>{};
     for (final entry in _cache.entries) {
       payload[entry.key] = entry.value.toJson();
     }
+    final suppressedPayload = <String, dynamic>{};
+    for (final entry in _suppressedCurrentRoutes.entries) {
+      suppressedPayload[entry.key] = entry.value;
+    }
     await prefs.setString(_storageKey, jsonEncode(payload));
+    await prefs.setString(
+      _suppressedRouteStorageKey,
+      jsonEncode(suppressedPayload),
+    );
   }
 
   List<PathRecord> _upsertDirectPath(

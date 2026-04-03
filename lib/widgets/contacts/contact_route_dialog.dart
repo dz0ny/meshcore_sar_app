@@ -721,9 +721,7 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
           alignment: Alignment.centerRight,
           child: TextButton(
             onPressed: () async {
-              await _pathHistoryService.clearHistoryFor(
-                widget.contact.publicKeyHex,
-              );
+              await _pathHistoryService.clearHistoryForContact(widget.contact);
               if (!mounted) return;
               setState(() {
                 _pathHistory = _pathHistoryService.historyFor(

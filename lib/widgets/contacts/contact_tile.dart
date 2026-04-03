@@ -13,6 +13,7 @@ import '../../providers/messages_provider.dart';
 import '../../providers/sensors_provider.dart';
 import '../../services/location_tracking_service.dart';
 import '../../services/message_destination_preferences.dart';
+import '../../services/path_history_service.dart';
 import 'contact_route_dialog.dart';
 import 'contact_trace_sheet.dart';
 import 'room_login_sheet.dart';
@@ -786,6 +787,7 @@ class ContactTile extends StatelessWidget {
   ) async {
     final contactsProvider = context.read<ContactsProvider>();
     final connectionProvider = context.read<ConnectionProvider>();
+    final pathHistoryService = PathHistoryService();
     final availableContacts = contactsProvider.contacts
         .where((candidate) => candidate.publicKeyHex != contact.publicKeyHex)
         .toList();
@@ -845,6 +847,12 @@ class ContactTile extends StatelessWidget {
         contact,
         signedEncodedPathLen: parsedRoute.signedEncodedPathLen,
         paddedPathBytes: parsedRoute.paddedPathBytes,
+      );
+      await pathHistoryService.clearHistoryForContact(
+        contact.copyWith(
+          outPathLen: parsedRoute.signedEncodedPathLen,
+          outPath: Uint8List.fromList(parsedRoute.paddedPathBytes),
+        ),
       );
       if (context.mounted) {
         final routeLabel = parsedRoute.hopCount == 0

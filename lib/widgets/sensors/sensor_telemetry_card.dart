@@ -1064,6 +1064,7 @@ class SensorTelemetryCard extends StatelessWidget {
   final Map<String, int> fieldSpans;
   final Future<void> Function()? onRemove;
   final Future<void> Function()? onRefresh;
+  final Future<void> Function()? onPing;
   final VoidCallback? onCustomize;
   final Future<void> Function(Contact contact)? onShowMetHistory;
   final Future<void> Function()? onMoveUp;
@@ -1071,6 +1072,7 @@ class SensorTelemetryCard extends StatelessWidget {
   final EdgeInsetsGeometry margin;
   final String emptyMetricsMessage;
   final Map<String, String> labelOverrides;
+  final bool showActionSheetOnTap;
 
   const SensorTelemetryCard({
     super.key,
@@ -1081,6 +1083,7 @@ class SensorTelemetryCard extends StatelessWidget {
     required this.fieldSpans,
     this.onRemove,
     this.onRefresh,
+    this.onPing,
     this.onCustomize,
     this.onShowMetHistory,
     this.onMoveUp,
@@ -1089,6 +1092,7 @@ class SensorTelemetryCard extends StatelessWidget {
     this.emptyMetricsMessage =
         'All fields are hidden. Use Visible fields to choose what to show.',
     this.labelOverrides = const <String, String>{},
+    this.showActionSheetOnTap = false,
   });
 
   String _formatSpeed(num metersPerSecond) {
@@ -1103,6 +1107,7 @@ class SensorTelemetryCard extends StatelessWidget {
 
   bool get _showsMenu =>
       onRefresh != null ||
+      onPing != null ||
       onCustomize != null ||
       onRemove != null ||
       onMoveUp != null ||
@@ -1111,6 +1116,128 @@ class SensorTelemetryCard extends StatelessWidget {
       (contact != null &&
           onShowMetHistory != null &&
           supportsBTHomeMetHistory(contact));
+
+  Future<void> _handleAction(BuildContext context, String value) async {
+    if (value == 'refresh' && onRefresh != null) {
+      await onRefresh!();
+      return;
+    }
+    if (value == 'ping' && onPing != null) {
+      await onPing!();
+      return;
+    }
+    if (value == 'move_up' && onMoveUp != null) {
+      await onMoveUp!();
+      return;
+    }
+    if (value == 'move_down' && onMoveDown != null) {
+      await onMoveDown!();
+      return;
+    }
+    if (value == 'copy_raw') {
+      final rawTelemetry = _rawTelemetryHex(contact?.telemetry);
+      if (rawTelemetry != null && context.mounted) {
+        await Clipboard.setData(ClipboardData(text: rawTelemetry));
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Raw response copied')),
+          );
+        }
+      }
+      return;
+    }
+    if (value == 'remove' && onRemove != null) {
+      await onRemove!();
+      return;
+    }
+    if (value == 'customize' && onCustomize != null) {
+      onCustomize!();
+      return;
+    }
+    if (value == 'met_history' &&
+        contact != null &&
+        onShowMetHistory != null) {
+      await onShowMetHistory!(contact!);
+    }
+  }
+
+  List<_SensorSheetAction> _buildSheetActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final actions = <_SensorSheetAction>[
+      if (onRefresh != null)
+        _SensorSheetAction(
+          icon: Icons.refresh,
+          label: l10n.refresh,
+          onTap: () => _handleAction(context, 'refresh'),
+        ),
+      if (onPing != null)
+        _SensorSheetAction(
+          icon: Icons.network_ping,
+          label: 'Ping',
+          onTap: () => _handleAction(context, 'ping'),
+        ),
+      if (onMoveUp != null)
+        _SensorSheetAction(
+          icon: Icons.arrow_upward_rounded,
+          label: 'Move up',
+          onTap: () => _handleAction(context, 'move_up'),
+        ),
+      if (onMoveDown != null)
+        _SensorSheetAction(
+          icon: Icons.arrow_downward_rounded,
+          label: 'Move down',
+          onTap: () => _handleAction(context, 'move_down'),
+        ),
+      if (_rawTelemetryHex(contact?.telemetry) != null)
+        _SensorSheetAction(
+          icon: Icons.copy_all_outlined,
+          label: 'Copy raw response',
+          onTap: () => _handleAction(context, 'copy_raw'),
+        ),
+      if (onCustomize != null)
+        _SensorSheetAction(
+          icon: Icons.tune,
+          label: l10n.customizeFields,
+          onTap: () => _handleAction(context, 'customize'),
+        ),
+      if (contact != null &&
+          onShowMetHistory != null &&
+          supportsBTHomeMetHistory(contact))
+        _SensorSheetAction(
+          icon: Icons.show_chart,
+          label: 'MET history',
+          onTap: () => _handleAction(context, 'met_history'),
+        ),
+      if (onRemove != null)
+        _SensorSheetAction(
+          icon: Icons.delete_outline_rounded,
+          label: l10n.remove,
+          destructive: true,
+          onTap: () => _handleAction(context, 'remove'),
+        ),
+    ];
+    return actions;
+  }
+
+  Future<void> _showActionSheet(BuildContext context) async {
+    if (!_showsMenu) {
+      return;
+    }
+    final actions = _buildSheetActions(context);
+    if (actions.isEmpty) {
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _SensorActionSheet(
+        contact: contact,
+        actions: actions,
+        onClose: () => Navigator.pop(sheetContext),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1124,7 +1251,7 @@ class SensorTelemetryCard extends StatelessWidget {
             _buildMetricCards(l10n, telemetry, contact!),
           );
 
-    return Container(
+    final card = Container(
       margin: margin,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
@@ -1212,102 +1339,11 @@ class SensorTelemetryCard extends StatelessWidget {
                   ),
                 ),
                 if (_showsMenu)
-                  PopupMenuButton<String>(
-                    onSelected: (value) async {
-                      if (value == 'refresh' && onRefresh != null) {
-                        await onRefresh!();
-                      } else if (value == 'move_up' && onMoveUp != null) {
-                        await onMoveUp!();
-                      } else if (value == 'move_down' && onMoveDown != null) {
-                        await onMoveDown!();
-                      } else if (value == 'copy_raw') {
-                        final rawTelemetry = _rawTelemetryHex(
-                          contact?.telemetry,
-                        );
-                        if (rawTelemetry != null && context.mounted) {
-                          await Clipboard.setData(
-                            ClipboardData(text: rawTelemetry),
-                          );
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Raw response copied'),
-                              ),
-                            );
-                          }
-                        }
-                      } else if (value == 'remove' && onRemove != null) {
-                        await onRemove!();
-                      } else if (value == 'customize' && onCustomize != null) {
-                        onCustomize!();
-                      } else if (value == 'met_history' &&
-                          contact != null &&
-                          onShowMetHistory != null) {
-                        await onShowMetHistory!(contact!);
-                      }
-                    },
-                    itemBuilder: (context) {
-                      final items = <PopupMenuEntry<String>>[];
-                      if (onRefresh != null) {
-                        items.add(
-                          PopupMenuItem<String>(
-                            value: 'refresh',
-                            child: Text(l10n.refresh),
-                          ),
-                        );
-                      }
-                      if (onMoveUp != null) {
-                        items.add(
-                          const PopupMenuItem<String>(
-                            value: 'move_up',
-                            child: Text('Move up'),
-                          ),
-                        );
-                      }
-                      if (onMoveDown != null) {
-                        items.add(
-                          const PopupMenuItem<String>(
-                            value: 'move_down',
-                            child: Text('Move down'),
-                          ),
-                        );
-                      }
-                      if (_rawTelemetryHex(contact?.telemetry) != null) {
-                        items.add(
-                          const PopupMenuItem<String>(
-                            value: 'copy_raw',
-                            child: Text('Copy raw response'),
-                          ),
-                        );
-                      }
-                      if (onCustomize != null) {
-                        items.add(
-                          PopupMenuItem<String>(
-                            value: 'customize',
-                            child: Text(l10n.customizeFields),
-                          ),
-                        );
-                      }
-                      if (contact != null &&
-                          onShowMetHistory != null &&
-                          supportsBTHomeMetHistory(contact)) {
-                        items.add(
-                          const PopupMenuItem<String>(
-                            value: 'met_history',
-                            child: Text('MET history'),
-                          ),
-                        );
-                      }
-                      if (onRemove != null) {
-                        items.add(
-                          PopupMenuItem<String>(
-                            value: 'remove',
-                            child: Text(l10n.remove),
-                          ),
-                        );
-                      }
-                      return items;
-                    },
+                  Icon(
+                    showActionSheetOnTap
+                        ? Icons.chevron_right_rounded
+                        : Icons.more_horiz,
+                    color: colorScheme.onSurfaceVariant,
                   ),
               ],
             ),
@@ -1354,6 +1390,16 @@ class SensorTelemetryCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+
+    if (!_showsMenu || !showActionSheetOnTap) {
+      return card;
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _showActionSheet(context),
+      child: card,
     );
   }
 
@@ -2824,6 +2870,213 @@ class SensorMetricCardData {
     this.mapLocation,
     this.channel,
   });
+}
+
+class _SensorSheetAction {
+  final IconData icon;
+  final String label;
+  final Future<void> Function() onTap;
+  final bool destructive;
+
+  const _SensorSheetAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.destructive = false,
+  });
+}
+
+class _SensorActionSheet extends StatelessWidget {
+  final Contact? contact;
+  final List<_SensorSheetAction> actions;
+  final VoidCallback onClose;
+
+  const _SensorActionSheet({
+    required this.contact,
+    required this.actions,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final title = contact?.displayName ?? 'Sensor';
+    final subtitle = contact == null ? 'Unavailable node' : contact!.publicKeyShort;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.82,
+      ),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: colorScheme.surface,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + bottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.primaryContainer,
+                          colorScheme.secondaryContainer,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.sensors_rounded,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.45,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontFamily: contact == null ? null : 'monospace',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: onClose,
+                    icon: const Icon(Icons.close),
+                    tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              ...actions.map(
+                (action) => _SensorActionTile(
+                  action: action,
+                  onClose: onClose,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SensorActionTile extends StatelessWidget {
+  final _SensorSheetAction action;
+  final VoidCallback onClose;
+
+  const _SensorActionTile({
+    required this.action,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final foreground = action.destructive
+        ? colorScheme.error
+        : colorScheme.onSurface;
+    final iconBackground = action.destructive
+        ? colorScheme.error.withValues(alpha: 0.12)
+        : colorScheme.surfaceContainerHigh;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: () async {
+          onClose();
+          await action.onTap();
+        },
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconBackground,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(action.icon, color: foreground),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  action.label,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: foreground,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _ParsedMetricKey {

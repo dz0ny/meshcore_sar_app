@@ -88,24 +88,26 @@ Widget buildBubbleMetaFooter(
         ).textTheme.labelSmall?.copyWith(color: metaColor),
       ),
     ]);
-  } else if (!isSarMarker && _effectivePathLen(message, routeMetadata) < 255) {
-    final effectivePathLen = _effectivePathLen(message, routeMetadata);
-    items.addAll([
-      Icon(Icons.alt_route, size: 11, color: metaColor),
-      const SizedBox(width: 3),
-      Text(
-        effectivePathLen == 0 ? 'direct' : '${effectivePathLen}hop',
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: metaColor),
-      ),
-      Text(
-        ' • ',
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: metaColor),
-      ),
-    ]);
+  } else if (!isSarMarker) {
+    final routeLabel = _effectiveRouteFooterLabel(message, routeMetadata);
+    if (routeLabel != null) {
+      items.addAll([
+        Icon(Icons.alt_route, size: 11, color: metaColor),
+        const SizedBox(width: 3),
+        Text(
+          routeLabel,
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: metaColor),
+        ),
+        Text(
+          ' • ',
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: metaColor),
+        ),
+      ]);
+    }
   }
 
   items.add(
@@ -127,8 +129,31 @@ Widget buildBubbleMetaFooter(
   );
 }
 
-int _effectivePathLen(Message message, MessageRouteMetadata? routeMetadata) =>
-    routeMetadata?.hopCount ?? message.pathLen;
+String? _effectiveRouteFooterLabel(
+  Message message,
+  MessageRouteMetadata? routeMetadata,
+) {
+  if (routeMetadata?.mode.name == 'flood') {
+    return 'flood';
+  }
+
+  final effectivePathLen = _effectivePathLen(message, routeMetadata);
+  if (effectivePathLen >= 255) {
+    return null;
+  }
+
+  return effectivePathLen == 0 ? 'direct' : '${effectivePathLen}hop';
+}
+
+int _effectivePathLen(Message message, MessageRouteMetadata? routeMetadata) {
+  if (routeMetadata?.hopCount != null) {
+    return routeMetadata!.hopCount!;
+  }
+  if (routeMetadata?.mode.name == 'flood') {
+    return 255;
+  }
+  return message.pathLen;
+}
 
 Widget buildChannelHeaderPill(
   BuildContext context, {

@@ -259,6 +259,47 @@ void main() {
     expect(service.historyFor('def456').directPaths, hasLength(1));
   });
 
+  test(
+    'clear history for contact suppresses immediate relearn of current route',
+    () async {
+      final service = PathHistoryService();
+      final contact = _buildContact(
+        seed: 5,
+        pathBytes: [0xAA, 0xBB],
+        hopCount: 2,
+        hashSize: 1,
+      );
+
+      await service.initialize();
+      await service.recordLearnedPath(contact);
+      expect(service.historyFor(contact.publicKeyHex).directPaths, hasLength(1));
+
+      await service.clearHistoryForContact(contact);
+      expect(service.historyFor(contact.publicKeyHex).directPaths, isEmpty);
+
+      await service.recordLearnedPath(contact);
+      expect(service.historyFor(contact.publicKeyHex).directPaths, isEmpty);
+
+      await service.recordPathResult(
+        contact.publicKeyHex,
+        PathSelection(
+          mode: PathSelectionMode.directHistorical,
+          pathBytes: Uint8List.fromList([0xAA, 0xBB]),
+          hopCount: 2,
+          hashSize: 1,
+        ),
+        success: true,
+        roundTripTimeMs: 120,
+      );
+
+      expect(service.historyFor(contact.publicKeyHex).directPaths, hasLength(1));
+      expect(
+        service.historyFor(contact.publicKeyHex).directPaths.single.source,
+        PathRecordSource.learned,
+      );
+    },
+  );
+
   test('last successful direct path is chosen by location fit', () async {
     final service = PathHistoryService();
     final contact = _buildContact(
