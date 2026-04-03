@@ -8,10 +8,10 @@ import '../providers/connection_provider.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/map_provider.dart';
 import '../providers/sensors_provider.dart';
+import '../widgets/contacts/ping_contact_sheet.dart';
 import '../widgets/sensors/bthome_met_history_sheet.dart';
 import '../widgets/sensors/sensor_telemetry_card.dart';
 import '../l10n/app_localizations.dart';
-import '../utils/toast_logger.dart';
 
 class SensorsTab extends StatefulWidget {
   final bool isActive;
@@ -374,26 +374,19 @@ class _SensorsTabState extends State<SensorsTab> {
                       onPing: contact == null
                           ? null
                           : () async {
-                              final result = await connectionProvider.smartPing(
-                                contactPublicKey: contact.publicKey,
-                                hasPath: contact.routeHasPath,
-                                onRetryWithFlooding: () {
-                                  if (context.mounted) {
-                                    ToastLogger.warning(
-                                      context,
-                                      AppLocalizations.of(context)!
-                                          .directPingTimeout(contact.displayName),
-                                    );
-                                  }
-                                },
+                              await showModalBottomSheet<void>(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.surface,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
+                                ),
+                                builder: (context) =>
+                                    PingContactSheet(contact: contact),
                               );
-                              if (context.mounted && !result.success) {
-                                ToastLogger.error(
-                                  context,
-                                  AppLocalizations.of(context)!
-                                      .pingFailed(contact.displayName),
-                                );
-                              }
                             },
                     ),
                   ),

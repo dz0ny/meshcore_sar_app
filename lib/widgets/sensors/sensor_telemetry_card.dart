@@ -1176,18 +1176,6 @@ class SensorTelemetryCard extends StatelessWidget {
           label: 'Ping',
           onTap: () => _handleAction(context, 'ping'),
         ),
-      if (onMoveUp != null)
-        _SensorSheetAction(
-          icon: Icons.arrow_upward_rounded,
-          label: 'Move up',
-          onTap: () => _handleAction(context, 'move_up'),
-        ),
-      if (onMoveDown != null)
-        _SensorSheetAction(
-          icon: Icons.arrow_downward_rounded,
-          label: 'Move down',
-          onTap: () => _handleAction(context, 'move_down'),
-        ),
       if (_rawTelemetryHex(contact?.telemetry) != null)
         _SensorSheetAction(
           icon: Icons.copy_all_outlined,

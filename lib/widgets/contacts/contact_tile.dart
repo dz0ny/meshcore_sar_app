@@ -15,6 +15,7 @@ import '../../services/location_tracking_service.dart';
 import '../../services/message_destination_preferences.dart';
 import '../../services/path_history_service.dart';
 import 'contact_route_dialog.dart';
+import 'ping_contact_sheet.dart';
 import 'contact_trace_sheet.dart';
 import 'room_login_sheet.dart';
 import '../common/contact_avatar.dart';
@@ -684,7 +685,7 @@ class ContactTile extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => _PingRelaySheet(contact: contact),
+      builder: (context) => PingContactSheet(contact: contact),
     );
   }
 
