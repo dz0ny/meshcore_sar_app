@@ -37,7 +37,11 @@ class _PingEntry {
 }
 
 class _PingContactSheetState extends State<PingContactSheet> {
-  static const Duration _autoPingInterval = Duration(seconds: 2);
+  static const Duration _autoPingInterval = Duration(milliseconds: 3890);
+  static const Duration _maxAutoPingDelay = Duration(seconds: 5);
+  static const int _maxHistoryEntries = 24;
+  static const double _maxHistoryHeight = 320;
+  static const Duration _timeoutPenalty = Duration(seconds: 10);
 
   bool _pinging = false;
   bool _autoPingEnabled = false;
@@ -77,8 +81,12 @@ class _PingContactSheetState extends State<PingContactSheet> {
           distance: distance,
         ),
       );
+      if (_history.length > _maxHistoryEntries) {
+        _history.removeRange(_maxHistoryEntries, _history.length);
+      }
     });
     await _maybePlayCue(result);
+    _scheduleNextAutoPing(result);
   }
 
   Future<void> _maybePlayCue(RelayPingResult result) async {
@@ -98,7 +106,24 @@ class _PingContactSheetState extends State<PingContactSheet> {
     if (!enabled) {
       return;
     }
-    _autoPingTimer = Timer.periodic(_autoPingInterval, (_) {
+    _scheduleNextAutoPing();
+  }
+
+  void _scheduleNextAutoPing([RelayPingResult? result]) {
+    _autoPingTimer?.cancel();
+    if (!_autoPingEnabled || !mounted) {
+      return;
+    }
+    final responseDelay = result == null
+        ? Duration.zero
+        : result.success
+        ? Duration(milliseconds: result.durationMs)
+        : _timeoutPenalty;
+    final nextDelay = _autoPingInterval + responseDelay;
+    final clampedDelay = nextDelay > _maxAutoPingDelay
+        ? _maxAutoPingDelay
+        : nextDelay;
+    _autoPingTimer = Timer(clampedDelay, () {
       unawaited(_doPing());
     });
   }
@@ -254,6 +279,14 @@ class _PingContactSheetState extends State<PingContactSheet> {
               _buildSnrPill(context, 'there', r.snrThere),
               const SizedBox(width: 6),
               _buildSnrPill(context, 'back', r.snrBack),
+              const Spacer(),
+              Text(
+                timeAgo,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  fontSize: 10,
+                ),
+              ),
             ],
           ),
           Padding(
@@ -283,21 +316,7 @@ class _PingContactSheetState extends State<PingContactSheet> {
                 ),
                 const SizedBox(width: 3),
                 Text(
-                  timeAgo,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                    fontSize: 10,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.alt_route,
-                  size: 10,
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  '${r.hopCount} hop${r.hopCount == 1 ? '' : 's'}',
+                  'Ping sample',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                     fontSize: 10,
@@ -389,7 +408,7 @@ class _PingContactSheetState extends State<PingContactSheet> {
                           ),
                         ),
                         Text(
-                          '2s sonar cues for there/back SNR',
+                          '3.89s sonar cues for there/back SNR',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -413,7 +432,10 @@ class _PingContactSheetState extends State<PingContactSheet> {
                 ),
               )
             else
-              Flexible(
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxHeight: _maxHistoryHeight,
+                ),
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: _history.length,
