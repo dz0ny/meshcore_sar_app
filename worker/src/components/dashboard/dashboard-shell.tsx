@@ -504,12 +504,12 @@ function CompositionChart({ points }: { points: CompositionPoint[] }) {
       >
         <defs>
           <linearGradient id="humanFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.5} />
-            <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1} />
+            <stop offset="0%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.5} />
+            <stop offset="100%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.1} />
           </linearGradient>
           <linearGradient id="overheadFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="hsl(206, 22%, 75%)" stopOpacity={0.5} />
-            <stop offset="100%" stopColor="hsl(206, 22%, 75%)" stopOpacity={0.1} />
+            <stop offset="0%" stopColor="hsl(var(--chart-secondary))" stopOpacity={0.5} />
+            <stop offset="100%" stopColor="hsl(var(--chart-secondary))" stopOpacity={0.1} />
           </linearGradient>
         </defs>
 
@@ -517,21 +517,21 @@ function CompositionChart({ points }: { points: CompositionPoint[] }) {
           const y = (1 - val / maxVal) * innerH;
           return (
             <g key={val}>
-              <line x1={0} y1={y} x2={innerW} y2={y} stroke="hsl(206, 22%, 87%)" strokeWidth={0.3} />
-              <text x={-6} y={y} textAnchor="end" dominantBaseline="middle" fill="hsl(208, 19%, 55%)" fontSize={3.2} fontFamily="var(--font-sans)">
+              <line x1={0} y1={y} x2={innerW} y2={y} stroke="hsl(var(--chart-grid))" strokeWidth={0.3} />
+              <text x={-6} y={y} textAnchor="end" dominantBaseline="middle" fill="hsl(var(--chart-label))" fontSize={3.2} fontFamily="var(--font-sans)">
                 {formatCompact(val)}
               </text>
             </g>
           );
         })}
-        <line x1={0} y1={innerH} x2={innerW} y2={innerH} stroke="hsl(206, 22%, 87%)" strokeWidth={0.4} />
+        <line x1={0} y1={innerH} x2={innerW} y2={innerH} stroke="hsl(var(--chart-grid))" strokeWidth={0.4} />
 
         <path d={overheadArea} fill="url(#overheadFill)" />
         <path d={humanArea} fill="url(#humanFill)" />
 
         {/* X labels */}
         {points.map((p, i) => (i % labelStep === 0 || i === count - 1) ? (
-          <text key={i} x={xs[i] * innerW} y={innerH + 10} textAnchor="middle" fill="hsl(208, 19%, 55%)" fontSize={2.8} fontFamily="var(--font-sans)">
+          <text key={i} x={xs[i] * innerW} y={innerH + 10} textAnchor="middle" fill="hsl(var(--chart-label))" fontSize={2.8} fontFamily="var(--font-sans)">
             {p.label.slice(5)}
           </text>
         ) : null)}
@@ -550,7 +550,7 @@ function CompositionChart({ points }: { points: CompositionPoint[] }) {
         ))}
 
         {hover !== null && (
-          <line x1={xs[hover] * innerW} y1={0} x2={xs[hover] * innerW} y2={innerH} stroke="hsl(217, 91%, 60%)" strokeWidth={0.3} strokeDasharray="1.5 1" />
+          <line x1={xs[hover] * innerW} y1={0} x2={xs[hover] * innerW} y2={innerH} stroke="hsl(var(--chart-primary))" strokeWidth={0.3} strokeDasharray="1.5 1" />
         )}
       </svg>
 
@@ -630,12 +630,12 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
       >
         <defs>
           <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.35} />
-            <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.03} />
+            <stop offset="0%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.35} />
+            <stop offset="100%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.03} />
           </linearGradient>
           <linearGradient id="lineStroke" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="hsl(217, 91%, 65%)" />
-            <stop offset="100%" stopColor="hsl(217, 70%, 50%)" />
+            <stop offset="0%" stopColor="hsl(var(--chart-primary-light))" />
+            <stop offset="100%" stopColor="hsl(var(--chart-primary-dark))" />
           </linearGradient>
         </defs>
 
@@ -644,8 +644,8 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
           const y = (1 - val / maxValue) * innerH;
           return (
             <g key={val}>
-              <line x1={0} y1={y} x2={innerW} y2={y} stroke="hsl(206, 22%, 87%)" strokeWidth={0.3} />
-              <text x={-6} y={y} textAnchor="end" dominantBaseline="middle" fill="hsl(208, 19%, 55%)" fontSize={3.2} fontFamily="var(--font-sans)">
+              <line x1={0} y1={y} x2={innerW} y2={y} stroke="hsl(var(--chart-grid))" strokeWidth={0.3} />
+              <text x={-6} y={y} textAnchor="end" dominantBaseline="middle" fill="hsl(var(--chart-label))" fontSize={3.2} fontFamily="var(--font-sans)">
                 {formatCompact(val)}
               </text>
             </g>
@@ -653,7 +653,7 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
         })}
 
         {/* baseline */}
-        <line x1={0} y1={innerH} x2={innerW} y2={innerH} stroke="hsl(206, 22%, 87%)" strokeWidth={0.4} />
+        <line x1={0} y1={innerH} x2={innerW} y2={innerH} stroke="hsl(var(--chart-grid))" strokeWidth={0.4} />
 
         {/* area fill */}
         <path d={areaPath} fill="url(#areaFill)" />
@@ -666,7 +666,7 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
           cx={xs[peakIdx] * innerW}
           cy={ys[peakIdx] * innerH}
           r={1.5}
-          fill="hsl(217, 91%, 60%)"
+          fill="hsl(var(--chart-primary))"
           stroke="white"
           strokeWidth={0.6}
         />
@@ -676,7 +676,7 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
           x={xs[peakIdx] * innerW}
           y={ys[peakIdx] * innerH - 4}
           textAnchor="middle"
-          fill="hsl(217, 91%, 45%)"
+          fill="hsl(var(--chart-primary-accent))"
           fontSize={3}
           fontWeight={600}
           fontFamily="var(--font-sans)"
@@ -691,7 +691,7 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
             x={xs[i] * innerW}
             y={innerH + 10}
             textAnchor="middle"
-            fill="hsl(208, 19%, 55%)"
+            fill="hsl(var(--chart-label))"
             fontSize={2.8}
             fontFamily="var(--font-sans)"
           >
@@ -723,7 +723,7 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
               y1={0}
               x2={xs[hover] * innerW}
               y2={innerH}
-              stroke="hsl(217, 91%, 60%)"
+              stroke="hsl(var(--chart-primary))"
               strokeWidth={0.3}
               strokeDasharray="1.5 1"
             />
@@ -732,7 +732,7 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
               cy={ys[hover] * innerH}
               r={1.2}
               fill="white"
-              stroke="hsl(217, 91%, 60%)"
+              stroke="hsl(var(--chart-primary))"
               strokeWidth={0.6}
             />
           </>

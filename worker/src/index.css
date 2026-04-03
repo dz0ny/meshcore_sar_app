@@ -46,6 +46,40 @@
     --input: 220 20% 88%;
     --ring: 217 91% 60%;
     --radius: 1rem;
+    --chart-grid: 220 20% 88%;
+    --chart-label: 220 13% 46%;
+    --chart-primary: 217 91% 60%;
+    --chart-primary-light: 217 91% 65%;
+    --chart-primary-dark: 217 70% 50%;
+    --chart-primary-accent: 217 91% 45%;
+    --chart-secondary: 206 22% 75%;
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 220 20% 90%;
+    --card: 222 40% 12%;
+    --card-foreground: 220 20% 90%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 30% 18%;
+    --secondary-foreground: 220 20% 90%;
+    --muted: 220 20% 16%;
+    --muted-foreground: 220 13% 55%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 217 91% 60%;
+    --chart-grid: 220 20% 22%;
+    --chart-label: 220 13% 50%;
+    --chart-primary: 217 91% 65%;
+    --chart-primary-light: 217 91% 70%;
+    --chart-primary-dark: 217 70% 55%;
+    --chart-primary-accent: 217 91% 55%;
+    --chart-secondary: 220 20% 35%;
   }
 
   * {
@@ -54,14 +88,12 @@
 
   html {
     font-family: var(--font-sans);
+    color-scheme: light dark;
   }
 
   body {
     min-height: 100vh;
-    background:
-      radial-gradient(circle at top left, hsl(217 91% 60% / 0.10), transparent 30%),
-      radial-gradient(circle at top right, hsl(217 70% 50% / 0.08), transparent 24%),
-      linear-gradient(180deg, #f5f8fc 0%, hsl(var(--background)) 100%);
+    background: hsl(var(--background));
     color: hsl(var(--foreground));
   }
 }
