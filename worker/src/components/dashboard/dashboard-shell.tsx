@@ -34,14 +34,6 @@ type ChartPoint = {
   reports: number;
 };
 
-type LocationPoint = {
-  key6: string;
-  city: string;
-  country: string;
-  latitude: number;
-  longitude: number;
-};
-
 type AppVersionEntry = {
   version: string;
   reporters: number;
@@ -81,7 +73,6 @@ type DashboardResponse = {
   pathModeTotals: PathModeEntry[];
   recentReporters: ReporterSummary[];
   chartPoints: ChartPoint[];
-  locationPoints: LocationPoint[];
   appVersions: AppVersionEntry[];
   trafficComposition: TrafficComposition;
   multiHopRatio: MultiHopRatio;
@@ -395,18 +386,6 @@ export function DashboardShell() {
 
           {/* Map + Traffic trend */}
           <section className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Reporter Locations</CardTitle>
-                <CardDescription>
-                  Approximate locations from Cloudflare edge nodes, not device GPS.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ReporterMap locations={summary?.locationPoints ?? []} />
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Observations Over Time</CardTitle>
@@ -792,103 +771,6 @@ function EmptyState({ label }: { label: string }) {
     <div className="rounded-2xl border border-dashed border-border bg-secondary/20 px-4 py-8 text-center text-sm text-muted-foreground">
       {label}
     </div>
-  );
-}
-
-function ReporterMap({ locations }: { locations: LocationPoint[] }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted || typeof window === "undefined") {
-    return (
-      <div className="flex min-h-[360px] items-center justify-center rounded-xl bg-secondary/30 text-sm text-muted-foreground">
-        Loading map...
-      </div>
-    );
-  }
-
-  return <LeafletMap locations={locations} />;
-}
-
-function LeafletMap({ locations }: { locations: LocationPoint[] }) {
-  const [leaflet, setLeaflet] = useState<{
-    MapContainer: typeof import("react-leaflet").MapContainer;
-    TileLayer: typeof import("react-leaflet").TileLayer;
-    CircleMarker: typeof import("react-leaflet").CircleMarker;
-    Tooltip: typeof import("react-leaflet").Tooltip;
-    L: typeof import("leaflet");
-  } | null>(null);
-
-  useEffect(() => {
-    Promise.all([
-      import("react-leaflet"),
-      import("leaflet"),
-    ]).then(([rl, L]) => {
-      setLeaflet({
-        MapContainer: rl.MapContainer,
-        TileLayer: rl.TileLayer,
-        CircleMarker: rl.CircleMarker,
-        Tooltip: rl.Tooltip,
-        L: L.default ?? L,
-      });
-    });
-  }, []);
-
-  if (!leaflet) {
-    return (
-      <div className="flex min-h-[360px] items-center justify-center rounded-xl bg-secondary/30 text-sm text-muted-foreground">
-        Loading map...
-      </div>
-    );
-  }
-
-  const { MapContainer, TileLayer, CircleMarker, Tooltip } = leaflet;
-
-  const center: [number, number] = locations.length
-    ? [
-        locations.reduce((s, l) => s + l.latitude, 0) / locations.length,
-        locations.reduce((s, l) => s + l.longitude, 0) / locations.length,
-      ]
-    : [46.0, 14.5];
-
-  return (
-    <>
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <div className="overflow-hidden rounded-xl">
-        <MapContainer
-          center={center}
-          zoom={locations.length > 1 ? 4 : 8}
-          scrollWheelZoom={true}
-          style={{ height: 360, width: "100%" }}
-          attributionControl={true}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {locations.map((loc) => (
-            <CircleMarker
-              key={`${loc.latitude}-${loc.longitude}-${loc.city}`}
-              center={[loc.latitude, loc.longitude]}
-              radius={8}
-              pathOptions={{
-                color: "hsl(217, 91%, 60%)",
-                fillColor: "hsl(217, 91%, 70%)",
-                fillOpacity: 0.6,
-                weight: 2,
-              }}
-            >
-              <Tooltip>
-                {loc.city}, {loc.country}
-              </Tooltip>
-            </CircleMarker>
-          ))}
-        </MapContainer>
-      </div>
-    </>
   );
 }
 
