@@ -18,6 +18,7 @@ import 'providers/channels_provider.dart';
 import 'providers/voice_provider.dart';
 import 'providers/image_provider.dart' as ip;
 import 'providers/app_provider.dart';
+import 'providers/offline_tiles_provider.dart';
 import 'providers/sensors_provider.dart';
 import 'services/voice_codec_service.dart';
 import 'services/voice_player_service.dart';
@@ -285,6 +286,7 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
         ),
         ChangeNotifierProvider(create: (_) => ChannelsProvider()),
         ChangeNotifierProvider(create: (_) => SensorsProvider()),
+        ChangeNotifierProvider(create: (_) => OfflineTilesProvider()),
         ChangeNotifierProvider(
           create: (_) {
             final manager = ProfileManager();

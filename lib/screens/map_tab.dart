@@ -43,6 +43,8 @@ import '../widgets/messages/sar_update_sheet.dart';
 import '../utils/key_comparison.dart';
 import '../utils/sar_message_parser.dart';
 import '../l10n/app_localizations.dart';
+import '../services/offline_map_caching_provider.dart';
+import 'offline_map_screen.dart';
 
 class MapTab extends StatefulWidget {
   final Function(bool)? onFullscreenChanged;
@@ -61,9 +63,11 @@ class MapTab extends StatefulWidget {
 class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
   static final TileProvider _tileProvider = NetworkTileProvider(
-    cachingProvider: BuiltInMapCachingProvider.getOrCreateInstance(
-      maxCacheSize: 10_000_000_000,
-      overrideFreshAge: const Duration(days: 365),
+    cachingProvider: OfflineMapCachingProvider(
+      BuiltInMapCachingProvider.getOrCreateInstance(
+        maxCacheSize: 10_000_000_000,
+        overrideFreshAge: const Duration(days: 365),
+      ),
     ),
   );
   // DO NOT create a new LocationTrackingService instance here
@@ -3227,6 +3231,17 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         heroTag: 'layer_selector',
                         onPressed: () => _showLayerSelector(context),
                         child: const Icon(Icons.layers),
+                      ),
+                      const SizedBox(height: 8),
+                      FloatingActionButton.small(
+                        heroTag: 'offline_maps',
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const OfflineMapScreen(),
+                          ),
+                        ),
+                        child: const Icon(Icons.download_for_offline),
                       ),
                       const SizedBox(height: 8),
                       FloatingActionButton.small(

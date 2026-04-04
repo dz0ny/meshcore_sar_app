@@ -825,6 +825,7 @@ class ContactTile extends StatelessWidget {
         return;
       }
 
+      await pathHistoryService.clearManualRouteFor(contact.publicKeyHex);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -855,6 +856,7 @@ class ContactTile extends StatelessWidget {
           outPath: Uint8List.fromList(parsedRoute.paddedPathBytes),
         ),
       );
+      await pathHistoryService.setManualRouteForContact(contact, parsedRoute);
       if (context.mounted) {
         final routeLabel = parsedRoute.hopCount == 0
             ? AppLocalizations.of(context)!.direct

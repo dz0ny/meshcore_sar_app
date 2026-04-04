@@ -9,38 +9,72 @@ import '../models/path_history.dart';
 import '../models/path_selection.dart';
 import '../utils/log_rx_route_decoder.dart';
 
+class _ManualPathSelectionRecord {
+  final List<int> pathBytes;
+  final int hopCount;
+  final int hashSize;
+
+  const _ManualPathSelectionRecord({
+    required this.pathBytes,
+    required this.hopCount,
+    required this.hashSize,
+  });
+
+  factory _ManualPathSelectionRecord.fromJson(Map<String, dynamic> json) {
+    final pathBytes = (json['pathBytes'] as List<dynamic>? ?? const <dynamic>[])
+        .whereType<int>()
+        .toList();
+    return _ManualPathSelectionRecord(
+      pathBytes: pathBytes,
+      hopCount: json['hopCount'] as int? ?? 0,
+      hashSize: json['hashSize'] as int? ?? 1,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'pathBytes': pathBytes,
+    'hopCount': hopCount,
+    'hashSize': hashSize,
+  };
+
+  PathSelection toSelection() => PathSelection(
+    mode: PathSelectionMode.directCurrent,
+    pathBytes: Uint8List.fromList(pathBytes),
+    hopCount: hopCount,
+    hashSize: hashSize,
+  );
+}
+
 class PathHistoryService {
   static const String _storageKey = 'contact_path_history_v2';
-  static const String _suppressedRouteStorageKey =
-      'contact_path_history_suppressed_routes_v1';
+  static const String _manualRouteStorageKey =
+      'contact_manual_path_overrides_v1';
   static const int _maxDirectPaths = 20;
   static const int _topRotationCount = 3;
 
   final Map<String, ContactPathHistory> _cache = {};
-  final Map<String, String> _suppressedCurrentRoutes = {};
+  final Map<String, _ManualPathSelectionRecord> _manualSelections = {};
   bool _isLoaded = false;
 
   Future<void> initialize() async {
     if (_isLoaded) return;
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_storageKey);
-    final suppressedRaw = prefs.getString(_suppressedRouteStorageKey);
+    final manualRaw = prefs.getString(_manualRouteStorageKey);
     if (raw == null || raw.isEmpty) {
-      if (suppressedRaw == null || suppressedRaw.isEmpty) {
+      if (manualRaw == null || manualRaw.isEmpty) {
         _isLoaded = true;
         return;
       }
     }
 
     try {
-      if (raw != null && raw.isNotEmpty) {
-        final decoded = jsonDecode(raw);
-        if (decoded is Map<String, dynamic>) {
-          for (final entry in decoded.entries) {
-            final value = entry.value;
-            if (value is Map<String, dynamic>) {
-              _cache[entry.key] = ContactPathHistory.fromJson(entry.key, value);
-            }
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) {
+        for (final entry in decoded.entries) {
+          final value = entry.value;
+          if (value is Map<String, dynamic>) {
+            _cache[entry.key] = ContactPathHistory.fromJson(entry.key, value);
           }
         }
       }
@@ -48,59 +82,24 @@ class PathHistoryService {
       debugPrint('⚠️ [PathHistoryService] Failed to load history: $error');
     }
     try {
-      if (suppressedRaw != null && suppressedRaw.isNotEmpty) {
-        final decoded = jsonDecode(suppressedRaw);
+      if (manualRaw != null && manualRaw.isNotEmpty) {
+        final decoded = jsonDecode(manualRaw);
         if (decoded is Map<String, dynamic>) {
           for (final entry in decoded.entries) {
             final value = entry.value;
-            if (value is String && value.isNotEmpty) {
-              _suppressedCurrentRoutes[entry.key] = value;
+            if (value is Map<String, dynamic>) {
+              _manualSelections[entry.key] =
+                  _ManualPathSelectionRecord.fromJson(value);
             }
           }
         }
       }
     } catch (error) {
       debugPrint(
-        '⚠️ [PathHistoryService] Failed to load suppressed routes: $error',
+        '⚠️ [PathHistoryService] Failed to load manual routes: $error',
       );
     }
     _isLoaded = true;
-  }
-
-  Future<void> recordLearnedPath(Contact contact) async {
-    await initialize();
-    if (!contact.routeHasPath || contact.routeHopCount <= 0) {
-      return;
-    }
-
-    final history = _historyFor(contact.publicKeyHex);
-    final signature = _signature(contact.routePathBytes);
-    if (_suppressedCurrentRoutes[contact.publicKeyHex] == signature) {
-      return;
-    }
-    final existing = _findDirectPath(history.directPaths, signature);
-    final updated = PathRecord(
-      pathBytes: contact.routePathBytes.toList(),
-      hopCount: contact.routeHopCount,
-      hashSize: contact.routeHashSize,
-      source: existing?.source ?? PathRecordSource.learned,
-      successCount: existing?.successCount ?? 0,
-      failureCount: existing?.failureCount ?? 0,
-      lastRoundTripTimeMs: existing?.lastRoundTripTimeMs ?? 0,
-      lastUsedAt: DateTime.now(),
-      lastSucceededAt: existing?.lastSucceededAt,
-      senderLatitude: existing?.senderLatitude,
-      senderLongitude: existing?.senderLongitude,
-      recipientLatitude: existing?.recipientLatitude,
-      recipientLongitude: existing?.recipientLongitude,
-    );
-
-    await _saveHistory(
-      contact.publicKeyHex,
-      history.copyWith(
-        directPaths: _upsertDirectPath(history.directPaths, updated),
-      ),
-    );
   }
 
   Future<void> recordReceivedBytePath(
@@ -128,10 +127,6 @@ class PathHistoryService {
     final signature = normalizedPathBytes
         .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
         .join();
-    _clearSuppressedRoute(
-      contactPublicKeyHex,
-      signature: signature,
-    );
     final existing = _findDirectPath(history.directPaths, signature);
     final updated = PathRecord(
       pathBytes: normalizedPathBytes,
@@ -162,15 +157,9 @@ class PathHistoryService {
     required bool autoRouteRotationEnabled,
   }) async {
     await initialize();
-    await recordLearnedPath(contact);
-
-    if (contact.routeHasPath && contact.routeHopCount > 0) {
-      return PathSelection(
-        mode: PathSelectionMode.directCurrent,
-        pathBytes: Uint8List.fromList(contact.routePathBytes),
-        hopCount: contact.routeHopCount,
-        hashSize: contact.routeHashSize,
-      );
+    final manualSelection = _manualSelections[contact.publicKeyHex];
+    if (manualSelection != null) {
+      return manualSelection.toSelection();
     }
 
     if (!autoRouteRotationEnabled) {
@@ -241,10 +230,6 @@ class PathHistoryService {
     }
 
     final signature = _signature(selection.pathBytes);
-    _clearSuppressedRoute(
-      contactPublicKeyHex,
-      signature: signature,
-    );
     final existing = _findDirectPath(history.directPaths, signature);
     final updated = PathRecord(
       pathBytes: selection.pathBytes.toList(),
@@ -328,24 +313,53 @@ class PathHistoryService {
         ContactPathHistory.empty(contactPublicKeyHex);
   }
 
+  Future<void> setManualRouteForContact(
+    Contact contact,
+    ParsedContactRoute route,
+  ) async {
+    await setManualSelectionFor(
+      contact.publicKeyHex,
+      PathSelection(
+        mode: PathSelectionMode.directCurrent,
+        pathBytes: Uint8List.fromList(route.pathBytes),
+        hopCount: route.hopCount,
+        hashSize: route.hashSize,
+      ),
+    );
+  }
+
+  Future<void> setManualSelectionFor(
+    String contactPublicKeyHex,
+    PathSelection selection,
+  ) async {
+    await initialize();
+    _manualSelections[contactPublicKeyHex] = _ManualPathSelectionRecord(
+      pathBytes: selection.pathBytes.toList(),
+      hopCount: selection.hopCount,
+      hashSize: selection.hashSize,
+    );
+    await _persistState();
+  }
+
+  Future<PathSelection?> getManualSelectionForContact(Contact contact) async {
+    await initialize();
+    return _manualSelections[contact.publicKeyHex]?.toSelection();
+  }
+
+  Future<void> clearManualRouteFor(String contactPublicKeyHex) async {
+    await initialize();
+    _manualSelections.remove(contactPublicKeyHex);
+    await _persistState();
+  }
+
   Future<void> clearHistoryFor(String contactPublicKeyHex) async {
     await initialize();
     _cache.remove(contactPublicKeyHex);
-    _suppressedCurrentRoutes.remove(contactPublicKeyHex);
     await _persistState();
   }
 
   Future<void> clearHistoryForContact(Contact contact) async {
-    await initialize();
-    _cache.remove(contact.publicKeyHex);
-    if (contact.routeHasPath && contact.routeHopCount > 0) {
-      _suppressedCurrentRoutes[contact.publicKeyHex] = _signature(
-        contact.routePathBytes,
-      );
-    } else {
-      _suppressedCurrentRoutes.remove(contact.publicKeyHex);
-    }
-    await _persistState();
+    await clearHistoryFor(contact.publicKeyHex);
   }
 
   ContactPathHistory _historyFor(String contactPublicKeyHex) {
@@ -363,31 +377,18 @@ class PathHistoryService {
     await _persistState();
   }
 
-  void _clearSuppressedRoute(String contactPublicKeyHex, {String? signature}) {
-    final suppressedSignature = _suppressedCurrentRoutes[contactPublicKeyHex];
-    if (suppressedSignature == null) {
-      return;
-    }
-    if (signature == null || suppressedSignature == signature) {
-      _suppressedCurrentRoutes.remove(contactPublicKeyHex);
-    }
-  }
-
   Future<void> _persistState() async {
     final prefs = await SharedPreferences.getInstance();
     final payload = <String, dynamic>{};
     for (final entry in _cache.entries) {
       payload[entry.key] = entry.value.toJson();
     }
-    final suppressedPayload = <String, dynamic>{};
-    for (final entry in _suppressedCurrentRoutes.entries) {
-      suppressedPayload[entry.key] = entry.value;
+    final manualPayload = <String, dynamic>{};
+    for (final entry in _manualSelections.entries) {
+      manualPayload[entry.key] = entry.value.toJson();
     }
     await prefs.setString(_storageKey, jsonEncode(payload));
-    await prefs.setString(
-      _suppressedRouteStorageKey,
-      jsonEncode(suppressedPayload),
-    );
+    await prefs.setString(_manualRouteStorageKey, jsonEncode(manualPayload));
   }
 
   List<PathRecord> _upsertDirectPath(

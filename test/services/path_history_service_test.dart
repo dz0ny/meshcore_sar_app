@@ -71,7 +71,6 @@ void main() {
     );
 
     await service.initialize();
-    await service.recordLearnedPath(contact);
     await service.recordPathResult(
       contact.publicKeyHex,
       best,
@@ -117,7 +116,7 @@ void main() {
   });
 
   test(
-    'current learned route is reused first even with rotation enabled',
+    'contact route alone does not override history selection',
     () async {
       final service = PathHistoryService();
       final contact = _buildContact(
@@ -145,10 +144,45 @@ void main() {
         autoRouteRotationEnabled: true,
       );
 
-      expect(selection.mode, PathSelectionMode.directCurrent);
-      expect(selection.canonicalPath, 'AABBCC');
+      expect(selection.mode, PathSelectionMode.directHistorical);
+      expect(selection.canonicalPath, '112233');
     },
   );
+
+  test('manual route overrides history selection until cleared', () async {
+    final service = PathHistoryService();
+    final contact = _buildContactWithoutRoute(seed: 10);
+
+    await service.initialize();
+    await service.recordPathResult(
+      contact.publicKeyHex,
+      PathSelection(
+        mode: PathSelectionMode.directHistorical,
+        pathBytes: Uint8List.fromList([0x11, 0x22]),
+        hopCount: 2,
+        hashSize: 1,
+      ),
+      success: true,
+      roundTripTimeMs: 100,
+    );
+    await service.setManualSelectionFor(
+      contact.publicKeyHex,
+      PathSelection(
+        mode: PathSelectionMode.directCurrent,
+        pathBytes: Uint8List.fromList([0xAA, 0xBB]),
+        hopCount: 2,
+        hashSize: 1,
+      ),
+    );
+
+    final selection = await service.getSelectionForContact(
+      contact,
+      autoRouteRotationEnabled: true,
+    );
+
+    expect(selection.mode, PathSelectionMode.directCurrent);
+    expect(selection.canonicalPath, 'AA,BB');
+  });
 
   test('no history falls back to flood', () async {
     final service = PathHistoryService();
@@ -184,7 +218,7 @@ void main() {
   );
 
   test(
-    'learned paths stay marked as observed after being seen on-air',
+    'observed paths stay marked as observed until delivery succeeds',
     () async {
       final service = PathHistoryService();
       final contact = _buildContact(
@@ -199,7 +233,6 @@ void main() {
         0xBB,
         0xAA,
       ], 1);
-      await service.recordLearnedPath(contact);
 
       final history = service.historyFor(contact.publicKeyHex);
       expect(history.directPaths, hasLength(1));
@@ -259,8 +292,33 @@ void main() {
     expect(service.historyFor('def456').directPaths, hasLength(1));
   });
 
+  test('clearing manual route falls back to flood without history', () async {
+    final service = PathHistoryService();
+    final contact = _buildContactWithoutRoute(seed: 11);
+
+    await service.initialize();
+    await service.setManualSelectionFor(
+      contact.publicKeyHex,
+      PathSelection(
+        mode: PathSelectionMode.directCurrent,
+        pathBytes: Uint8List.fromList([0xAA]),
+        hopCount: 1,
+        hashSize: 1,
+      ),
+    );
+
+    await service.clearManualRouteFor(contact.publicKeyHex);
+
+    final selection = await service.getSelectionForContact(
+      contact,
+      autoRouteRotationEnabled: true,
+    );
+
+    expect(selection.mode, PathSelectionMode.flood);
+  });
+
   test(
-    'clear history for contact suppresses immediate relearn of current route',
+    'clear history for contact leaves the contact route ignored',
     () async {
       final service = PathHistoryService();
       final contact = _buildContact(
@@ -271,15 +329,6 @@ void main() {
       );
 
       await service.initialize();
-      await service.recordLearnedPath(contact);
-      expect(service.historyFor(contact.publicKeyHex).directPaths, hasLength(1));
-
-      await service.clearHistoryForContact(contact);
-      expect(service.historyFor(contact.publicKeyHex).directPaths, isEmpty);
-
-      await service.recordLearnedPath(contact);
-      expect(service.historyFor(contact.publicKeyHex).directPaths, isEmpty);
-
       await service.recordPathResult(
         contact.publicKeyHex,
         PathSelection(
@@ -291,12 +340,17 @@ void main() {
         success: true,
         roundTripTimeMs: 120,
       );
-
       expect(service.historyFor(contact.publicKeyHex).directPaths, hasLength(1));
-      expect(
-        service.historyFor(contact.publicKeyHex).directPaths.single.source,
-        PathRecordSource.learned,
+
+      await service.clearHistoryForContact(contact);
+      expect(service.historyFor(contact.publicKeyHex).directPaths, isEmpty);
+
+      final selection = await service.getSelectionForContact(
+        contact,
+        autoRouteRotationEnabled: true,
       );
+
+      expect(selection.mode, PathSelectionMode.flood);
     },
   );
 

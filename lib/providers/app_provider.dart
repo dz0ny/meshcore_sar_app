@@ -41,22 +41,26 @@ import '../utils/log_rx_route_decoder.dart';
 class _DirectMessageRouteSession {
   final PathSelection currentSelection;
   final ParsedContactRoute? originalRoute;
+  final bool usedManualOverride;
   final bool routerFallbackAttempted;
 
   const _DirectMessageRouteSession({
     required this.currentSelection,
     required this.originalRoute,
+    required this.usedManualOverride,
     required this.routerFallbackAttempted,
   });
 
   _DirectMessageRouteSession copyWith({
     PathSelection? currentSelection,
     ParsedContactRoute? originalRoute,
+    bool? usedManualOverride,
     bool? routerFallbackAttempted,
   }) {
     return _DirectMessageRouteSession(
       currentSelection: currentSelection ?? this.currentSelection,
       originalRoute: originalRoute ?? this.originalRoute,
+      usedManualOverride: usedManualOverride ?? this.usedManualOverride,
       routerFallbackAttempted:
           routerFallbackAttempted ?? this.routerFallbackAttempted,
     );
@@ -1044,7 +1048,6 @@ class AppProvider with ChangeNotifier {
         contact,
         devicePublicKey: devicePublicKey,
       );
-      unawaited(_pathHistoryService.recordLearnedPath(contact));
     };
 
     // When all contacts are received
@@ -1054,9 +1057,6 @@ class AppProvider with ChangeNotifier {
         contacts,
         devicePublicKey: connectionProvider.deviceInfo.publicKey,
       );
-      for (final contact in contacts) {
-        unawaited(_pathHistoryService.recordLearnedPath(contact));
-      }
       debugPrint('Received ${contacts.length} contacts');
     };
 
@@ -1846,28 +1846,25 @@ class AppProvider with ChangeNotifier {
         contactsProvider.findContactByKey(contact.publicKey) ?? contact;
     var session = _directMessageRouteSessions[messageId];
     if (session == null) {
-      final selection = latestContact.routeHasPath && latestContact.routeHopCount > 0
-          ? PathSelection(
-              mode: PathSelectionMode.directCurrent,
-              pathBytes: Uint8List.fromList(latestContact.routePathBytes),
-              hopCount: latestContact.routeHopCount,
-              hashSize: latestContact.routeHashSize,
-            )
-          : await _pathHistoryService.getSelectionForContact(
-              latestContact,
-              autoRouteRotationEnabled: _autoRouteRotationEnabled,
-            );
+      final manualSelection = await _pathHistoryService
+          .getManualSelectionForContact(latestContact);
+      final selection =
+          manualSelection ??
+          await _pathHistoryService.getSelectionForContact(
+            latestContact,
+            autoRouteRotationEnabled: _autoRouteRotationEnabled,
+          );
       session = _DirectMessageRouteSession(
         currentSelection: selection,
         originalRoute: ContactRouteCodec.fromContact(latestContact),
+        usedManualOverride: manualSelection != null,
         routerFallbackAttempted: false,
       );
     }
 
     if (!session.routerFallbackAttempted) {
-      final currentSignature =
-          latestContact.routeHasPath && latestContact.routeHopCount > 0
-          ? latestContact.routePathBytes
+      final currentSignature = session.currentSelection.hasDirectPath
+          ? session.currentSelection.pathBytes
                 .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
                 .join()
           : null;
@@ -1897,15 +1894,6 @@ class AppProvider with ChangeNotifier {
     required String? currentSignature,
     required PathSelection fallbackSelection,
   }) async {
-    if (contact.routeHasPath && contact.routeHopCount > 0 && retryAttempt <= 1) {
-      return PathSelection(
-        mode: PathSelectionMode.directCurrent,
-        pathBytes: Uint8List.fromList(contact.routePathBytes),
-        hopCount: contact.routeHopCount,
-        hashSize: contact.routeHashSize,
-      );
-    }
-
     if (retryAttempt == 2) {
       return PathSelection.flood();
     }
@@ -2035,15 +2023,20 @@ class AppProvider with ChangeNotifier {
     final session =
         _directMessageRouteSessions[messageId] ??
         _DirectMessageRouteSession(
-          currentSelection: latestContact.routeHasPath
-              ? PathSelection(
-                  mode: PathSelectionMode.directCurrent,
-                  pathBytes: Uint8List.fromList(latestContact.routePathBytes),
-                  hopCount: latestContact.routeHopCount,
-                  hashSize: latestContact.routeHashSize,
-                )
-              : PathSelection.flood(),
+          currentSelection:
+              await _pathHistoryService.getManualSelectionForContact(
+                latestContact,
+              ) ??
+              await _pathHistoryService.getSelectionForContact(
+                latestContact,
+                autoRouteRotationEnabled: _autoRouteRotationEnabled,
+              ),
           originalRoute: ContactRouteCodec.fromContact(latestContact),
+          usedManualOverride:
+              await _pathHistoryService.getManualSelectionForContact(
+                latestContact,
+              ) !=
+              null,
           routerFallbackAttempted: false,
         );
 
@@ -2097,16 +2090,31 @@ class AppProvider with ChangeNotifier {
     }
 
     unawaited(
-      _pathHistoryService.recordPathResult(
-        contact.publicKeyHex,
-        session.currentSelection,
-        success: true,
-        roundTripTimeMs: roundTripTimeMs,
-        senderLatitude: locationTrackingService.currentPosition?.latitude,
-        senderLongitude: locationTrackingService.currentPosition?.longitude,
-        recipientLatitude: contact.displayLocation?.latitude,
-        recipientLongitude: contact.displayLocation?.longitude,
-      ),
+      () async {
+        await _pathHistoryService.recordPathResult(
+          contact.publicKeyHex,
+          session.currentSelection,
+          success: true,
+          roundTripTimeMs: roundTripTimeMs,
+          senderLatitude: locationTrackingService.currentPosition?.latitude,
+          senderLongitude: locationTrackingService.currentPosition?.longitude,
+          recipientLatitude: contact.displayLocation?.latitude,
+          recipientLongitude: contact.displayLocation?.longitude,
+        );
+        if (!session.usedManualOverride) {
+          return;
+        }
+        if (session.currentSelection.mode == PathSelectionMode.directCurrent ||
+            session.currentSelection.mode ==
+                PathSelectionMode.directHistorical) {
+          await _pathHistoryService.setManualSelectionFor(
+            contact.publicKeyHex,
+            session.currentSelection,
+          );
+          return;
+        }
+        await _pathHistoryService.clearManualRouteFor(contact.publicKeyHex);
+      }(),
     );
   }
 
@@ -2123,6 +2131,11 @@ class AppProvider with ChangeNotifier {
         session.currentSelection,
         success: false,
       );
+      if (session.usedManualOverride) {
+        await _pathHistoryService.clearManualRouteFor(
+          latestContact.publicKeyHex,
+        );
+      }
       if (session.routerFallbackAttempted) {
         await _restoreRouteOnDevice(latestContact, session.originalRoute);
       }
