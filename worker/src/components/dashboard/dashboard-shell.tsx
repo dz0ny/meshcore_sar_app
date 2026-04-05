@@ -450,15 +450,40 @@ export function DashboardShell() {
 
 // --- Composition stacked area chart ---
 
+const MIN_CHART_W = 320;
+const COMPOSITION_CHART_H = 236;
+
+function useResponsiveChartWidth(minWidth = MIN_CHART_W) {
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(minWidth);
+
+  useEffect(() => {
+    if (!element) return;
+
+    const sync = () => setWidth(Math.max(element.clientWidth, minWidth));
+    sync();
+
+    if (typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver(sync);
+    observer.observe(element);
+
+    return () => { observer.disconnect(); };
+  }, [element, minWidth]);
+
+  return { setElement, width };
+}
+
 function CompositionChart({ points }: { points: CompositionPoint[] }) {
   const [hover, setHover] = useState<number | null>(null);
+  const { setElement, width } = useResponsiveChartWidth();
   const count = points.length;
   if (count === 0) return null;
 
   const maxVal = Math.max(...points.map((p) => p.human + p.overhead), 1);
-  const innerW = 100;
-  const innerH = 188;
   const pad = { top: 16, right: 16, bottom: 32, left: 48 };
+  const innerW = Math.max(width - pad.left - pad.right, 240);
+  const innerH = COMPOSITION_CHART_H - pad.top - pad.bottom;
 
   const xs = points.map((_, i) => i / Math.max(count - 1, 1));
 
@@ -473,11 +498,10 @@ function CompositionChart({ points }: { points: CompositionPoint[] }) {
   const gridLines = niceGridLines(maxVal, 3);
 
   return (
-    <div className="relative select-none">
+    <div ref={setElement} className="relative select-none">
       <svg
         viewBox={`${-pad.left} ${-pad.top} ${innerW + pad.left + pad.right} ${innerH + pad.top + pad.bottom}`}
-        className="h-auto max-h-[280px] w-full"
-        preserveAspectRatio="xMidYMid meet"
+        className="h-[236px] w-full"
         onMouseLeave={() => setHover(null)}
       >
         <defs>
@@ -569,6 +593,7 @@ const CHART_PAD = { top: 20, right: 16, bottom: 32, left: 48 };
 
 function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; maxValue: number }) {
   const [hover, setHover] = useState<number | null>(null);
+  const { setElement, width } = useResponsiveChartWidth();
   const count = points.length;
   if (count === 0) return null;
 
@@ -579,7 +604,7 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
   }));
   const maxValue = Math.max(...normalized.map((p) => p.perNode), 1);
 
-  const innerW = 100;
+  const innerW = Math.max(width - CHART_PAD.left - CHART_PAD.right, 240);
   const innerH = CHART_H - CHART_PAD.top - CHART_PAD.bottom;
 
   const peakIdx = normalized.reduce((best, p, i) => (p.perNode > normalized[best].perNode ? i : best), 0);
@@ -599,11 +624,10 @@ function TrafficChart({ points, maxValue: _rawMax }: { points: ChartPoint[]; max
     .filter((_, i) => i % labelStep === 0 || i === count - 1);
 
   return (
-    <div className="relative select-none">
+    <div ref={setElement} className="relative select-none">
       <svg
         viewBox={`${-CHART_PAD.left} ${-CHART_PAD.top} ${innerW + CHART_PAD.left + CHART_PAD.right} ${CHART_H}`}
-        className="h-auto max-h-[280px] w-full"
-        preserveAspectRatio="xMidYMid meet"
+        className="h-[240px] w-full"
         onMouseLeave={() => setHover(null)}
       >
         <defs>
