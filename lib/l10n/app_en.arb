@@ -2317,7 +2317,7 @@
   "@wizardOverviewFeature1": {
     "description": "Updated onboarding overview feature 1"
   },
-  "wizardOverviewFeature2": "Share SAR markers, map drawings, voice clips, and images over the mesh.",
+  "wizardOverviewFeature2": "Share live location to a private channel, plus SAR markers, map drawings, voice clips, and images over the mesh.",
   "@wizardOverviewFeature2": {
     "description": "Updated onboarding overview feature 2"
   },
@@ -2458,7 +2458,7 @@
   "@wizardMapOpsDescription": {
     "description": "Updated onboarding map page description"
   },
-  "wizardMapOpsFeature1": "Track your own position, teammate locations, and movement trails on the map.",
+  "wizardMapOpsFeature1": "Track your own position, teammate locations, and share live location to a private channel from the channel menu.",
   "@wizardMapOpsFeature1": {
     "description": "Updated onboarding map feature 1"
   },

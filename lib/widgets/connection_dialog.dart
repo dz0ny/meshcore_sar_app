@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -119,7 +121,9 @@ Future<bool> showConnectionDialogFlow(
 
 /// Connection Dialog with tabs for BLE devices and Network servers
 class ConnectionDialog extends StatefulWidget {
-  const ConnectionDialog({super.key});
+  final NetworkScannerService? networkScanner;
+
+  const ConnectionDialog({super.key, this.networkScanner});
 
   @override
   State<ConnectionDialog> createState() => _ConnectionDialogState();
@@ -129,7 +133,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late final ConnectionProvider _connectionProvider;
-  final NetworkScannerService _networkScanner = NetworkScannerService();
+  late final NetworkScannerService _networkScanner;
   final List<DiscoveredServer> _discoveredServers = [];
   int _scannedCount = 0;
   int _totalToScan = 0;
@@ -162,6 +166,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
       context,
       listen: false,
     );
+    _networkScanner = widget.networkScanner ?? NetworkScannerService();
 
     _networkScanner.onServerDiscovered = (server) {
       if (!mounted) return;
@@ -334,6 +339,9 @@ class _ConnectionDialogState extends State<ConnectionDialog>
     required IconData icon,
     required String message,
     required VoidCallback onRefresh,
+    IconData? secondaryActionIcon,
+    String? secondaryActionTooltip,
+    VoidCallback? onSecondaryAction,
   }) {
     final theme = Theme.of(context);
     return Container(
@@ -355,16 +363,75 @@ class _ConnectionDialogState extends State<ConnectionDialog>
               ),
             ),
           ),
-          IconButton(
-            icon: Icon(
-              Icons.refresh_rounded,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
-            onPressed: onRefresh,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (secondaryActionIcon != null)
+                IconButton(
+                  tooltip: secondaryActionTooltip,
+                  icon: Icon(
+                    secondaryActionIcon,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                  onPressed: onSecondaryAction,
+                ),
+              IconButton(
+                icon: Icon(
+                  Icons.refresh_rounded,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+                onPressed: onRefresh,
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Future<String?> _promptForManualTcpHost() async {
+    return showDialog<String>(
+      context: context,
+      builder: (dialogContext) => _ManualTcpHostDialog(
+        initialHost: _connectionProvider.tcpHost,
+      ),
+    );
+  }
+
+  Future<void> _connectManualTcpHost() async {
+    final host = await _promptForManualTcpHost();
+    if (host == null || !mounted) {
+      return;
+    }
+
+    final serverKey = '$host:${NetworkScannerService.defaultPort}';
+    final connectionProvider = context.read<ConnectionProvider>();
+
+    setState(() {
+      _connectingToServerKey = serverKey;
+    });
+
+    try {
+      final success = await connectionProvider.connectTcp(
+        host,
+        NetworkScannerService.defaultPort,
+      );
+      if (!success) {
+        throw Exception(
+          connectionProvider.error ??
+              'Failed to connect to $host:${NetworkScannerService.defaultPort}',
+        );
+      }
+      _closeOnSuccessfulConnection();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _connectingToServerKey = null;
+      });
+      _showConnectionError(error);
+    }
   }
 
   Widget _buildErrorBanner(String message) {
@@ -404,42 +471,47 @@ class _ConnectionDialogState extends State<ConnectionDialog>
     required VoidCallback onAction,
   }) {
     final theme = Theme.of(context);
-    return Center(
-      child: Padding(
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 36,
-                color: theme.colorScheme.onSurfaceVariant.withValues(
-                  alpha: 0.8,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 36,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.8,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FilledButton.tonalIcon(
+                  onPressed: onAction,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(actionLabel),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            FilledButton.tonalIcon(
-              onPressed: onAction,
-              icon: const Icon(Icons.refresh_rounded),
-              label: Text(actionLabel),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -620,6 +692,11 @@ class _ConnectionDialogState extends State<ConnectionDialog>
           message: showingCachedResults
               ? 'Showing cached results. Tap refresh to rescan.'
               : 'Scanning local network for MeshCore WiFi devices on port 5000',
+          secondaryActionIcon: Icons.add_rounded,
+          secondaryActionTooltip: 'Add IP address',
+          onSecondaryAction: _connectingToServerKey != null
+              ? null
+              : _connectManualTcpHost,
           onRefresh: _startNetworkScan,
         ),
         if (_networkScanner.isScanning)
@@ -764,6 +841,82 @@ class _ConnectionDialogState extends State<ConnectionDialog>
           Navigator.of(context).pop(result);
         }
       },
+    );
+  }
+}
+
+class _ManualTcpHostDialog extends StatefulWidget {
+  final String? initialHost;
+
+  const _ManualTcpHostDialog({this.initialHost});
+
+  @override
+  State<_ManualTcpHostDialog> createState() => _ManualTcpHostDialogState();
+}
+
+class _ManualTcpHostDialogState extends State<_ManualTcpHostDialog> {
+  late final TextEditingController _controller;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialHost);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final host = _controller.text.trim();
+    final parsedAddress = InternetAddress.tryParse(host);
+    if (parsedAddress == null) {
+      setState(() {
+        _errorText = 'Enter a valid IP address';
+      });
+      return;
+    }
+    Navigator.of(context).pop(parsedAddress.address);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Connect by IP address'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        keyboardType: TextInputType.url,
+        decoration: InputDecoration(
+          labelText: 'IP address',
+          hintText: '192.168.1.42',
+          helperText: 'Uses TCP port 5000',
+          border: const OutlineInputBorder(),
+          errorText: _errorText,
+        ),
+        onChanged: (_) {
+          if (_errorText == null) {
+            return;
+          }
+          setState(() {
+            _errorText = null;
+          });
+        },
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Connect'),
+        ),
+      ],
     );
   }
 }

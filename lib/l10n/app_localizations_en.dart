@@ -1743,7 +1743,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wizardOverviewFeature2 =>
-      'Share SAR markers, map drawings, voice clips, and images over the mesh.';
+      'Share live location to a private channel, plus SAR markers, map drawings, voice clips, and images over the mesh.';
 
   @override
   String get wizardOverviewFeature3 =>
@@ -1860,7 +1860,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wizardMapOpsFeature1 =>
-      'Track your own position, teammate locations, and movement trails on the map.';
+      'Track your own position, teammate locations, and share live location to a private channel from the channel menu.';
 
   @override
   String get wizardMapOpsFeature2 =>
