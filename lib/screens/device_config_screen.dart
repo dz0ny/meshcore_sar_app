@@ -178,7 +178,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   late TextEditingController _lonController;
   late TextEditingController _freqController;
   late TextEditingController _txPowerController;
-  late TextEditingController _gpsIntervalController;
+  int? _gpsIntervalSeconds;
   late TextEditingController _autoAddMaxHopsController;
   late final ConnectionProvider _connectionProvider;
 
@@ -199,6 +199,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   int? _gpsLastFixAgeSeconds;
   DateTime? _gpsStatsLoadedAt;
   Timer? _gpsStatsTicker;
+  Timer? _gpsRefreshTimer;
   bool _isSyncingDeviceTime = false;
   int? _selectedPathHashMode;
   bool _autoAddDiscoveredContactsEnabled = true;
@@ -248,6 +249,10 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (!mounted || _gpsLastFixAgeSeconds == null) return;
       setState(() {});
     });
+    _gpsRefreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted) return;
+      _loadGpsMode();
+    });
     final deviceInfo = _connectionProvider.deviceInfo;
 
     _nameController = TextEditingController(
@@ -271,7 +276,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     _txPowerController = TextEditingController(
       text: deviceInfo.txPower?.toString() ?? '20',
     );
-    _gpsIntervalController = TextEditingController();
+    // _gpsIntervalSeconds loaded via _loadGpsMode()
     _autoAddMaxHopsController = TextEditingController(
       text: (deviceInfo.autoAddMaxHops ?? 0).toString(),
     );
@@ -340,9 +345,10 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     _lonController.dispose();
     _freqController.dispose();
     _txPowerController.dispose();
-    _gpsIntervalController.dispose();
+    // _gpsIntervalSeconds is plain state, no dispose needed
     _autoAddMaxHopsController.dispose();
     _gpsStatsTicker?.cancel();
+    _gpsRefreshTimer?.cancel();
     super.dispose();
   }
 
@@ -597,20 +603,11 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
         await connectionProvider.setAdvertName(_nameController.text);
       }
 
-      final gpsIntervalText = _gpsIntervalController.text.trim();
-      if (gpsIntervalText.isNotEmpty) {
-        final gpsInterval = int.tryParse(gpsIntervalText);
-        if (gpsInterval == null || gpsInterval < 0 || gpsInterval > 86400) {
-          if (mounted) {
-            setState(() {
-              _publicInfoError =
-                  'GPS interval must be a whole number between 0 and 86400 seconds.';
-              _isSavingPublicInfo = false;
-            });
-          }
-          return;
-        }
-        await connectionProvider.setCustomVar('gps_interval', gpsIntervalText);
+      if (_gpsIntervalSeconds != null) {
+        await connectionProvider.setCustomVar(
+          'gps_interval',
+          _gpsIntervalSeconds.toString(),
+        );
       }
 
       // Save stored coordinates only when the firmware advert policy uses prefs.
@@ -829,9 +826,8 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       setState(() {
         _gpsEnabled = gpsValue != null ? gpsValue == '1' : null;
         _buzzerEnabled = buzzerValue != null ? buzzerValue == '1' : null;
-        if (gpsIntervalValue != null) {
-          _gpsIntervalController.text = gpsIntervalValue;
-        }
+        _gpsIntervalSeconds = int.tryParse(gpsIntervalValue ?? '') ??
+            _gpsIntervalSeconds;
         _gpsHasFix = gpsFixValue != null ? gpsFixValue == '1' : null;
         _gpsSatelliteCount = int.tryParse(gpsSatsValue ?? '');
         _gpsLatE6 = int.tryParse(gpsLatValue ?? '');
@@ -1277,12 +1273,12 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     final locationSet = _advertLocationPolicy != 0;
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context)!.settings)),
+      appBar: AppBar(title: const Text('Device Settings')),
       body: ColoredBox(
         color: colorScheme.surface,
         child: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
             children: [
               _ConfigHeroCard(
                 title:
@@ -1297,16 +1293,6 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                     emphasized: locationSet,
                   ),
                   _HeroStatData(
-                    label: AppLocalizations.of(context)!.frequency,
-                    value: '${_freqController.text} MHz',
-                    icon: Icons.settings_input_antenna_rounded,
-                  ),
-                  _HeroStatData(
-                    label: AppLocalizations.of(context)!.bandwidth,
-                    value: _selectedBandwidth,
-                    icon: Icons.width_normal_rounded,
-                  ),
-                  _HeroStatData(
                     label: AppLocalizations.of(context)!.model,
                     value:
                         deviceInfo.manufacturerModel ??
@@ -1315,47 +1301,11 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 20),
-              _ConfigSectionCard(
-                title: AppLocalizations.of(context)!.storage,
-                subtitle: AppLocalizations.of(
-                  context,
-                )!.availableSpaceOnThisDevice,
-                icon: Icons.storage_rounded,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _StorageStat(
-                            label: AppLocalizations.of(context)!.used,
-                            value: _formatStorage(
-                              deviceInfo.storageUsedKb ?? 0,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: _StorageStat(
-                            label: AppLocalizations.of(context)!.total,
-                            value: deviceInfo.storageTotalKb != null
-                                ? _formatStorage(deviceInfo.storageTotalKb!)
-                                : AppLocalizations.of(context)!.unknown,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _StorageUsageMeter(deviceInfo: deviceInfo),
-                  ],
-                ),
-              ),
-              SizedBox(height: 20),
+              SizedBox(height: 12),
               _ConfigSectionCard(
                 title: 'Device info',
                 subtitle:
-                    'Capabilities reported by the connected radio and maintenance tools.',
+                    'Capabilities, storage, and maintenance tools.',
                 icon: Icons.info_outline_rounded,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
@@ -1367,8 +1317,8 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
+                          spacing: 10,
+                          runSpacing: 10,
                           children: [
                             SizedBox(
                               width: cardWidth,
@@ -1413,61 +1363,96 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                                   compact: true,
                                 ),
                               ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: _StorageStat(
+                                label: AppLocalizations.of(context)!.used,
+                                value: _formatStorage(
+                                  deviceInfo.storageUsedKb ?? 0,
+                                ),
+                                compact: true,
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: _StorageStat(
+                                label: AppLocalizations.of(context)!.total,
+                                value: deviceInfo.storageTotalKb != null
+                                    ? _formatStorage(deviceInfo.storageTotalKb!)
+                                    : AppLocalizations.of(context)!.unknown,
+                                compact: true,
+                              ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerLowest,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: colorScheme.outlineVariant,
+                        const SizedBox(height: 10),
+                        _StorageUsageMeter(deviceInfo: deviceInfo),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _isSyncingDeviceTime
+                                ? null
+                                : _syncDeviceTime,
+                            icon: _isSyncingDeviceTime
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.schedule_rounded, size: 20),
+                            label: Text(
+                              _isSyncingDeviceTime
+                                  ? 'Syncing...'
+                                  : 'Sync device time',
                             ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Clock maintenance',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Refresh the radio clock if room logins or message timestamps look off.',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: _isSyncingDeviceTime
-                                      ? null
-                                      : _syncDeviceTime,
-                                  icon: _isSyncingDeviceTime
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(Icons.schedule_rounded),
-                                  label: Text(
-                                    _isSyncingDeviceTime
-                                        ? 'Syncing time...'
-                                        : 'Sync device time',
+                        ),
+                        if (_buzzerEnabled != null) ...[
+                          const SizedBox(height: 10),
+                          _SettingHighlightCard(
+                            icon: _buzzerEnabled!
+                                ? Icons.volume_up_rounded
+                                : Icons.volume_off_rounded,
+                            title: 'Buzzer alerts',
+                            description: 'Onboard buzzer for radio alerts',
+                            accentColor: _buzzerEnabled!
+                                ? colorScheme.primary
+                                : colorScheme.onSurfaceVariant,
+                            trailing: _buzzerLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Switch(
+                                    value: _buzzerEnabled!,
+                                    onChanged: _setBuzzerMode,
                                   ),
-                                  style: OutlinedButton.styleFrom(
-                                    minimumSize: const Size.fromHeight(46),
-                                  ),
-                                ),
-                              ),
-                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 10),
+                        _SettingHighlightCard(
+                          icon: _multiAcksEnabled
+                              ? Icons.mark_email_read_outlined
+                              : Icons.mark_email_unread_outlined,
+                          title: 'Multi-ACK mode',
+                          description: 'Request extra acknowledgements',
+                          accentColor: _multiAcksEnabled
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
+                          trailing: Switch(
+                            value: _multiAcksEnabled,
+                            onChanged: (value) {
+                              setState(() {
+                                _multiAcksEnabled = value;
+                                _markPublicInfoDirty();
+                              });
+                            },
                           ),
                         ),
                       ],
@@ -1475,196 +1460,29 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                   },
                 ),
               ),
-              SizedBox(height: 20),
-              _ConfigSectionCard(
-                title: AppLocalizations.of(context)!.autoDiscovery,
-                subtitle:
-                    'Control how the radio auto-adds discovered nodes to its contacts table.',
-                icon: Icons.person_search_rounded,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SettingHighlightCard(
-                      icon: _autoAddDiscoveredContactsEnabled
-                          ? Icons.person_add_alt_1
-                          : Icons.person_add_disabled,
-                      title: AppLocalizations.of(
-                        context,
-                      )!.enableAutomaticAdding,
-                      description:
-                          'Turn this off to keep discoveries manual-only on the radio.',
-                      accentColor: _autoAddDiscoveredContactsEnabled
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      trailing: Switch(
-                        value: _autoAddDiscoveredContactsEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            _autoAddDiscoveredContactsEnabled = value;
-                            _markAutoDiscoverySettingsDirty();
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 18),
-                    _SettingHighlightCard(
-                      icon: Icons.person_outline_rounded,
-                      title: AppLocalizations.of(context)!.autoaddUsers,
-                      description:
-                          'Automatically store discovered user/chat nodes.',
-                      accentColor: _autoAddUsersEnabled
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      trailing: Switch(
-                        value: _autoAddUsersEnabled,
-                        onChanged: _autoAddDiscoveredContactsEnabled
-                            ? (value) {
-                                setState(() {
-                                  _autoAddUsersEnabled = value;
-                                  _markAutoDiscoverySettingsDirty();
-                                });
-                              }
-                            : null,
-                      ),
-                    ),
-                    SizedBox(height: 14),
-                    _SettingHighlightCard(
-                      icon: Icons.router_outlined,
-                      title: AppLocalizations.of(context)!.autoaddRepeaters,
-                      description:
-                          'Automatically store discovered repeater nodes.',
-                      accentColor: _autoAddRepeatersEnabled
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      trailing: Switch(
-                        value: _autoAddRepeatersEnabled,
-                        onChanged: _autoAddDiscoveredContactsEnabled
-                            ? (value) {
-                                setState(() {
-                                  _autoAddRepeatersEnabled = value;
-                                  _markAutoDiscoverySettingsDirty();
-                                });
-                              }
-                            : null,
-                      ),
-                    ),
-                    SizedBox(height: 14),
-                    _SettingHighlightCard(
-                      icon: Icons.meeting_room_outlined,
-                      title: AppLocalizations.of(context)!.autoaddRoomServers,
-                      description:
-                          'Automatically store discovered room/server nodes.',
-                      accentColor: _autoAddRoomServersEnabled
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      trailing: Switch(
-                        value: _autoAddRoomServersEnabled,
-                        onChanged: _autoAddDiscoveredContactsEnabled
-                            ? (value) {
-                                setState(() {
-                                  _autoAddRoomServersEnabled = value;
-                                  _markAutoDiscoverySettingsDirty();
-                                });
-                              }
-                            : null,
-                      ),
-                    ),
-                    SizedBox(height: 14),
-                    _SettingHighlightCard(
-                      icon: Icons.sensors_outlined,
-                      title: AppLocalizations.of(context)!.autoaddSensors,
-                      description:
-                          'Automatically store discovered sensor nodes.',
-                      accentColor: _autoAddSensorsEnabled
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      trailing: Switch(
-                        value: _autoAddSensorsEnabled,
-                        onChanged: _autoAddDiscoveredContactsEnabled
-                            ? (value) {
-                                setState(() {
-                                  _autoAddSensorsEnabled = value;
-                                  _markAutoDiscoverySettingsDirty();
-                                });
-                              }
-                            : null,
-                      ),
-                    ),
-                    SizedBox(height: 14),
-                    _SettingHighlightCard(
-                      icon: Icons.history_toggle_off_rounded,
-                      title: AppLocalizations.of(
-                        context,
-                      )!.overwriteOldestWhenFull,
-                      description:
-                          'Allow the radio to replace the oldest contact when storage is full.',
-                      accentColor: _overwriteOldestAutoAddEnabled
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      trailing: Switch(
-                        value: _overwriteOldestAutoAddEnabled,
-                        onChanged: _autoAddDiscoveredContactsEnabled
-                            ? (value) {
-                                setState(() {
-                                  _overwriteOldestAutoAddEnabled = value;
-                                  _markAutoDiscoverySettingsDirty();
-                                });
-                              }
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _autoAddMaxHopsController,
-                      onChanged: (_) => _markAutoDiscoverySettingsDirty(),
-                      decoration: InputDecoration(
-                        labelText: 'Auto-add max hops',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainerLowest,
-                        helperText:
-                            '0 means no limit. 1 keeps auto-add to direct neighbors only.',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 18),
-                    if (_autoDiscoverySettingsError != null) ...[
-                      Text(
-                        _autoDiscoverySettingsError!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.error,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                    SizedBox(
-                      width: double.infinity,
-                      child: _SaveActionButton(
-                        onPressed: _isSavingAutoDiscoverySettings
-                            ? null
-                            : _saveAutoDiscoverySettings,
-                        isSaving: _isSavingAutoDiscoverySettings,
-                        isSaved: _autoDiscoverySettingsSaved,
-                        label: AppLocalizations.of(
-                          context,
-                        )!.saveDiscoverySettings,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 20),
+              SizedBox(height: 12),
               _ConfigSectionCard(
                 title: AppLocalizations.of(context)!.publicInfo,
-                subtitle: AppLocalizations.of(
-                  context,
-                )!.chooseTheNameAndLocationThisDeviceShares,
+                subtitle: 'Name and telemetry shared with other devices.',
                 icon: Icons.public_rounded,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    TextField(
+                      controller: _nameController,
+                      onChanged: (_) => _markPublicInfoDirty(),
+                      decoration: InputDecoration(
+                        labelText: 'Device name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        filled: true,
+                        isDense: true,
+                        fillColor: colorScheme.surfaceContainerLowest,
+                        helperText: 'Visible to other devices on the mesh',
+                      ),
+                    ),
+                    const SizedBox(height: 10),
                     _ConfigDropdownField(
                       label: 'Base telemetry',
                       value: _baseTelemetryMode,
@@ -1684,7 +1502,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     _ConfigDropdownField(
                       label: 'Location telemetry',
                       value: _locationTelemetryMode,
@@ -1704,7 +1522,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     _ConfigDropdownField(
                       label: 'Environmental telemetry',
                       value: _environmentTelemetryMode,
@@ -1724,7 +1542,36 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    if (_publicInfoError != null) ...[
+                      Text(
+                        _publicInfoError!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.error,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: _SaveActionButton(
+                        onPressed: _isSavingPublicInfo ? null : _savePublicInfo,
+                        isSaving: _isSavingPublicInfo,
+                        isSaved: _publicInfoSaved,
+                        label: AppLocalizations.of(context)!.savePublicInfo,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 12),
+              _ConfigSectionCard(
+                title: 'GPS',
+                subtitle: 'Location sharing, hardware, and update interval.',
+                icon: Icons.gps_fixed,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     _ConfigDropdownField(
                       label: 'GPS advert policy',
                       value: _advertLocationPolicy,
@@ -1748,12 +1595,11 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                       },
                     ),
                     if (_gpsEnabled != null) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       _SettingHighlightCard(
                         icon: _gpsEnabled! ? Icons.gps_fixed : Icons.gps_off,
                         title: AppLocalizations.of(context)!.gpsModule,
-                        description:
-                            'Enable or disable the onboard GPS hardware.',
+                        description: 'Onboard GPS hardware',
                         accentColor: _gpsEnabled!
                             ? colorScheme.primary
                             : colorScheme.onSurfaceVariant,
@@ -1770,7 +1616,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                                 onChanged: _setGpsMode,
                               ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       _GpsDiagnosticsCard(
                         fixValue: _formatGpsFixValue(),
                         satellitesValue:
@@ -1781,91 +1627,49 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         ),
                       ),
                     ],
-                    if (_buzzerEnabled != null) ...[
-                      const SizedBox(height: 12),
-                      _SettingHighlightCard(
-                        icon: _buzzerEnabled!
-                            ? Icons.volume_up_rounded
-                            : Icons.volume_off_rounded,
-                        title: 'Buzzer alerts',
-                        description:
-                            'Enable or mute the onboard buzzer for radio alerts.',
-                        accentColor: _buzzerEnabled!
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
-                        trailing: _buzzerLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Switch(
-                                value: _buzzerEnabled!,
-                                onChanged: _setBuzzerMode,
-                              ),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _gpsIntervalController,
-                      onChanged: (_) => _markPublicInfoDirty(),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<int?>(
+                      key: ValueKey('gps-interval-$_gpsIntervalSeconds'),
+                      initialValue: _gpsIntervalSeconds,
                       decoration: InputDecoration(
-                        labelText: 'GPS interval (seconds)',
+                        labelText: 'GPS interval',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         filled: true,
+                        isDense: true,
                         fillColor: colorScheme.surfaceContainerLowest,
-                        helperText:
-                            'Firmware supports 0-86400 seconds. Older builds may not report the current value back.',
                       ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 12),
-                    _SettingHighlightCard(
-                      icon: _multiAcksEnabled
-                          ? Icons.mark_email_read_outlined
-                          : Icons.mark_email_unread_outlined,
-                      title: 'Multi-ACK mode',
-                      description:
-                          'Ask the radio to request extra acknowledgements when the firmware supports it.',
-                      accentColor: _multiAcksEnabled
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      trailing: Switch(
-                        value: _multiAcksEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            _multiAcksEnabled = value;
-                            _markPublicInfoDirty();
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    TextField(
-                      controller: _nameController,
-                      onChanged: (_) => _markPublicInfoDirty(),
-                      decoration: InputDecoration(
-                        labelText: 'Device name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainerLowest,
-                        helperText:
-                            'This is the name other devices will see on the mesh.',
-                      ),
+                      isExpanded: true,
+                      items: const [
+                        DropdownMenuItem(value: null, child: Text('Not set')),
+                        DropdownMenuItem(value: 0, child: Text('Off (0 s)')),
+                        DropdownMenuItem(value: 5, child: Text('5 seconds')),
+                        DropdownMenuItem(value: 10, child: Text('10 seconds')),
+                        DropdownMenuItem(value: 15, child: Text('15 seconds')),
+                        DropdownMenuItem(value: 30, child: Text('30 seconds')),
+                        DropdownMenuItem(value: 60, child: Text('1 minute')),
+                        DropdownMenuItem(value: 120, child: Text('2 minutes')),
+                        DropdownMenuItem(value: 300, child: Text('5 minutes')),
+                        DropdownMenuItem(value: 600, child: Text('10 minutes')),
+                        DropdownMenuItem(value: 900, child: Text('15 minutes')),
+                        DropdownMenuItem(value: 1800, child: Text('30 minutes')),
+                        DropdownMenuItem(value: 3600, child: Text('1 hour')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _gpsIntervalSeconds = value;
+                          _markPublicInfoDirty();
+                        });
+                      },
                     ),
                     if (_advertLocationPolicy == 2) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
                       Container(
-                        padding: const EdgeInsets.all(14),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(22),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: colorScheme.outlineVariant),
                         ),
                         child: Column(
@@ -1873,18 +1677,11 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                           children: [
                             Text(
                               'Saved coordinates',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w800,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'These coordinates are used when advert policy is set to saved coordinates.',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
                                 Expanded(
@@ -1916,45 +1713,26 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         ),
                       ),
                     ] else if (_advertLocationPolicy == 1) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.all(14),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(22),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: colorScheme.outlineVariant),
                         ),
                         child: Text(
-                          'The firmware will advertise the live GPS fix from the onboard sensor manager when available.',
+                          'Firmware will advertise the live GPS fix when available.',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
                     ],
-                    const SizedBox(height: 18),
-                    if (_publicInfoError != null) ...[
-                      Text(
-                        _publicInfoError!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.error,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                    SizedBox(
-                      width: double.infinity,
-                      child: _SaveActionButton(
-                        onPressed: _isSavingPublicInfo ? null : _savePublicInfo,
-                        isSaving: _isSavingPublicInfo,
-                        isSaved: _publicInfoSaved,
-                        label: AppLocalizations.of(context)!.savePublicInfo,
-                      ),
-                    ),
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 12),
               _ConfigSectionCard(
                 title: AppLocalizations.of(context)!.radioSettings,
                 subtitle: AppLocalizations.of(
@@ -1970,12 +1748,11 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                       decoration: InputDecoration(
                         labelText: 'Radio preset',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         filled: true,
+                        isDense: true,
                         fillColor: colorScheme.surfaceContainerLowest,
-                        helperText:
-                            'Start with an official preset, or switch to custom settings below.',
                       ),
                       isExpanded: true,
                       items: [
@@ -2011,215 +1788,238 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                     if (_selectedRadioPreset != null)
                       _SelectedPresetCard(preset: _selectedRadioPreset!),
                     const SizedBox(height: 8),
-                    Theme(
-                      data: theme.copyWith(dividerColor: Colors.transparent),
-                      child: ExpansionTile(
-                        tilePadding: EdgeInsets.zero,
-                        childrenPadding: EdgeInsets.zero,
-                        initiallyExpanded: _showCustomRadioSettings,
-                        onExpansionChanged: (expanded) {
-                          setState(() {
-                            _showCustomRadioSettings = expanded;
-                            if (expanded) {
-                              _selectedRadioPreset = null;
-                            }
-                          });
-                        },
-                        title: Text(
-                          'Custom settings',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () {
+                        setState(() {
+                          _showCustomRadioSettings =
+                              !_showCustomRadioSettings;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 4,
                         ),
-                        subtitle: Text(
-                          'Adjust frequency, bandwidth, spreading factor, coding rate, and power.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        children: [
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _freqController,
-                            decoration: InputDecoration(
-                              labelText: AppLocalizations.of(
-                                context,
-                              )!.frequencyMHz,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Custom settings',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  Text(
+                                    _showCustomRadioSettings
+                                        ? 'Frequency, bandwidth, SF, and CR'
+                                        : 'Tap to fine-tune radio parameters',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerLowest,
-                              helperText:
-                                  'Enter the channel frequency, for example 869.618.',
                             ),
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            onChanged: (_) {
-                              setState(_syncRadioPresetSelection);
-                              _markRadioSettingsDirty();
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<String>(
-                            key: ValueKey('bandwidth-$_selectedBandwidth'),
-                            initialValue: _selectedBandwidth,
-                            decoration: InputDecoration(
-                              labelText: AppLocalizations.of(
-                                context,
-                              )!.bandwidth,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerLowest,
-                            ),
-                            items: _bandwidthOptions.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                setState(() {
-                                  _selectedBandwidth = newValue;
-                                  _syncRadioPresetSelection();
-                                });
-                                _markRadioSettingsDirty();
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<int>(
-                            key: ValueKey(
-                              'spreading-factor-$_selectedSpreadingFactor',
-                            ),
-                            initialValue: _selectedSpreadingFactor,
-                            decoration: InputDecoration(
-                              labelText: AppLocalizations.of(
-                                context,
-                              )!.spreadingFactor,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerLowest,
-                            ),
-                            items: List.generate(6, (index) => index + 7).map((
-                              int value,
-                            ) {
-                              return DropdownMenuItem<int>(
-                                value: value,
-                                child: Text(value.toString()),
-                              );
-                            }).toList(),
-                            onChanged: (int? newValue) {
-                              if (newValue != null) {
-                                setState(() {
-                                  _selectedSpreadingFactor = newValue;
-                                  _syncRadioPresetSelection();
-                                });
-                                _markRadioSettingsDirty();
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<int>(
-                            key: ValueKey('coding-rate-$_selectedCodingRate'),
-                            initialValue: _selectedCodingRate,
-                            decoration: InputDecoration(
-                              labelText: AppLocalizations.of(
-                                context,
-                              )!.codingRate,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerLowest,
-                            ),
-                            items: List.generate(4, (index) => index + 5).map((
-                              int value,
-                            ) {
-                              return DropdownMenuItem<int>(
-                                value: value,
-                                child: Text(value.toString()),
-                              );
-                            }).toList(),
-                            onChanged: (int? newValue) {
-                              if (newValue != null) {
-                                setState(() {
-                                  _selectedCodingRate = newValue;
-                                  _syncRadioPresetSelection();
-                                });
-                                _markRadioSettingsDirty();
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _txPowerController,
-                            onChanged: (_) => _markRadioSettingsDirty(),
-                            decoration: InputDecoration(
-                              labelText: AppLocalizations.of(
-                                context,
-                              )!.txPowerDbm,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerLowest,
-                              helperText: AppLocalizations.of(
-                                context,
-                              )!.maxPowerDbm(deviceInfo.maxTxPower ?? 22),
-                            ),
-                            keyboardType: TextInputType.number,
-                          ),
-                          if (_selectedPathHashMode != null) ...[
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<int>(
-                              key: ValueKey('path-hash-$_selectedPathHashMode'),
-                              initialValue: _selectedPathHashMode,
-                              decoration: InputDecoration(
-                                labelText: 'Advert path hash size',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                filled: true,
-                                fillColor: colorScheme.surfaceContainerLowest,
-                                helperText:
-                                    'Controls the low-level hash size used in adverts and flood paths.',
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 0,
-                                  child: Text('1 byte (mode 0)'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 1,
-                                  child: Text('2 bytes (mode 1)'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 2,
-                                  child: Text('3 bytes (mode 2)'),
-                                ),
-                              ],
-                              onChanged: (int? newValue) {
-                                if (newValue != null) {
-                                  setState(() {
-                                    _selectedPathHashMode = newValue;
-                                  });
-                                  _markRadioSettingsDirty();
-                                }
-                              },
+                            Icon(
+                              _showCustomRadioSettings
+                                  ? Icons.expand_less
+                                  : Icons.expand_more,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ],
-                        ],
+                        ),
                       ),
                     ),
+                    if (_showCustomRadioSettings) ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _freqController,
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(
+                            context,
+                          )!.frequencyMHz,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          filled: true,
+                          fillColor: colorScheme.surfaceContainerLowest,
+                          isDense: true,
+                          helperText: 'e.g. 869.618',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        onChanged: (_) {
+                          setState(_syncRadioPresetSelection);
+                          _markRadioSettingsDirty();
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        key: ValueKey('bandwidth-$_selectedBandwidth'),
+                        initialValue: _selectedBandwidth,
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(
+                            context,
+                          )!.bandwidth,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          filled: true,
+                          isDense: true,
+                          fillColor: colorScheme.surfaceContainerLowest,
+                        ),
+                        items: _bandwidthOptions.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _selectedBandwidth = newValue;
+                              _syncRadioPresetSelection();
+                            });
+                            _markRadioSettingsDirty();
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<int>(
+                        key: ValueKey(
+                          'spreading-factor-$_selectedSpreadingFactor',
+                        ),
+                        initialValue: _selectedSpreadingFactor,
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(
+                            context,
+                          )!.spreadingFactor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          filled: true,
+                          isDense: true,
+                          fillColor: colorScheme.surfaceContainerLowest,
+                        ),
+                        items: List.generate(6, (index) => index + 7).map((
+                          int value,
+                        ) {
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text(value.toString()),
+                          );
+                        }).toList(),
+                        onChanged: (int? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _selectedSpreadingFactor = newValue;
+                              _syncRadioPresetSelection();
+                            });
+                            _markRadioSettingsDirty();
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<int>(
+                        key: ValueKey('coding-rate-$_selectedCodingRate'),
+                        initialValue: _selectedCodingRate,
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(
+                            context,
+                          )!.codingRate,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          filled: true,
+                          isDense: true,
+                          fillColor: colorScheme.surfaceContainerLowest,
+                        ),
+                        items: List.generate(4, (index) => index + 5).map((
+                          int value,
+                        ) {
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text(value.toString()),
+                          );
+                        }).toList(),
+                        onChanged: (int? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _selectedCodingRate = newValue;
+                              _syncRadioPresetSelection();
+                            });
+                            _markRadioSettingsDirty();
+                          }
+                        },
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _txPowerController,
+                      onChanged: (_) => _markRadioSettingsDirty(),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        )!.txPowerDbm,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        filled: true,
+                        isDense: true,
+                        fillColor: colorScheme.surfaceContainerLowest,
+                        helperText: AppLocalizations.of(
+                          context,
+                        )!.maxPowerDbm(deviceInfo.maxTxPower ?? 22),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    if (_selectedPathHashMode != null) ...[
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<int>(
+                        key: ValueKey('path-hash-$_selectedPathHashMode'),
+                        initialValue: _selectedPathHashMode,
+                        decoration: InputDecoration(
+                          labelText: 'Advert path hash size',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          filled: true,
+                          isDense: true,
+                          fillColor: colorScheme.surfaceContainerLowest,
+                          helperText:
+                              'Hash size used in adverts and flood paths',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 0,
+                            child: Text('1 byte (mode 0)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 1,
+                            child: Text('2 bytes (mode 1)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 2,
+                            child: Text('3 bytes (mode 2)'),
+                          ),
+                        ],
+                        onChanged: (int? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _selectedPathHashMode = newValue;
+                            });
+                            _markRadioSettingsDirty();
+                          }
+                        },
+                      ),
+                    ],
                     if (deviceInfo.clientRepeat != null) ...[
-                      SizedBox(height: 16),
+                      SizedBox(height: 10),
                       _SettingHighlightCard(
                         icon: Icons.repeat_rounded,
                         title: AppLocalizations.of(
@@ -2267,7 +2067,141 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 12),
+              _ConfigSectionCard(
+                title: AppLocalizations.of(context)!.autoDiscovery,
+                subtitle: 'How the radio auto-adds discovered nodes.',
+                icon: Icons.person_search_rounded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SettingHighlightCard(
+                      icon: _autoAddDiscoveredContactsEnabled
+                          ? Icons.person_add_alt_1
+                          : Icons.person_add_disabled,
+                      title: AppLocalizations.of(
+                        context,
+                      )!.enableAutomaticAdding,
+                      description: 'Off = manual-only discovery',
+                      accentColor: _autoAddDiscoveredContactsEnabled
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                      trailing: Switch(
+                        value: _autoAddDiscoveredContactsEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            _autoAddDiscoveredContactsEnabled = value;
+                            _markAutoDiscoverySettingsDirty();
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _AutoDiscoveryToggle(
+                      icon: Icons.person_outline_rounded,
+                      label: AppLocalizations.of(context)!.autoaddUsers,
+                      value: _autoAddUsersEnabled,
+                      enabled: _autoAddDiscoveredContactsEnabled,
+                      onChanged: (v) {
+                        setState(() {
+                          _autoAddUsersEnabled = v;
+                          _markAutoDiscoverySettingsDirty();
+                        });
+                      },
+                    ),
+                    _AutoDiscoveryToggle(
+                      icon: Icons.router_outlined,
+                      label: AppLocalizations.of(context)!.autoaddRepeaters,
+                      value: _autoAddRepeatersEnabled,
+                      enabled: _autoAddDiscoveredContactsEnabled,
+                      onChanged: (v) {
+                        setState(() {
+                          _autoAddRepeatersEnabled = v;
+                          _markAutoDiscoverySettingsDirty();
+                        });
+                      },
+                    ),
+                    _AutoDiscoveryToggle(
+                      icon: Icons.meeting_room_outlined,
+                      label: AppLocalizations.of(context)!.autoaddRoomServers,
+                      value: _autoAddRoomServersEnabled,
+                      enabled: _autoAddDiscoveredContactsEnabled,
+                      onChanged: (v) {
+                        setState(() {
+                          _autoAddRoomServersEnabled = v;
+                          _markAutoDiscoverySettingsDirty();
+                        });
+                      },
+                    ),
+                    _AutoDiscoveryToggle(
+                      icon: Icons.sensors_outlined,
+                      label: AppLocalizations.of(context)!.autoaddSensors,
+                      value: _autoAddSensorsEnabled,
+                      enabled: _autoAddDiscoveredContactsEnabled,
+                      onChanged: (v) {
+                        setState(() {
+                          _autoAddSensorsEnabled = v;
+                          _markAutoDiscoverySettingsDirty();
+                        });
+                      },
+                    ),
+                    _AutoDiscoveryToggle(
+                      icon: Icons.history_toggle_off_rounded,
+                      label: AppLocalizations.of(
+                        context,
+                      )!.overwriteOldestWhenFull,
+                      value: _overwriteOldestAutoAddEnabled,
+                      enabled: _autoAddDiscoveredContactsEnabled,
+                      onChanged: (v) {
+                        setState(() {
+                          _overwriteOldestAutoAddEnabled = v;
+                          _markAutoDiscoverySettingsDirty();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _autoAddMaxHopsController,
+                      onChanged: (_) => _markAutoDiscoverySettingsDirty(),
+                      decoration: InputDecoration(
+                        labelText: 'Auto-add max hops',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        filled: true,
+                        isDense: true,
+                        fillColor: colorScheme.surfaceContainerLowest,
+                        helperText: '0 = no limit, 1 = direct neighbors only',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 12),
+                    if (_autoDiscoverySettingsError != null) ...[
+                      Text(
+                        _autoDiscoverySettingsError!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.error,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: _SaveActionButton(
+                        onPressed: _isSavingAutoDiscoverySettings
+                            ? null
+                            : _saveAutoDiscoverySettings,
+                        isSaving: _isSavingAutoDiscoverySettings,
+                        isSaved: _autoDiscoverySettingsSaved,
+                        label: AppLocalizations.of(
+                          context,
+                        )!.saveDiscoverySettings,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 12),
               _ConfigSectionCard(
                 title: AppLocalizations.of(context)!.dangerZone,
                 subtitle: AppLocalizations.of(
@@ -2277,46 +2211,6 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: colorScheme.error),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.delete_forever_rounded,
-                            color: colorScheme.error,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Wipe data on device',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Erase contacts, keys, and radio settings from the connected MeshCore device and return it to factory defaults.',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
@@ -2326,23 +2220,23 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: colorScheme.error,
                           side: BorderSide(color: colorScheme.error),
-                          minimumSize: const Size.fromHeight(52),
+                          minimumSize: const Size.fromHeight(44),
                         ),
                         icon: _isClearingContacts
                             ? const SizedBox(
-                                width: 18,
-                                height: 18,
+                                width: 16,
+                                height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Icon(Icons.people_alt_outlined),
+                            : const Icon(Icons.people_alt_outlined, size: 20),
                         label: Text(
                           AppLocalizations.of(context)!.clearAllContacts,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
@@ -2352,23 +2246,23 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: colorScheme.error,
                           side: BorderSide(color: colorScheme.error),
-                          minimumSize: const Size.fromHeight(52),
+                          minimumSize: const Size.fromHeight(44),
                         ),
                         icon: _isClearingChannels
                             ? const SizedBox(
-                                width: 18,
-                                height: 18,
+                                width: 16,
+                                height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Icon(Icons.forum_outlined),
+                            : const Icon(Icons.forum_outlined, size: 20),
                         label: Text(
                           AppLocalizations.of(context)!.clearAllChannels,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
@@ -2378,9 +2272,9 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         style: FilledButton.styleFrom(
                           backgroundColor: colorScheme.error,
                           foregroundColor: colorScheme.onError,
-                          minimumSize: const Size.fromHeight(52),
+                          minimumSize: const Size.fromHeight(44),
                         ),
-                        icon: Icon(Icons.delete_forever_rounded),
+                        icon: const Icon(Icons.delete_forever_rounded, size: 20),
                         label: Text(
                           AppLocalizations.of(context)!.wipeDeviceData,
                         ),
@@ -2460,10 +2354,10 @@ class _ConfigHeroCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
@@ -2472,50 +2366,34 @@ class _ConfigHeroCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.tune_rounded, color: colorScheme.primary),
+                child: Icon(
+                  Icons.tune_rounded,
+                  color: colorScheme.primary,
+                  size: 22,
+                ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        'Device settings',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
                     Text(
                       title,
-                      style: theme.textTheme.headlineSmall?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
-                        height: 1.35,
                       ),
                     ),
                   ],
@@ -2523,10 +2401,10 @@ class _ConfigHeroCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           Wrap(
-            spacing: 10,
-            runSpacing: 10,
+            spacing: 8,
+            runSpacing: 8,
             children: stats.map(_HeroStat.new).toList(),
           ),
         ],
@@ -2566,33 +2444,32 @@ class _HeroStat extends StatelessWidget {
         : colorScheme.outlineVariant;
 
     return Container(
-      constraints: const BoxConstraints(minWidth: 140),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      constraints: const BoxConstraints(minWidth: 120),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
-          Icon(data.icon, size: 18, color: iconColor),
-          const SizedBox(width: 10),
+          Icon(data.icon, size: 16, color: iconColor),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   data.label,
-                  style: theme.textTheme.labelMedium?.copyWith(
+                  style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   data.value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
+                  style: theme.textTheme.labelLarge?.copyWith(
                     color: colorScheme.onSurface,
                     fontWeight: FontWeight.w800,
                   ),
@@ -2629,41 +2506,30 @@ class _ConfigSectionCard extends StatelessWidget {
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(icon, color: colorScheme.primary),
-                ),
-                const SizedBox(width: 12),
+                Icon(icon, color: colorScheme.primary, size: 22),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(height: 3),
                       Text(
                         subtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
-                          height: 1.35,
                         ),
                       ),
                     ],
@@ -2671,7 +2537,7 @@ class _ConfigSectionCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             child,
           ],
         ),
@@ -2700,7 +2566,7 @@ class _ConfigDropdownField<T> extends StatelessWidget {
       initialValue: value,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
         filled: true,
         fillColor: colorScheme.surfaceContainerLowest,
       ),
@@ -2725,10 +2591,10 @@ class _StorageStat extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: EdgeInsets.all(compact ? 12 : 14),
+      padding: EdgeInsets.all(compact ? 8 : 10),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
@@ -2739,16 +2605,15 @@ class _StorageStat extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurfaceVariant,
-              fontSize: compact ? 13 : null,
+              fontSize: compact ? 11 : 12,
             ),
           ),
-          SizedBox(height: compact ? 4 : 6),
           Text(
             value,
             style: TextStyle(
               fontWeight: FontWeight.w800,
               color: colorScheme.onSurface,
-              fontSize: compact ? 17 : null,
+              fontSize: compact ? 14 : 15,
             ),
           ),
         ],
@@ -2802,46 +2667,25 @@ class _StorageUsageMeter extends StatelessWidget {
       1.0,
     );
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.storage_rounded, color: colorScheme.primary, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                'Storage usage',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: percent,
+            minHeight: 8,
+            backgroundColor: colorScheme.surface,
           ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: percent,
-              minHeight: 10,
-              backgroundColor: colorScheme.surface,
-            ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${(deviceInfo.storageUsedPercent ?? 0).toStringAsFixed(0)}% used',
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: 10),
-          Text(
-            '${(deviceInfo.storageUsedPercent ?? 0).toStringAsFixed(0)}% of storage used',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -2861,7 +2705,7 @@ class _SelectedPresetCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
@@ -2955,47 +2799,35 @@ class _SettingHighlightCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: accentColor),
-          ),
-          const SizedBox(width: 12),
+          Icon(icon, color: accentColor, size: 22),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
                   description,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
-                    height: 1.35,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
           trailing,
         ],
       ),
@@ -3023,10 +2855,10 @@ class _GpsDiagnosticsCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
@@ -3037,24 +2869,24 @@ class _GpsDiagnosticsCard extends StatelessWidget {
               Icon(
                 Icons.location_searching_rounded,
                 color: colorScheme.primary,
-                size: 18,
+                size: 16,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
                 'GPS diagnostics',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
           _GpsDiagnosticsRow(label: 'Fix', value: fixValue),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           _GpsDiagnosticsRow(label: 'Satellites', value: satellitesValue),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           _GpsDiagnosticsRow(label: 'Last fix', value: lastFixValue),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           _GpsDiagnosticsRow(
             label: 'Location',
             value: locationValue,
@@ -3108,6 +2940,35 @@ class _GpsDiagnosticsRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AutoDiscoveryToggle extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool value;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  const _AutoDiscoveryToggle({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      secondary: Icon(icon, size: 20),
+      title: Text(label),
+      value: value,
+      onChanged: enabled ? onChanged : null,
     );
   }
 }

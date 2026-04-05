@@ -11,62 +11,47 @@ class TrafficStatsReportingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SwitchListTile(
-          secondary: const Icon(Icons.cloud_upload_outlined),
-          title: const Text('Anonymous RX stats reporting'),
+          dense: true,
+          secondary: const Icon(Icons.cloud_upload_outlined, size: 20),
+          title: const Text('Anonymous RX stats'),
           subtitle: const Text(
-            'Upload RX live-traffic packet type and path mode totals to the fixed Cloudflare worker every 5 minutes.',
+            'Upload packet totals every 5 min',
           ),
           value: service.isEnabled,
           onChanged: (value) async {
             await service.setEnabled(value);
           },
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Upload status',
-                    style: theme.textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
+        if (service.isEnabled)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
                     _statusText(service),
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Ingest URL: ${TrafficStatsReportingService.ingestUri}',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: _openStatsDashboard,
-                    icon: const Icon(Icons.open_in_new),
-                    label: const Text('View public stats'),
+                ),
+                TextButton.icon(
+                  onPressed: _openStatsDashboard,
+                  icon: const Icon(Icons.open_in_new, size: 16),
+                  label: const Text('View'),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    textStyle: theme.textTheme.labelSmall,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ),
       ],
     );
   }
@@ -79,21 +64,15 @@ class TrafficStatsReportingSection extends StatelessWidget {
   }
 
   static String _statusText(TrafficStatsReportingService service) {
-    final buffer = StringBuffer();
-    buffer.write('Pending uploads: ${service.pendingUploadCount}');
+    final parts = <String>[];
+    parts.add('Pending: ${service.pendingUploadCount}');
     if (service.lastSuccessAt != null) {
-      buffer.write(
-        '\nLast sent: ${_formatDateTime(service.lastSuccessAt!.toLocal())}',
-      );
-    } else {
-      buffer.write('\nLast sent: Never');
+      parts.add('Sent: ${_formatDateTime(service.lastSuccessAt!.toLocal())}');
     }
     if (service.lastError != null && service.lastError!.isNotEmpty) {
-      buffer.write('\nLast error: ${service.lastError}');
-    } else {
-      buffer.write('\nLast error: None');
+      parts.add('Error: ${service.lastError}');
     }
-    return buffer.toString();
+    return parts.join(' · ');
   }
 
   static String _formatDateTime(DateTime value) {
@@ -101,7 +80,6 @@ class TrafficStatsReportingSection extends StatelessWidget {
     final day = value.day.toString().padLeft(2, '0');
     final hour = value.hour.toString().padLeft(2, '0');
     final minute = value.minute.toString().padLeft(2, '0');
-    final second = value.second.toString().padLeft(2, '0');
-    return '${value.year}-$month-$day $hour:$minute:$second';
+    return '${value.year}-$month-$day $hour:$minute';
   }
 }

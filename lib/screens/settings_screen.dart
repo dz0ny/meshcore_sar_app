@@ -1221,282 +1221,295 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context)!.settings)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-        children: [
-          _buildSectionHeader('Appearance'),
-          _buildSettingsCard([
+      appBar: AppBar(title: Text(l10n.settings)),
+      body: ColoredBox(
+        color: colorScheme.surface,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+          children: [
+          // ── Appearance ──
+          _buildSection(
+            icon: Icons.palette_rounded,
+            title: 'Appearance',
+            subtitle: 'Theme, language, and display preferences',
+            children: [
             ListTile(
-              leading: Icon(Icons.palette),
-              title: Text(AppLocalizations.of(context)!.theme),
-              subtitle: Text(AppTheme.getThemeDisplayName(_selectedTheme)),
-              trailing: const Icon(Icons.chevron_right),
+              dense: true,
+              leading: const Icon(Icons.palette, size: 20),
+              title: Text(l10n.theme),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppTheme.getThemeDisplayName(_selectedTheme),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
               onTap: () => _showThemeDialog(),
             ),
             ListTile(
-              leading: Icon(Icons.language),
-              title: Text(AppLocalizations.of(context)!.language),
-              subtitle: Text(LocalePreferences.getDisplayName(_selectedLocale)),
-              trailing: const Icon(Icons.chevron_right),
+              dense: true,
+              leading: const Icon(Icons.language, size: 20),
+              title: Text(l10n.language),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    LocalePreferences.getDisplayName(_selectedLocale),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
               onTap: () => _showLanguageDialog(),
             ),
             SwitchListTile(
-              secondary: Icon(Icons.radar),
-              title: Text(AppLocalizations.of(context)!.showRxTxIndicators),
-              subtitle: Text(
-                AppLocalizations.of(context)!.displayPacketActivity,
-              ),
+              dense: true,
+              secondary: const Icon(Icons.radar, size: 20),
+              title: Text(l10n.showRxTxIndicators),
               value: _showRxTxIndicators,
               onChanged: (value) async {
-                setState(() {
-                  _showRxTxIndicators = value;
-                });
+                setState(() => _showRxTxIndicators = value);
                 await _saveRxTxPreference(value);
               },
             ),
-          ]),
-
-          _buildSectionHeader('Notifications'),
-          _buildSettingsCard([
-            SwitchListTile(
-              secondary: Icon(Icons.chat_bubble_outline),
-              title: Text(AppLocalizations.of(context)!.messageNotifications),
-              subtitle: const Text(
-                'Notify for incoming direct and channel messages',
+            Consumer<AppProvider>(
+              builder: (context, appProvider, child) => ListTile(
+                dense: true,
+                leading: const Icon(Icons.format_size, size: 20),
+                title: Text(l10n.messageFontSize),
+                trailing: SizedBox(
+                  width: 140,
+                  child: Slider(
+                    value: appProvider.messageFontScale,
+                    min: 0.85,
+                    max: 1.4,
+                    divisions: 11,
+                    label: '${(appProvider.messageFontScale * 100).round()}%',
+                    onChanged: (value) {
+                      appProvider.setMessageFontScale(value);
+                    },
+                  ),
+                ),
               ),
+            ),
+          ]),
+          const SizedBox(height: 12),
+
+          // ── Notifications ──
+          _buildSection(
+            icon: Icons.notifications_outlined,
+            title: 'Notifications',
+            subtitle: 'Control which alerts you receive',
+            children: [
+            SwitchListTile(
+              dense: true,
+              secondary: const Icon(Icons.chat_bubble_outline, size: 20),
+              title: Text(l10n.messageNotifications),
               value: _messageNotificationsEnabled,
               onChanged: (value) async {
-                setState(() {
-                  _messageNotificationsEnabled = value;
-                });
+                setState(() => _messageNotificationsEnabled = value);
                 await NotificationService().setMessageNotificationsEnabled(
                   value,
                 );
               },
             ),
             SwitchListTile(
-              secondary: Icon(Icons.warning_amber_outlined),
-              title: Text(AppLocalizations.of(context)!.sarAlerts),
-              subtitle: const Text(
-                'Notify for incoming SAR markers such as found person or fire',
-              ),
+              dense: true,
+              secondary: const Icon(Icons.warning_amber_outlined, size: 20),
+              title: Text(l10n.sarAlerts),
               value: _sarNotificationsEnabled,
               onChanged: (value) async {
-                setState(() {
-                  _sarNotificationsEnabled = value;
-                });
+                setState(() => _sarNotificationsEnabled = value);
                 await NotificationService().setSarNotificationsEnabled(value);
               },
             ),
             SwitchListTile(
-              secondary: Icon(Icons.contact_page_outlined),
-              title: Text(AppLocalizations.of(context)!.discoveryNotifications),
-              subtitle: const Text(
-                'Notify when new contacts appear in Discovery',
-              ),
+              dense: true,
+              secondary: const Icon(Icons.contact_page_outlined, size: 20),
+              title: Text(l10n.discoveryNotifications),
               value: _discoveryNotificationsEnabled,
               onChanged: (value) async {
-                setState(() {
-                  _discoveryNotificationsEnabled = value;
-                });
+                setState(() => _discoveryNotificationsEnabled = value);
                 await NotificationService().setDiscoveryNotificationsEnabled(
                   value,
                 );
               },
             ),
             SwitchListTile(
-              secondary: Icon(Icons.system_update),
-              title: Text(AppLocalizations.of(context)!.updateNotifications),
-              subtitle: const Text(
-                'Notify when a newer app version is available',
-              ),
+              dense: true,
+              secondary: const Icon(Icons.system_update, size: 20),
+              title: Text(l10n.updateNotifications),
               value: _updateNotificationsEnabled,
               onChanged: (value) async {
-                setState(() {
-                  _updateNotificationsEnabled = value;
-                });
+                setState(() => _updateNotificationsEnabled = value);
                 await NotificationService().setUpdateNotificationsEnabled(
                   value,
                 );
               },
             ),
             SwitchListTile(
-              secondary: Icon(Icons.visibility_off_outlined),
-              title: Text(AppLocalizations.of(context)!.muteWhileAppIsOpen),
-              subtitle: const Text(
-                'Do not show local notifications while the app is in the foreground',
-              ),
+              dense: true,
+              secondary: const Icon(Icons.visibility_off_outlined, size: 20),
+              title: Text(l10n.muteWhileAppIsOpen),
+              subtitle: const Text('Suppress notifications while in foreground'),
               value: _muteForegroundNotifications,
               onChanged: (value) async {
-                setState(() {
-                  _muteForegroundNotifications = value;
-                });
+                setState(() => _muteForegroundNotifications = value);
                 await NotificationService().setMuteForegroundNotifications(
                   value,
                 );
               },
             ),
           ]),
+          const SizedBox(height: 12),
 
-          _buildSectionHeader('Navigation'),
-          _buildSettingsCard([
-            Consumer<AppProvider>(
-              builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.map_outlined),
-                title: Text(AppLocalizations.of(context)!.disableMap),
-                subtitle: Text(
-                  AppLocalizations.of(context)!.disableMapDescription,
-                ),
+          // ── Tabs & Navigation ──
+          Consumer<AppProvider>(
+            builder: (context, appProvider, child) => _buildSection(
+              icon: Icons.dashboard_customize_rounded,
+              title: 'Tabs & Navigation',
+              subtitle: 'Choose which tabs and contact sections to show',
+              children: [
+              SwitchListTile(
+                dense: true,
+                secondary: const Icon(Icons.map_outlined, size: 20),
+                title: Text(l10n.disableMap),
                 value: !appProvider.isMapEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleMapEnabled(!value);
                 },
               ),
-            ),
-            Consumer<AppProvider>(
-              builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.contacts_outlined),
-                title: Text(AppLocalizations.of(context)!.disableContacts),
-                subtitle: const Text(
-                  'Hide the contacts tab to simplify navigation',
-                ),
+              SwitchListTile(
+                dense: true,
+                secondary: const Icon(Icons.contacts_outlined, size: 20),
+                title: Text(l10n.disableContacts),
                 value: !appProvider.isContactsEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleContactsEnabled(!value);
                 },
               ),
-            ),
-            Consumer<AppProvider>(
-              builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.sensors),
-                title: Text(AppLocalizations.of(context)!.enableSensorsTab),
-                subtitle: const Text(
-                  'Show a dedicated tab for watched relay and node telemetry',
-                ),
+              SwitchListTile(
+                dense: true,
+                secondary: const Icon(Icons.sensors, size: 20),
+                title: Text(l10n.enableSensorsTab),
                 value: appProvider.isSensorsEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleSensorsEnabled(value);
                 },
               ),
-            ),
-          ]),
-
-          _buildSectionHeader(AppLocalizations.of(context)!.contacts),
-          Consumer<AppProvider>(
-            builder: (context, appProvider, child) => _buildSettingsCard([
-              SwitchListTile(
-                secondary: const Icon(Icons.star_outline_rounded),
-                title: Text(AppLocalizations.of(context)!.favourites),
-                subtitle: const Text(
-                  'Show the favourites section in the contacts tab',
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
+                child: Text(
+                  'Contacts tab sections',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
+              ),
+              _buildCompactToggleRow(
+                icon: Icons.star_outline_rounded,
+                label: l10n.favourites,
                 value: appProvider.isContactsSectionEnabled(
                   ContactsTabSection.favourites,
                 ),
-                onChanged: (value) async {
-                  await appProvider.setContactsSectionEnabled(
-                    ContactsTabSection.favourites,
-                    value,
-                  );
-                },
-              ),
-              SwitchListTile(
-                secondary: const Icon(Icons.people_alt_outlined),
-                title: Text(AppLocalizations.of(context)!.teamMembers),
-                subtitle: const Text(
-                  'Show direct team contacts in the contacts tab',
+                onChanged: (v) => appProvider.setContactsSectionEnabled(
+                  ContactsTabSection.favourites,
+                  v,
                 ),
+              ),
+              _buildCompactToggleRow(
+                icon: Icons.people_alt_outlined,
+                label: l10n.teamMembers,
                 value: appProvider.isContactsSectionEnabled(
                   ContactsTabSection.teamMembers,
                 ),
-                onChanged: (value) async {
-                  await appProvider.setContactsSectionEnabled(
-                    ContactsTabSection.teamMembers,
-                    value,
-                  );
-                },
+                onChanged: (v) => appProvider.setContactsSectionEnabled(
+                  ContactsTabSection.teamMembers,
+                  v,
+                ),
               ),
-              SwitchListTile(
-                secondary: const Icon(Icons.router_outlined),
-                title: Text(AppLocalizations.of(context)!.repeaters),
-                subtitle: const Text('Show repeater nodes in the contacts tab'),
+              _buildCompactToggleRow(
+                icon: Icons.router_outlined,
+                label: l10n.repeaters,
                 value: appProvider.isContactsSectionEnabled(
                   ContactsTabSection.repeaters,
                 ),
-                onChanged: (value) async {
-                  await appProvider.setContactsSectionEnabled(
-                    ContactsTabSection.repeaters,
-                    value,
-                  );
-                },
+                onChanged: (v) => appProvider.setContactsSectionEnabled(
+                  ContactsTabSection.repeaters,
+                  v,
+                ),
               ),
-              SwitchListTile(
-                secondary: const Icon(Icons.sensors_outlined),
-                title: Text(AppLocalizations.of(context)!.sensors),
-                subtitle: const Text('Show sensor nodes in the contacts tab'),
+              _buildCompactToggleRow(
+                icon: Icons.sensors_outlined,
+                label: l10n.sensors,
                 value: appProvider.isContactsSectionEnabled(
                   ContactsTabSection.sensors,
                 ),
-                onChanged: (value) async {
-                  await appProvider.setContactsSectionEnabled(
-                    ContactsTabSection.sensors,
-                    value,
-                  );
-                },
+                onChanged: (v) => appProvider.setContactsSectionEnabled(
+                  ContactsTabSection.sensors,
+                  v,
+                ),
               ),
-              SwitchListTile(
-                secondary: const Icon(Icons.meeting_room_outlined),
-                title: Text(AppLocalizations.of(context)!.rooms),
-                subtitle: const Text('Show rooms in the contacts tab'),
+              _buildCompactToggleRow(
+                icon: Icons.meeting_room_outlined,
+                label: l10n.rooms,
                 value: appProvider.isContactsSectionEnabled(
                   ContactsTabSection.rooms,
                 ),
-                onChanged: (value) async {
-                  await appProvider.setContactsSectionEnabled(
-                    ContactsTabSection.rooms,
-                    value,
-                  );
-                },
+                onChanged: (v) => appProvider.setContactsSectionEnabled(
+                  ContactsTabSection.rooms,
+                  v,
+                ),
               ),
-              SwitchListTile(
-                secondary: const Icon(Icons.broadcast_on_personal_outlined),
-                title: Text(AppLocalizations.of(context)!.channels),
-                subtitle: const Text('Show channels in the contacts tab'),
+              _buildCompactToggleRow(
+                icon: Icons.broadcast_on_personal_outlined,
+                label: l10n.channels,
                 value: appProvider.isContactsSectionEnabled(
                   ContactsTabSection.channels,
                 ),
-                onChanged: (value) async {
-                  await appProvider.setContactsSectionEnabled(
-                    ContactsTabSection.channels,
-                    value,
-                  );
-                },
+                onChanged: (v) => appProvider.setContactsSectionEnabled(
+                  ContactsTabSection.channels,
+                  v,
+                ),
               ),
             ]),
           ),
+          const SizedBox(height: 12),
 
-          _buildSectionHeader('Messaging'),
-          _buildSettingsCard([
+          // ── Messaging ──
+          _buildSection(
+            icon: Icons.chat_rounded,
+            title: 'Messaging',
+            subtitle: 'Routing, retries, and destination lock',
+            children: [
             ListTile(
-              leading: Icon(Icons.alt_route),
-              title: Text(AppLocalizations.of(context)!.routePathByteSize),
-              subtitle: Text(
-                '$_routeHashSize byte${_routeHashSize == 1 ? '' : 's'} for manual contact routes',
+              dense: true,
+              leading: const Icon(Icons.alt_route, size: 20),
+              title: Text(l10n.routePathByteSize),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$_routeHashSize byte${_routeHashSize == 1 ? '' : 's'}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
               ),
-              trailing: const Icon(Icons.chevron_right),
               onTap: _showRouteHashSizeDialog,
             ),
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.route),
-                title: Text(
-                  AppLocalizations.of(context)!.nearestRepeaterFallback,
-                ),
-                subtitle: const Text(
-                  'After normal retries fail, try one final resend through the nearest repeater',
-                ),
+                dense: true,
+                secondary: const Icon(Icons.route, size: 20),
+                title: Text(l10n.nearestRepeaterFallback),
+                subtitle: const Text('Resend through nearest repeater on failure'),
                 value: appProvider.nearestRelayFallbackEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleNearestRelayFallbackEnabled(value);
@@ -1505,22 +1518,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.route),
-                title: Text(AppLocalizations.of(context)!.clearPathOnMaxRetry),
-                subtitle: const Text(
-                  'Clear the route only after all retries and final router fallback fail',
-                ),
+                dense: true,
+                secondary: const Icon(Icons.cleaning_services, size: 20),
+                title: Text(l10n.clearPathOnMaxRetry),
+                subtitle: const Text('Clear route only after all retries fail'),
                 value: appProvider.clearPathOnMaxRetry,
                 onChanged: (value) async {
                   await appProvider.toggleClearPathOnMaxRetry(value);
                 },
               ),
             ),
+            const Divider(height: 1),
             SwitchListTile(
-              secondary: const Icon(Icons.lock_outline),
-              title: const Text('Lock messages to one channel or room'),
+              dense: true,
+              secondary: const Icon(Icons.lock_outline, size: 20),
+              title: const Text('Lock destination'),
               subtitle: const Text(
-                'Keep the Messages tab and composer fixed on one destination. Direct messages from Contacts still open as usual.',
+                'Fix Messages tab to one channel or room',
               ),
               value: _messageDestinationLockEnabled,
               onChanged: (value) async {
@@ -1544,183 +1558,93 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-            Consumer<ContactsProvider>(
-              builder: (context, contactsProvider, child) {
-                final options = _messageDestinationLockOptions(
-                  contactsProvider,
-                );
-                final selectedValue =
-                    _selectedMessageDestinationLockValue(options);
+            if (_messageDestinationLockEnabled)
+              Consumer<ContactsProvider>(
+                builder: (context, contactsProvider, child) {
+                  final options = _messageDestinationLockOptions(
+                    contactsProvider,
+                  );
+                  final selectedValue =
+                      _selectedMessageDestinationLockValue(options);
 
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey(selectedValue),
-                    initialValue: selectedValue,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Locked channel or room',
-                      prefixIcon: Icon(Icons.forum_outlined),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: [
-                      for (final contact in options)
-                        DropdownMenuItem<String>(
-                          value: contact.publicKeyHex,
-                          child: Text(
-                            _messageDestinationLockLabel(context, contact),
-                            overflow: TextOverflow.ellipsis,
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                    child: DropdownButtonFormField<String>(
+                      key: ValueKey(selectedValue),
+                      initialValue: selectedValue,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Locked channel or room',
+                        prefixIcon: Icon(Icons.forum_outlined),
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: [
+                        for (final contact in options)
+                          DropdownMenuItem<String>(
+                            value: contact.publicKeyHex,
+                            child: Text(
+                              _messageDestinationLockLabel(context, contact),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                    ],
-                    onChanged:
-                        _messageDestinationLockEnabled && options.isNotEmpty
-                        ? (value) async {
-                            if (value == null) {
-                              return;
+                      ],
+                      onChanged: options.isNotEmpty
+                          ? (value) async {
+                              if (value == null) return;
+                              final selectedContact =
+                                  options.where((contact) {
+                                return contact.publicKeyHex == value;
+                              }).firstOrNull;
+                              if (selectedContact == null) return;
+
+                              await _setMessageDestinationLock(
+                                enabled: true,
+                                type: _messageDestinationLockTypeForContact(
+                                  selectedContact,
+                                ),
+                                recipientPublicKey: value,
+                              );
                             }
-
-                            final selectedContact = options.where((contact) {
-                              return contact.publicKeyHex == value;
-                            }).firstOrNull;
-                            if (selectedContact == null) {
-                              return;
-                            }
-
-                            await _setMessageDestinationLock(
-                              enabled: true,
-                              type: _messageDestinationLockTypeForContact(
-                                selectedContact,
-                              ),
-                              recipientPublicKey: value,
-                            );
-                          }
-                        : null,
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_sweep, color: Colors.red),
-              title: const Text(
-                'Clear Messages',
-                style: TextStyle(color: Colors.red),
+                          : null,
+                    ),
+                  );
+                },
               ),
-              subtitle: Text(
-                AppLocalizations.of(context)!.deleteAllStoredMessageHistory,
-              ),
-              onTap: _clearMessages,
-            ),
-            Consumer<AppProvider>(
-              builder: (context, appProvider, child) => ListTile(
-                leading: Icon(Icons.format_size),
-                title: Text(AppLocalizations.of(context)!.messageFontSize),
-                subtitle: Text(
-                  '${(appProvider.messageFontScale * 100).round()}% of default',
-                ),
-                trailing: SizedBox(
-                  width: 150,
-                  child: Slider(
-                    value: appProvider.messageFontScale,
-                    min: 0.85,
-                    max: 1.4,
-                    divisions: 11,
-                    label: '${(appProvider.messageFontScale * 100).round()}%',
-                    onChanged: (value) {
-                      appProvider.setMessageFontScale(value);
-                    },
-                  ),
-                ),
-              ),
-            ),
           ]),
+          const SizedBox(height: 12),
 
-          _buildSectionHeader('Tracing'),
-          _buildSettingsCard([
-            ListTile(
-              leading: Icon(Icons.cloud_sync),
-              title: Text(AppLocalizations.of(context)!.onlineTraceDatabase),
-              subtitle: Text(_onlineTraceCacheSubtitle()),
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.delete_sweep,
-                color: _isClearingOnlineTraceCache ? null : Colors.red,
-              ),
-              title: Text(
-                'Clear online trace database',
-                style: TextStyle(
-                  color: _isClearingOnlineTraceCache ? null : Colors.red,
-                ),
-              ),
-              subtitle: const Text(
-                'Remove the 24-hour cached fallback used when local route matches are incomplete',
-              ),
-              enabled: !_isClearingOnlineTraceCache,
-              trailing: _isClearingOnlineTraceCache
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : null,
-              onTap: _isClearingOnlineTraceCache
-                  ? null
-                  : _clearOnlineTraceCache,
-            ),
-          ]),
-
-          _buildSectionHeader('Map'),
-          _buildSettingsCard([
+          // ── Map & Tracing ──
+          _buildSection(
+            icon: Icons.map_rounded,
+            title: 'Map',
+            subtitle: 'Display, markers, and trace database',
+            children: [
             SwitchListTile(
-              secondary: Icon(Icons.explore),
-              title: Text(AppLocalizations.of(context)!.rotateMapWithHeading),
-              subtitle: const Text(
-                'Rotate the map based on your compass or movement heading',
-              ),
+              dense: true,
+              secondary: const Icon(Icons.explore, size: 20),
+              title: Text(l10n.rotateMapWithHeading),
               value: _rotateMapWithHeading,
               onChanged: (value) async {
-                setState(() {
-                  _rotateMapWithHeading = value;
-                });
+                setState(() => _rotateMapWithHeading = value);
                 await _saveMapPreference('map_rotate_with_heading', value);
               },
             ),
             SwitchListTile(
-              secondary: Icon(Icons.bug_report_outlined),
-              title: Text(AppLocalizations.of(context)!.showMapDebugInfo),
-              subtitle: const Text(
-                'Display extra map diagnostics and internal state overlays',
-              ),
-              value: _showMapDebugInfo,
-              onChanged: (value) async {
-                setState(() {
-                  _showMapDebugInfo = value;
-                });
-                await _saveMapPreference('map_show_debug_info', value);
-              },
-            ),
-            SwitchListTile(
-              secondary: Icon(Icons.fullscreen),
-              title: Text(AppLocalizations.of(context)!.openMapInFullscreen),
-              subtitle: const Text(
-                'Start the map tab in fullscreen mode by default',
-              ),
+              dense: true,
+              secondary: const Icon(Icons.fullscreen, size: 20),
+              title: Text(l10n.openMapInFullscreen),
               value: _openMapInFullscreen,
               onChanged: (value) async {
-                setState(() {
-                  _openMapInFullscreen = value;
-                });
+                setState(() => _openMapInFullscreen = value);
                 await _saveMapPreference('map_fullscreen', value);
               },
             ),
             Consumer<DrawingProvider>(
               builder: (context, drawingProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.fmd_good_outlined),
-                title: Text(AppLocalizations.of(context)!.showSarMarkersLabel),
-                subtitle: Text(
-                  AppLocalizations.of(context)!.displaySarMarkersOnTheMainMap,
-                ),
+                dense: true,
+                secondary: const Icon(Icons.fmd_good_outlined, size: 20),
+                title: Text(l10n.showSarMarkersLabel),
                 value: drawingProvider.showSarMarkers,
                 onChanged: (value) {
                   drawingProvider.toggleSarMarkers();
@@ -1729,19 +1653,166 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Consumer<MapProvider>(
               builder: (context, mapProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.router_outlined),
-                title: Text(AppLocalizations.of(context)!.hideRepeatersOnMap),
-                subtitle: const Text(
-                  'Hide repeater contacts from the main map view',
-                ),
+                dense: true,
+                secondary: const Icon(Icons.router_outlined, size: 20),
+                title: Text(l10n.hideRepeatersOnMap),
                 value: mapProvider.hideRepeatersOnMap,
                 onChanged: (value) async {
                   await mapProvider.setHideRepeatersOnMap(value);
                 },
               ),
             ),
+            SwitchListTile(
+              dense: true,
+              secondary: const Icon(Icons.bug_report_outlined, size: 20),
+              title: Text(l10n.showMapDebugInfo),
+              value: _showMapDebugInfo,
+              onChanged: (value) async {
+                setState(() => _showMapDebugInfo = value);
+                await _saveMapPreference('map_show_debug_info', value);
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.cloud_sync, size: 20),
+              title: Text(l10n.onlineTraceDatabase),
+              subtitle: Text(
+                _onlineTraceCacheSubtitle(),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              trailing: _isClearingOnlineTraceCache
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : TextButton(
+                      onPressed: _clearOnlineTraceCache,
+                      child: const Text(
+                        'Clear',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+            ),
           ]),
-          _buildSectionHeader('Voice'),
+          const SizedBox(height: 12),
+
+          // ── GPS & Location ──
+          _buildSection(
+            icon: Icons.gps_fixed,
+            title: 'GPS & Location',
+            subtitle: 'Fast updates, thresholds, and permissions',
+            children: [
+            SwitchListTile(
+              dense: true,
+              secondary: const Icon(Icons.gps_fixed, size: 20),
+              title: Text(l10n.fastPrivateGpsUpdates),
+              subtitle: const Text(
+                'Zero-hop updates while moving or actively using app',
+              ),
+              value: _fastLocationUpdatesEnabled,
+              onChanged: _setFastLocationUpdatesEnabled,
+            ),
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.straighten, size: 20),
+              title: Text(l10n.movementThreshold),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${_fastLocationMovementThresholdMeters.toStringAsFixed(0)} m',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+              onTap: _editFastLocationMovementThreshold,
+            ),
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.timer, size: 20),
+              title: Text(l10n.activeuseUpdateInterval),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${_fastLocationActiveCadenceSeconds}s',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+              onTap: _editFastLocationActiveCadence,
+            ),
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.forum, size: 20),
+              title: const Text('Fast GPS target channel'),
+              subtitle: Text(
+                _describeFastLocationChannel(
+                  context.watch<ContactsProvider>().channels,
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _editFastLocationChannel,
+            ),
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.send, size: 20),
+              title: const Text('Test send update'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _sendTestFastLocationUpdate,
+            ),
+            const Divider(height: 1),
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.location_on, size: 20),
+              title: Text(l10n.locationPermission),
+              subtitle: FutureBuilder<LocationPermission>(
+                future: Geolocator.checkPermission(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Text(l10n.checking);
+                  }
+                  final permission = snapshot.data!;
+                  String statusText;
+                  Color statusColor;
+
+                  switch (permission) {
+                    case LocationPermission.always:
+                      statusText = l10n.locationPermissionGrantedAlways;
+                      statusColor = Colors.green;
+                      break;
+                    case LocationPermission.whileInUse:
+                      statusText = l10n.locationPermissionGrantedWhileInUse;
+                      statusColor = Colors.green;
+                      break;
+                    case LocationPermission.denied:
+                      statusText = l10n.locationPermissionDeniedTapToRequest;
+                      statusColor = Colors.orange;
+                      break;
+                    case LocationPermission.deniedForever:
+                      statusText =
+                          l10n.locationPermissionPermanentlyDeniedOpenSettings;
+                      statusColor = Colors.red;
+                      break;
+                    default:
+                      statusText = l10n.unknown;
+                      statusColor = Colors.grey;
+                  }
+
+                  return Text(statusText, style: TextStyle(color: statusColor));
+                },
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _handleLocationPermissionTap(),
+            ),
+          ]),
+          const SizedBox(height: 12),
+
+          // ── Voice ──
           Consumer2<AppProvider, ConnectionProvider>(
             builder: (context, appProvider, connectionProvider, child) =>
                 _buildVoiceStatsCard(
@@ -1758,21 +1829,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   silenceTrimEnabled: appProvider.isVoiceSilenceTrimmingEnabled,
                 ),
           ),
-          _buildSettingsCard([
+          _buildSection(
+            icon: Icons.mic_rounded,
+            title: 'Voice',
+            subtitle: 'Codec, bitrate, and audio processing',
+            children: [
             ListTile(
-              leading: Icon(Icons.graphic_eq),
-              title: Text(AppLocalizations.of(context)!.voiceBitrate),
-              subtitle: Text(_voiceBitrateSubtitle(_voiceBitrate)),
-              trailing: const Icon(Icons.chevron_right),
+              dense: true,
+              leading: const Icon(Icons.graphic_eq, size: 20),
+              title: Text(l10n.voiceBitrate),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _voiceBitrateSubtitle(_voiceBitrate),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
               onTap: _showVoiceBitrateDialog,
             ),
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.tune),
-                title: Text(AppLocalizations.of(context)!.bandpassFilterVoice),
-                subtitle: const Text(
-                  'Keeps speech frequencies and cuts low/high noise',
-                ),
+                dense: true,
+                secondary: const Icon(Icons.tune, size: 20),
+                title: Text(l10n.bandpassFilterVoice),
                 value: appProvider.isVoiceBandPassFilterEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceBandPassFilterEnabled(value);
@@ -1781,13 +1863,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.compress),
-                title: Text(AppLocalizations.of(context)!.voiceCompressor),
-                subtitle: Text(
-                  AppLocalizations.of(
-                    context,
-                  )!.balancesQuietAndLoudSpeechLevels,
-                ),
+                dense: true,
+                secondary: const Icon(Icons.compress, size: 20),
+                title: Text(l10n.voiceCompressor),
                 value: appProvider.isVoiceCompressorEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceCompressorEnabled(value);
@@ -1796,13 +1874,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.speed),
-                title: Text(AppLocalizations.of(context)!.voiceLimiter),
-                subtitle: Text(
-                  AppLocalizations.of(
-                    context,
-                  )!.preventsClippingPeaksBeforeEncoding,
-                ),
+                dense: true,
+                secondary: const Icon(Icons.speed, size: 20),
+                title: Text(l10n.voiceLimiter),
                 value: appProvider.isVoiceLimiterEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceLimiterEnabled(value);
@@ -1811,11 +1885,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.auto_fix_high),
-                title: Text(AppLocalizations.of(context)!.micAutoGain),
-                subtitle: Text(
-                  AppLocalizations.of(context)!.letsTheRecorderAdjustInputLevel,
-                ),
+                dense: true,
+                secondary: const Icon(Icons.auto_fix_high, size: 20),
+                title: Text(l10n.micAutoGain),
                 value: appProvider.isVoiceAutoGainEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceAutoGainEnabled(value);
@@ -1824,11 +1896,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.hearing_disabled),
-                title: Text(AppLocalizations.of(context)!.echoCancellation),
-                subtitle: const Text(
-                  'Uses recorder echo cancellation if available',
-                ),
+                dense: true,
+                secondary: const Icon(Icons.hearing_disabled, size: 20),
+                title: Text(l10n.echoCancellation),
                 value: appProvider.isVoiceEchoCancellationEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceEchoCancellationEnabled(value);
@@ -1837,11 +1907,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.noise_control_off),
-                title: Text(AppLocalizations.of(context)!.noiseSuppression),
-                subtitle: const Text(
-                  'Uses recorder noise suppression if available',
-                ),
+                dense: true,
+                secondary: const Icon(Icons.noise_control_off, size: 20),
+                title: Text(l10n.noiseSuppression),
                 value: appProvider.isVoiceNoiseSuppressionEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceNoiseSuppressionEnabled(value);
@@ -1850,13 +1918,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => SwitchListTile(
-                secondary: Icon(Icons.content_cut),
-                title: Text(
-                  AppLocalizations.of(context)!.trimSilenceInVoiceMessages,
-                ),
-                subtitle: const Text(
-                  'Removes long silent parts before sending voice',
-                ),
+                dense: true,
+                secondary: const Icon(Icons.content_cut, size: 20),
+                title: Text(l10n.trimSilenceInVoiceMessages),
                 value: appProvider.isVoiceSilenceTrimmingEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleVoiceSilenceTrimmingEnabled(value);
@@ -1864,26 +1928,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ]),
+          const SizedBox(height: 12),
 
-          _buildSectionHeader('Images'),
-          _buildSettingsCard([
+          // ── Images ──
+          _buildSection(
+            icon: Icons.image_rounded,
+            title: 'Images',
+            subtitle: 'Size, compression, and preview',
+            children: [
             ListTile(
-              leading: Icon(Icons.photo_size_select_large),
-              title: Text(AppLocalizations.of(context)!.maxImageSize),
-              subtitle: Text('$_imageMaxSize×$_imageMaxSize px'),
-              trailing: const Icon(Icons.chevron_right),
+              dense: true,
+              leading: const Icon(Icons.photo_size_select_large, size: 20),
+              title: Text(l10n.maxImageSize),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$_imageMaxSize×$_imageMaxSize px',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
               onTap: _showImageMaxSizeDialog,
             ),
             ListTile(
-              leading: Icon(Icons.tune),
-              title: Text(AppLocalizations.of(context)!.imageCompression),
-              subtitle: Text(
-                '$_imageCompression / 90  (higher = smaller file)',
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Slider(
+              dense: true,
+              leading: const Icon(Icons.tune, size: 20),
+              title: Text(l10n.imageCompression),
+              subtitle: Slider(
                 value: _imageCompression.toDouble(),
                 min: 10,
                 max: 90,
@@ -1894,11 +1967,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             SwitchListTile(
-              secondary: Icon(Icons.invert_colors),
-              title: Text(AppLocalizations.of(context)!.grayscale),
-              subtitle: const Text(
-                'Converts image to grayscale for smaller file size',
-              ),
+              dense: true,
+              secondary: const Icon(Icons.invert_colors, size: 20),
+              title: Text(l10n.grayscale),
+              subtitle: const Text('Smaller file size'),
               value: _imageGrayscale,
               onChanged: (value) async {
                 await ImagePreferences.setGrayscale(value);
@@ -1907,17 +1979,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             SwitchListTile(
-              secondary: Icon(Icons.compress),
-              title: Text(AppLocalizations.of(context)!.ultraMode),
-              subtitle: const Text(
-                'Extra-aggressive compression with stronger AVIF settings',
-              ),
+              dense: true,
+              secondary: const Icon(Icons.compress, size: 20),
+              title: Text(l10n.ultraMode),
+              subtitle: const Text('Extra-aggressive AVIF compression'),
               value: _imageUltraMode,
               onChanged: (value) async {
                 await ImagePreferences.setUltraMode(value);
-                setState(() {
-                  _imageUltraMode = value;
-                });
+                setState(() => _imageUltraMode = value);
                 await _refreshImageModePreview();
               },
             ),
@@ -1926,29 +1995,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
             builder: (context, connectionProvider, child) =>
                 _buildImageModePreviewCard(connectionProvider),
           ),
-          _buildSectionHeader('Profiles'),
-          _buildSettingsCard([
+          const SizedBox(height: 12),
+
+          // ── Profiles ──
+          _buildSection(
+            icon: Icons.layers_outlined,
+            title: 'Profiles',
+            subtitle: 'Multi-device workspace management',
+            children: [
             SwitchListTile(
-              secondary: Icon(Icons.layers_outlined),
-              title: Text(AppLocalizations.of(context)!.enableProfiles),
-              subtitle: const Text(
-                'Show profile management UI while keeping the hidden Default profile as the current workspace.',
-              ),
+              dense: true,
+              secondary: const Icon(Icons.layers_outlined, size: 20),
+              title: Text(l10n.enableProfiles),
               value: _profilesEnabled,
               onChanged: (value) async {
                 await context
                     .read<ProfileWorkspaceCoordinator>()
                     .setProfilesEnabled(value);
                 if (!mounted) return;
-                setState(() {
-                  _profilesEnabled = value;
-                });
+                setState(() => _profilesEnabled = value);
               },
             ),
             if (_profilesEnabled)
               ListTile(
-                leading: Icon(Icons.folder_copy_outlined),
-                title: Text(AppLocalizations.of(context)!.manageProfiles),
+                dense: true,
+                leading: const Icon(Icons.folder_copy_outlined, size: 20),
+                title: Text(l10n.manageProfiles),
                 subtitle: Text(
                   context.watch<ProfileManager>().activeProfileId ==
                           ConfigProfile.defaultProfileId
@@ -1966,12 +2038,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
           ]),
-          _buildSectionHeader('Templates & Help'),
-          _buildSettingsCard([
+          const SizedBox(height: 12),
+
+          // ── Help ──
+          _buildSection(
+            icon: Icons.help_outline_rounded,
+            title: 'Help',
+            subtitle: 'Templates and tutorials',
+            children: [
             ListTile(
-              leading: Icon(Icons.location_searching),
-              title: Text(AppLocalizations.of(context)!.sarTemplates),
-              subtitle: Text(AppLocalizations.of(context)!.manageSarTemplates),
+              dense: true,
+              leading: const Icon(Icons.location_searching, size: 20),
+              title: Text(l10n.sarTemplates),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(
@@ -1983,8 +2061,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.school),
-              title: Text(AppLocalizations.of(context)!.viewWelcomeTutorial),
+              dense: true,
+              leading: const Icon(Icons.school, size: 20),
+              title: Text(l10n.viewWelcomeTutorial),
               trailing: const Icon(Icons.chevron_right),
               onTap: () async {
                 await Navigator.push(
@@ -2000,112 +2079,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
           ]),
+          const SizedBox(height: 12),
 
-          _buildSectionHeader(AppLocalizations.of(context)!.permissionsSection),
-          _buildSettingsCard([
-            SwitchListTile(
-              secondary: Icon(Icons.gps_fixed),
-              title: Text(AppLocalizations.of(context)!.fastPrivateGpsUpdates),
-              subtitle: const Text(
-                'Use private zero-hop updates while moving significantly or while actively using map/messages.',
-              ),
-              value: _fastLocationUpdatesEnabled,
-              onChanged: _setFastLocationUpdatesEnabled,
-            ),
+          // ── About ──
+          _buildSection(
+            icon: Icons.info_outline_rounded,
+            title: l10n.about,
+            children: [
             ListTile(
-              leading: Icon(Icons.straighten),
-              title: Text(AppLocalizations.of(context)!.movementThreshold),
-              subtitle: Text(
-                '${_fastLocationMovementThresholdMeters.toStringAsFixed(0)} m',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _editFastLocationMovementThreshold,
-            ),
-            ListTile(
-              leading: Icon(Icons.timer),
-              title: Text(
-                AppLocalizations.of(context)!.activeuseUpdateInterval,
-              ),
-              subtitle: Text('$_fastLocationActiveCadenceSeconds s'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _editFastLocationActiveCadence,
-            ),
-            ListTile(
-              leading: const Icon(Icons.forum),
-              title: const Text('Fast GPS target channel'),
-              subtitle: Text(
-                _describeFastLocationChannel(
-                  context.watch<ContactsProvider>().channels,
-                ),
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _editFastLocationChannel,
-            ),
-            ListTile(
-              leading: const Icon(Icons.send),
-              title: const Text('Test send update'),
-              subtitle: const Text(
-                'Send one fast GPS update immediately to the configured channel.',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _sendTestFastLocationUpdate,
-            ),
-            ListTile(
-              leading: Icon(Icons.location_on),
-              title: Text(AppLocalizations.of(context)!.locationPermission),
-              subtitle: FutureBuilder<LocationPermission>(
-                future: Geolocator.checkPermission(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Text(AppLocalizations.of(context)!.checking);
-                  }
-                  final permission = snapshot.data!;
-                  String statusText;
-                  Color statusColor;
-
-                  switch (permission) {
-                    case LocationPermission.always:
-                      statusText = AppLocalizations.of(
-                        context,
-                      )!.locationPermissionGrantedAlways;
-                      statusColor = Colors.green;
-                      break;
-                    case LocationPermission.whileInUse:
-                      statusText = AppLocalizations.of(
-                        context,
-                      )!.locationPermissionGrantedWhileInUse;
-                      statusColor = Colors.green;
-                      break;
-                    case LocationPermission.denied:
-                      statusText = AppLocalizations.of(
-                        context,
-                      )!.locationPermissionDeniedTapToRequest;
-                      statusColor = Colors.orange;
-                      break;
-                    case LocationPermission.deniedForever:
-                      statusText = AppLocalizations.of(
-                        context,
-                      )!.locationPermissionPermanentlyDeniedOpenSettings;
-                      statusColor = Colors.red;
-                      break;
-                    default:
-                      statusText = AppLocalizations.of(context)!.unknown;
-                      statusColor = Colors.grey;
-                  }
-
-                  return Text(statusText, style: TextStyle(color: statusColor));
-                },
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _handleLocationPermissionTap(),
-            ),
-          ]),
-
-          _buildSectionHeader(AppLocalizations.of(context)!.about),
-          _buildSettingsCard([
-            ListTile(
-              leading: Icon(Icons.info),
-              title: Text(AppLocalizations.of(context)!.appVersion),
+              dense: true,
+              leading: const Icon(Icons.info_outline, size: 20),
+              title: Text(l10n.appVersion),
               subtitle: Text(
                 _packageInfo != null
                     ? '${_packageInfo!.version} (${_packageInfo!.buildNumber})'
@@ -2114,44 +2098,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: _handleVersionTap,
             ),
             ListTile(
-              leading: Icon(Icons.badge),
-              title: Text(AppLocalizations.of(context)!.appName),
-              subtitle: Text(_packageInfo?.appName ?? 'MeshCore SAR'),
-            ),
-            ListTile(
-              leading: Icon(Icons.description),
-              title: Text(AppLocalizations.of(context)!.aboutMeshCoreSar),
-              subtitle: Text(
-                AppLocalizations.of(context)!.aboutDescription.split('\n\n')[0],
-              ),
+              dense: true,
+              leading: const Icon(Icons.description_outlined, size: 20),
+              title: Text(l10n.aboutMeshCoreSar),
+              trailing: const Icon(Icons.chevron_right),
               onTap: () => _showAboutDialog(),
             ),
-          ]),
-          if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: FilledButton.icon(
-                onPressed: _isCheckingForUpdates ? null : _checkForUpdates,
-                icon: _isCheckingForUpdates
+            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+              ListTile(
+                dense: true,
+                leading: _isCheckingForUpdates
                     ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.system_update),
-                label: Text(
+                    : const Icon(Icons.system_update, size: 20),
+                title: Text(
                   _isCheckingForUpdates ? 'Checking...' : 'Check for Updates',
                 ),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                ),
+                onTap: _isCheckingForUpdates ? null : _checkForUpdates,
               ),
-            ),
-          _buildSectionHeader('Developer & Data'),
-          _buildSettingsCard([
+          ]),
+          const SizedBox(height: 12),
+
+          // ── Data & Developer ──
+          _buildSection(
+            icon: Icons.storage_rounded,
+            title: 'Data',
+            subtitle: 'Traffic stats, message history, and developer tools',
+            children: [
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => ListenableBuilder(
                 listenable: appProvider.trafficStatsReportingService,
@@ -2161,92 +2137,158 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.bug_report),
-              title: Text(AppLocalizations.of(context)!.packageName),
-              subtitle: Text(_packageInfo?.packageName ?? 'com.meshcore.sar'),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Text(
-                AppLocalizations.of(context)!.sampleData,
-                style: Theme.of(context).textTheme.titleSmall,
+              dense: true,
+              leading: const Icon(Icons.delete_sweep, size: 20),
+              title: const Text(
+                'Clear Messages',
+                style: TextStyle(color: Colors.red),
               ),
+              subtitle: Text(l10n.deleteAllStoredMessageHistory),
+              onTap: _clearMessages,
             ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Text(
-                AppLocalizations.of(context)!.sampleDataDescription,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+            if (_isDeveloperModeEnabled) ...[
+              const Divider(height: 1),
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.bug_report, size: 20),
+                title: Text(l10n.packageName),
+                subtitle: Text(
+                  _packageInfo?.packageName ?? 'com.meshcore.sar',
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _isLoadingSampleData ? null : _loadSampleData,
-                      icon: _isLoadingSampleData
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Icon(Icons.add_circle_outline),
-                      label: Text(AppLocalizations.of(context)!.loadSampleData),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _isLoadingSampleData ? null : _clearSampleData,
-                      icon: Icon(Icons.delete_outline),
-                      label: Text(AppLocalizations.of(context)!.clearAllData),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: Text(
+                  l10n.sampleData,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: Text(
+                  l10n.sampleDataDescription,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed:
+                            _isLoadingSampleData ? null : _loadSampleData,
+                        icon: _isLoadingSampleData
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.add_circle_outline),
+                        label: Text(l10n.loadSampleData),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed:
+                            _isLoadingSampleData ? null : _clearSampleData,
+                        icon: const Icon(Icons.delete_outline),
+                        label: Text(l10n.clearAllData),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ]),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  Widget _buildSettingsCard(List<Widget> children) {
+  Widget _buildSection({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required List<Widget> children,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
-      margin: EdgeInsets.zero,
-      child: Column(
-        children: ListTile.divideTiles(
-          context: context,
-          tiles: children,
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
-        ).toList(),
+      color: colorScheme.surfaceContainerLow,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: colorScheme.primary, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      if (subtitle != null)
+                        Text(
+                          subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildCompactToggleRow({
+    required IconData icon,
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return SwitchListTile(
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      secondary: Icon(icon, size: 18),
+      title: Text(label),
+      value: value,
+      onChanged: onChanged,
     );
   }
 
@@ -2284,7 +2326,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.only(top: 4),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -2292,7 +2334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             const Row(
               children: [
-                Icon(Icons.photo_library_outlined),
+                Icon(Icons.photo_library_outlined, size: 20),
                 SizedBox(width: 8),
                 Text(
                   'Image mode preview',
@@ -2482,7 +2524,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 4),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
