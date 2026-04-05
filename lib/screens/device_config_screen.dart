@@ -190,6 +190,8 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   bool _repeatEnabled = false;
   bool? _gpsEnabled; // null = not supported by hardware
   bool _gpsLoading = false;
+  bool? _buzzerEnabled;
+  bool _buzzerLoading = false;
   bool? _gpsHasFix;
   int? _gpsSatelliteCount;
   int? _gpsLatE6;
@@ -823,8 +825,10 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       final gpsLatValue = vars['gps_lat_e6'];
       final gpsLonValue = vars['gps_lon_e6'];
       final gpsLastFixAgeValue = vars['gps_last_fix_age_s'];
+      final buzzerValue = vars['buzzer'];
       setState(() {
         _gpsEnabled = gpsValue != null ? gpsValue == '1' : null;
+        _buzzerEnabled = buzzerValue != null ? buzzerValue == '1' : null;
         if (gpsIntervalValue != null) {
           _gpsIntervalController.text = gpsIntervalValue;
         }
@@ -837,6 +841,25 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       });
     } catch (_) {
       // Device may not support custom vars (old firmware / no GPS hardware)
+    }
+  }
+
+  Future<void> _setBuzzerMode(bool enabled) async {
+    setState(() => _buzzerLoading = true);
+    try {
+      await _connectionProvider.setCustomVar('buzzer', enabled ? '1' : '0');
+      if (!mounted) return;
+      setState(() {
+        _buzzerEnabled = enabled;
+        _buzzerLoading = false;
+      });
+      unawaited(_loadGpsMode());
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _buzzerLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to set buzzer mode: $e')),
+      );
     }
   }
 
@@ -1756,6 +1779,32 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         lastFixValue: _formatGpsLastFixValue(
                           AppLocalizations.of(context)!,
                         ),
+                      ),
+                    ],
+                    if (_buzzerEnabled != null) ...[
+                      const SizedBox(height: 12),
+                      _SettingHighlightCard(
+                        icon: _buzzerEnabled!
+                            ? Icons.volume_up_rounded
+                            : Icons.volume_off_rounded,
+                        title: 'Buzzer alerts',
+                        description:
+                            'Enable or mute the onboard buzzer for radio alerts.',
+                        accentColor: _buzzerEnabled!
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
+                        trailing: _buzzerLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Switch(
+                                value: _buzzerEnabled!,
+                                onChanged: _setBuzzerMode,
+                              ),
                       ),
                     ],
                     const SizedBox(height: 16),
