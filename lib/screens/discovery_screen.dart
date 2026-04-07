@@ -69,7 +69,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -256,7 +256,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     if (addError != null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add contact: $addError')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToAddContact(addError.toString()))),
         );
       }
       return false;
@@ -775,7 +775,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                   IconButton(
                     visualDensity: VisualDensity.compact,
                     icon: const Icon(Icons.person_add_alt_1),
-                    tooltip: 'Resolve contact',
+                    tooltip: AppLocalizations.of(context)!.resolveContact,
                     onPressed: isConnected
                         ? () => _resolveAdvert(advert)
                         : null,
@@ -848,7 +848,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                       height: 1.1,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Search discovered nodes',
+                      hintText: AppLocalizations.of(context)!.searchDiscoveredNodes,
                       hintStyle: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant.withValues(
                           alpha: 0.85,

@@ -269,12 +269,12 @@ class _RepeatersMapScreenState extends State<RepeatersMapScreen> {
       await connectionProvider.getContact(_hexToBytes(repeater.publicKey));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${repeater.name} added to contacts')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.addedToContacts(repeater.name))),
       );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add ${repeater.name}: $error')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.failedToAddName(repeater.name, error.toString()))),
       );
     } finally {
       if (mounted) {
@@ -374,7 +374,7 @@ class _RepeatersMapScreenState extends State<RepeatersMapScreen> {
                 ? null
                 : () => _loadRepeaters(forceRefresh: true),
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+            tooltip: AppLocalizations.of(context)!.refresh,
           ),
         ],
       ),
@@ -491,7 +491,7 @@ class _RepeatersMapScreenState extends State<RepeatersMapScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _jumpToMyLocation,
-        tooltip: 'My location',
+        tooltip: AppLocalizations.of(context)!.myLocation,
         child: const Icon(Icons.my_location),
       ),
     );

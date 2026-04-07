@@ -36,10 +36,6 @@
   "@scanAgain": {
     "description": "Button to restart BLE scanning"
   },
-  "tapToConnect": "Tap to connect",
-  "@tapToConnect": {
-    "description": "Subtitle text for device in scan list"
-  },
   "deviceNotConnected": "Device not connected",
   "@deviceNotConnected": {
     "description": "Error message when device is not connected"
@@ -133,17 +129,9 @@
   "@showRxTxIndicators": {
     "description": "Setting to show RX/TX indicators"
   },
-  "displayPacketActivity": "Display packet activity indicators in top bar",
-  "@displayPacketActivity": {
-    "description": "Description for RX/TX indicators setting"
-  },
   "disableMap": "Disable Map",
   "@disableMap": {
     "description": "Setting to disable the map tab"
-  },
-  "disableMapDescription": "Hide the map tab to reduce battery usage",
-  "@disableMapDescription": {
-    "description": "Description for disable map setting"
   },
   "language": "Language",
   "@language": {
@@ -172,10 +160,6 @@
   "appVersion": "App Version",
   "@appVersion": {
     "description": "App version label"
-  },
-  "appName": "App Name",
-  "@appName": {
-    "description": "App name label"
   },
   "aboutMeshCoreSar": "About MeshCore SAR",
   "@aboutMeshCoreSar": {
@@ -307,10 +291,6 @@
   "resetPath": "Reset Path (Re-route)",
   "@resetPath": {
     "description": "Action to reset contact path for re-routing"
-  },
-  "publicKeyCopied": "Public key copied to clipboard",
-  "@publicKeyCopied": {
-    "description": "Success message when public key is copied"
   },
   "copiedToClipboard": "{label} copied to clipboard",
   "@copiedToClipboard": {
@@ -744,22 +724,6 @@
   "@lastSeen": {
     "description": "Last seen label"
   },
-  "roomStatus": "Room Status",
-  "@roomStatus": {
-    "description": "Room status section header"
-  },
-  "loginStatus": "Login Status",
-  "@loginStatus": {
-    "description": "Login status label"
-  },
-  "notLoggedIn": "Not Logged In",
-  "@notLoggedIn": {
-    "description": "Not logged in status"
-  },
-  "adminAccess": "Admin Access",
-  "@adminAccess": {
-    "description": "Admin access label"
-  },
   "yes": "Yes",
   "@yes": {
     "description": "Yes answer"
@@ -771,14 +735,6 @@
   "permissions": "Permissions",
   "@permissions": {
     "description": "Permissions label"
-  },
-  "passwordSaved": "Password Saved",
-  "@passwordSaved": {
-    "description": "Password saved label"
-  },
-  "locationColon": "Location:",
-  "@locationColon": {
-    "description": "Location section header"
   },
   "telemetry": "Telemetry",
   "@telemetry": {
@@ -807,19 +763,6 @@
   "gpsTelemetry": "GPS (Telemetry)",
   "@gpsTelemetry": {
     "description": "GPS from telemetry label"
-  },
-  "updated": "Updated",
-  "@updated": {
-    "description": "Updated timestamp label"
-  },
-  "pathResetInfo": "Path reset for {name}. Next message will find a new route.",
-  "@pathResetInfo": {
-    "description": "Info message after path reset",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
   },
   "reLoginToRoom": "Re-Login to Room",
   "@reLoginToRoom": {
@@ -1182,10 +1125,6 @@
   "@frequencyMHz": {
     "description": "Label for radio frequency field"
   },
-  "frequencyExample": "e.g., 869.618",
-  "@frequencyExample": {
-    "description": "Helper text example for frequency"
-  },
   "bandwidth": "Bandwidth",
   "@bandwidth": {
     "description": "Label for bandwidth dropdown"
@@ -1289,47 +1228,6 @@
   "@trailControls": {
     "description": "Trail controls tooltip"
   },
-  "contactTrails": "Contact Trails",
-  "@contactTrails": {
-    "description": "Contact trails section header"
-  },
-  "showAllContactTrails": "Show All Contact Trails",
-  "@showAllContactTrails": {
-    "description": "Toggle label to show all contact trails"
-  },
-  "noContactsWithLocationHistory": "No contacts with location history",
-  "@noContactsWithLocationHistory": {
-    "description": "Subtitle when no contacts have trails"
-  },
-  "showingTrailsForContacts": "Showing trails for {count} contacts",
-  "@showingTrailsForContacts": {
-    "description": "Subtitle showing number of contacts with trails",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "individualContactTrails": "Individual Contact Trails",
-  "@individualContactTrails": {
-    "description": "Expansion tile title for individual contact trails"
-  },
-  "deviceInformation": "Device Information",
-  "@deviceInformation": {
-    "description": "Device information section header"
-  },
-  "bleName": "BLE Name",
-  "@bleName": {
-    "description": "Bluetooth Low Energy device name label"
-  },
-  "meshName": "Mesh Name",
-  "@meshName": {
-    "description": "Mesh network name label"
-  },
-  "notSet": "Not set",
-  "@notSet": {
-    "description": "Label when a value is not set"
-  },
   "model": "Model",
   "@model": {
     "description": "Device model label"
@@ -1337,14 +1235,6 @@
   "version": "Version",
   "@version": {
     "description": "Version label"
-  },
-  "buildDate": "Build Date",
-  "@buildDate": {
-    "description": "Firmware build date label"
-  },
-  "firmware": "Firmware",
-  "@firmware": {
-    "description": "Firmware label"
   },
   "maxContacts": "Max Contacts",
   "@maxContacts": {
@@ -1357,26 +1247,6 @@
   "publicInfo": "Public Info",
   "@publicInfo": {
     "description": "Public information section header"
-  },
-  "meshNetworkName": "Mesh Network Name",
-  "@meshNetworkName": {
-    "description": "Mesh network name field label"
-  },
-  "nameBroadcastInMesh": "Name broadcast in mesh advertisements",
-  "@nameBroadcastInMesh": {
-    "description": "Helper text for mesh network name field"
-  },
-  "telemetryAndLocationSharing": "Telemetry & Location Sharing",
-  "@telemetryAndLocationSharing": {
-    "description": "Telemetry and location sharing toggle label"
-  },
-  "lat": "Lat",
-  "@lat": {
-    "description": "Latitude field label (short form)"
-  },
-  "lon": "Lon",
-  "@lon": {
-    "description": "Longitude field label (short form)"
   },
   "useCurrentLocation": "Use current location",
   "@useCurrentLocation": {
@@ -1407,15 +1277,6 @@
       }
     }
   },
-  "copiedToClipboardShort": "Copied {label} to clipboard",
-  "@copiedToClipboardShort": {
-    "description": "Short success message when copying to clipboard",
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
   "failedToSave": "Failed to save: {error}",
   "@failedToSave": {
     "description": "Generic error message for save failures",
@@ -1437,10 +1298,6 @@
   "sarTemplates": "SAR Templates",
   "@sarTemplates": {
     "description": "SAR templates menu title"
-  },
-  "manageSarTemplates": "Manage cursor on target templates",
-  "@manageSarTemplates": {
-    "description": "Subtitle for SAR templates settings"
   },
   "addTemplate": "Add Template",
   "@addTemplate": {
@@ -1564,10 +1421,6 @@
   "ok": "OK",
   "@ok": {
     "description": "OK button label"
-  },
-  "permissionsSection": "Permissions",
-  "@permissionsSection": {
-    "description": "Permissions section header"
   },
   "locationPermission": "Location Permission",
   "@locationPermission": {
@@ -2133,94 +1986,6 @@
   "@wizardWelcomeTitle": {
     "description": "Welcome wizard first page title"
   },
-  "wizardWelcomeDescription": "A powerful off-grid communication tool for search and rescue operations. Connect with your team using mesh radio technology when traditional networks are unavailable.",
-  "@wizardWelcomeDescription": {
-    "description": "Welcome wizard first page description"
-  },
-  "wizardConnectingTitle": "Connecting to Your Radio",
-  "@wizardConnectingTitle": {
-    "description": "Wizard connecting page title"
-  },
-  "wizardConnectingDescription": "Connect your smartphone to a MeshCore radio device via Bluetooth to start communicating off-grid.",
-  "@wizardConnectingDescription": {
-    "description": "Wizard connecting page description"
-  },
-  "wizardConnectingFeature1": "Scan for nearby MeshCore devices",
-  "@wizardConnectingFeature1": {
-    "description": "Wizard connecting feature 1"
-  },
-  "wizardConnectingFeature2": "Pair with your radio via Bluetooth",
-  "@wizardConnectingFeature2": {
-    "description": "Wizard connecting feature 2"
-  },
-  "wizardConnectingFeature3": "Works completely offline - no internet required",
-  "@wizardConnectingFeature3": {
-    "description": "Wizard connecting feature 3"
-  },
-  "wizardChannelTitle": "Channels",
-  "@wizardChannelTitle": {
-    "description": "Wizard channel page title"
-  },
-  "wizardChannelDescription": "Broadcast messages to everyone on a channel, perfect for team-wide announcements and coordination.",
-  "@wizardChannelDescription": {
-    "description": "Wizard channel page description"
-  },
-  "wizardChannelFeature1": "Public Channel for general team communication",
-  "@wizardChannelFeature1": {
-    "description": "Wizard channel feature 1"
-  },
-  "wizardChannelFeature2": "Create custom channels for specific groups",
-  "@wizardChannelFeature2": {
-    "description": "Wizard channel feature 2"
-  },
-  "wizardChannelFeature3": "Messages are automatically relayed by the mesh",
-  "@wizardChannelFeature3": {
-    "description": "Wizard channel feature 3"
-  },
-  "wizardContactsTitle": "Contacts",
-  "@wizardContactsTitle": {
-    "description": "Wizard contacts page title"
-  },
-  "wizardContactsDescription": "Your team members appear automatically as they join the mesh network. Send them direct messages or view their location.",
-  "@wizardContactsDescription": {
-    "description": "Wizard contacts page description"
-  },
-  "wizardContactsFeature1": "Contacts discovered automatically",
-  "@wizardContactsFeature1": {
-    "description": "Wizard contacts feature 1"
-  },
-  "wizardContactsFeature2": "Send private direct messages",
-  "@wizardContactsFeature2": {
-    "description": "Wizard contacts feature 2"
-  },
-  "wizardContactsFeature3": "View battery level and last seen time",
-  "@wizardContactsFeature3": {
-    "description": "Wizard contacts feature 3"
-  },
-  "wizardMapTitle": "Map & Location",
-  "@wizardMapTitle": {
-    "description": "Wizard map page title"
-  },
-  "wizardMapDescription": "Track your team in real-time and mark important locations for search and rescue operations.",
-  "@wizardMapDescription": {
-    "description": "Wizard map page description"
-  },
-  "wizardMapFeature1": "SAR markers for found persons, fires, and staging areas",
-  "@wizardMapFeature1": {
-    "description": "Wizard map feature 1"
-  },
-  "wizardMapFeature2": "Real-time GPS tracking of team members",
-  "@wizardMapFeature2": {
-    "description": "Wizard map feature 2"
-  },
-  "wizardMapFeature3": "Download offline maps for remote areas",
-  "@wizardMapFeature3": {
-    "description": "Wizard map feature 3"
-  },
-  "wizardMapFeature4": "Draw shapes and share tactical information",
-  "@wizardMapFeature4": {
-    "description": "Wizard map feature 4"
-  },
   "viewWelcomeTutorial": "View Welcome Tutorial",
   "@viewWelcomeTutorial": {
     "description": "Settings option to re-show welcome wizard"
@@ -2579,29 +2344,10 @@
   "posttxDelay": "Post-tx delay",
   "bandpass": "Band-pass",
   "bandpassFilterVoice": "Band-pass filter voice",
-  "frequency": "Frequency",
-  "australia": "Australia",
-  "australiaNarrow": "Australia (Narrow)",
-  "australiaQld": "Australia: QLD",
-  "australiaSaWa": "Australia: SA, WA",
-  "newZealand": "New Zealand",
-  "newZealandNarrow": "New Zealand (Narrow)",
-  "switzerland": "Switzerland",
-  "portugal433": "Portugal 433",
-  "portugal868": "Portugal 868",
-  "czechRepublicNarrow": "Czech Republic (Narrow)",
-  "eu433mhzLongRange": "EU 433MHz (Long Range)",
-  "euukDeprecated": "EU/UK (Deprecated)",
-  "euukNarrow": "EU/UK (Narrow)",
-  "usacanadaRecommended": "USA/Canada (Recommended)",
-  "vietnamDeprecated": "Vietnam (Deprecated)",
-  "vietnamNarrow": "Vietnam (Narrow)",
   "active": "Active",
   "addContact": "Add Contact",
   "all": "All",
-  "autoResolve": "Auto resolve",
   "clearAllLabel": "Clear all",
-  "clearRelays": "Clear relays",
   "clearFilters": "Clear filters",
   "clearRoute": "Clear Route",
   "clearMessages": "Clear Messages",
@@ -2627,10 +2373,7 @@
   "send": "Send",
   "sendAnyway": "Send anyway",
   "share": "Share",
-  "shareContact": "Share Contact",
   "trace": "Trace",
-  "use": "Use",
-  "useSelectedFrequency": "Use selected frequency",
   "discovery": "Discovery",
   "discoverRepeaters": "Discover repeaters",
   "discoverSensors": "Discover sensors",
@@ -2653,7 +2396,6 @@
   "gpsModule": "GPS Module",
   "liveTraffic": "Live Traffic",
   "repeatersMap": "Repeaters Map",
-  "spectrumScan": "Spectrum Scan",
   "blePacketLogs": "BLE Packet Logs",
   "onlineTraceDatabase": "Online trace database",
   "routePathByteSize": "Route path byte size",
@@ -2665,7 +2407,6 @@
   "disableContacts": "Disable Contacts",
   "enableSensorsTab": "Enable Sensors tab",
   "enableProfiles": "Enable Profiles",
-  "autoRouteRotation": "Auto route rotation",
   "nearestRepeaterFallback": "Nearest repeater fallback",
   "deleteAllStoredMessageHistory": "Delete all stored message history",
   "messageFontSize": "Message font size",
@@ -2673,18 +2414,13 @@
   "showMapDebugInfo": "Show map debug info",
   "openMapInFullscreen": "Open map in fullscreen",
   "showSarMarkersLabel": "Show SAR markers",
-  "displaySarMarkersOnTheMainMap": "Display SAR markers on the main map",
-  "showAllContactTrailsLabel": "Show all contact trails",
   "hideRepeatersOnMap": "Hide repeaters on map",
   "setMapScale": "Set map scale",
   "customMapScaleSaved": "Custom map scale saved",
   "voiceBitrate": "Voice bitrate",
   "voiceCompressor": "Voice compressor",
-  "balancesQuietAndLoudSpeechLevels": "Balances quiet and loud speech levels",
   "voiceLimiter": "Voice limiter",
-  "preventsClippingPeaksBeforeEncoding": "Prevents clipping peaks before encoding",
   "micAutoGain": "Mic auto gain",
-  "letsTheRecorderAdjustInputLevel": "Lets the recorder adjust input level",
   "echoCancellation": "Echo cancellation",
   "noiseSuppression": "Noise suppression",
   "trimSilenceInVoiceMessages": "Trim silence in voice messages",
@@ -2726,13 +2462,10 @@
   "staging": "Staging",
   "object": "Object",
   "quiet": "Quiet",
-  "moderate": "Moderate",
   "busy": "Busy",
-  "spectrumScanReturnedNoCandidateFrequencies": "Spectrum scan returned no candidate frequencies",
   "searchMessages": "Search messages",
   "sendImageFromGallery": "Send image from gallery",
   "takePhoto": "Take photo",
-  "dmOnly": "DM only",
   "allMessages": "All messages",
   "sendToPublicChannel": "Send to Public Channel?",
   "selectMarkerTypeAndDestination": "Select marker type and destination",
@@ -2751,8 +2484,6 @@
   "wipeDevice": "Wipe device",
   "destructiveDeviceActions": "Destructive device actions.",
   "chooseAPresetOrFinetuneCustomRadioSettings": "Choose a preset or fine-tune custom radio settings.",
-  "chooseTheNameAndLocationThisDeviceShares": "Choose the name and location this device shares.",
-  "availableSpaceOnThisDevice": "Available space on this device.",
   "used": "Used",
   "total": "Total",
   "renameValue": "Rename value",
@@ -2770,8 +2501,6 @@
   "onlineOnly": "Online only",
   "inBoth": "In both",
   "source": "Source",
-  "manualRouteEdit": "Manual route edit",
-  "observedMeshRoute": "Observed mesh route",
   "allMessagesCleared": "All messages cleared",
   "onlineTraceDatabaseCleared": "Online trace database cleared",
   "packetLogsCleared": "Packet logs cleared",
@@ -2803,7 +2532,340 @@
   "size": "Size",
   "noCustomChannelsToClear": "No custom channels to clear.",
   "noDeviceContactsToClear": "No device contacts to clear.",
-
+  "aToZ": "A-Z",
+  "add": "Add",
+  "addAdditionalDetails": "Add additional details",
+  "addPeer": "Add Peer",
+  "addPeerManually": "Add peer manually",
+  "addedToContacts": "{name} added to contacts",
+  "@addedToContacts": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addedToSensors": "{name} added to Sensors",
+  "@addedToSensors": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "allowAll": "Allow all",
+  "anonymousRxStats": "Anonymous RX stats",
+  "appearance": "Appearance",
+  "ascii": "ASCII",
+  "baseTelemetry": "Base telemetry",
+  "blePin": "BLE PIN",
+  "buzzerAlerts": "Buzzer alerts",
+  "cancelImageReceive": "Cancel image receive",
+  "choose": "Choose",
+  "chooseWhichTabsAndContactSectionsToShow": "Choose which tabs and contact sections to show",
+  "clearCache": "Clear cache",
+  "clearHistory": "Clear history",
+  "clearLiveView": "Clear live view",
+  "clearLogs": "Clear logs",
+  "clearOfflineCache": "Clear offline cache?",
+  "clearOverlay": "Clear overlay",
+  "clearRouteOnlyAfterAllRetriesFail": "Clear route only after all retries fail",
+  "codecBitrateAndAudioProcessing": "Codec, bitrate, and audio processing",
+  "connectByIpAddress": "Connect by IP address",
+  "controlWhichAlertsYouReceive": "Control which alerts you receive",
+  "copyFullHex": "Copy full hex",
+  "copyRawResponse": "Copy raw response",
+  "couldNotLoadMetHistory": "Could not load MET history",
+  "customizeSensor": "Customize {name}",
+  "@customizeSensor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "data": "Data",
+  "deleteGroup": "Delete group",
+  "deleteStyleConfirm": "Delete {name}?",
+  "@deleteStyleConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteThisDrawing": "Delete this {type}?",
+  "@deleteThisDrawing": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "deny": "Deny",
+  "deviceInfo": "Device info",
+  "deviceSettings": "Device Settings",
+  "deviceTimeSynced": "Device time synced to this phone.",
+  "disableFastGpsPublishing": "Disable fast GPS publishing",
+  "displayMarkersAndTraceDatabase": "Display, markers, and trace database",
+  "download": "Download",
+  "environmentalTelemetry": "Environmental telemetry",
+  "errorCheckingForUpdates": "Error checking for updates: {error}",
+  "@errorCheckingForUpdates": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorGeneric": "Error: {error}",
+  "@errorGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorOpeningDownload": "Error opening download: {error}",
+  "@errorOpeningDownload": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportLogs": "Export logs",
+  "extraAggressiveAvifCompression": "Extra-aggressive AVIF compression",
+  "failedToAddContact": "Failed to add contact: {error}",
+  "@failedToAddContact": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToAddName": "Failed to add {name}: {error}",
+  "@failedToAddName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToClearChannels": "Failed to clear channels: {error}",
+  "@failedToClearChannels": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToClearContacts": "Failed to clear contacts: {error}",
+  "@failedToClearContacts": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToConnectViaSerial": "Failed to connect via serial",
+  "failedToLoadPreviewImage": "Failed to load preview image: {error}",
+  "@failedToLoadPreviewImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadTrace": "Failed to load trace: {error}",
+  "@failedToLoadTrace": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToSendSarMarker": "Failed to send SAR marker: {error}",
+  "@failedToSendSarMarker": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToSetBuzzerMode": "Failed to set buzzer mode: {error}",
+  "@failedToSetBuzzerMode": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToSetGpsMode": "Failed to set GPS mode: {error}",
+  "@failedToSetGpsMode": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToSyncDeviceTime": "Failed to sync device time: {error}",
+  "@failedToSyncDeviceTime": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToWipeDeviceData": "Failed to wipe device data: {error}",
+  "@failedToWipeDeviceData": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fastGpsTargetChannel": "Fast GPS target channel",
+  "fastUpdatesThresholdsAndPermissions": "Fast updates, thresholds, and permissions",
+  "fetchingCatalog": "Fetching catalog...",
+  "fifteenMinutes": "15 minutes",
+  "fifteenSeconds": "15 seconds",
+  "filterByDirection": "Filter by direction",
+  "finish": "Finish",
+  "fiveMinutes": "5 minutes",
+  "fiveSeconds": "5 seconds",
+  "fix": "Fix",
+  "gps": "GPS",
+  "gpsAdvertPolicy": "GPS advert policy",
+  "gpsAndLocation": "GPS & Location",
+  "gpsDiagnostics": "GPS diagnostics",
+  "gpsSection": "GPS",
+  "help": "Help",
+  "hex": "Hex",
+  "hidden": "Hidden",
+  "howTheRadioAutoAddsDiscoveredNodes": "How the radio auto-adds discovered nodes.",
+  "images": "Images",
+  "importProfile": "Import profile",
+  "lastFix": "Last fix",
+  "latest": "Latest",
+  "latitude": "Latitude",
+  "loadASavedRegion": "Load a saved region",
+  "loading": "Loading",
+  "locationSharingHardwareAndUpdateInterval": "Location sharing, hardware, and update interval.",
+  "locationTelemetry": "Location telemetry",
+  "lockDestination": "Lock destination",
+  "longitude": "Longitude",
+  "mapStyle": "Map Style",
+  "max": "Max",
+  "maxZoom": "Max Zoom",
+  "messaging": "Messaging",
+  "metHistory": "MET history",
+  "min": "Min",
+  "minZoom": "Min Zoom",
+  "moveDown": "Move down",
+  "moveUp": "Move up",
+  "multiAckMode": "Multi-ACK mode",
+  "multiDeviceWorkspaceManagement": "Multi-device workspace management",
+  "myLocation": "My location",
+  "nameAndTelemetryShared": "Name and telemetry shared with other devices.",
+  "newVersionAvailable": "New version: {version}",
+  "@newVersionAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "newer": "Newer",
+  "noNeighboursFound": "No neighbours found",
+  "noServersFound": "No servers found",
+  "notSet": "Not set",
+  "notifications": "Notifications",
+  "offZeroSeconds": "Off (0 s)",
+  "offlineMaps": "Offline Maps",
+  "older": "Older",
+  "oneByteMode0": "1 byte (mode 0)",
+  "oneHour": "1 hour",
+  "oneMinute": "1 minute",
+  "openPacketLogs": "Open packet logs",
+  "packetTypeHelp": "Packet type help",
+  "pasteShareLinkOrHexAdvert": "Paste a share link or hex advert",
+  "pathHash": "Path hash",
+  "pathSize": "Path size",
+  "ping": "Ping",
+  "polygon": "Polygon",
+  "rawResponseCopied": "Raw response copied",
+  "resendThroughNearestRepeaterOnFailure": "Resend through nearest repeater on failure",
+  "resolveContact": "Resolve contact",
+  "routingRetriesAndDestinationLock": "Routing, retries, and destination lock",
+  "samples": "Samples",
+  "satellites": "Satellites",
+  "saving": "Saving...",
+  "search": "Search",
+  "searchByNameOrToken": "Search by name or token",
+  "searchDiscoveredNodes": "Search discovered nodes",
+  "searchInCurrentFilter": "Search in current filter",
+  "searchLogs": "Search logs...",
+  "searchSensors": "Search sensors",
+  "searchThisSection": "Search this section",
+  "selectedRelays": "Selected relays",
+  "sensor": "Sensor",
+  "serialError": "Serial error: {error}",
+  "@serialError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "setPathForContact": "Set Path for {name}",
+  "@setPathForContact": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shareLiveGps": "Share live GPS",
+  "shareMyTiles": "Share my tiles",
+  "sharingLocationFromPhone": "Sharing location on this channel from the phone.",
+  "sharingLocationFromRadio": "Sharing location on this channel from the radio.",
+  "signalDbm": "Signal {rssi} dBm",
+  "@signalDbm": {
+    "placeholders": {
+      "rssi": {
+        "type": "String"
+      }
+    }
+  },
+  "sizeCompressionAndPreview": "Size, compression, and preview",
+  "skip": "Skip",
+  "smallerFileSize": "Smaller file size",
+  "sort": "Sort",
+  "stoppedSharingLocation": "Stopped sharing location on this channel.",
+  "suppressNotificationsWhileInForeground": "Suppress notifications while in foreground",
+  "tabsAndNavigation": "Tabs & Navigation",
+  "templatesAndTutorials": "Templates and tutorials",
+  "tenMinutes": "10 minutes",
+  "tenSeconds": "10 seconds",
+  "testSendUpdate": "Test send update",
+  "themeLanguageAndDisplayPreferences": "Theme, language, and display preferences",
+  "thirtyMinutes": "30 minutes",
+  "thirtySeconds": "30 seconds",
+  "threeBytesMode2": "3 bytes (mode 2)",
+  "trafficStatsMessageHistoryAndDeveloperTools": "Traffic stats, message history, and developer tools",
+  "twoBytesMode1": "2 bytes (mode 1)",
+  "twoMinutes": "2 minutes",
+  "undo": "Undo",
+  "updated": "Updated",
+  "useContactFlags": "Use contact flags",
+  "useSavedCoordinates": "Use saved coordinates",
+  "view": "View",
+  "viewNeighbours": "View Neighbours",
+  "viewPublicStats": "View public stats",
   "setRegionScope": "Set region scope",
   "regionScope": "Region scope",
   "regionScopeNone": "None (global)",
@@ -2814,12 +2876,12 @@
   "enterRegionName": "Region name (e.g. auckland)",
   "noRegionsFound": "No regions found on this repeater.",
   "regionScopeSet": "Region scope set to {name}",
+  "regionScopeCleared": "Region scope cleared",
   "@regionScopeSet": {
     "placeholders": {
       "name": {
         "type": "String"
       }
     }
-  },
-  "regionScopeCleared": "Region scope cleared"
+  }
 }

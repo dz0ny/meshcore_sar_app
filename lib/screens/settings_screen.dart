@@ -453,7 +453,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (parsed == null) return;
               Navigator.pop(context, parsed.clamp(10.0, 1000.0));
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -494,7 +494,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (parsed == null) return;
               Navigator.pop(context, parsed.clamp(60, 60));
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -559,7 +559,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.block),
-              title: const Text('Disable fast GPS publishing'),
+              title: Text(AppLocalizations.of(context)!.disableFastGpsPublishing),
               trailing: _fastLocationChannelIdx == null
                   ? const Icon(Icons.check)
                   : null,
@@ -663,7 +663,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load preview image: $e'),
+          content: Text(AppLocalizations.of(context)!.failedToLoadPreviewImage(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -816,7 +816,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error checking for updates: $e'),
+            content: Text(AppLocalizations.of(context)!.errorCheckingForUpdates(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -1009,7 +1009,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugPrint('Error handling location permission: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric(e.toString())), backgroundColor: Colors.red),
       );
     }
   }
@@ -1233,8 +1233,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Appearance ──
           _buildSection(
             icon: Icons.palette_rounded,
-            title: 'Appearance',
-            subtitle: 'Theme, language, and display preferences',
+            title: AppLocalizations.of(context)!.appearance,
+            subtitle: AppLocalizations.of(context)!.themeLanguageAndDisplayPreferences,
             children: [
             ListTile(
               dense: true,
@@ -1304,8 +1304,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Notifications ──
           _buildSection(
             icon: Icons.notifications_outlined,
-            title: 'Notifications',
-            subtitle: 'Control which alerts you receive',
+            title: AppLocalizations.of(context)!.notifications,
+            subtitle: AppLocalizations.of(context)!.controlWhichAlertsYouReceive,
             children: [
             SwitchListTile(
               dense: true,
@@ -1357,7 +1357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               dense: true,
               secondary: const Icon(Icons.visibility_off_outlined, size: 20),
               title: Text(l10n.muteWhileAppIsOpen),
-              subtitle: const Text('Suppress notifications while in foreground'),
+              subtitle: Text(AppLocalizations.of(context)!.suppressNotificationsWhileInForeground),
               value: _muteForegroundNotifications,
               onChanged: (value) async {
                 setState(() => _muteForegroundNotifications = value);
@@ -1373,8 +1373,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Consumer<AppProvider>(
             builder: (context, appProvider, child) => _buildSection(
               icon: Icons.dashboard_customize_rounded,
-              title: 'Tabs & Navigation',
-              subtitle: 'Choose which tabs and contact sections to show',
+              title: AppLocalizations.of(context)!.tabsAndNavigation,
+              subtitle: AppLocalizations.of(context)!.chooseWhichTabsAndContactSectionsToShow,
               children: [
               SwitchListTile(
                 dense: true,
@@ -1485,8 +1485,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Messaging ──
           _buildSection(
             icon: Icons.chat_rounded,
-            title: 'Messaging',
-            subtitle: 'Routing, retries, and destination lock',
+            title: AppLocalizations.of(context)!.messaging,
+            subtitle: AppLocalizations.of(context)!.routingRetriesAndDestinationLock,
             children: [
             ListTile(
               dense: true,
@@ -1509,7 +1509,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 dense: true,
                 secondary: const Icon(Icons.route, size: 20),
                 title: Text(l10n.nearestRepeaterFallback),
-                subtitle: const Text('Resend through nearest repeater on failure'),
+                subtitle: Text(AppLocalizations.of(context)!.resendThroughNearestRepeaterOnFailure),
                 value: appProvider.nearestRelayFallbackEnabled,
                 onChanged: (value) async {
                   await appProvider.toggleNearestRelayFallbackEnabled(value);
@@ -1521,7 +1521,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 dense: true,
                 secondary: const Icon(Icons.cleaning_services, size: 20),
                 title: Text(l10n.clearPathOnMaxRetry),
-                subtitle: const Text('Clear route only after all retries fail'),
+                subtitle: Text(AppLocalizations.of(context)!.clearRouteOnlyAfterAllRetriesFail),
                 value: appProvider.clearPathOnMaxRetry,
                 onChanged: (value) async {
                   await appProvider.toggleClearPathOnMaxRetry(value);
@@ -1532,7 +1532,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SwitchListTile(
               dense: true,
               secondary: const Icon(Icons.lock_outline, size: 20),
-              title: const Text('Lock destination'),
+              title: Text(AppLocalizations.of(context)!.lockDestination),
               subtitle: const Text(
                 'Fix Messages tab to one channel or room',
               ),
@@ -1617,8 +1617,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Map & Tracing ──
           _buildSection(
             icon: Icons.map_rounded,
-            title: 'Map',
-            subtitle: 'Display, markers, and trace database',
+            title: AppLocalizations.of(context)!.map,
+            subtitle: AppLocalizations.of(context)!.displayMarkersAndTraceDatabase,
             children: [
             SwitchListTile(
               dense: true,
@@ -1701,8 +1701,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── GPS & Location ──
           _buildSection(
             icon: Icons.gps_fixed,
-            title: 'GPS & Location',
-            subtitle: 'Fast updates, thresholds, and permissions',
+            title: AppLocalizations.of(context)!.gpsAndLocation,
+            subtitle: AppLocalizations.of(context)!.fastUpdatesThresholdsAndPermissions,
             children: [
             SwitchListTile(
               dense: true,
@@ -1749,7 +1749,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               dense: true,
               leading: const Icon(Icons.forum, size: 20),
-              title: const Text('Fast GPS target channel'),
+              title: Text(AppLocalizations.of(context)!.fastGpsTargetChannel),
               subtitle: Text(
                 _describeFastLocationChannel(
                   context.watch<ContactsProvider>().channels,
@@ -1761,7 +1761,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               dense: true,
               leading: const Icon(Icons.send, size: 20),
-              title: const Text('Test send update'),
+              title: Text(AppLocalizations.of(context)!.testSendUpdate),
               trailing: const Icon(Icons.chevron_right),
               onTap: _sendTestFastLocationUpdate,
             ),
@@ -1831,8 +1831,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildSection(
             icon: Icons.mic_rounded,
-            title: 'Voice',
-            subtitle: 'Codec, bitrate, and audio processing',
+            title: AppLocalizations.of(context)!.voice,
+            subtitle: AppLocalizations.of(context)!.codecBitrateAndAudioProcessing,
             children: [
             ListTile(
               dense: true,
@@ -1933,8 +1933,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Images ──
           _buildSection(
             icon: Icons.image_rounded,
-            title: 'Images',
-            subtitle: 'Size, compression, and preview',
+            title: AppLocalizations.of(context)!.images,
+            subtitle: AppLocalizations.of(context)!.sizeCompressionAndPreview,
             children: [
             ListTile(
               dense: true,
@@ -1970,7 +1970,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               dense: true,
               secondary: const Icon(Icons.invert_colors, size: 20),
               title: Text(l10n.grayscale),
-              subtitle: const Text('Smaller file size'),
+              subtitle: Text(AppLocalizations.of(context)!.smallerFileSize),
               value: _imageGrayscale,
               onChanged: (value) async {
                 await ImagePreferences.setGrayscale(value);
@@ -1982,7 +1982,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               dense: true,
               secondary: const Icon(Icons.compress, size: 20),
               title: Text(l10n.ultraMode),
-              subtitle: const Text('Extra-aggressive AVIF compression'),
+              subtitle: Text(AppLocalizations.of(context)!.extraAggressiveAvifCompression),
               value: _imageUltraMode,
               onChanged: (value) async {
                 await ImagePreferences.setUltraMode(value);
@@ -2000,8 +2000,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Profiles ──
           _buildSection(
             icon: Icons.layers_outlined,
-            title: 'Profiles',
-            subtitle: 'Multi-device workspace management',
+            title: AppLocalizations.of(context)!.profiles,
+            subtitle: AppLocalizations.of(context)!.multiDeviceWorkspaceManagement,
             children: [
             SwitchListTile(
               dense: true,
@@ -2043,8 +2043,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Help ──
           _buildSection(
             icon: Icons.help_outline_rounded,
-            title: 'Help',
-            subtitle: 'Templates and tutorials',
+            title: AppLocalizations.of(context)!.help,
+            subtitle: AppLocalizations.of(context)!.templatesAndTutorials,
             children: [
             ListTile(
               dense: true,
@@ -2125,8 +2125,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Data & Developer ──
           _buildSection(
             icon: Icons.storage_rounded,
-            title: 'Data',
-            subtitle: 'Traffic stats, message history, and developer tools',
+            title: AppLocalizations.of(context)!.data,
+            subtitle: AppLocalizations.of(context)!.trafficStatsMessageHistoryAndDeveloperTools,
             children: [
             Consumer<AppProvider>(
               builder: (context, appProvider, child) => ListenableBuilder(

@@ -394,7 +394,7 @@ class _CustomMapSarUpdateSheetState extends State<CustomMapSarUpdateSheet> {
                       controller: _notesController,
                       maxLines: 3,
                       decoration: InputDecoration(
-                        hintText: 'Add additional details',
+                        hintText: AppLocalizations.of(context)!.addAdditionalDetails,
                         filled: true,
                         fillColor: colorScheme.surfaceContainerHighest,
                         border: OutlineInputBorder(

@@ -36,10 +36,6 @@
   "@scanAgain": {
     "description": "Button to restart BLE scanning"
   },
-  "tapToConnect": "Bağlanmak için dokunun",
-  "@tapToConnect": {
-    "description": "Subtitle text for device in scan list"
-  },
   "deviceNotConnected": "Cihaz bağlı değil",
   "@deviceNotConnected": {
     "description": "Error message when device is not connected"
@@ -133,17 +129,9 @@
   "@showRxTxIndicators": {
     "description": "Setting to show RX/TX indicators"
   },
-  "displayPacketActivity": "Üst çubukta paket etkinliği göstergelerini göster",
-  "@displayPacketActivity": {
-    "description": "Description for RX/TX indicators setting"
-  },
   "disableMap": "Haritayı devre dışı bırak",
   "@disableMap": {
     "description": "Setting to disable the map tab"
-  },
-  "disableMapDescription": "Pil kullanımını azaltmak için harita sekmesini gizle",
-  "@disableMapDescription": {
-    "description": "Description for disable map setting"
   },
   "language": "Dil",
   "@language": {
@@ -172,10 +160,6 @@
   "appVersion": "Uygulama sürümü",
   "@appVersion": {
     "description": "App version label"
-  },
-  "appName": "Uygulama adı",
-  "@appName": {
-    "description": "App name label"
   },
   "aboutMeshCoreSar": "MeshCore SAR hakkında",
   "@aboutMeshCoreSar": {
@@ -307,10 +291,6 @@
   "resetPath": "Yolu sıfırla (yeniden yönlendir)",
   "@resetPath": {
     "description": "Action to reset contact path for re-routing"
-  },
-  "publicKeyCopied": "Genel anahtar panoya kopyalandı",
-  "@publicKeyCopied": {
-    "description": "Success message when public key is copied"
   },
   "copiedToClipboard": "{label} panoya kopyalandı",
   "@copiedToClipboard": {
@@ -720,22 +700,6 @@
   "@lastSeen": {
     "description": "Last seen label"
   },
-  "roomStatus": "Oda durumu",
-  "@roomStatus": {
-    "description": "Room status section header"
-  },
-  "loginStatus": "Giriş durumu",
-  "@loginStatus": {
-    "description": "Login status label"
-  },
-  "notLoggedIn": "Giriş yapılmadı",
-  "@notLoggedIn": {
-    "description": "Not logged in status"
-  },
-  "adminAccess": "Yönetici erişimi",
-  "@adminAccess": {
-    "description": "Admin access label"
-  },
   "yes": "Evet",
   "@yes": {
     "description": "Yes answer"
@@ -747,14 +711,6 @@
   "permissions": "İzinler",
   "@permissions": {
     "description": "Permissions label"
-  },
-  "passwordSaved": "Parola kaydedildi",
-  "@passwordSaved": {
-    "description": "Password saved label"
-  },
-  "locationColon": "Konum:",
-  "@locationColon": {
-    "description": "Location section header"
   },
   "telemetry": "Telemetri",
   "@telemetry": {
@@ -783,19 +739,6 @@
   "gpsTelemetry": "GPS (telemetri)",
   "@gpsTelemetry": {
     "description": "GPS from telemetry label"
-  },
-  "updated": "Güncellendi",
-  "@updated": {
-    "description": "Updated timestamp label"
-  },
-  "pathResetInfo": "{name} için yol sıfırlandı. Sonraki mesaj yeni bir rota bulacak.",
-  "@pathResetInfo": {
-    "description": "Info message after path reset",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
   },
   "reLoginToRoom": "Odaya yeniden giriş yap",
   "@reLoginToRoom": {
@@ -1158,10 +1101,6 @@
   "@frequencyMHz": {
     "description": "Label for radio frequency field"
   },
-  "frequencyExample": "örn. 869.618",
-  "@frequencyExample": {
-    "description": "Helper text example for frequency"
-  },
   "bandwidth": "Bant genişliği",
   "@bandwidth": {
     "description": "Label for bandwidth dropdown"
@@ -1265,47 +1204,6 @@
   "@trailControls": {
     "description": "Trail controls tooltip"
   },
-  "contactTrails": "Kişi izleri",
-  "@contactTrails": {
-    "description": "Contact trails section header"
-  },
-  "showAllContactTrails": "Tüm kişi izlerini göster",
-  "@showAllContactTrails": {
-    "description": "Toggle label to show all contact trails"
-  },
-  "noContactsWithLocationHistory": "Konum geçmişi olan kişi yok",
-  "@noContactsWithLocationHistory": {
-    "description": "Subtitle when no contacts have trails"
-  },
-  "showingTrailsForContacts": "{count} kişi için izler gösteriliyor",
-  "@showingTrailsForContacts": {
-    "description": "Subtitle showing number of contacts with trails",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "individualContactTrails": "Tek tek kişi izleri",
-  "@individualContactTrails": {
-    "description": "Expansion tile title for individual contact trails"
-  },
-  "deviceInformation": "Cihaz bilgileri",
-  "@deviceInformation": {
-    "description": "Device information section header"
-  },
-  "bleName": "BLE adı",
-  "@bleName": {
-    "description": "Bluetooth Low Energy device name label"
-  },
-  "meshName": "Mesh adı",
-  "@meshName": {
-    "description": "Mesh network name label"
-  },
-  "notSet": "Ayarlanmadı",
-  "@notSet": {
-    "description": "Label when a value is not set"
-  },
   "model": "Model",
   "@model": {
     "description": "Device model label"
@@ -1313,14 +1211,6 @@
   "version": "Sürüm",
   "@version": {
     "description": "Version label"
-  },
-  "buildDate": "Derleme tarihi",
-  "@buildDate": {
-    "description": "Firmware build date label"
-  },
-  "firmware": "Bellenim",
-  "@firmware": {
-    "description": "Firmware label"
   },
   "maxContacts": "Maks kişi",
   "@maxContacts": {
@@ -1333,26 +1223,6 @@
   "publicInfo": "Genel bilgiler",
   "@publicInfo": {
     "description": "Public information section header"
-  },
-  "meshNetworkName": "Mesh ağ adı",
-  "@meshNetworkName": {
-    "description": "Mesh network name field label"
-  },
-  "nameBroadcastInMesh": "Mesh duyurularında yayınlanan ad",
-  "@nameBroadcastInMesh": {
-    "description": "Helper text for mesh network name field"
-  },
-  "telemetryAndLocationSharing": "Telemetri ve konum paylaşımı",
-  "@telemetryAndLocationSharing": {
-    "description": "Telemetry and location sharing toggle label"
-  },
-  "lat": "Enl.",
-  "@lat": {
-    "description": "Latitude field label (short form)"
-  },
-  "lon": "Boyl.",
-  "@lon": {
-    "description": "Longitude field label (short form)"
   },
   "useCurrentLocation": "Geçerli konumu kullan",
   "@useCurrentLocation": {
@@ -1383,15 +1253,6 @@
       }
     }
   },
-  "copiedToClipboardShort": "{label} panoya kopyalandı",
-  "@copiedToClipboardShort": {
-    "description": "Short success message when copying to clipboard",
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
   "failedToSave": "Kaydetme başarısız: {error}",
   "@failedToSave": {
     "description": "Generic error message for save failures",
@@ -1413,10 +1274,6 @@
   "sarTemplates": "SAR şablonları",
   "@sarTemplates": {
     "description": "SAR templates menu title"
-  },
-  "manageSarTemplates": "SAR şablonlarını yönet",
-  "@manageSarTemplates": {
-    "description": "Subtitle for SAR templates settings"
   },
   "addTemplate": "Şablon ekle",
   "@addTemplate": {
@@ -1540,10 +1397,6 @@
   "ok": "Tamam",
   "@ok": {
     "description": "OK button label"
-  },
-  "permissionsSection": "İzinler",
-  "@permissionsSection": {
-    "description": "Permissions section header"
   },
   "locationPermission": "Konum izni",
   "@locationPermission": {
@@ -2109,94 +1962,6 @@
   "@wizardWelcomeTitle": {
     "description": "Welcome wizard first page title"
   },
-  "wizardWelcomeDescription": "Arama ve kurtarma operasyonları için güçlü bir şebeke dışı iletişim aracı. Geleneksel ağlar kullanılamadığında ekibinizle mesh radyo teknolojisi üzerinden bağlantı kurun.",
-  "@wizardWelcomeDescription": {
-    "description": "Welcome wizard first page description"
-  },
-  "wizardConnectingTitle": "Radyonuza bağlanma",
-  "@wizardConnectingTitle": {
-    "description": "Wizard connecting page title"
-  },
-  "wizardConnectingDescription": "Şebeke dışı iletişime başlamak için akıllı telefonunuzu Bluetooth üzerinden bir MeshCore radyo cihazına bağlayın.",
-  "@wizardConnectingDescription": {
-    "description": "Wizard connecting page description"
-  },
-  "wizardConnectingFeature1": "Yakındaki MeshCore cihazlarını tarayın",
-  "@wizardConnectingFeature1": {
-    "description": "Wizard connecting feature 1"
-  },
-  "wizardConnectingFeature2": "Radyonuzla Bluetooth üzerinden eşleşin",
-  "@wizardConnectingFeature2": {
-    "description": "Wizard connecting feature 2"
-  },
-  "wizardConnectingFeature3": "Tamamen çevrimdışı çalışır - internet gerekmez",
-  "@wizardConnectingFeature3": {
-    "description": "Wizard connecting feature 3"
-  },
-  "wizardChannelTitle": "Kanallar",
-  "@wizardChannelTitle": {
-    "description": "Wizard channel page title"
-  },
-  "wizardChannelDescription": "Bir kanaldaki herkese mesaj yayınlayın; ekip genelindeki duyurular ve koordinasyon için idealdir.",
-  "@wizardChannelDescription": {
-    "description": "Wizard channel page description"
-  },
-  "wizardChannelFeature1": "Genel ekip iletişimi için herkese açık kanal",
-  "@wizardChannelFeature1": {
-    "description": "Wizard channel feature 1"
-  },
-  "wizardChannelFeature2": "Belirli gruplar için özel kanallar oluşturun",
-  "@wizardChannelFeature2": {
-    "description": "Wizard channel feature 2"
-  },
-  "wizardChannelFeature3": "Mesajlar mesh tarafından otomatik iletilir",
-  "@wizardChannelFeature3": {
-    "description": "Wizard channel feature 3"
-  },
-  "wizardContactsTitle": "Kişiler",
-  "@wizardContactsTitle": {
-    "description": "Wizard contacts page title"
-  },
-  "wizardContactsDescription": "Ekip üyeleriniz mesh ağına katıldıkça otomatik olarak görünür. Onlara doğrudan mesaj gönderin veya konumlarını görüntüleyin.",
-  "@wizardContactsDescription": {
-    "description": "Wizard contacts page description"
-  },
-  "wizardContactsFeature1": "Kişiler otomatik bulunur",
-  "@wizardContactsFeature1": {
-    "description": "Wizard contacts feature 1"
-  },
-  "wizardContactsFeature2": "Özel doğrudan mesaj gönderin",
-  "@wizardContactsFeature2": {
-    "description": "Wizard contacts feature 2"
-  },
-  "wizardContactsFeature3": "Pil seviyesini ve son görülme zamanını görüntüleyin",
-  "@wizardContactsFeature3": {
-    "description": "Wizard contacts feature 3"
-  },
-  "wizardMapTitle": "Harita ve konum",
-  "@wizardMapTitle": {
-    "description": "Wizard map page title"
-  },
-  "wizardMapDescription": "Ekibinizi gerçek zamanlı izleyin ve arama kurtarma operasyonları için önemli konumları işaretleyin.",
-  "@wizardMapDescription": {
-    "description": "Wizard map page description"
-  },
-  "wizardMapFeature1": "Bulunan kişiler, yangınlar ve toplanma alanları için SAR işaretleri",
-  "@wizardMapFeature1": {
-    "description": "Wizard map feature 1"
-  },
-  "wizardMapFeature2": "Ekip üyelerinin gerçek zamanlı GPS takibi",
-  "@wizardMapFeature2": {
-    "description": "Wizard map feature 2"
-  },
-  "wizardMapFeature3": "Uzak bölgeler için çevrimdışı haritalar indirin",
-  "@wizardMapFeature3": {
-    "description": "Wizard map feature 3"
-  },
-  "wizardMapFeature4": "Şekiller çizin ve taktik bilgileri paylaşın",
-  "@wizardMapFeature4": {
-    "description": "Wizard map feature 4"
-  },
   "viewWelcomeTutorial": "Karşılama eğitimini görüntüle",
   "@viewWelcomeTutorial": {
     "description": "Settings option to re-show welcome wizard"
@@ -2352,29 +2117,10 @@
   "posttxDelay": "Gönderim sonrası gecikme",
   "bandpass": "Bant geçiren",
   "bandpassFilterVoice": "Bant geçiren filtre ses",
-  "frequency": "Frekans",
-  "australia": "Avustralya",
-  "australiaNarrow": "Avustralya (Dar)",
-  "australiaQld": "Avustralya: QLD",
-  "australiaSaWa": "Avustralya: SA, WA",
-  "newZealand": "Yeni Zelanda",
-  "newZealandNarrow": "Yeni Zelanda (Dar)",
-  "switzerland": "İsviçre",
-  "portugal433": "Portekiz 433",
-  "portugal868": "Portekiz 868",
-  "czechRepublicNarrow": "Çek Cumhuriyeti (Dar)",
-  "eu433mhzLongRange": "AB 433MHz (Uzun Menzil)",
-  "euukDeprecated": "AB/BK (Kullanımdan kalktı)",
-  "euukNarrow": "AB/BK (Dar)",
-  "usacanadaRecommended": "ABD/Kanada (Önerilen)",
-  "vietnamDeprecated": "Vietnam (Kullanımdan kalktı)",
-  "vietnamNarrow": "Vietnam (Dar)",
   "active": "Aktif",
   "addContact": "Kişi ekle",
   "all": "Tümü",
-  "autoResolve": "Otomatik çöz",
   "clearAllLabel": "Tümünü temizle",
-  "clearRelays": "Röleleri temizle",
   "clearFilters": "Filtreleri temizle",
   "clearRoute": "Rotayı temizle",
   "clearMessages": "Mesajları temizle",
@@ -2400,10 +2146,7 @@
   "send": "Gönder",
   "sendAnyway": "Yine de gönder",
   "share": "Paylaş",
-  "shareContact": "Kişiyi paylaş",
   "trace": "İz",
-  "use": "Kullan",
-  "useSelectedFrequency": "Seçilen frekansı kullan",
   "discovery": "Keşif",
   "discoverRepeaters": "Tekrarlayıcıları keşfet",
   "discoverSensors": "Sensörleri keşfet",
@@ -2426,7 +2169,6 @@
   "gpsModule": "GPS Modülü",
   "liveTraffic": "Canlı trafik",
   "repeatersMap": "Tekrarlayıcılar haritası",
-  "spectrumScan": "Spektrum taraması",
   "blePacketLogs": "BLE paket günlükleri",
   "onlineTraceDatabase": "Çevrimiçi iz veritabanı",
   "routePathByteSize": "Yol bayt boyutu",
@@ -2438,7 +2180,6 @@
   "disableContacts": "Kişileri devre dışı bırak",
   "enableSensorsTab": "Sensörler sekmesini etkinleştir",
   "enableProfiles": "Profilleri etkinleştir",
-  "autoRouteRotation": "Otomatik rota rotasyonu",
   "nearestRepeaterFallback": "En yakın tekrarlayıcıya geri dönüş",
   "deleteAllStoredMessageHistory": "Tüm mesaj geçmişini sil",
   "messageFontSize": "Mesaj yazı tipi boyutu",
@@ -2446,18 +2187,13 @@
   "showMapDebugInfo": "Harita hata ayıklama bilgisini göster",
   "openMapInFullscreen": "Haritayı tam ekranda aç",
   "showSarMarkersLabel": "SAR işaretçilerini göster",
-  "displaySarMarkersOnTheMainMap": "SAR işaretçilerini ana haritada göster",
-  "showAllContactTrailsLabel": "Tüm kişi izlerini göster",
   "hideRepeatersOnMap": "Haritada tekrarlayıcıları gizle",
   "setMapScale": "Harita ölçeğini ayarla",
   "customMapScaleSaved": "Özel harita ölçeği kaydedildi",
   "voiceBitrate": "Ses bit hızı",
   "voiceCompressor": "Ses sıkıştırıcı",
-  "balancesQuietAndLoudSpeechLevels": "Sessiz ve yüksek konuşma seviyelerini dengeler",
   "voiceLimiter": "Ses sınırlayıcı",
-  "preventsClippingPeaksBeforeEncoding": "Kodlama öncesi tepe kırpmasını önler",
   "micAutoGain": "Mikrofon otomatik kazancı",
-  "letsTheRecorderAdjustInputLevel": "Kaydedicinin giriş seviyesini ayarlamasına izin verir",
   "echoCancellation": "Yankı iptali",
   "noiseSuppression": "Gürültü bastırma",
   "trimSilenceInVoiceMessages": "Sesli mesajlarda sessizliği kırp",
@@ -2499,13 +2235,10 @@
   "staging": "Toplanma alanı",
   "object": "Nesne",
   "quiet": "Sessiz",
-  "moderate": "Orta",
   "busy": "Meşgul",
-  "spectrumScanReturnedNoCandidateFrequencies": "Spektrum taraması aday frekans bulamadı",
   "searchMessages": "Mesajlarda ara",
   "sendImageFromGallery": "Galeriden resim gönder",
   "takePhoto": "Fotoğraf çek",
-  "dmOnly": "Yalnızca DM",
   "allMessages": "Tüm mesajlar",
   "sendToPublicChannel": "Genel kanala gönderilsin mi?",
   "selectMarkerTypeAndDestination": "İşaretçi türünü ve hedefi seçin",
@@ -2524,8 +2257,6 @@
   "wipeDevice": "Cihazı sil",
   "destructiveDeviceActions": "Yıkıcı cihaz işlemleri.",
   "chooseAPresetOrFinetuneCustomRadioSettings": "Bir ön ayar seçin veya radyo ayarlarını ince ayarlayın.",
-  "chooseTheNameAndLocationThisDeviceShares": "Bu cihazın paylaştığı ad ve konumu seçin.",
-  "availableSpaceOnThisDevice": "Bu cihazda kullanılabilir alan.",
   "used": "Kullanılan",
   "total": "Toplam",
   "renameValue": "Değeri yeniden adlandır",
@@ -2543,8 +2274,6 @@
   "onlineOnly": "Yalnızca çevrimiçi",
   "inBoth": "Her ikisinde",
   "source": "Kaynak",
-  "manualRouteEdit": "Manuel rota düzenle",
-  "observedMeshRoute": "Gözlemlenen mesh rotası",
   "allMessagesCleared": "Tüm mesajlar temizlendi",
   "onlineTraceDatabaseCleared": "Çevrimiçi iz veritabanı temizlendi",
   "packetLogsCleared": "Paket günlükleri temizlendi",
@@ -2575,5 +2304,194 @@
   "captured": "Yakalandı",
   "size": "Boyut",
   "noCustomChannelsToClear": "Temizlenecek özel kanal yok.",
-  "noDeviceContactsToClear": "Temizlenecek cihaz kişisi yok."
+  "noDeviceContactsToClear": "Temizlenecek cihaz kişisi yok.",
+  "autoSend": "Otomatik Gönder",
+  "autoSendDescription": "Mevcut yol üzerinden gönder.",
+  "sendDirect": "Doğrudan Gönder",
+  "sendDirectDescription": "Bu kişiye doğrudan gönder.",
+  "sendFlood": "Taşkın Gönder",
+  "sendFloodDescription": "Tüm aktarıcılar üzerinden gönder.",
+  "postConnectDiscoveryTitle": "Aktarıcıları şimdi keşfet?",
+  "postConnectDiscoveryDescription": "Bağlandıktan hemen sonra aktarıcı keşfi çalıştırarak yakındaki MeshCore düğümlerini görün ve ağınıza daha hızlı ekleyin.",
+  "aToZ": "A-Z",
+  "add": "Ekle",
+  "addAdditionalDetails": "Ek ayrıntılar ekle",
+  "addPeer": "Eş ekle",
+  "addPeerManually": "Eşi elle ekle",
+  "addedToContacts": "{name} kişilere eklendi",
+  "addedToSensors": "{name} Sensörlere eklendi",
+  "allowAll": "Tümüne izin ver",
+  "anonymousRxStats": "Anonim RX istatistikleri",
+  "appearance": "Görünüm",
+  "ascii": "ASCII",
+  "baseTelemetry": "Temel telemetri",
+  "blePin": "BLE PIN",
+  "buzzerAlerts": "Buzzer uyarıları",
+  "cancelImageReceive": "Görüntü alımını iptal et",
+  "choose": "Seç",
+  "chooseWhichTabsAndContactSectionsToShow": "Gösterilecek sekmeleri ve kişi bölümlerini seçin",
+  "clearCache": "Önbelleği temizle",
+  "clearHistory": "Geçmişi temizle",
+  "clearLiveView": "Canlı görünümü temizle",
+  "clearLogs": "Günlükleri temizle",
+  "clearOfflineCache": "Çevrimdışı önbellek temizlensin mi?",
+  "clearOverlay": "Katmanı temizle",
+  "clearRouteOnlyAfterAllRetriesFail": "Rotayı yalnızca tüm yeniden denemeler başarısız olduktan sonra temizle",
+  "codecBitrateAndAudioProcessing": "Codec, bit hızı ve ses işleme",
+  "connectByIpAddress": "IP adresiyle bağlan",
+  "controlWhichAlertsYouReceive": "Hangi uyarıları alacağınızı kontrol edin",
+  "copyFullHex": "Tam Hex kopyala",
+  "copyRawResponse": "Ham yanıtı kopyala",
+  "couldNotLoadMetHistory": "MET geçmişi yüklenemedi",
+  "customizeSensor": "{name} sensörünü özelleştir",
+  "data": "Veri",
+  "deleteGroup": "Grubu sil",
+  "deleteStyleConfirm": "{name} silinsin mi?",
+  "deleteThisDrawing": "Bu {type} silinsin mi?",
+  "deny": "Reddet",
+  "deviceInfo": "Cihaz bilgisi",
+  "deviceSettings": "Cihaz Ayarları",
+  "deviceTimeSynced": "Cihaz saati bu telefonla senkronize edildi.",
+  "disableFastGpsPublishing": "Hızlı GPS yayınını devre dışı bırak",
+  "displayMarkersAndTraceDatabase": "Ekran, işaretçiler ve iz veritabanı",
+  "download": "İndir",
+  "environmentalTelemetry": "Çevresel telemetri",
+  "errorCheckingForUpdates": "Güncelleme kontrolünde hata: {error}",
+  "errorGeneric": "Hata: {error}",
+  "errorOpeningDownload": "İndirme açılırken hata: {error}",
+  "exportLogs": "Günlükleri dışa aktar",
+  "extraAggressiveAvifCompression": "Ekstra agresif AVIF sıkıştırma",
+  "failedToAddContact": "Kişi eklenemedi: {error}",
+  "failedToAddName": "{name} eklenemedi: {error}",
+  "failedToClearChannels": "Kanallar temizlenemedi: {error}",
+  "failedToClearContacts": "Kişiler temizlenemedi: {error}",
+  "failedToConnectViaSerial": "Seri bağlantı kurulamadı",
+  "failedToLoadPreviewImage": "Önizleme görüntüsü yüklenemedi: {error}",
+  "failedToLoadTrace": "İz yüklenemedi: {error}",
+  "failedToSendSarMarker": "SAR işaretçisi gönderilemedi: {error}",
+  "failedToSetBuzzerMode": "Buzzer modu ayarlanamadı: {error}",
+  "failedToSetGpsMode": "GPS modu ayarlanamadı: {error}",
+  "failedToSyncDeviceTime": "Cihaz saati senkronize edilemedi: {error}",
+  "failedToWipeDeviceData": "Cihaz verileri silinemedi: {error}",
+  "fastGpsTargetChannel": "Hızlı GPS hedef kanalı",
+  "fastUpdatesThresholdsAndPermissions": "Hızlı güncellemeler, eşikler ve izinler",
+  "fetchingCatalog": "Katalog getiriliyor...",
+  "fifteenMinutes": "15 dakika",
+  "fifteenSeconds": "15 saniye",
+  "filterByDirection": "Yöne göre filtrele",
+  "finish": "Bitir",
+  "fiveMinutes": "5 dakika",
+  "fiveSeconds": "5 saniye",
+  "fix": "Düzelt",
+  "gps": "GPS",
+  "gpsAdvertPolicy": "GPS ilan politikası",
+  "gpsAndLocation": "GPS ve Konum",
+  "gpsDiagnostics": "GPS tanılama",
+  "gpsSection": "GPS",
+  "help": "Yardım",
+  "hex": "Hex",
+  "hidden": "Gizli",
+  "howTheRadioAutoAddsDiscoveredNodes": "Radyonun keşfedilen düğümleri otomatik olarak nasıl eklediği.",
+  "images": "Görüntüler",
+  "importProfile": "Profili içe aktar",
+  "lastFix": "Son konum",
+  "latest": "En yeni",
+  "latitude": "Enlem",
+  "loadASavedRegion": "Kayıtlı bir bölge yükle",
+  "loading": "Yükleniyor",
+  "locationSharingHardwareAndUpdateInterval": "Konum paylaşımı, donanım ve güncelleme aralığı.",
+  "locationTelemetry": "Konum telemetrisi",
+  "lockDestination": "Hedefi kilitle",
+  "longitude": "Boylam",
+  "mapStyle": "Harita Stili",
+  "max": "Maks",
+  "maxZoom": "Maks Yakınlaştırma",
+  "messaging": "Mesajlaşma",
+  "metHistory": "MET geçmişi",
+  "min": "Min",
+  "minZoom": "Min Yakınlaştırma",
+  "moveDown": "Aşağı taşı",
+  "moveUp": "Yukarı taşı",
+  "multiAckMode": "Çoklu ACK modu",
+  "multiDeviceWorkspaceManagement": "Çoklu cihaz çalışma alanı yönetimi",
+  "myLocation": "Konumum",
+  "nameAndTelemetryShared": "Ad ve telemetri diğer cihazlarla paylaşılır.",
+  "newVersionAvailable": "Yeni sürüm: {version}",
+  "newer": "Daha yeni",
+  "noNeighboursFound": "Komşu bulunamadı",
+  "noServersFound": "Sunucu bulunamadı",
+  "notSet": "Ayarlanmadı",
+  "notifications": "Bildirimler",
+  "offZeroSeconds": "Kapalı (0 sn)",
+  "offlineMaps": "Çevrimdışı Haritalar",
+  "older": "Daha eski",
+  "oneByteMode0": "1 bayt (mod 0)",
+  "oneHour": "1 saat",
+  "oneMinute": "1 dakika",
+  "openPacketLogs": "Paket günlüklerini aç",
+  "packetTypeHelp": "Paket türü yardımı",
+  "pasteShareLinkOrHexAdvert": "Paylaşım bağlantısı veya Hex ilanı yapıştırın",
+  "pathHash": "Yol hash",
+  "pathSize": "Yol boyutu",
+  "ping": "Ping",
+  "polygon": "Çokgen",
+  "rawResponseCopied": "Ham yanıt kopyalandı",
+  "resendThroughNearestRepeaterOnFailure": "Başarısızlık durumunda en yakın aktarıcı üzerinden yeniden gönder",
+  "resolveContact": "Kişiyi çözümle",
+  "routingRetriesAndDestinationLock": "Yönlendirme, yeniden denemeler ve hedef kilidi",
+  "samples": "Örnekler",
+  "satellites": "Uydular",
+  "saving": "Kaydediliyor...",
+  "search": "Ara",
+  "searchByNameOrToken": "Ada veya jetona göre ara",
+  "searchDiscoveredNodes": "Keşfedilen düğümleri ara",
+  "searchInCurrentFilter": "Geçerli filtrede ara",
+  "searchLogs": "Günlüklerde ara...",
+  "searchSensors": "Sensörleri ara",
+  "searchThisSection": "Bu bölümde ara",
+  "selectedRelays": "Seçili aktarıcılar",
+  "sensor": "Sensör",
+  "serialError": "Seri hata: {error}",
+  "setPathForContact": "{name} için yol ayarla",
+  "shareLiveGps": "Canlı GPS paylaş",
+  "shareMyTiles": "Döşemelerimi paylaş",
+  "sharingLocationFromPhone": "Bu kanalda telefondan konum paylaşılıyor.",
+  "sharingLocationFromRadio": "Bu kanalda radyodan konum paylaşılıyor.",
+  "signalDbm": "Sinyal {rssi} dBm",
+  "sizeCompressionAndPreview": "Boyut, sıkıştırma ve önizleme",
+  "skip": "Atla",
+  "smallerFileSize": "Daha küçük dosya boyutu",
+  "sort": "Sırala",
+  "stoppedSharingLocation": "Bu kanalda konum paylaşımı durduruldu.",
+  "suppressNotificationsWhileInForeground": "Ön plandayken bildirimleri bastır",
+  "tabsAndNavigation": "Sekmeler ve Gezinme",
+  "templatesAndTutorials": "Şablonlar ve öğreticiler",
+  "tenMinutes": "10 dakika",
+  "tenSeconds": "10 saniye",
+  "testSendUpdate": "Test güncelleme gönder",
+  "themeLanguageAndDisplayPreferences": "Tema, dil ve görüntüleme tercihleri",
+  "thirtyMinutes": "30 dakika",
+  "thirtySeconds": "30 saniye",
+  "threeBytesMode2": "3 bayt (mod 2)",
+  "trafficStatsMessageHistoryAndDeveloperTools": "Trafik istatistikleri, mesaj geçmişi ve geliştirici araçları",
+  "twoBytesMode1": "2 bayt (mod 1)",
+  "twoMinutes": "2 dakika",
+  "undo": "Geri al",
+  "updated": "Güncellendi",
+  "useContactFlags": "Kişi bayraklarını kullan",
+  "useSavedCoordinates": "Kayıtlı koordinatları kullan",
+  "view": "Görüntüle",
+  "viewNeighbours": "Komşuları Görüntüle",
+  "viewPublicStats": "Herkese açık istatistikleri görüntüle",
+  "setRegionScope": "Bölge kapsamını ayarla",
+  "regionScope": "Bölge kapsamı",
+  "regionScopeNone": "Yok (genel)",
+  "clearRegionScope": "Kapsamı temizle",
+  "regionScopeWarning": "Yalnızca bu bölgeye izin veren aktarıcılar iletecektir.",
+  "discoverRegions": "Aktarıcılardan keşfet",
+  "discoveringRegions": "Bölgeler keşfediliyor...",
+  "enterRegionName": "Bölge adı (ör. auckland)",
+  "noRegionsFound": "Bu aktarıcıda bölge bulunamadı.",
+  "regionScopeSet": "Bölge kapsamı {name} olarak ayarlandı",
+  "regionScopeCleared": "Bölge kapsamı temizlendi"
 }

@@ -36,9 +36,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get scanAgain => 'Tekrar tara';
 
   @override
-  String get tapToConnect => 'Bağlanmak için dokunun';
-
-  @override
   String get deviceNotConnected => 'Cihaz bağlı değil';
 
   @override
@@ -110,15 +107,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get showRxTxIndicators => 'RX/TX göstergelerini göster';
 
   @override
-  String get displayPacketActivity =>
-      'Üst çubukta paket etkinliği göstergelerini göster';
-
-  @override
   String get disableMap => 'Haritayı devre dışı bırak';
-
-  @override
-  String get disableMapDescription =>
-      'Pil kullanımını azaltmak için harita sekmesini gizle';
 
   @override
   String get language => 'Dil';
@@ -140,9 +129,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get appVersion => 'Uygulama sürümü';
-
-  @override
-  String get appName => 'Uygulama adı';
 
   @override
   String get aboutMeshCoreSar => 'MeshCore SAR hakkında';
@@ -238,9 +224,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get resetPath => 'Yolu sıfırla (yeniden yönlendir)';
-
-  @override
-  String get publicKeyCopied => 'Genel anahtar panoya kopyalandı';
 
   @override
   String copiedToClipboard(String label) {
@@ -481,22 +464,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get flood => 'Yayılım';
 
   @override
-  String get autoSend => 'Auto Send';
+  String get autoSend => 'Otomatik Gönder';
 
   @override
-  String get autoSendDescription => 'Send via current path.';
+  String get autoSendDescription => 'Mevcut yol üzerinden gönder.';
 
   @override
-  String get sendDirect => 'Send Direct';
+  String get sendDirect => 'Doğrudan Gönder';
 
   @override
-  String get sendDirectDescription => 'Send directly to this contact.';
+  String get sendDirectDescription => 'Bu kişiye doğrudan gönder.';
 
   @override
-  String get sendFlood => 'Send Flood';
+  String get sendFlood => 'Taşkın Gönder';
 
   @override
-  String get sendFloodDescription => 'Send via all repeaters.';
+  String get sendFloodDescription => 'Tüm aktarıcılar üzerinden gönder.';
 
   @override
   String get loggedIn => 'Giriş yapıldı';
@@ -537,18 +520,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get lastSeen => 'Son görülme';
 
   @override
-  String get roomStatus => 'Oda durumu';
-
-  @override
-  String get loginStatus => 'Giriş durumu';
-
-  @override
-  String get notLoggedIn => 'Giriş yapılmadı';
-
-  @override
-  String get adminAccess => 'Yönetici erişimi';
-
-  @override
   String get yes => 'Evet';
 
   @override
@@ -556,12 +527,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get permissions => 'İzinler';
-
-  @override
-  String get passwordSaved => 'Parola kaydedildi';
-
-  @override
-  String get locationColon => 'Konum:';
 
   @override
   String get telemetry => 'Telemetri';
@@ -583,14 +548,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get gpsTelemetry => 'GPS (telemetri)';
-
-  @override
-  String get updated => 'Güncellendi';
-
-  @override
-  String pathResetInfo(String name) {
-    return '$name için yol sıfırlandı. Sonraki mesaj yeni bir rota bulacak.';
-  }
 
   @override
   String get reLoginToRoom => 'Odaya yeniden giriş yap';
@@ -843,9 +800,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get frequencyMHz => 'Frekans (MHz)';
 
   @override
-  String get frequencyExample => 'örn. 869.618';
-
-  @override
   String get bandwidth => 'Bant genişliği';
 
   @override
@@ -920,45 +874,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get trailControls => 'İz kontrolleri';
 
   @override
-  String get contactTrails => 'Kişi izleri';
-
-  @override
-  String get showAllContactTrails => 'Tüm kişi izlerini göster';
-
-  @override
-  String get noContactsWithLocationHistory => 'Konum geçmişi olan kişi yok';
-
-  @override
-  String showingTrailsForContacts(int count) {
-    return '$count kişi için izler gösteriliyor';
-  }
-
-  @override
-  String get individualContactTrails => 'Tek tek kişi izleri';
-
-  @override
-  String get deviceInformation => 'Cihaz bilgileri';
-
-  @override
-  String get bleName => 'BLE adı';
-
-  @override
-  String get meshName => 'Mesh adı';
-
-  @override
-  String get notSet => 'Ayarlanmadı';
-
-  @override
   String get model => 'Model';
 
   @override
   String get version => 'Sürüm';
-
-  @override
-  String get buildDate => 'Derleme tarihi';
-
-  @override
-  String get firmware => 'Bellenim';
 
   @override
   String get maxContacts => 'Maks kişi';
@@ -968,21 +887,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get publicInfo => 'Genel bilgiler';
-
-  @override
-  String get meshNetworkName => 'Mesh ağ adı';
-
-  @override
-  String get nameBroadcastInMesh => 'Mesh duyurularında yayınlanan ad';
-
-  @override
-  String get telemetryAndLocationSharing => 'Telemetri ve konum paylaşımı';
-
-  @override
-  String get lat => 'Enl.';
-
-  @override
-  String get lon => 'Boyl.';
 
   @override
   String get useCurrentLocation => 'Geçerli konumu kullan';
@@ -1005,11 +909,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String copiedToClipboardShort(String label) {
-    return '$label panoya kopyalandı';
-  }
-
-  @override
   String failedToSave(String error) {
     return 'Kaydetme başarısız: $error';
   }
@@ -1021,9 +920,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get sarTemplates => 'SAR şablonları';
-
-  @override
-  String get manageSarTemplates => 'SAR şablonlarını yönet';
 
   @override
   String get addTemplate => 'Şablon ekle';
@@ -1126,9 +1022,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get ok => 'Tamam';
-
-  @override
-  String get permissionsSection => 'İzinler';
 
   @override
   String get locationPermission => 'Konum izni';
@@ -1565,86 +1458,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get wizardWelcomeTitle => 'MeshCore SAR uygulamasına hoş geldiniz';
 
   @override
-  String get wizardWelcomeDescription =>
-      'Arama ve kurtarma operasyonları için güçlü bir şebeke dışı iletişim aracı. Geleneksel ağlar kullanılamadığında ekibinizle mesh radyo teknolojisi üzerinden bağlantı kurun.';
-
-  @override
-  String get wizardConnectingTitle => 'Radyonuza bağlanma';
-
-  @override
-  String get wizardConnectingDescription =>
-      'Şebeke dışı iletişime başlamak için akıllı telefonunuzu Bluetooth üzerinden bir MeshCore radyo cihazına bağlayın.';
-
-  @override
-  String get wizardConnectingFeature1 =>
-      'Yakındaki MeshCore cihazlarını tarayın';
-
-  @override
-  String get wizardConnectingFeature2 =>
-      'Radyonuzla Bluetooth üzerinden eşleşin';
-
-  @override
-  String get wizardConnectingFeature3 =>
-      'Tamamen çevrimdışı çalışır - internet gerekmez';
-
-  @override
-  String get wizardChannelTitle => 'Kanallar';
-
-  @override
-  String get wizardChannelDescription =>
-      'Bir kanaldaki herkese mesaj yayınlayın; ekip genelindeki duyurular ve koordinasyon için idealdir.';
-
-  @override
-  String get wizardChannelFeature1 =>
-      'Genel ekip iletişimi için herkese açık kanal';
-
-  @override
-  String get wizardChannelFeature2 =>
-      'Belirli gruplar için özel kanallar oluşturun';
-
-  @override
-  String get wizardChannelFeature3 =>
-      'Mesajlar mesh tarafından otomatik iletilir';
-
-  @override
-  String get wizardContactsTitle => 'Kişiler';
-
-  @override
-  String get wizardContactsDescription =>
-      'Ekip üyeleriniz mesh ağına katıldıkça otomatik olarak görünür. Onlara doğrudan mesaj gönderin veya konumlarını görüntüleyin.';
-
-  @override
-  String get wizardContactsFeature1 => 'Kişiler otomatik bulunur';
-
-  @override
-  String get wizardContactsFeature2 => 'Özel doğrudan mesaj gönderin';
-
-  @override
-  String get wizardContactsFeature3 =>
-      'Pil seviyesini ve son görülme zamanını görüntüleyin';
-
-  @override
-  String get wizardMapTitle => 'Harita ve konum';
-
-  @override
-  String get wizardMapDescription =>
-      'Ekibinizi gerçek zamanlı izleyin ve arama kurtarma operasyonları için önemli konumları işaretleyin.';
-
-  @override
-  String get wizardMapFeature1 =>
-      'Bulunan kişiler, yangınlar ve toplanma alanları için SAR işaretleri';
-
-  @override
-  String get wizardMapFeature2 => 'Ekip üyelerinin gerçek zamanlı GPS takibi';
-
-  @override
-  String get wizardMapFeature3 =>
-      'Uzak bölgeler için çevrimdışı haritalar indirin';
-
-  @override
-  String get wizardMapFeature4 => 'Şekiller çizin ve taktik bilgileri paylaşın';
-
-  @override
   String get viewWelcomeTutorial => 'Karşılama eğitimini görüntüle';
 
   @override
@@ -1902,11 +1715,11 @@ class AppLocalizationsTr extends AppLocalizations {
       'Mesh sorunlarını giderirken paket günlükleri, spektrum taraması ve geliştirici tanılamalarını kullanın.';
 
   @override
-  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+  String get postConnectDiscoveryTitle => 'Aktarıcıları şimdi keşfet?';
 
   @override
   String get postConnectDiscoveryDescription =>
-      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+      'Bağlandıktan hemen sonra aktarıcı keşfi çalıştırarak yakındaki MeshCore düğümlerini görün ve ağınıza daha hızlı ekleyin.';
 
   @override
   String get contactInSensors => 'Sensörlerde';
@@ -2010,57 +1823,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get bandpassFilterVoice => 'Bant geçiren filtre ses';
 
   @override
-  String get frequency => 'Frekans';
-
-  @override
-  String get australia => 'Avustralya';
-
-  @override
-  String get australiaNarrow => 'Avustralya (Dar)';
-
-  @override
-  String get australiaQld => 'Avustralya: QLD';
-
-  @override
-  String get australiaSaWa => 'Avustralya: SA, WA';
-
-  @override
-  String get newZealand => 'Yeni Zelanda';
-
-  @override
-  String get newZealandNarrow => 'Yeni Zelanda (Dar)';
-
-  @override
-  String get switzerland => 'İsviçre';
-
-  @override
-  String get portugal433 => 'Portekiz 433';
-
-  @override
-  String get portugal868 => 'Portekiz 868';
-
-  @override
-  String get czechRepublicNarrow => 'Çek Cumhuriyeti (Dar)';
-
-  @override
-  String get eu433mhzLongRange => 'AB 433MHz (Uzun Menzil)';
-
-  @override
-  String get euukDeprecated => 'AB/BK (Kullanımdan kalktı)';
-
-  @override
-  String get euukNarrow => 'AB/BK (Dar)';
-
-  @override
-  String get usacanadaRecommended => 'ABD/Kanada (Önerilen)';
-
-  @override
-  String get vietnamDeprecated => 'Vietnam (Kullanımdan kalktı)';
-
-  @override
-  String get vietnamNarrow => 'Vietnam (Dar)';
-
-  @override
   String get active => 'Aktif';
 
   @override
@@ -2070,13 +1832,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get all => 'Tümü';
 
   @override
-  String get autoResolve => 'Otomatik çöz';
-
-  @override
   String get clearAllLabel => 'Tümünü temizle';
-
-  @override
-  String get clearRelays => 'Röleleri temizle';
 
   @override
   String get clearFilters => 'Filtreleri temizle';
@@ -2154,16 +1910,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get share => 'Paylaş';
 
   @override
-  String get shareContact => 'Kişiyi paylaş';
-
-  @override
   String get trace => 'İz';
-
-  @override
-  String get use => 'Kullan';
-
-  @override
-  String get useSelectedFrequency => 'Seçilen frekansı kullan';
 
   @override
   String get discovery => 'Keşif';
@@ -2232,9 +1979,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get repeatersMap => 'Tekrarlayıcılar haritası';
 
   @override
-  String get spectrumScan => 'Spektrum taraması';
-
-  @override
   String get blePacketLogs => 'BLE paket günlükleri';
 
   @override
@@ -2268,9 +2012,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get enableProfiles => 'Profilleri etkinleştir';
 
   @override
-  String get autoRouteRotation => 'Otomatik rota rotasyonu';
-
-  @override
   String get nearestRepeaterFallback => 'En yakın tekrarlayıcıya geri dönüş';
 
   @override
@@ -2292,13 +2033,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get showSarMarkersLabel => 'SAR işaretçilerini göster';
 
   @override
-  String get displaySarMarkersOnTheMainMap =>
-      'SAR işaretçilerini ana haritada göster';
-
-  @override
-  String get showAllContactTrailsLabel => 'Tüm kişi izlerini göster';
-
-  @override
   String get hideRepeatersOnMap => 'Haritada tekrarlayıcıları gizle';
 
   @override
@@ -2314,22 +2048,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get voiceCompressor => 'Ses sıkıştırıcı';
 
   @override
-  String get balancesQuietAndLoudSpeechLevels =>
-      'Sessiz ve yüksek konuşma seviyelerini dengeler';
-
-  @override
   String get voiceLimiter => 'Ses sınırlayıcı';
 
   @override
-  String get preventsClippingPeaksBeforeEncoding =>
-      'Kodlama öncesi tepe kırpmasını önler';
-
-  @override
   String get micAutoGain => 'Mikrofon otomatik kazancı';
-
-  @override
-  String get letsTheRecorderAdjustInputLevel =>
-      'Kaydedicinin giriş seviyesini ayarlamasına izin verir';
 
   @override
   String get echoCancellation => 'Yankı iptali';
@@ -2460,14 +2182,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get quiet => 'Sessiz';
 
   @override
-  String get moderate => 'Orta';
-
-  @override
   String get busy => 'Meşgul';
-
-  @override
-  String get spectrumScanReturnedNoCandidateFrequencies =>
-      'Spektrum taraması aday frekans bulamadı';
 
   @override
   String get searchMessages => 'Mesajlarda ara';
@@ -2477,9 +2192,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get takePhoto => 'Fotoğraf çek';
-
-  @override
-  String get dmOnly => 'Yalnızca DM';
 
   @override
   String get allMessages => 'Tüm mesajlar';
@@ -2538,13 +2250,6 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bir ön ayar seçin veya radyo ayarlarını ince ayarlayın.';
 
   @override
-  String get chooseTheNameAndLocationThisDeviceShares =>
-      'Bu cihazın paylaştığı ad ve konumu seçin.';
-
-  @override
-  String get availableSpaceOnThisDevice => 'Bu cihazda kullanılabilir alan.';
-
-  @override
   String get used => 'Kullanılan';
 
   @override
@@ -2596,12 +2301,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get source => 'Kaynak';
-
-  @override
-  String get manualRouteEdit => 'Manuel rota düzenle';
-
-  @override
-  String get observedMeshRoute => 'Gözlemlenen mesh rotası';
 
   @override
   String get allMessagesCleared => 'Tüm mesajlar temizlendi';
@@ -2700,38 +2399,611 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noDeviceContactsToClear => 'Temizlenecek cihaz kişisi yok.';
 
   @override
-  String get setRegionScope => 'Set region scope';
+  String get aToZ => 'A-Z';
 
   @override
-  String get regionScope => 'Region scope';
+  String get add => 'Ekle';
 
   @override
-  String get regionScopeNone => 'None (global)';
+  String get addAdditionalDetails => 'Ek ayrıntılar ekle';
 
   @override
-  String get clearRegionScope => 'Clear scope';
+  String get addPeer => 'Eş ekle';
 
   @override
-  String get regionScopeWarning =>
-      'Only repeaters allowing this region will forward.';
+  String get addPeerManually => 'Eşi elle ekle';
 
   @override
-  String get discoverRegions => 'Discover from repeaters';
-
-  @override
-  String get discoveringRegions => 'Discovering regions...';
-
-  @override
-  String get enterRegionName => 'Region name (e.g. auckland)';
-
-  @override
-  String get noRegionsFound => 'No regions found on this repeater.';
-
-  @override
-  String regionScopeSet(String name) {
-    return 'Region scope set to $name';
+  String addedToContacts(String name) {
+    return '$name kişilere eklendi';
   }
 
   @override
-  String get regionScopeCleared => 'Region scope cleared';
+  String addedToSensors(String name) {
+    return '$name Sensörlere eklendi';
+  }
+
+  @override
+  String get allowAll => 'Tümüne izin ver';
+
+  @override
+  String get anonymousRxStats => 'Anonim RX istatistikleri';
+
+  @override
+  String get appearance => 'Görünüm';
+
+  @override
+  String get ascii => 'ASCII';
+
+  @override
+  String get baseTelemetry => 'Temel telemetri';
+
+  @override
+  String get blePin => 'BLE PIN';
+
+  @override
+  String get buzzerAlerts => 'Buzzer uyarıları';
+
+  @override
+  String get cancelImageReceive => 'Görüntü alımını iptal et';
+
+  @override
+  String get choose => 'Seç';
+
+  @override
+  String get chooseWhichTabsAndContactSectionsToShow =>
+      'Gösterilecek sekmeleri ve kişi bölümlerini seçin';
+
+  @override
+  String get clearCache => 'Önbelleği temizle';
+
+  @override
+  String get clearHistory => 'Geçmişi temizle';
+
+  @override
+  String get clearLiveView => 'Canlı görünümü temizle';
+
+  @override
+  String get clearLogs => 'Günlükleri temizle';
+
+  @override
+  String get clearOfflineCache => 'Çevrimdışı önbellek temizlensin mi?';
+
+  @override
+  String get clearOverlay => 'Katmanı temizle';
+
+  @override
+  String get clearRouteOnlyAfterAllRetriesFail =>
+      'Rotayı yalnızca tüm yeniden denemeler başarısız olduktan sonra temizle';
+
+  @override
+  String get codecBitrateAndAudioProcessing => 'Codec, bit hızı ve ses işleme';
+
+  @override
+  String get connectByIpAddress => 'IP adresiyle bağlan';
+
+  @override
+  String get controlWhichAlertsYouReceive =>
+      'Hangi uyarıları alacağınızı kontrol edin';
+
+  @override
+  String get copyFullHex => 'Tam Hex kopyala';
+
+  @override
+  String get copyRawResponse => 'Ham yanıtı kopyala';
+
+  @override
+  String get couldNotLoadMetHistory => 'MET geçmişi yüklenemedi';
+
+  @override
+  String customizeSensor(String name) {
+    return '$name sensörünü özelleştir';
+  }
+
+  @override
+  String get data => 'Veri';
+
+  @override
+  String get deleteGroup => 'Grubu sil';
+
+  @override
+  String deleteStyleConfirm(String name) {
+    return '$name silinsin mi?';
+  }
+
+  @override
+  String deleteThisDrawing(String type) {
+    return 'Bu $type silinsin mi?';
+  }
+
+  @override
+  String get deny => 'Reddet';
+
+  @override
+  String get deviceInfo => 'Cihaz bilgisi';
+
+  @override
+  String get deviceSettings => 'Cihaz Ayarları';
+
+  @override
+  String get deviceTimeSynced => 'Cihaz saati bu telefonla senkronize edildi.';
+
+  @override
+  String get disableFastGpsPublishing => 'Hızlı GPS yayınını devre dışı bırak';
+
+  @override
+  String get displayMarkersAndTraceDatabase =>
+      'Ekran, işaretçiler ve iz veritabanı';
+
+  @override
+  String get download => 'İndir';
+
+  @override
+  String get environmentalTelemetry => 'Çevresel telemetri';
+
+  @override
+  String errorCheckingForUpdates(String error) {
+    return 'Güncelleme kontrolünde hata: $error';
+  }
+
+  @override
+  String errorGeneric(String error) {
+    return 'Hata: $error';
+  }
+
+  @override
+  String errorOpeningDownload(String error) {
+    return 'İndirme açılırken hata: $error';
+  }
+
+  @override
+  String get exportLogs => 'Günlükleri dışa aktar';
+
+  @override
+  String get extraAggressiveAvifCompression => 'Ekstra agresif AVIF sıkıştırma';
+
+  @override
+  String failedToAddContact(String error) {
+    return 'Kişi eklenemedi: $error';
+  }
+
+  @override
+  String failedToAddName(String name, String error) {
+    return '$name eklenemedi: $error';
+  }
+
+  @override
+  String failedToClearChannels(String error) {
+    return 'Kanallar temizlenemedi: $error';
+  }
+
+  @override
+  String failedToClearContacts(String error) {
+    return 'Kişiler temizlenemedi: $error';
+  }
+
+  @override
+  String get failedToConnectViaSerial => 'Seri bağlantı kurulamadı';
+
+  @override
+  String failedToLoadPreviewImage(String error) {
+    return 'Önizleme görüntüsü yüklenemedi: $error';
+  }
+
+  @override
+  String failedToLoadTrace(String error) {
+    return 'İz yüklenemedi: $error';
+  }
+
+  @override
+  String failedToSendSarMarker(String error) {
+    return 'SAR işaretçisi gönderilemedi: $error';
+  }
+
+  @override
+  String failedToSetBuzzerMode(String error) {
+    return 'Buzzer modu ayarlanamadı: $error';
+  }
+
+  @override
+  String failedToSetGpsMode(String error) {
+    return 'GPS modu ayarlanamadı: $error';
+  }
+
+  @override
+  String failedToSyncDeviceTime(String error) {
+    return 'Cihaz saati senkronize edilemedi: $error';
+  }
+
+  @override
+  String failedToWipeDeviceData(String error) {
+    return 'Cihaz verileri silinemedi: $error';
+  }
+
+  @override
+  String get fastGpsTargetChannel => 'Hızlı GPS hedef kanalı';
+
+  @override
+  String get fastUpdatesThresholdsAndPermissions =>
+      'Hızlı güncellemeler, eşikler ve izinler';
+
+  @override
+  String get fetchingCatalog => 'Katalog getiriliyor...';
+
+  @override
+  String get fifteenMinutes => '15 dakika';
+
+  @override
+  String get fifteenSeconds => '15 saniye';
+
+  @override
+  String get filterByDirection => 'Yöne göre filtrele';
+
+  @override
+  String get finish => 'Bitir';
+
+  @override
+  String get fiveMinutes => '5 dakika';
+
+  @override
+  String get fiveSeconds => '5 saniye';
+
+  @override
+  String get fix => 'Düzelt';
+
+  @override
+  String get gps => 'GPS';
+
+  @override
+  String get gpsAdvertPolicy => 'GPS ilan politikası';
+
+  @override
+  String get gpsAndLocation => 'GPS ve Konum';
+
+  @override
+  String get gpsDiagnostics => 'GPS tanılama';
+
+  @override
+  String get gpsSection => 'GPS';
+
+  @override
+  String get help => 'Yardım';
+
+  @override
+  String get hex => 'Hex';
+
+  @override
+  String get hidden => 'Gizli';
+
+  @override
+  String get howTheRadioAutoAddsDiscoveredNodes =>
+      'Radyonun keşfedilen düğümleri otomatik olarak nasıl eklediği.';
+
+  @override
+  String get images => 'Görüntüler';
+
+  @override
+  String get importProfile => 'Profili içe aktar';
+
+  @override
+  String get lastFix => 'Son konum';
+
+  @override
+  String get latest => 'En yeni';
+
+  @override
+  String get latitude => 'Enlem';
+
+  @override
+  String get loadASavedRegion => 'Kayıtlı bir bölge yükle';
+
+  @override
+  String get loading => 'Yükleniyor';
+
+  @override
+  String get locationSharingHardwareAndUpdateInterval =>
+      'Konum paylaşımı, donanım ve güncelleme aralığı.';
+
+  @override
+  String get locationTelemetry => 'Konum telemetrisi';
+
+  @override
+  String get lockDestination => 'Hedefi kilitle';
+
+  @override
+  String get longitude => 'Boylam';
+
+  @override
+  String get mapStyle => 'Harita Stili';
+
+  @override
+  String get max => 'Maks';
+
+  @override
+  String get maxZoom => 'Maks Yakınlaştırma';
+
+  @override
+  String get messaging => 'Mesajlaşma';
+
+  @override
+  String get metHistory => 'MET geçmişi';
+
+  @override
+  String get min => 'Min';
+
+  @override
+  String get minZoom => 'Min Yakınlaştırma';
+
+  @override
+  String get moveDown => 'Aşağı taşı';
+
+  @override
+  String get moveUp => 'Yukarı taşı';
+
+  @override
+  String get multiAckMode => 'Çoklu ACK modu';
+
+  @override
+  String get multiDeviceWorkspaceManagement =>
+      'Çoklu cihaz çalışma alanı yönetimi';
+
+  @override
+  String get myLocation => 'Konumum';
+
+  @override
+  String get nameAndTelemetryShared =>
+      'Ad ve telemetri diğer cihazlarla paylaşılır.';
+
+  @override
+  String newVersionAvailable(String version) {
+    return 'Yeni sürüm: $version';
+  }
+
+  @override
+  String get newer => 'Daha yeni';
+
+  @override
+  String get noNeighboursFound => 'Komşu bulunamadı';
+
+  @override
+  String get noServersFound => 'Sunucu bulunamadı';
+
+  @override
+  String get notSet => 'Ayarlanmadı';
+
+  @override
+  String get notifications => 'Bildirimler';
+
+  @override
+  String get offZeroSeconds => 'Kapalı (0 sn)';
+
+  @override
+  String get offlineMaps => 'Çevrimdışı Haritalar';
+
+  @override
+  String get older => 'Daha eski';
+
+  @override
+  String get oneByteMode0 => '1 bayt (mod 0)';
+
+  @override
+  String get oneHour => '1 saat';
+
+  @override
+  String get oneMinute => '1 dakika';
+
+  @override
+  String get openPacketLogs => 'Paket günlüklerini aç';
+
+  @override
+  String get packetTypeHelp => 'Paket türü yardımı';
+
+  @override
+  String get pasteShareLinkOrHexAdvert =>
+      'Paylaşım bağlantısı veya Hex ilanı yapıştırın';
+
+  @override
+  String get pathHash => 'Yol hash';
+
+  @override
+  String get pathSize => 'Yol boyutu';
+
+  @override
+  String get ping => 'Ping';
+
+  @override
+  String get polygon => 'Çokgen';
+
+  @override
+  String get rawResponseCopied => 'Ham yanıt kopyalandı';
+
+  @override
+  String get resendThroughNearestRepeaterOnFailure =>
+      'Başarısızlık durumunda en yakın aktarıcı üzerinden yeniden gönder';
+
+  @override
+  String get resolveContact => 'Kişiyi çözümle';
+
+  @override
+  String get routingRetriesAndDestinationLock =>
+      'Yönlendirme, yeniden denemeler ve hedef kilidi';
+
+  @override
+  String get samples => 'Örnekler';
+
+  @override
+  String get satellites => 'Uydular';
+
+  @override
+  String get saving => 'Kaydediliyor...';
+
+  @override
+  String get search => 'Ara';
+
+  @override
+  String get searchByNameOrToken => 'Ada veya jetona göre ara';
+
+  @override
+  String get searchDiscoveredNodes => 'Keşfedilen düğümleri ara';
+
+  @override
+  String get searchInCurrentFilter => 'Geçerli filtrede ara';
+
+  @override
+  String get searchLogs => 'Günlüklerde ara...';
+
+  @override
+  String get searchSensors => 'Sensörleri ara';
+
+  @override
+  String get searchThisSection => 'Bu bölümde ara';
+
+  @override
+  String get selectedRelays => 'Seçili aktarıcılar';
+
+  @override
+  String get sensor => 'Sensör';
+
+  @override
+  String serialError(String error) {
+    return 'Seri hata: $error';
+  }
+
+  @override
+  String setPathForContact(String name) {
+    return '$name için yol ayarla';
+  }
+
+  @override
+  String get shareLiveGps => 'Canlı GPS paylaş';
+
+  @override
+  String get shareMyTiles => 'Döşemelerimi paylaş';
+
+  @override
+  String get sharingLocationFromPhone =>
+      'Bu kanalda telefondan konum paylaşılıyor.';
+
+  @override
+  String get sharingLocationFromRadio =>
+      'Bu kanalda radyodan konum paylaşılıyor.';
+
+  @override
+  String signalDbm(String rssi) {
+    return 'Sinyal $rssi dBm';
+  }
+
+  @override
+  String get sizeCompressionAndPreview => 'Boyut, sıkıştırma ve önizleme';
+
+  @override
+  String get skip => 'Atla';
+
+  @override
+  String get smallerFileSize => 'Daha küçük dosya boyutu';
+
+  @override
+  String get sort => 'Sırala';
+
+  @override
+  String get stoppedSharingLocation => 'Bu kanalda konum paylaşımı durduruldu.';
+
+  @override
+  String get suppressNotificationsWhileInForeground =>
+      'Ön plandayken bildirimleri bastır';
+
+  @override
+  String get tabsAndNavigation => 'Sekmeler ve Gezinme';
+
+  @override
+  String get templatesAndTutorials => 'Şablonlar ve öğreticiler';
+
+  @override
+  String get tenMinutes => '10 dakika';
+
+  @override
+  String get tenSeconds => '10 saniye';
+
+  @override
+  String get testSendUpdate => 'Test güncelleme gönder';
+
+  @override
+  String get themeLanguageAndDisplayPreferences =>
+      'Tema, dil ve görüntüleme tercihleri';
+
+  @override
+  String get thirtyMinutes => '30 dakika';
+
+  @override
+  String get thirtySeconds => '30 saniye';
+
+  @override
+  String get threeBytesMode2 => '3 bayt (mod 2)';
+
+  @override
+  String get trafficStatsMessageHistoryAndDeveloperTools =>
+      'Trafik istatistikleri, mesaj geçmişi ve geliştirici araçları';
+
+  @override
+  String get twoBytesMode1 => '2 bayt (mod 1)';
+
+  @override
+  String get twoMinutes => '2 dakika';
+
+  @override
+  String get undo => 'Geri al';
+
+  @override
+  String get updated => 'Güncellendi';
+
+  @override
+  String get useContactFlags => 'Kişi bayraklarını kullan';
+
+  @override
+  String get useSavedCoordinates => 'Kayıtlı koordinatları kullan';
+
+  @override
+  String get view => 'Görüntüle';
+
+  @override
+  String get viewNeighbours => 'Komşuları Görüntüle';
+
+  @override
+  String get viewPublicStats => 'Herkese açık istatistikleri görüntüle';
+
+  @override
+  String get setRegionScope => 'Bölge kapsamını ayarla';
+
+  @override
+  String get regionScope => 'Bölge kapsamı';
+
+  @override
+  String get regionScopeNone => 'Yok (genel)';
+
+  @override
+  String get clearRegionScope => 'Kapsamı temizle';
+
+  @override
+  String get regionScopeWarning =>
+      'Yalnızca bu bölgeye izin veren aktarıcılar iletecektir.';
+
+  @override
+  String get discoverRegions => 'Aktarıcılardan keşfet';
+
+  @override
+  String get discoveringRegions => 'Bölgeler keşfediliyor...';
+
+  @override
+  String get enterRegionName => 'Bölge adı (ör. auckland)';
+
+  @override
+  String get noRegionsFound => 'Bu aktarıcıda bölge bulunamadı.';
+
+  @override
+  String regionScopeSet(String name) {
+    return 'Bölge kapsamı $name olarak ayarlandı';
+  }
+
+  @override
+  String get regionScopeCleared => 'Bölge kapsamı temizlendi';
 }

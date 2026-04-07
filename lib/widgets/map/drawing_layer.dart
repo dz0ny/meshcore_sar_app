@@ -179,7 +179,7 @@ class DrawingMarkersLayer extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.deleteDrawing),
-        content: Text('Delete this ${drawing.type.name}?'),
+        content: Text(AppLocalizations.of(context)!.deleteThisDrawing(drawing.type.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

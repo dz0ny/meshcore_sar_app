@@ -36,10 +36,6 @@
   "@scanAgain": {
     "description": "Button to restart BLE scanning"
   },
-  "tapToConnect": "Πατήστε για σύνδεση",
-  "@tapToConnect": {
-    "description": "Subtitle text for device in scan list"
-  },
   "deviceNotConnected": "Η συσκευή δεν είναι συνδεδεμένη",
   "@deviceNotConnected": {
     "description": "Error message when device is not connected"
@@ -133,17 +129,9 @@
   "@showRxTxIndicators": {
     "description": "Setting to show RX/TX indicators"
   },
-  "displayPacketActivity": "Εμφάνιση ενδείξεων δραστηριότητας πακέτων στην επάνω μπάρα",
-  "@displayPacketActivity": {
-    "description": "Description for RX/TX indicators setting"
-  },
   "disableMap": "Απενεργοποίηση χάρτη",
   "@disableMap": {
     "description": "Setting to disable the map tab"
-  },
-  "disableMapDescription": "Απόκρυψη της καρτέλας χάρτη για μείωση κατανάλωσης μπαταρίας",
-  "@disableMapDescription": {
-    "description": "Description for disable map setting"
   },
   "language": "Γλώσσα",
   "@language": {
@@ -172,10 +160,6 @@
   "appVersion": "Έκδοση εφαρμογής",
   "@appVersion": {
     "description": "App version label"
-  },
-  "appName": "Όνομα εφαρμογής",
-  "@appName": {
-    "description": "App name label"
   },
   "aboutMeshCoreSar": "Σχετικά με το MeshCore SAR",
   "@aboutMeshCoreSar": {
@@ -307,10 +291,6 @@
   "resetPath": "Επαναφορά διαδρομής (νέα δρομολόγηση)",
   "@resetPath": {
     "description": "Action to reset contact path for re-routing"
-  },
-  "publicKeyCopied": "Το δημόσιο κλειδί αντιγράφηκε στο πρόχειρο",
-  "@publicKeyCopied": {
-    "description": "Success message when public key is copied"
   },
   "copiedToClipboard": "Το {label} αντιγράφηκε στο πρόχειρο",
   "@copiedToClipboard": {
@@ -720,22 +700,6 @@
   "@lastSeen": {
     "description": "Last seen label"
   },
-  "roomStatus": "Κατάσταση δωματίου",
-  "@roomStatus": {
-    "description": "Room status section header"
-  },
-  "loginStatus": "Κατάσταση σύνδεσης",
-  "@loginStatus": {
-    "description": "Login status label"
-  },
-  "notLoggedIn": "Μη συνδεδεμένος",
-  "@notLoggedIn": {
-    "description": "Not logged in status"
-  },
-  "adminAccess": "Πρόσβαση διαχειριστή",
-  "@adminAccess": {
-    "description": "Admin access label"
-  },
   "yes": "Ναι",
   "@yes": {
     "description": "Yes answer"
@@ -747,14 +711,6 @@
   "permissions": "Δικαιώματα",
   "@permissions": {
     "description": "Permissions label"
-  },
-  "passwordSaved": "Ο κωδικός αποθηκεύτηκε",
-  "@passwordSaved": {
-    "description": "Password saved label"
-  },
-  "locationColon": "Τοποθεσία:",
-  "@locationColon": {
-    "description": "Location section header"
   },
   "telemetry": "Τηλεμετρία",
   "@telemetry": {
@@ -783,19 +739,6 @@
   "gpsTelemetry": "GPS (τηλεμετρία)",
   "@gpsTelemetry": {
     "description": "GPS from telemetry label"
-  },
-  "updated": "Ενημερώθηκε",
-  "@updated": {
-    "description": "Updated timestamp label"
-  },
-  "pathResetInfo": "Η διαδρομή για το {name} επαναφέρθηκε. Το επόμενο μήνυμα θα βρει νέα διαδρομή.",
-  "@pathResetInfo": {
-    "description": "Info message after path reset",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
   },
   "reLoginToRoom": "Επανασύνδεση στο δωμάτιο",
   "@reLoginToRoom": {
@@ -1158,10 +1101,6 @@
   "@frequencyMHz": {
     "description": "Label for radio frequency field"
   },
-  "frequencyExample": "π.χ. 869.618",
-  "@frequencyExample": {
-    "description": "Helper text example for frequency"
-  },
   "bandwidth": "Εύρος ζώνης",
   "@bandwidth": {
     "description": "Label for bandwidth dropdown"
@@ -1265,47 +1204,6 @@
   "@trailControls": {
     "description": "Trail controls tooltip"
   },
-  "contactTrails": "Ίχνη επαφών",
-  "@contactTrails": {
-    "description": "Contact trails section header"
-  },
-  "showAllContactTrails": "Εμφάνιση όλων των ιχνών επαφών",
-  "@showAllContactTrails": {
-    "description": "Toggle label to show all contact trails"
-  },
-  "noContactsWithLocationHistory": "Δεν υπάρχουν επαφές με ιστορικό τοποθεσίας",
-  "@noContactsWithLocationHistory": {
-    "description": "Subtitle when no contacts have trails"
-  },
-  "showingTrailsForContacts": "Εμφανίζονται ίχνη για {count} επαφές",
-  "@showingTrailsForContacts": {
-    "description": "Subtitle showing number of contacts with trails",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "individualContactTrails": "Μεμονωμένα ίχνη επαφών",
-  "@individualContactTrails": {
-    "description": "Expansion tile title for individual contact trails"
-  },
-  "deviceInformation": "Πληροφορίες συσκευής",
-  "@deviceInformation": {
-    "description": "Device information section header"
-  },
-  "bleName": "Όνομα BLE",
-  "@bleName": {
-    "description": "Bluetooth Low Energy device name label"
-  },
-  "meshName": "Όνομα mesh",
-  "@meshName": {
-    "description": "Mesh network name label"
-  },
-  "notSet": "Δεν έχει οριστεί",
-  "@notSet": {
-    "description": "Label when a value is not set"
-  },
   "model": "Μοντέλο",
   "@model": {
     "description": "Device model label"
@@ -1313,14 +1211,6 @@
   "version": "Έκδοση",
   "@version": {
     "description": "Version label"
-  },
-  "buildDate": "Ημερομηνία build",
-  "@buildDate": {
-    "description": "Firmware build date label"
-  },
-  "firmware": "Υλικολογισμικό",
-  "@firmware": {
-    "description": "Firmware label"
   },
   "maxContacts": "Μέγιστες επαφές",
   "@maxContacts": {
@@ -1333,26 +1223,6 @@
   "publicInfo": "Δημόσιες πληροφορίες",
   "@publicInfo": {
     "description": "Public information section header"
-  },
-  "meshNetworkName": "Όνομα δικτύου mesh",
-  "@meshNetworkName": {
-    "description": "Mesh network name field label"
-  },
-  "nameBroadcastInMesh": "Όνομα που μεταδίδεται στις διαφημίσεις mesh",
-  "@nameBroadcastInMesh": {
-    "description": "Helper text for mesh network name field"
-  },
-  "telemetryAndLocationSharing": "Τηλεμετρία και κοινοποίηση τοποθεσίας",
-  "@telemetryAndLocationSharing": {
-    "description": "Telemetry and location sharing toggle label"
-  },
-  "lat": "Πλάτος",
-  "@lat": {
-    "description": "Latitude field label (short form)"
-  },
-  "lon": "Μήκος",
-  "@lon": {
-    "description": "Longitude field label (short form)"
   },
   "useCurrentLocation": "Χρήση τρέχουσας τοποθεσίας",
   "@useCurrentLocation": {
@@ -1383,15 +1253,6 @@
       }
     }
   },
-  "copiedToClipboardShort": "Το {label} αντιγράφηκε στο πρόχειρο",
-  "@copiedToClipboardShort": {
-    "description": "Short success message when copying to clipboard",
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
   "failedToSave": "Αποτυχία αποθήκευσης: {error}",
   "@failedToSave": {
     "description": "Generic error message for save failures",
@@ -1413,10 +1274,6 @@
   "sarTemplates": "Πρότυπα SAR",
   "@sarTemplates": {
     "description": "SAR templates menu title"
-  },
-  "manageSarTemplates": "Διαχείριση προτύπων SAR",
-  "@manageSarTemplates": {
-    "description": "Subtitle for SAR templates settings"
   },
   "addTemplate": "Προσθήκη προτύπου",
   "@addTemplate": {
@@ -1540,10 +1397,6 @@
   "ok": "ΟΚ",
   "@ok": {
     "description": "OK button label"
-  },
-  "permissionsSection": "Δικαιώματα",
-  "@permissionsSection": {
-    "description": "Permissions section header"
   },
   "locationPermission": "Άδεια τοποθεσίας",
   "@locationPermission": {
@@ -2109,94 +1962,6 @@
   "@wizardWelcomeTitle": {
     "description": "Welcome wizard first page title"
   },
-  "wizardWelcomeDescription": "Ένα ισχυρό εργαλείο επικοινωνίας εκτός δικτύου για επιχειρήσεις έρευνας και διάσωσης. Συνδεθείτε με την ομάδα σας χρησιμοποιώντας τεχνολογία mesh radio όταν τα παραδοσιακά δίκτυα δεν είναι διαθέσιμα.",
-  "@wizardWelcomeDescription": {
-    "description": "Welcome wizard first page description"
-  },
-  "wizardConnectingTitle": "Σύνδεση στο radio σας",
-  "@wizardConnectingTitle": {
-    "description": "Wizard connecting page title"
-  },
-  "wizardConnectingDescription": "Συνδέστε το smartphone σας με μια συσκευή MeshCore radio μέσω Bluetooth για να αρχίσετε να επικοινωνείτε εκτός δικτύου.",
-  "@wizardConnectingDescription": {
-    "description": "Wizard connecting page description"
-  },
-  "wizardConnectingFeature1": "Σάρωση για κοντινές συσκευές MeshCore",
-  "@wizardConnectingFeature1": {
-    "description": "Wizard connecting feature 1"
-  },
-  "wizardConnectingFeature2": "Σύζευξη με το radio σας μέσω Bluetooth",
-  "@wizardConnectingFeature2": {
-    "description": "Wizard connecting feature 2"
-  },
-  "wizardConnectingFeature3": "Λειτουργεί πλήρως εκτός σύνδεσης - δεν απαιτείται internet",
-  "@wizardConnectingFeature3": {
-    "description": "Wizard connecting feature 3"
-  },
-  "wizardChannelTitle": "Κανάλια",
-  "@wizardChannelTitle": {
-    "description": "Wizard channel page title"
-  },
-  "wizardChannelDescription": "Μεταδώστε μηνύματα σε όλους σε ένα κανάλι, ιδανικό για ανακοινώσεις και συντονισμό σε όλη την ομάδα.",
-  "@wizardChannelDescription": {
-    "description": "Wizard channel page description"
-  },
-  "wizardChannelFeature1": "Δημόσιο κανάλι για γενική επικοινωνία ομάδας",
-  "@wizardChannelFeature1": {
-    "description": "Wizard channel feature 1"
-  },
-  "wizardChannelFeature2": "Δημιουργία προσαρμοσμένων καναλιών για συγκεκριμένες ομάδες",
-  "@wizardChannelFeature2": {
-    "description": "Wizard channel feature 2"
-  },
-  "wizardChannelFeature3": "Τα μηνύματα αναμεταδίδονται αυτόματα από το mesh",
-  "@wizardChannelFeature3": {
-    "description": "Wizard channel feature 3"
-  },
-  "wizardContactsTitle": "Επαφές",
-  "@wizardContactsTitle": {
-    "description": "Wizard contacts page title"
-  },
-  "wizardContactsDescription": "Τα μέλη της ομάδας σας εμφανίζονται αυτόματα καθώς συνδέονται στο δίκτυο mesh. Στείλτε τους άμεσα μηνύματα ή δείτε την τοποθεσία τους.",
-  "@wizardContactsDescription": {
-    "description": "Wizard contacts page description"
-  },
-  "wizardContactsFeature1": "Οι επαφές εντοπίζονται αυτόματα",
-  "@wizardContactsFeature1": {
-    "description": "Wizard contacts feature 1"
-  },
-  "wizardContactsFeature2": "Αποστολή ιδιωτικών άμεσων μηνυμάτων",
-  "@wizardContactsFeature2": {
-    "description": "Wizard contacts feature 2"
-  },
-  "wizardContactsFeature3": "Προβολή επιπέδου μπαταρίας και χρόνου τελευταίας εμφάνισης",
-  "@wizardContactsFeature3": {
-    "description": "Wizard contacts feature 3"
-  },
-  "wizardMapTitle": "Χάρτης και τοποθεσία",
-  "@wizardMapTitle": {
-    "description": "Wizard map page title"
-  },
-  "wizardMapDescription": "Παρακολουθήστε την ομάδα σας σε πραγματικό χρόνο και σημειώστε σημαντικές τοποθεσίες για επιχειρήσεις έρευνας και διάσωσης.",
-  "@wizardMapDescription": {
-    "description": "Wizard map page description"
-  },
-  "wizardMapFeature1": "Δείκτες SAR για εντοπισμένα άτομα, φωτιές και σημεία συγκέντρωσης",
-  "@wizardMapFeature1": {
-    "description": "Wizard map feature 1"
-  },
-  "wizardMapFeature2": "Παρακολούθηση GPS των μελών της ομάδας σε πραγματικό χρόνο",
-  "@wizardMapFeature2": {
-    "description": "Wizard map feature 2"
-  },
-  "wizardMapFeature3": "Λήψη χαρτών εκτός σύνδεσης για απομακρυσμένες περιοχές",
-  "@wizardMapFeature3": {
-    "description": "Wizard map feature 3"
-  },
-  "wizardMapFeature4": "Σχεδίαση σχημάτων και κοινοποίηση τακτικών πληροφοριών",
-  "@wizardMapFeature4": {
-    "description": "Wizard map feature 4"
-  },
   "viewWelcomeTutorial": "Προβολή οδηγού καλωσορίσματος",
   "@viewWelcomeTutorial": {
     "description": "Settings option to re-show welcome wizard"
@@ -2327,29 +2092,10 @@
   "posttxDelay": "Καθυστέρηση μετά-tx",
   "bandpass": "Ζωνοπερατό",
   "bandpassFilterVoice": "Ζωνοπερατό φίλτρο φωνής",
-  "frequency": "Συχνότητα",
-  "australia": "Αυστραλία",
-  "australiaNarrow": "Αυστραλία (Στενό)",
-  "australiaQld": "Αυστραλία: QLD",
-  "australiaSaWa": "Αυστραλία: SA, WA",
-  "newZealand": "Νέα Ζηλανδία",
-  "newZealandNarrow": "Νέα Ζηλανδία (Στενό)",
-  "switzerland": "Ελβετία",
-  "portugal433": "Πορτογαλία 433",
-  "portugal868": "Πορτογαλία 868",
-  "czechRepublicNarrow": "Τσεχία (Στενό)",
-  "eu433mhzLongRange": "ΕΕ 433MHz (Μεγάλη Εμβέλεια)",
-  "euukDeprecated": "ΕΕ/ΗΒ (Παρωχημένο)",
-  "euukNarrow": "ΕΕ/ΗΒ (Στενό)",
-  "usacanadaRecommended": "ΗΠΑ/Καναδάς (Προτεινόμενο)",
-  "vietnamDeprecated": "Βιετνάμ (Παρωχημένο)",
-  "vietnamNarrow": "Βιετνάμ (Στενό)",
   "active": "Ενεργό",
   "addContact": "Προσθήκη επαφής",
   "all": "Όλα",
-  "autoResolve": "Αυτόματη επίλυση",
   "clearAllLabel": "Εκκαθάριση όλων",
-  "clearRelays": "Εκκαθάριση αναμεταδοτών",
   "clearFilters": "Εκκαθάριση φίλτρων",
   "clearRoute": "Εκκαθάριση διαδρομής",
   "clearMessages": "Εκκαθάριση μηνυμάτων",
@@ -2375,10 +2121,7 @@
   "send": "Αποστολή",
   "sendAnyway": "Αποστολή ούτως ή άλλως",
   "share": "Κοινοποίηση",
-  "shareContact": "Κοινοποίηση επαφής",
   "trace": "Ίχνος",
-  "use": "Χρήση",
-  "useSelectedFrequency": "Χρήση επιλεγμένης συχνότητας",
   "discovery": "Ανακάλυψη",
   "discoverRepeaters": "Ανακάλυψη αναμεταδοτών",
   "discoverSensors": "Ανακάλυψη αισθητήρων",
@@ -2401,7 +2144,6 @@
   "gpsModule": "Μονάδα GPS",
   "liveTraffic": "Ζωντανή κίνηση",
   "repeatersMap": "Χάρτης αναμεταδοτών",
-  "spectrumScan": "Σάρωση φάσματος",
   "blePacketLogs": "Αρχεία πακέτων BLE",
   "onlineTraceDatabase": "Βάση δεδομένων ιχνών",
   "routePathByteSize": "Μέγεθος διαδρομής σε bytes",
@@ -2413,7 +2155,6 @@
   "disableContacts": "Απενεργοποίηση επαφών",
   "enableSensorsTab": "Ενεργοποίηση καρτέλας Αισθητήρων",
   "enableProfiles": "Ενεργοποίηση προφίλ",
-  "autoRouteRotation": "Αυτόματη εναλλαγή διαδρομής",
   "nearestRepeaterFallback": "Πλησιέστερος αναμεταδότης ως εφεδρεία",
   "deleteAllStoredMessageHistory": "Διαγραφή όλου του ιστορικού",
   "messageFontSize": "Μέγεθος γραμματοσειράς μηνυμάτων",
@@ -2421,18 +2162,13 @@
   "showMapDebugInfo": "Εμφάνιση πληροφοριών αποσφαλμάτωσης",
   "openMapInFullscreen": "Άνοιγμα χάρτη σε πλήρη οθόνη",
   "showSarMarkersLabel": "Εμφάνιση δεικτών SAR",
-  "displaySarMarkersOnTheMainMap": "Εμφάνιση δεικτών SAR στον κύριο χάρτη",
-  "showAllContactTrailsLabel": "Εμφάνιση όλων των ιχνών επαφών",
   "hideRepeatersOnMap": "Απόκρυψη αναμεταδοτών στον χάρτη",
   "setMapScale": "Ρύθμιση κλίμακας χάρτη",
   "customMapScaleSaved": "Προσαρμοσμένη κλίμακα χάρτη αποθηκεύτηκε",
   "voiceBitrate": "Ρυθμός bit φωνής",
   "voiceCompressor": "Συμπιεστής φωνής",
-  "balancesQuietAndLoudSpeechLevels": "Εξισορρόπηση χαμηλών και δυνατών επιπέδων",
   "voiceLimiter": "Περιοριστής φωνής",
-  "preventsClippingPeaksBeforeEncoding": "Αποτρέπει κοπή κορυφών πριν την κωδικοποίηση",
   "micAutoGain": "Αυτόματη ενίσχυση μικροφώνου",
-  "letsTheRecorderAdjustInputLevel": "Αφήνει τη συσκευή να ρυθμίσει την ένταση",
   "echoCancellation": "Ακύρωση ηχούς",
   "noiseSuppression": "Καταστολή θορύβου",
   "trimSilenceInVoiceMessages": "Περικοπή σιωπής σε φωνητικά μηνύματα",
@@ -2474,13 +2210,10 @@
   "staging": "Χώρος συγκέντρωσης",
   "object": "Αντικείμενο",
   "quiet": "Ήσυχο",
-  "moderate": "Μέτριο",
   "busy": "Απασχολημένο",
-  "spectrumScanReturnedNoCandidateFrequencies": "Η σάρωση φάσματος δεν βρήκε υποψήφιες συχνότητες",
   "searchMessages": "Αναζήτηση μηνυμάτων",
   "sendImageFromGallery": "Αποστολή εικόνας από τη γκαλερί",
   "takePhoto": "Λήψη φωτογραφίας",
-  "dmOnly": "Μόνο απευθείας",
   "allMessages": "Όλα τα μηνύματα",
   "sendToPublicChannel": "Αποστολή στο δημόσιο κανάλι;",
   "selectMarkerTypeAndDestination": "Επιλέξτε τύπο δείκτη και προορισμό",
@@ -2499,8 +2232,6 @@
   "wipeDevice": "Διαγραφή συσκευής",
   "destructiveDeviceActions": "Καταστροφικές ενέργειες συσκευής.",
   "chooseAPresetOrFinetuneCustomRadioSettings": "Επιλέξτε μια προεπιλογή ή ρυθμίστε τις ρυθμίσεις ραδιοφώνου.",
-  "chooseTheNameAndLocationThisDeviceShares": "Επιλέξτε το όνομα και την τοποθεσία που μοιράζεται αυτή η συσκευή.",
-  "availableSpaceOnThisDevice": "Διαθέσιμος χώρος σε αυτή τη συσκευή.",
   "used": "Χρησιμοποιήθηκε",
   "total": "Σύνολο",
   "renameValue": "Μετονομασία τιμής",
@@ -2518,8 +2249,6 @@
   "onlineOnly": "Μόνο συνδεδεμένοι",
   "inBoth": "Σε αμφότερα",
   "source": "Πηγή",
-  "manualRouteEdit": "Χειροκίνητη επεξεργασία διαδρομής",
-  "observedMeshRoute": "Παρατηρούμενη διαδρομή δικτύου",
   "allMessagesCleared": "Όλα τα μηνύματα διαγράφηκαν",
   "onlineTraceDatabaseCleared": "Βάση δεδομένων ιχνών εκκαθαρίστηκε",
   "packetLogsCleared": "Τα αρχεία πακέτων εκκαθαρίστηκαν",
@@ -2550,5 +2279,194 @@
   "captured": "Καταγράφηκε",
   "size": "Μέγεθος",
   "noCustomChannelsToClear": "Δεν υπάρχουν προσαρμοσμένα κανάλια.",
-  "noDeviceContactsToClear": "Δεν υπάρχουν επαφές συσκευής."
+  "noDeviceContactsToClear": "Δεν υπάρχουν επαφές συσκευής.",
+  "autoSend": "Αυτόματη αποστολή",
+  "autoSendDescription": "Αποστολή μέσω τρέχουσας διαδρομής.",
+  "sendDirect": "Άμεση αποστολή",
+  "sendDirectDescription": "Αποστολή απευθείας σε αυτήν την επαφή.",
+  "sendFlood": "Αποστολή πλημμύρας",
+  "sendFloodDescription": "Αποστολή μέσω όλων των αναμεταδοτών.",
+  "postConnectDiscoveryTitle": "Ανακάλυψη αναμεταδοτών τώρα;",
+  "postConnectDiscoveryDescription": "Εκτελέστε ανακάλυψη αναμεταδοτών αμέσως μετά τη σύνδεση, ώστε να μπορείτε να δείτε κοντινούς κόμβους MeshCore και να τους προσθέσετε στο δίκτυό σας πιο γρήγορα.",
+  "aToZ": "A-Z",
+  "add": "Προσθήκη",
+  "addAdditionalDetails": "Προσθήκη επιπλέον λεπτομερειών",
+  "addPeer": "Προσθήκη κόμβου",
+  "addPeerManually": "Χειροκίνητη προσθήκη κόμβου",
+  "addedToContacts": "Ο/Η {name} προστέθηκε στις επαφές",
+  "addedToSensors": "Ο/Η {name} προστέθηκε στους αισθητήρες",
+  "allowAll": "Επιτρέπονται όλα",
+  "anonymousRxStats": "Ανώνυμα στατιστικά λήψης",
+  "appearance": "Εμφάνιση",
+  "ascii": "ASCII",
+  "baseTelemetry": "Βασική τηλεμετρία",
+  "blePin": "BLE PIN",
+  "buzzerAlerts": "Ειδοποιήσεις βομβητή",
+  "cancelImageReceive": "Ακύρωση λήψης εικόνας",
+  "choose": "Επιλογή",
+  "chooseWhichTabsAndContactSectionsToShow": "Επιλέξτε ποιες καρτέλες και ενότητες επαφών θα εμφανίζονται",
+  "clearCache": "Εκκαθάριση προσωρινής μνήμης",
+  "clearHistory": "Εκκαθάριση ιστορικού",
+  "clearLiveView": "Εκκαθάριση ζωντανής προβολής",
+  "clearLogs": "Εκκαθάριση αρχείων καταγραφής",
+  "clearOfflineCache": "Εκκαθάριση προσωρινής μνήμης εκτός σύνδεσης;",
+  "clearOverlay": "Εκκαθάριση επικάλυψης",
+  "clearRouteOnlyAfterAllRetriesFail": "Εκκαθάριση διαδρομής μόνο μετά την αποτυχία όλων των επαναπροσπαθειών",
+  "codecBitrateAndAudioProcessing": "Κωδικοποιητής, ρυθμός bit και επεξεργασία ήχου",
+  "connectByIpAddress": "Σύνδεση μέσω διεύθυνσης IP",
+  "controlWhichAlertsYouReceive": "Ελέγξτε ποιες ειδοποιήσεις λαμβάνετε",
+  "copyFullHex": "Αντιγραφή πλήρους Hex",
+  "copyRawResponse": "Αντιγραφή ακατέργαστης απόκρισης",
+  "couldNotLoadMetHistory": "Αδυναμία φόρτωσης ιστορικού MET",
+  "customizeSensor": "Προσαρμογή {name}",
+  "data": "Δεδομένα",
+  "deleteGroup": "Διαγραφή ομάδας",
+  "deleteStyleConfirm": "Διαγραφή {name};",
+  "deleteThisDrawing": "Διαγραφή αυτού του {type};",
+  "deny": "Απόρριψη",
+  "deviceInfo": "Πληροφορίες συσκευής",
+  "deviceSettings": "Ρυθμίσεις συσκευής",
+  "deviceTimeSynced": "Ο χρόνος της συσκευής συγχρονίστηκε με αυτό το τηλέφωνο.",
+  "disableFastGpsPublishing": "Απενεργοποίηση γρήγορης δημοσίευσης GPS",
+  "displayMarkersAndTraceDatabase": "Εμφάνιση, δείκτες και βάση δεδομένων ιχνών",
+  "download": "Λήψη",
+  "environmentalTelemetry": "Περιβαλλοντική τηλεμετρία",
+  "errorCheckingForUpdates": "Σφάλμα ελέγχου ενημερώσεων: {error}",
+  "errorGeneric": "Σφάλμα: {error}",
+  "errorOpeningDownload": "Σφάλμα ανοίγματος λήψης: {error}",
+  "exportLogs": "Εξαγωγή αρχείων καταγραφής",
+  "extraAggressiveAvifCompression": "Εξαιρετικά επιθετική συμπίεση AVIF",
+  "failedToAddContact": "Αποτυχία προσθήκης επαφής: {error}",
+  "failedToAddName": "Αποτυχία προσθήκης {name}: {error}",
+  "failedToClearChannels": "Αποτυχία εκκαθάρισης καναλιών: {error}",
+  "failedToClearContacts": "Αποτυχία εκκαθάρισης επαφών: {error}",
+  "failedToConnectViaSerial": "Αποτυχία σύνδεσης μέσω σειριακής θύρας",
+  "failedToLoadPreviewImage": "Αποτυχία φόρτωσης εικόνας προεπισκόπησης: {error}",
+  "failedToLoadTrace": "Αποτυχία φόρτωσης ίχνους: {error}",
+  "failedToSendSarMarker": "Αποτυχία αποστολής δείκτη SAR: {error}",
+  "failedToSetBuzzerMode": "Αποτυχία ρύθμισης λειτουργίας βομβητή: {error}",
+  "failedToSetGpsMode": "Αποτυχία ρύθμισης λειτουργίας GPS: {error}",
+  "failedToSyncDeviceTime": "Αποτυχία συγχρονισμού χρόνου συσκευής: {error}",
+  "failedToWipeDeviceData": "Αποτυχία διαγραφής δεδομένων συσκευής: {error}",
+  "fastGpsTargetChannel": "Κανάλι-στόχος γρήγορου GPS",
+  "fastUpdatesThresholdsAndPermissions": "Γρήγορες ενημερώσεις, όρια και δικαιώματα",
+  "fetchingCatalog": "Ανάκτηση καταλόγου...",
+  "fifteenMinutes": "15 λεπτά",
+  "fifteenSeconds": "15 δευτερόλεπτα",
+  "filterByDirection": "Φιλτράρισμα κατά κατεύθυνση",
+  "finish": "Τέλος",
+  "fiveMinutes": "5 λεπτά",
+  "fiveSeconds": "5 δευτερόλεπτα",
+  "fix": "Στίξη",
+  "gps": "GPS",
+  "gpsAdvertPolicy": "Πολιτική διαφήμισης GPS",
+  "gpsAndLocation": "GPS & Τοποθεσία",
+  "gpsDiagnostics": "Διαγνωστικά GPS",
+  "gpsSection": "GPS",
+  "help": "Βοήθεια",
+  "hex": "Hex",
+  "hidden": "Κρυφό",
+  "howTheRadioAutoAddsDiscoveredNodes": "Πώς το ραδιόφωνο προσθέτει αυτόματα ανακαλυφθέντες κόμβους.",
+  "images": "Εικόνες",
+  "importProfile": "Εισαγωγή προφίλ",
+  "lastFix": "Τελευταία στίξη",
+  "latest": "Πιο πρόσφατο",
+  "latitude": "Γεωγραφικό πλάτος",
+  "loadASavedRegion": "Φόρτωση αποθηκευμένης περιοχής",
+  "loading": "Φόρτωση",
+  "locationSharingHardwareAndUpdateInterval": "Κοινοποίηση τοποθεσίας, υλικό και διάστημα ενημέρωσης.",
+  "locationTelemetry": "Τηλεμετρία τοποθεσίας",
+  "lockDestination": "Κλείδωμα προορισμού",
+  "longitude": "Γεωγραφικό μήκος",
+  "mapStyle": "Στυλ χάρτη",
+  "max": "Μέγ.",
+  "maxZoom": "Μέγ. ζουμ",
+  "messaging": "Μηνύματα",
+  "metHistory": "Ιστορικό MET",
+  "min": "Ελάχ.",
+  "minZoom": "Ελάχ. ζουμ",
+  "moveDown": "Μετακίνηση κάτω",
+  "moveUp": "Μετακίνηση πάνω",
+  "multiAckMode": "Λειτουργία πολλαπλού ACK",
+  "multiDeviceWorkspaceManagement": "Διαχείριση χώρου εργασίας πολλαπλών συσκευών",
+  "myLocation": "Η τοποθεσία μου",
+  "nameAndTelemetryShared": "Το όνομα και η τηλεμετρία κοινοποιούνται σε άλλες συσκευές.",
+  "newVersionAvailable": "Νέα έκδοση: {version}",
+  "newer": "Νεότερο",
+  "noNeighboursFound": "Δεν βρέθηκαν γείτονες",
+  "noServersFound": "Δεν βρέθηκαν διακομιστές",
+  "notSet": "Δεν έχει οριστεί",
+  "notifications": "Ειδοποιήσεις",
+  "offZeroSeconds": "Ανενεργό (0 δ)",
+  "offlineMaps": "Χάρτες εκτός σύνδεσης",
+  "older": "Παλαιότερο",
+  "oneByteMode0": "1 byte (mode 0)",
+  "oneHour": "1 ώρα",
+  "oneMinute": "1 λεπτό",
+  "openPacketLogs": "Άνοιγμα αρχείων πακέτων",
+  "packetTypeHelp": "Βοήθεια τύπων πακέτων",
+  "pasteShareLinkOrHexAdvert": "Επικολλήστε σύνδεσμο κοινοποίησης ή hex διαφήμιση",
+  "pathHash": "Hash διαδρομής",
+  "pathSize": "Μέγεθος διαδρομής",
+  "ping": "Ping",
+  "polygon": "Πολύγωνο",
+  "rawResponseCopied": "Η ακατέργαστη απόκριση αντιγράφηκε",
+  "resendThroughNearestRepeaterOnFailure": "Επαναποστολή μέσω πλησιέστερου αναμεταδότη σε αποτυχία",
+  "resolveContact": "Επίλυση επαφής",
+  "routingRetriesAndDestinationLock": "Δρομολόγηση, επαναπροσπάθειες και κλείδωμα προορισμού",
+  "samples": "Δείγματα",
+  "satellites": "Δορυφόροι",
+  "saving": "Αποθήκευση...",
+  "search": "Αναζήτηση",
+  "searchByNameOrToken": "Αναζήτηση με όνομα ή token",
+  "searchDiscoveredNodes": "Αναζήτηση ανακαλυφθέντων κόμβων",
+  "searchInCurrentFilter": "Αναζήτηση στο τρέχον φίλτρο",
+  "searchLogs": "Αναζήτηση αρχείων καταγραφής...",
+  "searchSensors": "Αναζήτηση αισθητήρων",
+  "searchThisSection": "Αναζήτηση σε αυτήν την ενότητα",
+  "selectedRelays": "Επιλεγμένοι αναμεταδότες",
+  "sensor": "Αισθητήρας",
+  "serialError": "Σφάλμα σειριακής: {error}",
+  "setPathForContact": "Ορισμός διαδρομής για {name}",
+  "shareLiveGps": "Κοινοποίηση ζωντανού GPS",
+  "shareMyTiles": "Κοινοποίηση πλακιδίων μου",
+  "sharingLocationFromPhone": "Κοινοποίηση τοποθεσίας σε αυτό το κανάλι από το τηλέφωνο.",
+  "sharingLocationFromRadio": "Κοινοποίηση τοποθεσίας σε αυτό το κανάλι από το ραδιόφωνο.",
+  "signalDbm": "Σήμα {rssi} dBm",
+  "sizeCompressionAndPreview": "Μέγεθος, συμπίεση και προεπισκόπηση",
+  "skip": "Παράλειψη",
+  "smallerFileSize": "Μικρότερο μέγεθος αρχείου",
+  "sort": "Ταξινόμηση",
+  "stoppedSharingLocation": "Σταμάτησε η κοινοποίηση τοποθεσίας σε αυτό το κανάλι.",
+  "suppressNotificationsWhileInForeground": "Αποσιώπηση ειδοποιήσεων όταν η εφαρμογή είναι στο προσκήνιο",
+  "tabsAndNavigation": "Καρτέλες & Πλοήγηση",
+  "templatesAndTutorials": "Πρότυπα και οδηγίες",
+  "tenMinutes": "10 λεπτά",
+  "tenSeconds": "10 δευτερόλεπτα",
+  "testSendUpdate": "Δοκιμαστική αποστολή ενημέρωσης",
+  "themeLanguageAndDisplayPreferences": "Θέμα, γλώσσα και προτιμήσεις εμφάνισης",
+  "thirtyMinutes": "30 λεπτά",
+  "thirtySeconds": "30 δευτερόλεπτα",
+  "threeBytesMode2": "3 bytes (mode 2)",
+  "trafficStatsMessageHistoryAndDeveloperTools": "Στατιστικά κίνησης, ιστορικό μηνυμάτων και εργαλεία προγραμματιστή",
+  "twoBytesMode1": "2 bytes (mode 1)",
+  "twoMinutes": "2 λεπτά",
+  "undo": "Αναίρεση",
+  "updated": "Ενημερώθηκε",
+  "useContactFlags": "Χρήση σημαιών επαφής",
+  "useSavedCoordinates": "Χρήση αποθηκευμένων συντεταγμένων",
+  "view": "Προβολή",
+  "viewNeighbours": "Προβολή γειτόνων",
+  "viewPublicStats": "Προβολή δημόσιων στατιστικών",
+  "setRegionScope": "Ορισμός εύρους περιοχής",
+  "regionScope": "Εύρος περιοχής",
+  "regionScopeNone": "Κανένα (καθολικό)",
+  "clearRegionScope": "Εκκαθάριση εύρους",
+  "regionScopeWarning": "Μόνο οι αναμεταδότες που επιτρέπουν αυτή την περιοχή θα προωθήσουν.",
+  "discoverRegions": "Ανακάλυψη από αναμεταδότες",
+  "discoveringRegions": "Ανακάλυψη περιοχών...",
+  "enterRegionName": "Όνομα περιοχής (π.χ. auckland)",
+  "noRegionsFound": "Δεν βρέθηκαν περιοχές σε αυτόν τον αναμεταδότη.",
+  "regionScopeSet": "Εύρος περιοχής ορίστηκε σε {name}",
+  "regionScopeCleared": "Εύρος περιοχής εκκαθαρίστηκε"
 }

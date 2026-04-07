@@ -36,9 +36,6 @@ class AppLocalizationsSl extends AppLocalizations {
   String get scanAgain => 'Ponovi iskanje';
 
   @override
-  String get tapToConnect => 'Tapnite za povezavo';
-
-  @override
   String get deviceNotConnected => 'Naprava ni povezana';
 
   @override
@@ -110,15 +107,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get showRxTxIndicators => 'Prikaži RX/TX kazalnike';
 
   @override
-  String get displayPacketActivity =>
-      'Prikaži kazalnike aktivnosti paketov v zgornji vrstici';
-
-  @override
   String get disableMap => 'Onemogoči zemljevid';
-
-  @override
-  String get disableMapDescription =>
-      'Skrij zavihek z zemljevidom za varčevanje z baterijo';
 
   @override
   String get language => 'Jezik';
@@ -140,9 +129,6 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get appVersion => 'Različica aplikacije';
-
-  @override
-  String get appName => 'Ime aplikacije';
 
   @override
   String get aboutMeshCoreSar => 'O MeshCore SAR';
@@ -238,9 +224,6 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get resetPath => 'Ponastavi pot (preusmeri)';
-
-  @override
-  String get publicKeyCopied => 'Javni ključ kopiran v odložišče';
 
   @override
   String copiedToClipboard(String label) {
@@ -478,22 +461,22 @@ class AppLocalizationsSl extends AppLocalizations {
   String get flood => 'Razpršitev';
 
   @override
-  String get autoSend => 'Auto Send';
+  String get autoSend => 'Samodejno pošiljanje';
 
   @override
-  String get autoSendDescription => 'Send via current path.';
+  String get autoSendDescription => 'Pošlji po trenutni poti.';
 
   @override
-  String get sendDirect => 'Send Direct';
+  String get sendDirect => 'Neposredno pošiljanje';
 
   @override
-  String get sendDirectDescription => 'Send directly to this contact.';
+  String get sendDirectDescription => 'Pošlji neposredno temu kontaktu.';
 
   @override
-  String get sendFlood => 'Send Flood';
+  String get sendFlood => 'Pošiljanje s poplavo';
 
   @override
-  String get sendFloodDescription => 'Send via all repeaters.';
+  String get sendFloodDescription => 'Pošlji prek vseh repetitorjev.';
 
   @override
   String get loggedIn => 'Prijavljen';
@@ -534,18 +517,6 @@ class AppLocalizationsSl extends AppLocalizations {
   String get lastSeen => 'Nazadnje viden';
 
   @override
-  String get roomStatus => 'Status sobe';
-
-  @override
-  String get loginStatus => 'Status prijave';
-
-  @override
-  String get notLoggedIn => 'Ni prijavljen';
-
-  @override
-  String get adminAccess => 'Administratorski dostop';
-
-  @override
   String get yes => 'Da';
 
   @override
@@ -553,12 +524,6 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get permissions => 'Dovoljenja';
-
-  @override
-  String get passwordSaved => 'Geslo shranjeno';
-
-  @override
-  String get locationColon => 'Lokacija:';
 
   @override
   String get telemetry => 'Telemetrija';
@@ -580,14 +545,6 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get gpsTelemetry => 'GPS (Telemetrija)';
-
-  @override
-  String get updated => 'Posodobljeno';
-
-  @override
-  String pathResetInfo(String name) {
-    return 'Pot ponastavljena za $name. Naslednje sporočilo bo našlo novo pot.';
-  }
 
   @override
   String get reLoginToRoom => 'Ponovna prijava v sobo';
@@ -841,9 +798,6 @@ class AppLocalizationsSl extends AppLocalizations {
   String get frequencyMHz => 'Frekvenca (MHz)';
 
   @override
-  String get frequencyExample => 'npr. 869.618';
-
-  @override
   String get bandwidth => 'Pasovna širina';
 
   @override
@@ -918,45 +872,10 @@ class AppLocalizationsSl extends AppLocalizations {
   String get trailControls => 'Nadzor poti';
 
   @override
-  String get contactTrails => 'Poti stikov';
-
-  @override
-  String get showAllContactTrails => 'Prikaži vse poti stikov';
-
-  @override
-  String get noContactsWithLocationHistory => 'Ni stikov z zgodovino lokacije';
-
-  @override
-  String showingTrailsForContacts(int count) {
-    return 'Prikazujem poti za $count stikov';
-  }
-
-  @override
-  String get individualContactTrails => 'Posamezne poti stikov';
-
-  @override
-  String get deviceInformation => 'Informacije o napravi';
-
-  @override
-  String get bleName => 'BLE ime';
-
-  @override
-  String get meshName => 'Mesh ime';
-
-  @override
-  String get notSet => 'Ni nastavljeno';
-
-  @override
   String get model => 'Model';
 
   @override
   String get version => 'Različica';
-
-  @override
-  String get buildDate => 'Datum izdelave';
-
-  @override
-  String get firmware => 'Vdelana programska oprema';
 
   @override
   String get maxContacts => 'Maks. stikov';
@@ -966,21 +885,6 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get publicInfo => 'Javne informacije';
-
-  @override
-  String get meshNetworkName => 'Ime mesh omrežja';
-
-  @override
-  String get nameBroadcastInMesh => 'Ime, ki se oddaja v mesh oglasih';
-
-  @override
-  String get telemetryAndLocationSharing => 'Telemetrija in deljenje lokacije';
-
-  @override
-  String get lat => 'Šir';
-
-  @override
-  String get lon => 'Dolž';
 
   @override
   String get useCurrentLocation => 'Uporabi trenutno lokacijo';
@@ -1003,11 +907,6 @@ class AppLocalizationsSl extends AppLocalizations {
   }
 
   @override
-  String copiedToClipboardShort(String label) {
-    return 'Kopirano $label v odložišče';
-  }
-
-  @override
   String failedToSave(String error) {
     return 'Shranjevanje ni uspelo: $error';
   }
@@ -1019,9 +918,6 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get sarTemplates => 'SAR predloge';
-
-  @override
-  String get manageSarTemplates => 'Upravljanje SAR predlog';
 
   @override
   String get addTemplate => 'Dodaj predlogo';
@@ -1123,9 +1019,6 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get ok => 'V redu';
-
-  @override
-  String get permissionsSection => 'Dovoljenja';
 
   @override
   String get locationPermission => 'Dovoljenje za lokacijo';
@@ -1562,87 +1455,6 @@ class AppLocalizationsSl extends AppLocalizations {
   String get wizardWelcomeTitle => 'Dobrodošli v MeshCore SAR';
 
   @override
-  String get wizardWelcomeDescription =>
-      'Zmogljivo orodje za komunikacijo brez omrežja za reševalne operacije. S svojo ekipo se povežite z mesh radijsko tehnologijo, ko tradicionalna omrežja niso na voljo.';
-
-  @override
-  String get wizardConnectingTitle => 'Povezava z radijem';
-
-  @override
-  String get wizardConnectingDescription =>
-      'Svoj telefon povežite z radijsko napravo MeshCore prek Bluetootha in začnite komunicirati brez omrežja.';
-
-  @override
-  String get wizardConnectingFeature1 => 'Poišče bližnje naprave MeshCore';
-
-  @override
-  String get wizardConnectingFeature2 =>
-      'Seznanitev z radijsko napravo prek Bluetootha';
-
-  @override
-  String get wizardConnectingFeature3 =>
-      'Deluje povsem brez povezave — internet ni potreben';
-
-  @override
-  String get wizardChannelTitle => 'Kanali';
-
-  @override
-  String get wizardChannelDescription =>
-      'Pošiljajte sporočila vsem na kanalu — idealno za obvestila in koordinacijo ekipe.';
-
-  @override
-  String get wizardChannelFeature1 =>
-      'Javni kanal za splošno komunikacijo ekipe';
-
-  @override
-  String get wizardChannelFeature2 =>
-      'Ustvarite kanale po meri za določene skupine';
-
-  @override
-  String get wizardChannelFeature3 =>
-      'Sporočila se samodejno posredujejo prek mreže';
-
-  @override
-  String get wizardContactsTitle => 'Stiki';
-
-  @override
-  String get wizardContactsDescription =>
-      'Člani ekipe se prikažejo samodejno, ko se pridružijo mesh omrežju. Pošiljajte jim neposredna sporočila ali si oglejte njihovo lokacijo.';
-
-  @override
-  String get wizardContactsFeature1 => 'Samodejno odkrivanje stikov';
-
-  @override
-  String get wizardContactsFeature2 =>
-      'Pošiljanje zasebnih neposrednih sporočil';
-
-  @override
-  String get wizardContactsFeature3 =>
-      'Prikaz stanja baterije in časa zadnje aktivnosti';
-
-  @override
-  String get wizardMapTitle => 'Zemljevid in lokacija';
-
-  @override
-  String get wizardMapDescription =>
-      'Spremljajte svojo ekipo v realnem času in označujte ključne lokacije za reševalne operacije.';
-
-  @override
-  String get wizardMapFeature1 =>
-      'SAR označevalci za najdene osebe, požare in zbirna mesta';
-
-  @override
-  String get wizardMapFeature2 => 'Sledenje članom ekipe z GPS v realnem času';
-
-  @override
-  String get wizardMapFeature3 =>
-      'Prenesite zemljevide za uporabo brez povezave';
-
-  @override
-  String get wizardMapFeature4 =>
-      'Rišite oblike in delite taktične informacije';
-
-  @override
   String get viewWelcomeTutorial => 'Ogled vadnice dobrodošlice';
 
   @override
@@ -1900,11 +1712,11 @@ class AppLocalizationsSl extends AppLocalizations {
       'Uporabite dnevnik paketov, pregled spektra in razvojno diagnostiko pri odpravljanju težav v mesh omrežju.';
 
   @override
-  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+  String get postConnectDiscoveryTitle => 'Odkriti repetitorje zdaj?';
 
   @override
   String get postConnectDiscoveryDescription =>
-      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+      'Zaženite odkrivanje repetitorjev takoj po povezavi, da vidite bližnja vozlišča MeshCore in jih hitreje dodate v svoje omrežje.';
 
   @override
   String get contactInSensors => 'V senzorjih';
@@ -2008,57 +1820,6 @@ class AppLocalizationsSl extends AppLocalizations {
   String get bandpassFilterVoice => 'Pasovno sito za glas';
 
   @override
-  String get frequency => 'Frekvenca';
-
-  @override
-  String get australia => 'Avstralija';
-
-  @override
-  String get australiaNarrow => 'Avstralija (ozko)';
-
-  @override
-  String get australiaQld => 'Avstralija: QLD';
-
-  @override
-  String get australiaSaWa => 'Avstralija: SA, WA';
-
-  @override
-  String get newZealand => 'Nova Zelandija';
-
-  @override
-  String get newZealandNarrow => 'Nova Zelandija (ozko)';
-
-  @override
-  String get switzerland => 'Švica';
-
-  @override
-  String get portugal433 => 'Portugalska 433';
-
-  @override
-  String get portugal868 => 'Portugalska 868';
-
-  @override
-  String get czechRepublicNarrow => 'Češka (ozko)';
-
-  @override
-  String get eu433mhzLongRange => 'EU 433MHz (dolg doseg)';
-
-  @override
-  String get euukDeprecated => 'EU/UK (zastarelo)';
-
-  @override
-  String get euukNarrow => 'EU/UK (ozko)';
-
-  @override
-  String get usacanadaRecommended => 'ZDA/Kanada (priporočeno)';
-
-  @override
-  String get vietnamDeprecated => 'Vietnam (zastarelo)';
-
-  @override
-  String get vietnamNarrow => 'Vietnam (ozko)';
-
-  @override
   String get active => 'Aktivno';
 
   @override
@@ -2068,13 +1829,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get all => 'Vse';
 
   @override
-  String get autoResolve => 'Samodejno razreši';
-
-  @override
   String get clearAllLabel => 'Počisti vse';
-
-  @override
-  String get clearRelays => 'Počisti posrednike';
 
   @override
   String get clearFilters => 'Počisti filtre';
@@ -2152,16 +1907,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get share => 'Deli';
 
   @override
-  String get shareContact => 'Deli stik';
-
-  @override
   String get trace => 'Sledenje';
-
-  @override
-  String get use => 'Uporabi';
-
-  @override
-  String get useSelectedFrequency => 'Uporabi izbrano frekvenco';
 
   @override
   String get discovery => 'Odkrivanje';
@@ -2230,9 +1976,6 @@ class AppLocalizationsSl extends AppLocalizations {
   String get repeatersMap => 'Zemljevid posrednikov';
 
   @override
-  String get spectrumScan => 'Spektralno skeniranje';
-
-  @override
   String get blePacketLogs => 'Dnevniki BLE paketov';
 
   @override
@@ -2266,9 +2009,6 @@ class AppLocalizationsSl extends AppLocalizations {
   String get enableProfiles => 'Omogoči profile';
 
   @override
-  String get autoRouteRotation => 'Samodejno kroženje poti';
-
-  @override
   String get nearestRepeaterFallback => 'Najbližji posrednik kot rezerva';
 
   @override
@@ -2291,13 +2031,6 @@ class AppLocalizationsSl extends AppLocalizations {
   String get showSarMarkersLabel => 'Prikaži SAR oznake';
 
   @override
-  String get displaySarMarkersOnTheMainMap =>
-      'Prikaži SAR oznake na glavnem zemljevidu';
-
-  @override
-  String get showAllContactTrailsLabel => 'Prikaži vse sledi stikov';
-
-  @override
   String get hideRepeatersOnMap => 'Skrij posrednike na zemljevidu';
 
   @override
@@ -2313,22 +2046,10 @@ class AppLocalizationsSl extends AppLocalizations {
   String get voiceCompressor => 'Kompresor glasu';
 
   @override
-  String get balancesQuietAndLoudSpeechLevels =>
-      'Izravnava tihe in glasne govorne ravni';
-
-  @override
   String get voiceLimiter => 'Omejevalnik glasu';
 
   @override
-  String get preventsClippingPeaksBeforeEncoding =>
-      'Preprečuje rezanje vrhov pred kodiranjem';
-
-  @override
   String get micAutoGain => 'Samodejna ojačitev mikrofona';
-
-  @override
-  String get letsTheRecorderAdjustInputLevel =>
-      'Omogoči snemalniku prilagoditev vhodne ravni';
 
   @override
   String get echoCancellation => 'Odstranjevanje odmeva';
@@ -2461,14 +2182,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get quiet => 'Tiho';
 
   @override
-  String get moderate => 'Zmerno';
-
-  @override
   String get busy => 'Zasedeno';
-
-  @override
-  String get spectrumScanReturnedNoCandidateFrequencies =>
-      'Spektralno skeniranje ni našlo primernih frekvenc';
 
   @override
   String get searchMessages => 'Iskanje sporočil';
@@ -2478,9 +2192,6 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get takePhoto => 'Posnemi fotografijo';
-
-  @override
-  String get dmOnly => 'Samo neposredno';
 
   @override
   String get allMessages => 'Vsa sporočila';
@@ -2538,14 +2249,6 @@ class AppLocalizationsSl extends AppLocalizations {
       'Izberite prednastavitev ali natančno prilagodite radijske nastavitve.';
 
   @override
-  String get chooseTheNameAndLocationThisDeviceShares =>
-      'Izberite ime in lokacijo, ki ju naprava deli.';
-
-  @override
-  String get availableSpaceOnThisDevice =>
-      'Razpoložljiv prostor na tej napravi.';
-
-  @override
   String get used => 'Uporabljeno';
 
   @override
@@ -2597,12 +2300,6 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get source => 'Vir';
-
-  @override
-  String get manualRouteEdit => 'Ročno urejanje poti';
-
-  @override
-  String get observedMeshRoute => 'Opazovana mrežna pot';
 
   @override
   String get allMessagesCleared => 'Vsa sporočila počiščena';
@@ -2702,38 +2399,615 @@ class AppLocalizationsSl extends AppLocalizations {
   String get noDeviceContactsToClear => 'Ni stikov naprave za brisanje.';
 
   @override
-  String get setRegionScope => 'Set region scope';
+  String get aToZ => 'A-Ž';
 
   @override
-  String get regionScope => 'Region scope';
+  String get add => 'Dodaj';
 
   @override
-  String get regionScopeNone => 'None (global)';
+  String get addAdditionalDetails => 'Dodaj dodatne podrobnosti';
 
   @override
-  String get clearRegionScope => 'Clear scope';
+  String get addPeer => 'Dodaj soležnika';
 
   @override
-  String get regionScopeWarning =>
-      'Only repeaters allowing this region will forward.';
+  String get addPeerManually => 'Ročno dodaj soležnika';
 
   @override
-  String get discoverRegions => 'Discover from repeaters';
-
-  @override
-  String get discoveringRegions => 'Discovering regions...';
-
-  @override
-  String get enterRegionName => 'Region name (e.g. auckland)';
-
-  @override
-  String get noRegionsFound => 'No regions found on this repeater.';
-
-  @override
-  String regionScopeSet(String name) {
-    return 'Region scope set to $name';
+  String addedToContacts(String name) {
+    return '$name dodan med stike';
   }
 
   @override
-  String get regionScopeCleared => 'Region scope cleared';
+  String addedToSensors(String name) {
+    return '$name dodan med senzorje';
+  }
+
+  @override
+  String get allowAll => 'Dovoli vse';
+
+  @override
+  String get anonymousRxStats => 'Anonimna RX statistika';
+
+  @override
+  String get appearance => 'Videz';
+
+  @override
+  String get ascii => 'ASCII';
+
+  @override
+  String get baseTelemetry => 'Osnovna telemetrija';
+
+  @override
+  String get blePin => 'BLE PIN';
+
+  @override
+  String get buzzerAlerts => 'Zvočni alarmi';
+
+  @override
+  String get cancelImageReceive => 'Prekliči prejem slike';
+
+  @override
+  String get choose => 'Izberi';
+
+  @override
+  String get chooseWhichTabsAndContactSectionsToShow =>
+      'Izberite, katere zavihke in razdelke stikov prikazati';
+
+  @override
+  String get clearCache => 'Počisti predpomnilnik';
+
+  @override
+  String get clearHistory => 'Počisti zgodovino';
+
+  @override
+  String get clearLiveView => 'Počisti pogled v živo';
+
+  @override
+  String get clearLogs => 'Počisti dnevnike';
+
+  @override
+  String get clearOfflineCache => 'Počisti predpomnilnik brez povezave?';
+
+  @override
+  String get clearOverlay => 'Počisti prekrivanje';
+
+  @override
+  String get clearRouteOnlyAfterAllRetriesFail =>
+      'Počisti pot šele po neuspehu vseh ponovitev';
+
+  @override
+  String get codecBitrateAndAudioProcessing =>
+      'Kodek, bitna hitrost in obdelava zvoka';
+
+  @override
+  String get connectByIpAddress => 'Poveži prek IP naslova';
+
+  @override
+  String get controlWhichAlertsYouReceive =>
+      'Nadzirajte, katera opozorila prejemate';
+
+  @override
+  String get copyFullHex => 'Kopiraj celoten Hex';
+
+  @override
+  String get copyRawResponse => 'Kopiraj surov odgovor';
+
+  @override
+  String get couldNotLoadMetHistory => 'Nalaganje MET zgodovine ni uspelo';
+
+  @override
+  String customizeSensor(String name) {
+    return 'Prilagodi $name';
+  }
+
+  @override
+  String get data => 'Podatki';
+
+  @override
+  String get deleteGroup => 'Izbriši skupino';
+
+  @override
+  String deleteStyleConfirm(String name) {
+    return 'Izbriši $name?';
+  }
+
+  @override
+  String deleteThisDrawing(String type) {
+    return 'Izbriši to $type?';
+  }
+
+  @override
+  String get deny => 'Zavrni';
+
+  @override
+  String get deviceInfo => 'Informacije o napravi';
+
+  @override
+  String get deviceSettings => 'Nastavitve naprave';
+
+  @override
+  String get deviceTimeSynced => 'Čas naprave sinhroniziran s tem telefonom.';
+
+  @override
+  String get disableFastGpsPublishing => 'Onemogoči hitro GPS objavljanje';
+
+  @override
+  String get displayMarkersAndTraceDatabase =>
+      'Prikaz, oznake in baza sledenja';
+
+  @override
+  String get download => 'Prenesi';
+
+  @override
+  String get environmentalTelemetry => 'Okoljska telemetrija';
+
+  @override
+  String errorCheckingForUpdates(String error) {
+    return 'Napaka pri preverjanju posodobitev: $error';
+  }
+
+  @override
+  String errorGeneric(String error) {
+    return 'Napaka: $error';
+  }
+
+  @override
+  String errorOpeningDownload(String error) {
+    return 'Napaka pri odpiranju prenosa: $error';
+  }
+
+  @override
+  String get exportLogs => 'Izvozi dnevnike';
+
+  @override
+  String get extraAggressiveAvifCompression =>
+      'Posebno agresivno AVIF stiskanje';
+
+  @override
+  String failedToAddContact(String error) {
+    return 'Dodajanje stika ni uspelo: $error';
+  }
+
+  @override
+  String failedToAddName(String name, String error) {
+    return 'Dodajanje $name ni uspelo: $error';
+  }
+
+  @override
+  String failedToClearChannels(String error) {
+    return 'Brisanje kanalov ni uspelo: $error';
+  }
+
+  @override
+  String failedToClearContacts(String error) {
+    return 'Brisanje stikov ni uspelo: $error';
+  }
+
+  @override
+  String get failedToConnectViaSerial =>
+      'Povezava prek serijske povezave ni uspela';
+
+  @override
+  String failedToLoadPreviewImage(String error) {
+    return 'Nalaganje predogleda slike ni uspelo: $error';
+  }
+
+  @override
+  String failedToLoadTrace(String error) {
+    return 'Nalaganje sledi ni uspelo: $error';
+  }
+
+  @override
+  String failedToSendSarMarker(String error) {
+    return 'Pošiljanje SAR oznake ni uspelo: $error';
+  }
+
+  @override
+  String failedToSetBuzzerMode(String error) {
+    return 'Nastavitev zvočnega alarma ni uspela: $error';
+  }
+
+  @override
+  String failedToSetGpsMode(String error) {
+    return 'Nastavitev GPS načina ni uspela: $error';
+  }
+
+  @override
+  String failedToSyncDeviceTime(String error) {
+    return 'Sinhronizacija časa naprave ni uspela: $error';
+  }
+
+  @override
+  String failedToWipeDeviceData(String error) {
+    return 'Brisanje podatkov naprave ni uspelo: $error';
+  }
+
+  @override
+  String get fastGpsTargetChannel => 'Ciljni kanal hitrega GPS-a';
+
+  @override
+  String get fastUpdatesThresholdsAndPermissions =>
+      'Hitre posodobitve, pragovi in dovoljenja';
+
+  @override
+  String get fetchingCatalog => 'Pridobivanje kataloga...';
+
+  @override
+  String get fifteenMinutes => '15 minut';
+
+  @override
+  String get fifteenSeconds => '15 sekund';
+
+  @override
+  String get filterByDirection => 'Filtriraj po smeri';
+
+  @override
+  String get finish => 'Končaj';
+
+  @override
+  String get fiveMinutes => '5 minut';
+
+  @override
+  String get fiveSeconds => '5 sekund';
+
+  @override
+  String get fix => 'Popravi';
+
+  @override
+  String get gps => 'GPS';
+
+  @override
+  String get gpsAdvertPolicy => 'Politika GPS oglašanja';
+
+  @override
+  String get gpsAndLocation => 'GPS in lokacija';
+
+  @override
+  String get gpsDiagnostics => 'GPS diagnostika';
+
+  @override
+  String get gpsSection => 'GPS';
+
+  @override
+  String get help => 'Pomoč';
+
+  @override
+  String get hex => 'Hex';
+
+  @override
+  String get hidden => 'Skrito';
+
+  @override
+  String get howTheRadioAutoAddsDiscoveredNodes =>
+      'Kako radio samodejno dodaja odkrita vozlišča.';
+
+  @override
+  String get images => 'Slike';
+
+  @override
+  String get importProfile => 'Uvozi profil';
+
+  @override
+  String get lastFix => 'Zadnja posneta lokacija';
+
+  @override
+  String get latest => 'Najnovejše';
+
+  @override
+  String get latitude => 'Geografska širina';
+
+  @override
+  String get loadASavedRegion => 'Naloži shranjeno regijo';
+
+  @override
+  String get loading => 'Nalaganje';
+
+  @override
+  String get locationSharingHardwareAndUpdateInterval =>
+      'Deljenje lokacije, strojna oprema in interval posodobitev.';
+
+  @override
+  String get locationTelemetry => 'Telemetrija lokacije';
+
+  @override
+  String get lockDestination => 'Zakleni cilj';
+
+  @override
+  String get longitude => 'Geografska dolžina';
+
+  @override
+  String get mapStyle => 'Slog zemljevida';
+
+  @override
+  String get max => 'Maks';
+
+  @override
+  String get maxZoom => 'Maks. povečava';
+
+  @override
+  String get messaging => 'Sporočanje';
+
+  @override
+  String get metHistory => 'MET zgodovina';
+
+  @override
+  String get min => 'Min';
+
+  @override
+  String get minZoom => 'Min. povečava';
+
+  @override
+  String get moveDown => 'Premakni navzdol';
+
+  @override
+  String get moveUp => 'Premakni navzgor';
+
+  @override
+  String get multiAckMode => 'Način večkratne ACK potrditve';
+
+  @override
+  String get multiDeviceWorkspaceManagement =>
+      'Upravljanje delovnega prostora z več napravami';
+
+  @override
+  String get myLocation => 'Moja lokacija';
+
+  @override
+  String get nameAndTelemetryShared =>
+      'Ime in telemetrija deljena z drugimi napravami.';
+
+  @override
+  String newVersionAvailable(String version) {
+    return 'Nova različica: $version';
+  }
+
+  @override
+  String get newer => 'Novejše';
+
+  @override
+  String get noNeighboursFound => 'Ni najdenih sosedov';
+
+  @override
+  String get noServersFound => 'Ni najdenih strežnikov';
+
+  @override
+  String get notSet => 'Ni nastavljeno';
+
+  @override
+  String get notifications => 'Obvestila';
+
+  @override
+  String get offZeroSeconds => 'Izključeno (0 s)';
+
+  @override
+  String get offlineMaps => 'Zemljevidi brez povezave';
+
+  @override
+  String get older => 'Starejše';
+
+  @override
+  String get oneByteMode0 => '1 bajt (način 0)';
+
+  @override
+  String get oneHour => '1 ura';
+
+  @override
+  String get oneMinute => '1 minuta';
+
+  @override
+  String get openPacketLogs => 'Odpri dnevnike paketov';
+
+  @override
+  String get packetTypeHelp => 'Pomoč za vrsto paketa';
+
+  @override
+  String get pasteShareLinkOrHexAdvert =>
+      'Prilepite deljeno povezavo ali Hex oglas';
+
+  @override
+  String get pathHash => 'Zgoščevalna vrednost poti';
+
+  @override
+  String get pathSize => 'Velikost poti';
+
+  @override
+  String get ping => 'Ping';
+
+  @override
+  String get polygon => 'Poligon';
+
+  @override
+  String get rawResponseCopied => 'Surov odgovor kopiran';
+
+  @override
+  String get resendThroughNearestRepeaterOnFailure =>
+      'Ponovno pošlji prek najbližjega posrednika ob neuspehu';
+
+  @override
+  String get resolveContact => 'Razreši stik';
+
+  @override
+  String get routingRetriesAndDestinationLock =>
+      'Usmerjanje, ponovitve in zaklepanje cilja';
+
+  @override
+  String get samples => 'Vzorci';
+
+  @override
+  String get satellites => 'Sateliti';
+
+  @override
+  String get saving => 'Shranjujem...';
+
+  @override
+  String get search => 'Iskanje';
+
+  @override
+  String get searchByNameOrToken => 'Iskanje po imenu ali žetonu';
+
+  @override
+  String get searchDiscoveredNodes => 'Iskanje odkritih vozlišč';
+
+  @override
+  String get searchInCurrentFilter => 'Iskanje v trenutnem filtru';
+
+  @override
+  String get searchLogs => 'Iskanje dnevnikov...';
+
+  @override
+  String get searchSensors => 'Iskanje senzorjev';
+
+  @override
+  String get searchThisSection => 'Iskanje v tem razdelku';
+
+  @override
+  String get selectedRelays => 'Izbrani posredniki';
+
+  @override
+  String get sensor => 'Senzor';
+
+  @override
+  String serialError(String error) {
+    return 'Napaka serijske povezave: $error';
+  }
+
+  @override
+  String setPathForContact(String name) {
+    return 'Nastavi pot za $name';
+  }
+
+  @override
+  String get shareLiveGps => 'Deli GPS v živo';
+
+  @override
+  String get shareMyTiles => 'Deli moje ploščice';
+
+  @override
+  String get sharingLocationFromPhone =>
+      'Deljenje lokacije na tem kanalu s telefona.';
+
+  @override
+  String get sharingLocationFromRadio =>
+      'Deljenje lokacije na tem kanalu z radia.';
+
+  @override
+  String signalDbm(String rssi) {
+    return 'Signal $rssi dBm';
+  }
+
+  @override
+  String get sizeCompressionAndPreview => 'Velikost, stiskanje in predogled';
+
+  @override
+  String get skip => 'Preskoči';
+
+  @override
+  String get smallerFileSize => 'Manjša velikost datoteke';
+
+  @override
+  String get sort => 'Razvrsti';
+
+  @override
+  String get stoppedSharingLocation =>
+      'Deljenje lokacije na tem kanalu ustavljeno.';
+
+  @override
+  String get suppressNotificationsWhileInForeground =>
+      'Zadrži obvestila, ko je aplikacija v ospredju';
+
+  @override
+  String get tabsAndNavigation => 'Zavihki in navigacija';
+
+  @override
+  String get templatesAndTutorials => 'Predloge in vadnice';
+
+  @override
+  String get tenMinutes => '10 minut';
+
+  @override
+  String get tenSeconds => '10 sekund';
+
+  @override
+  String get testSendUpdate => 'Preizkusno pošlji posodobitev';
+
+  @override
+  String get themeLanguageAndDisplayPreferences =>
+      'Tema, jezik in nastavitve prikaza';
+
+  @override
+  String get thirtyMinutes => '30 minut';
+
+  @override
+  String get thirtySeconds => '30 sekund';
+
+  @override
+  String get threeBytesMode2 => '3 bajti (način 2)';
+
+  @override
+  String get trafficStatsMessageHistoryAndDeveloperTools =>
+      'Statistika prometa, zgodovina sporočil in razvojna orodja';
+
+  @override
+  String get twoBytesMode1 => '2 bajta (način 1)';
+
+  @override
+  String get twoMinutes => '2 minuti';
+
+  @override
+  String get undo => 'Razveljavi';
+
+  @override
+  String get updated => 'Posodobljeno';
+
+  @override
+  String get useContactFlags => 'Uporabi zastavice stikov';
+
+  @override
+  String get useSavedCoordinates => 'Uporabi shranjene koordinate';
+
+  @override
+  String get view => 'Pogled';
+
+  @override
+  String get viewNeighbours => 'Poglej sosede';
+
+  @override
+  String get viewPublicStats => 'Poglej javno statistiko';
+
+  @override
+  String get setRegionScope => 'Nastavi obseg regije';
+
+  @override
+  String get regionScope => 'Obseg regije';
+
+  @override
+  String get regionScopeNone => 'Brez (globalno)';
+
+  @override
+  String get clearRegionScope => 'Počisti obseg';
+
+  @override
+  String get regionScopeWarning =>
+      'Samo repetitorji, ki dovoljujejo to regijo, bodo posredovali.';
+
+  @override
+  String get discoverRegions => 'Odkrij iz repetitorjev';
+
+  @override
+  String get discoveringRegions => 'Odkrivanje regij...';
+
+  @override
+  String get enterRegionName => 'Ime regije (npr. auckland)';
+
+  @override
+  String get noRegionsFound => 'Na tem repetitorju ni najdenih regij.';
+
+  @override
+  String regionScopeSet(String name) {
+    return 'Obseg regije nastavljen na $name';
+  }
+
+  @override
+  String get regionScopeCleared => 'Obseg regije počiščen';
 }

@@ -36,9 +36,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get scanAgain => '重新扫描';
 
   @override
-  String get tapToConnect => '点击连接';
-
-  @override
   String get deviceNotConnected => '设备未连接';
 
   @override
@@ -107,13 +104,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showRxTxIndicators => '显示 RX/TX 指示器';
 
   @override
-  String get displayPacketActivity => '在顶部栏显示数据包活动指示器';
-
-  @override
   String get disableMap => '禁用地图';
-
-  @override
-  String get disableMapDescription => '隐藏地图标签页以减少电池消耗';
 
   @override
   String get language => '语言';
@@ -135,9 +126,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appVersion => '应用版本';
-
-  @override
-  String get appName => '应用名称';
 
   @override
   String get aboutMeshCoreSar => '关于 MeshCore 搜救助手';
@@ -229,9 +217,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get resetPath => '重置路径 (重新路由)';
-
-  @override
-  String get publicKeyCopied => '公钥已复制到剪贴板';
 
   @override
   String copiedToClipboard(String label) {
@@ -465,22 +450,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get flood => '泛洪';
 
   @override
-  String get autoSend => 'Auto Send';
+  String get autoSend => '自动发送';
 
   @override
-  String get autoSendDescription => 'Send via current path.';
+  String get autoSendDescription => '通过当前路径发送。';
 
   @override
-  String get sendDirect => 'Send Direct';
+  String get sendDirect => '直接发送';
 
   @override
-  String get sendDirectDescription => 'Send directly to this contact.';
+  String get sendDirectDescription => '直接发送给此联系人。';
 
   @override
-  String get sendFlood => 'Send Flood';
+  String get sendFlood => '泛洪发送';
 
   @override
-  String get sendFloodDescription => 'Send via all repeaters.';
+  String get sendFloodDescription => '通过所有中继器发送。';
 
   @override
   String get loggedIn => '已登录';
@@ -521,18 +506,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lastSeen => '最后在线';
 
   @override
-  String get roomStatus => '房间状态';
-
-  @override
-  String get loginStatus => '登录状态';
-
-  @override
-  String get notLoggedIn => '未登录';
-
-  @override
-  String get adminAccess => '管理员权限';
-
-  @override
   String get yes => '是';
 
   @override
@@ -540,12 +513,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get permissions => '权限';
-
-  @override
-  String get passwordSaved => '密码已保存';
-
-  @override
-  String get locationColon => '位置：';
 
   @override
   String get telemetry => '遥测';
@@ -567,14 +534,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsTelemetry => 'GPS（遥测）';
-
-  @override
-  String get updated => '更新于';
-
-  @override
-  String pathResetInfo(String name) {
-    return '已重置 $name 的路径。下一条消息将寻找新路由。';
-  }
 
   @override
   String get reLoginToRoom => '重新登录到房间';
@@ -824,9 +783,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get frequencyMHz => '频率 (MHz)';
 
   @override
-  String get frequencyExample => '例如 869.618';
-
-  @override
   String get bandwidth => '带宽';
 
   @override
@@ -899,45 +855,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trailControls => '轨迹控制';
 
   @override
-  String get contactTrails => '联系人轨迹';
-
-  @override
-  String get showAllContactTrails => '显示所有联系人轨迹';
-
-  @override
-  String get noContactsWithLocationHistory => '没有带位置历史的联系人';
-
-  @override
-  String showingTrailsForContacts(int count) {
-    return '正在显示 $count 个联系人的轨迹';
-  }
-
-  @override
-  String get individualContactTrails => '单个联系人轨迹';
-
-  @override
-  String get deviceInformation => '设备信息';
-
-  @override
-  String get bleName => 'BLE 名称';
-
-  @override
-  String get meshName => 'Mesh 名称';
-
-  @override
-  String get notSet => '未设置';
-
-  @override
   String get model => '型号';
 
   @override
   String get version => '版本';
-
-  @override
-  String get buildDate => '构建日期';
-
-  @override
-  String get firmware => '固件';
 
   @override
   String get maxContacts => '最大联系人数量';
@@ -947,21 +868,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get publicInfo => '公共信息';
-
-  @override
-  String get meshNetworkName => 'Mesh 网络名称';
-
-  @override
-  String get nameBroadcastInMesh => '在 Mesh 广播中公布的名称';
-
-  @override
-  String get telemetryAndLocationSharing => '遥测与位置共享';
-
-  @override
-  String get lat => '纬度';
-
-  @override
-  String get lon => '经度';
 
   @override
   String get useCurrentLocation => '使用当前位置';
@@ -984,11 +890,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String copiedToClipboardShort(String label) {
-    return '$label 已复制到剪贴板';
-  }
-
-  @override
   String failedToSave(String error) {
     return '保存失败：$error';
   }
@@ -1000,9 +901,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sarTemplates => '搜救模板';
-
-  @override
-  String get manageSarTemplates => '管理光标目标模板';
 
   @override
   String get addTemplate => '添加模板';
@@ -1090,9 +988,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ok => '确定';
-
-  @override
-  String get permissionsSection => '权限';
 
   @override
   String get locationPermission => '位置权限';
@@ -1513,75 +1408,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get wizardWelcomeTitle => '欢迎使用 MeshCore 搜救助手';
 
   @override
-  String get wizardWelcomeDescription =>
-      '一个功能强大的离网通信工具，用于搜索和救援行动。当传统网络不可用时，使用 Mesh 无线电技术与您的团队保持联系。';
-
-  @override
-  String get wizardConnectingTitle => '连接到您的无线电';
-
-  @override
-  String get wizardConnectingDescription =>
-      '通过蓝牙将您的智能手机连接到 MeshCore 无线电设备，开始离网通信。';
-
-  @override
-  String get wizardConnectingFeature1 => '扫描附近的 MeshCore 设备';
-
-  @override
-  String get wizardConnectingFeature2 => '通过蓝牙与您的无线电配对';
-
-  @override
-  String get wizardConnectingFeature3 => '完全离线工作 - 无需互联网';
-
-  @override
-  String get wizardChannelTitle => '频道';
-
-  @override
-  String get wizardChannelDescription => '向频道上的所有人广播消息，非常适合全队通告和协调。';
-
-  @override
-  String get wizardChannelFeature1 => '用于一般团队通信的公共频道';
-
-  @override
-  String get wizardChannelFeature2 => '为特定小组创建自定义频道';
-
-  @override
-  String get wizardChannelFeature3 => '消息由 Mesh 网络自动转发';
-
-  @override
-  String get wizardContactsTitle => '联系人';
-
-  @override
-  String get wizardContactsDescription =>
-      '您的团队成员在加入 Mesh 网络时会自动出现。向他们发送直连消息或查看他们的位置。';
-
-  @override
-  String get wizardContactsFeature1 => '联系人自动发现';
-
-  @override
-  String get wizardContactsFeature2 => '发送私密的直连消息';
-
-  @override
-  String get wizardContactsFeature3 => '查看电池电量和最后在线时间';
-
-  @override
-  String get wizardMapTitle => '地图与位置';
-
-  @override
-  String get wizardMapDescription => '实时跟踪您的团队，并为搜救行动标记重要位置。';
-
-  @override
-  String get wizardMapFeature1 => '用于标记找到的人员、火灾和集结区的搜救标记';
-
-  @override
-  String get wizardMapFeature2 => '团队成员的实时 GPS 跟踪';
-
-  @override
-  String get wizardMapFeature3 => '为偏远地区下载离线地图';
-
-  @override
-  String get wizardMapFeature4 => '绘制形状并共享战术信息';
-
-  @override
   String get viewWelcomeTutorial => '查看欢迎教程';
 
   @override
@@ -1815,11 +1641,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get wizardToolsFeature3 => '在排查 mesh 网络问题时使用数据包日志、频谱扫描和开发者诊断。';
 
   @override
-  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+  String get postConnectDiscoveryTitle => '现在发现中继器？';
 
   @override
   String get postConnectDiscoveryDescription =>
-      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+      '连接后立即运行中继器发现，以查看附近的 MeshCore 节点并更快地将它们添加到您的网络中。';
 
   @override
   String get contactInSensors => '在传感器中';
@@ -1923,57 +1749,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get bandpassFilterVoice => '带通语音滤波';
 
   @override
-  String get frequency => '频率';
-
-  @override
-  String get australia => '澳大利亚';
-
-  @override
-  String get australiaNarrow => '澳大利亚（窄带）';
-
-  @override
-  String get australiaQld => '澳大利亚：QLD';
-
-  @override
-  String get australiaSaWa => '澳大利亚：SA, WA';
-
-  @override
-  String get newZealand => '新西兰';
-
-  @override
-  String get newZealandNarrow => '新西兰（窄带）';
-
-  @override
-  String get switzerland => '瑞士';
-
-  @override
-  String get portugal433 => '葡萄牙 433';
-
-  @override
-  String get portugal868 => '葡萄牙 868';
-
-  @override
-  String get czechRepublicNarrow => '捷克（窄带）';
-
-  @override
-  String get eu433mhzLongRange => '欧盟 433MHz（远距离）';
-
-  @override
-  String get euukDeprecated => '欧盟/英国（已弃用）';
-
-  @override
-  String get euukNarrow => '欧盟/英国（窄带）';
-
-  @override
-  String get usacanadaRecommended => '美国/加拿大（推荐）';
-
-  @override
-  String get vietnamDeprecated => '越南（已弃用）';
-
-  @override
-  String get vietnamNarrow => '越南（窄带）';
-
-  @override
   String get active => '活动';
 
   @override
@@ -1983,13 +1758,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get all => '全部';
 
   @override
-  String get autoResolve => '自动解析';
-
-  @override
   String get clearAllLabel => '清除全部';
-
-  @override
-  String get clearRelays => '清除中继';
 
   @override
   String get clearFilters => '清除过滤器';
@@ -2067,16 +1836,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get share => '分享';
 
   @override
-  String get shareContact => '分享联系人';
-
-  @override
   String get trace => '追踪';
-
-  @override
-  String get use => '使用';
-
-  @override
-  String get useSelectedFrequency => '使用选定频率';
 
   @override
   String get discovery => '发现';
@@ -2145,9 +1905,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get repeatersMap => '中继器地图';
 
   @override
-  String get spectrumScan => '频谱扫描';
-
-  @override
   String get blePacketLogs => 'BLE 数据包日志';
 
   @override
@@ -2181,9 +1938,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enableProfiles => '启用配置文件';
 
   @override
-  String get autoRouteRotation => '自动路由轮换';
-
-  @override
   String get nearestRepeaterFallback => '最近中继器回退';
 
   @override
@@ -2205,12 +1959,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showSarMarkersLabel => '显示 SAR 标记';
 
   @override
-  String get displaySarMarkersOnTheMainMap => '在主地图上显示 SAR 标记';
-
-  @override
-  String get showAllContactTrailsLabel => '显示所有联系人轨迹';
-
-  @override
   String get hideRepeatersOnMap => '在地图上隐藏中继器';
 
   @override
@@ -2226,19 +1974,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voiceCompressor => '语音压缩器';
 
   @override
-  String get balancesQuietAndLoudSpeechLevels => '平衡安静和响亮的语音级别';
-
-  @override
   String get voiceLimiter => '语音限制器';
 
   @override
-  String get preventsClippingPeaksBeforeEncoding => '防止编码前的削波';
-
-  @override
   String get micAutoGain => '麦克风自动增益';
-
-  @override
-  String get letsTheRecorderAdjustInputLevel => '让录音器调整输入级别';
 
   @override
   String get echoCancellation => '回声消除';
@@ -2364,13 +2103,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get quiet => '安静';
 
   @override
-  String get moderate => '中等';
-
-  @override
   String get busy => '繁忙';
-
-  @override
-  String get spectrumScanReturnedNoCandidateFrequencies => '频谱扫描未找到候选频率';
 
   @override
   String get searchMessages => '搜索消息';
@@ -2380,9 +2113,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get takePhoto => '拍照';
-
-  @override
-  String get dmOnly => '仅私信';
 
   @override
   String get allMessages => '所有消息';
@@ -2439,12 +2169,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chooseAPresetOrFinetuneCustomRadioSettings => '选择预设或微调自定义无线电设置。';
 
   @override
-  String get chooseTheNameAndLocationThisDeviceShares => '选择此设备共享的名称和位置。';
-
-  @override
-  String get availableSpaceOnThisDevice => '此设备上的可用空间。';
-
-  @override
   String get used => '已使用';
 
   @override
@@ -2494,12 +2218,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get source => '来源';
-
-  @override
-  String get manualRouteEdit => '手动路由编辑';
-
-  @override
-  String get observedMeshRoute => '观察到的网格路由';
 
   @override
   String get allMessagesCleared => '所有消息已清除';
@@ -2595,38 +2313,593 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noDeviceContactsToClear => '没有设备联系人可清除。';
 
   @override
-  String get setRegionScope => 'Set region scope';
+  String get aToZ => 'A-Z';
 
   @override
-  String get regionScope => 'Region scope';
+  String get add => '添加';
 
   @override
-  String get regionScopeNone => 'None (global)';
+  String get addAdditionalDetails => '添加其他详情';
 
   @override
-  String get clearRegionScope => 'Clear scope';
+  String get addPeer => '添加节点';
 
   @override
-  String get regionScopeWarning =>
-      'Only repeaters allowing this region will forward.';
+  String get addPeerManually => '手动添加节点';
 
   @override
-  String get discoverRegions => 'Discover from repeaters';
-
-  @override
-  String get discoveringRegions => 'Discovering regions...';
-
-  @override
-  String get enterRegionName => 'Region name (e.g. auckland)';
-
-  @override
-  String get noRegionsFound => 'No regions found on this repeater.';
-
-  @override
-  String regionScopeSet(String name) {
-    return 'Region scope set to $name';
+  String addedToContacts(String name) {
+    return '$name 已添加到联系人';
   }
 
   @override
-  String get regionScopeCleared => 'Region scope cleared';
+  String addedToSensors(String name) {
+    return '$name 已添加到传感器';
+  }
+
+  @override
+  String get allowAll => '全部允许';
+
+  @override
+  String get anonymousRxStats => '匿名接收统计';
+
+  @override
+  String get appearance => '外观';
+
+  @override
+  String get ascii => 'ASCII';
+
+  @override
+  String get baseTelemetry => '基础遥测';
+
+  @override
+  String get blePin => 'BLE PIN';
+
+  @override
+  String get buzzerAlerts => '蜂鸣器警报';
+
+  @override
+  String get cancelImageReceive => '取消接收图片';
+
+  @override
+  String get choose => '选择';
+
+  @override
+  String get chooseWhichTabsAndContactSectionsToShow => '选择要显示的标签页和联系人分区';
+
+  @override
+  String get clearCache => '清除缓存';
+
+  @override
+  String get clearHistory => '清除历史';
+
+  @override
+  String get clearLiveView => '清除实时视图';
+
+  @override
+  String get clearLogs => '清除日志';
+
+  @override
+  String get clearOfflineCache => '清除离线缓存？';
+
+  @override
+  String get clearOverlay => '清除叠加层';
+
+  @override
+  String get clearRouteOnlyAfterAllRetriesFail => '仅在所有重试失败后清除路由';
+
+  @override
+  String get codecBitrateAndAudioProcessing => '编解码器、比特率和音频处理';
+
+  @override
+  String get connectByIpAddress => '通过 IP 地址连接';
+
+  @override
+  String get controlWhichAlertsYouReceive => '控制接收哪些警报';
+
+  @override
+  String get copyFullHex => '复制完整 Hex';
+
+  @override
+  String get copyRawResponse => '复制原始响应';
+
+  @override
+  String get couldNotLoadMetHistory => '无法加载 MET 历史';
+
+  @override
+  String customizeSensor(String name) {
+    return '自定义 $name';
+  }
+
+  @override
+  String get data => '数据';
+
+  @override
+  String get deleteGroup => '删除群组';
+
+  @override
+  String deleteStyleConfirm(String name) {
+    return '删除 $name？';
+  }
+
+  @override
+  String deleteThisDrawing(String type) {
+    return '删除此$type？';
+  }
+
+  @override
+  String get deny => '拒绝';
+
+  @override
+  String get deviceInfo => '设备信息';
+
+  @override
+  String get deviceSettings => '设备设置';
+
+  @override
+  String get deviceTimeSynced => '设备时间已同步到此手机。';
+
+  @override
+  String get disableFastGpsPublishing => '禁用快速 GPS 发布';
+
+  @override
+  String get displayMarkersAndTraceDatabase => '显示、标记和轨迹数据库';
+
+  @override
+  String get download => '下载';
+
+  @override
+  String get environmentalTelemetry => '环境遥测';
+
+  @override
+  String errorCheckingForUpdates(String error) {
+    return '检查更新出错：$error';
+  }
+
+  @override
+  String errorGeneric(String error) {
+    return '错误：$error';
+  }
+
+  @override
+  String errorOpeningDownload(String error) {
+    return '打开下载出错：$error';
+  }
+
+  @override
+  String get exportLogs => '导出日志';
+
+  @override
+  String get extraAggressiveAvifCompression => '超强 AVIF 压缩';
+
+  @override
+  String failedToAddContact(String error) {
+    return '添加联系人失败：$error';
+  }
+
+  @override
+  String failedToAddName(String name, String error) {
+    return '添加 $name 失败：$error';
+  }
+
+  @override
+  String failedToClearChannels(String error) {
+    return '清除频道失败：$error';
+  }
+
+  @override
+  String failedToClearContacts(String error) {
+    return '清除联系人失败：$error';
+  }
+
+  @override
+  String get failedToConnectViaSerial => '通过串口连接失败';
+
+  @override
+  String failedToLoadPreviewImage(String error) {
+    return '加载预览图片失败：$error';
+  }
+
+  @override
+  String failedToLoadTrace(String error) {
+    return '加载轨迹失败：$error';
+  }
+
+  @override
+  String failedToSendSarMarker(String error) {
+    return '发送 SAR 标记失败：$error';
+  }
+
+  @override
+  String failedToSetBuzzerMode(String error) {
+    return '设置蜂鸣器模式失败：$error';
+  }
+
+  @override
+  String failedToSetGpsMode(String error) {
+    return '设置 GPS 模式失败：$error';
+  }
+
+  @override
+  String failedToSyncDeviceTime(String error) {
+    return '同步设备时间失败：$error';
+  }
+
+  @override
+  String failedToWipeDeviceData(String error) {
+    return '擦除设备数据失败：$error';
+  }
+
+  @override
+  String get fastGpsTargetChannel => '快速 GPS 目标频道';
+
+  @override
+  String get fastUpdatesThresholdsAndPermissions => '快速更新、阈值和权限';
+
+  @override
+  String get fetchingCatalog => '正在获取目录…';
+
+  @override
+  String get fifteenMinutes => '15 分钟';
+
+  @override
+  String get fifteenSeconds => '15 秒';
+
+  @override
+  String get filterByDirection => '按方向筛选';
+
+  @override
+  String get finish => '完成';
+
+  @override
+  String get fiveMinutes => '5 分钟';
+
+  @override
+  String get fiveSeconds => '5 秒';
+
+  @override
+  String get fix => '定位';
+
+  @override
+  String get gps => 'GPS';
+
+  @override
+  String get gpsAdvertPolicy => 'GPS 广播策略';
+
+  @override
+  String get gpsAndLocation => 'GPS 与位置';
+
+  @override
+  String get gpsDiagnostics => 'GPS 诊断';
+
+  @override
+  String get gpsSection => 'GPS';
+
+  @override
+  String get help => '帮助';
+
+  @override
+  String get hex => 'Hex';
+
+  @override
+  String get hidden => '已隐藏';
+
+  @override
+  String get howTheRadioAutoAddsDiscoveredNodes => '无线电自动添加已发现节点的方式。';
+
+  @override
+  String get images => '图片';
+
+  @override
+  String get importProfile => '导入配置文件';
+
+  @override
+  String get lastFix => '最后定位';
+
+  @override
+  String get latest => '最新';
+
+  @override
+  String get latitude => '纬度';
+
+  @override
+  String get loadASavedRegion => '加载已保存的区域';
+
+  @override
+  String get loading => '加载中';
+
+  @override
+  String get locationSharingHardwareAndUpdateInterval => '位置共享、硬件和更新间隔。';
+
+  @override
+  String get locationTelemetry => '位置遥测';
+
+  @override
+  String get lockDestination => '锁定目的地';
+
+  @override
+  String get longitude => '经度';
+
+  @override
+  String get mapStyle => '地图样式';
+
+  @override
+  String get max => '最大';
+
+  @override
+  String get maxZoom => '最大缩放';
+
+  @override
+  String get messaging => '消息传递';
+
+  @override
+  String get metHistory => 'MET 历史';
+
+  @override
+  String get min => '最小';
+
+  @override
+  String get minZoom => '最小缩放';
+
+  @override
+  String get moveDown => '下移';
+
+  @override
+  String get moveUp => '上移';
+
+  @override
+  String get multiAckMode => '多重 ACK 模式';
+
+  @override
+  String get multiDeviceWorkspaceManagement => '多设备工作区管理';
+
+  @override
+  String get myLocation => '我的位置';
+
+  @override
+  String get nameAndTelemetryShared => '名称和遥测数据已与其他设备共享。';
+
+  @override
+  String newVersionAvailable(String version) {
+    return '新版本：$version';
+  }
+
+  @override
+  String get newer => '较新';
+
+  @override
+  String get noNeighboursFound => '未找到邻近节点';
+
+  @override
+  String get noServersFound => '未找到服务器';
+
+  @override
+  String get notSet => '未设置';
+
+  @override
+  String get notifications => '通知';
+
+  @override
+  String get offZeroSeconds => '关闭 (0 秒)';
+
+  @override
+  String get offlineMaps => '离线地图';
+
+  @override
+  String get older => '较旧';
+
+  @override
+  String get oneByteMode0 => '1 字节（模式 0）';
+
+  @override
+  String get oneHour => '1 小时';
+
+  @override
+  String get oneMinute => '1 分钟';
+
+  @override
+  String get openPacketLogs => '打开数据包日志';
+
+  @override
+  String get packetTypeHelp => '数据包类型帮助';
+
+  @override
+  String get pasteShareLinkOrHexAdvert => '粘贴分享链接或 Hex 广播';
+
+  @override
+  String get pathHash => '路径哈希';
+
+  @override
+  String get pathSize => '路径大小';
+
+  @override
+  String get ping => 'Ping';
+
+  @override
+  String get polygon => '多边形';
+
+  @override
+  String get rawResponseCopied => '原始响应已复制';
+
+  @override
+  String get resendThroughNearestRepeaterOnFailure => '失败时通过最近的中继器重新发送';
+
+  @override
+  String get resolveContact => '解析联系人';
+
+  @override
+  String get routingRetriesAndDestinationLock => '路由、重试和目的地锁定';
+
+  @override
+  String get samples => '采样';
+
+  @override
+  String get satellites => '卫星';
+
+  @override
+  String get saving => '保存中…';
+
+  @override
+  String get search => '搜索';
+
+  @override
+  String get searchByNameOrToken => '按名称或令牌搜索';
+
+  @override
+  String get searchDiscoveredNodes => '搜索已发现的节点';
+
+  @override
+  String get searchInCurrentFilter => '在当前筛选中搜索';
+
+  @override
+  String get searchLogs => '搜索日志…';
+
+  @override
+  String get searchSensors => '搜索传感器';
+
+  @override
+  String get searchThisSection => '搜索此分区';
+
+  @override
+  String get selectedRelays => '已选中继器';
+
+  @override
+  String get sensor => '传感器';
+
+  @override
+  String serialError(String error) {
+    return '串口错误：$error';
+  }
+
+  @override
+  String setPathForContact(String name) {
+    return '为 $name 设置路径';
+  }
+
+  @override
+  String get shareLiveGps => '共享实时 GPS';
+
+  @override
+  String get shareMyTiles => '共享我的地图瓦片';
+
+  @override
+  String get sharingLocationFromPhone => '正在从手机共享此频道的位置。';
+
+  @override
+  String get sharingLocationFromRadio => '正在从无线电共享此频道的位置。';
+
+  @override
+  String signalDbm(String rssi) {
+    return '信号 $rssi dBm';
+  }
+
+  @override
+  String get sizeCompressionAndPreview => '大小、压缩和预览';
+
+  @override
+  String get skip => '跳过';
+
+  @override
+  String get smallerFileSize => '更小的文件大小';
+
+  @override
+  String get sort => '排序';
+
+  @override
+  String get stoppedSharingLocation => '已停止在此频道上共享位置。';
+
+  @override
+  String get suppressNotificationsWhileInForeground => '前台运行时抑制通知';
+
+  @override
+  String get tabsAndNavigation => '标签页与导航';
+
+  @override
+  String get templatesAndTutorials => '模板和教程';
+
+  @override
+  String get tenMinutes => '10 分钟';
+
+  @override
+  String get tenSeconds => '10 秒';
+
+  @override
+  String get testSendUpdate => '测试发送更新';
+
+  @override
+  String get themeLanguageAndDisplayPreferences => '主题、语言和显示偏好';
+
+  @override
+  String get thirtyMinutes => '30 分钟';
+
+  @override
+  String get thirtySeconds => '30 秒';
+
+  @override
+  String get threeBytesMode2 => '3 字节（模式 2）';
+
+  @override
+  String get trafficStatsMessageHistoryAndDeveloperTools => '流量统计、消息历史和开发者工具';
+
+  @override
+  String get twoBytesMode1 => '2 字节（模式 1）';
+
+  @override
+  String get twoMinutes => '2 分钟';
+
+  @override
+  String get undo => '撤销';
+
+  @override
+  String get updated => '已更新';
+
+  @override
+  String get useContactFlags => '使用联系人标志';
+
+  @override
+  String get useSavedCoordinates => '使用已保存的坐标';
+
+  @override
+  String get view => '查看';
+
+  @override
+  String get viewNeighbours => '查看邻近节点';
+
+  @override
+  String get viewPublicStats => '查看公开统计';
+
+  @override
+  String get setRegionScope => '设置区域范围';
+
+  @override
+  String get regionScope => '区域范围';
+
+  @override
+  String get regionScopeNone => '无（全局）';
+
+  @override
+  String get clearRegionScope => '清除范围';
+
+  @override
+  String get regionScopeWarning => '只有允许此区域的中继器会转发。';
+
+  @override
+  String get discoverRegions => '从中继器发现';
+
+  @override
+  String get discoveringRegions => '正在发现区域...';
+
+  @override
+  String get enterRegionName => '区域名称（例如 auckland）';
+
+  @override
+  String get noRegionsFound => '此中继器上未找到区域。';
+
+  @override
+  String regionScopeSet(String name) {
+    return '区域范围已设置为 $name';
+  }
+
+  @override
+  String get regionScopeCleared => '区域范围已清除';
 }

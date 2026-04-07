@@ -534,6 +534,7 @@ class _ContactsTabState extends State<ContactsTab> {
       final result = await context.read<AppProvider>().setChannelLocationSharingEnabled(
         channelIdx,
         enabled,
+        l10n: AppLocalizations.of(context),
       );
       if (!context.mounted) return;
       ToastLogger.success(context, result.message);
@@ -1442,7 +1443,7 @@ class _ContactsTabState extends State<ContactsTab> {
                         height: 1.1,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Search this section',
+                        hintText: AppLocalizations.of(context)!.searchThisSection,
                         hintStyle: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant.withValues(
                             alpha: 0.85,
@@ -1601,7 +1602,7 @@ class _ContactsTabState extends State<ContactsTab> {
     final availableModes = _availableSortModes(section);
 
     return PopupMenuButton<ContactSortMode>(
-      tooltip: 'Sort',
+      tooltip: AppLocalizations.of(context)!.sort,
       initialValue: selectedMode,
       onSelected: (sortMode) {
         setState(() {
@@ -1862,7 +1863,7 @@ class _InferredContactGroupCard extends StatelessWidget {
               if (onDelete != null) ...[
                 const SizedBox(width: 2),
                 IconButton(
-                  tooltip: 'Delete group',
+                  tooltip: AppLocalizations.of(context)!.deleteGroup,
                   onPressed: onDelete,
                   visualDensity: VisualDensity.compact,
                   constraints: const BoxConstraints.tightFor(

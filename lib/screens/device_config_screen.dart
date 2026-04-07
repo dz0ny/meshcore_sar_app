@@ -854,7 +854,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (!mounted) return;
       setState(() => _buzzerLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to set buzzer mode: $e')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.failedToSetBuzzerMode(e.toString()))),
       );
     }
   }
@@ -874,7 +874,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       setState(() => _gpsLoading = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Failed to set GPS mode: $e')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.failedToSetGpsMode(e.toString()))));
     }
   }
 
@@ -980,8 +980,8 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Device time synced to this phone.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.deviceTimeSynced),
           backgroundColor: Colors.green,
         ),
       );
@@ -989,7 +989,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to sync device time: $e'),
+          content: Text(AppLocalizations.of(context)!.failedToSyncDeviceTime(e.toString())),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -1055,7 +1055,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (!mounted) return;
       messenger.showSnackBar(
         SnackBar(
-          content: Text('Failed to wipe device data: $e'),
+          content: Text(AppLocalizations.of(context)!.failedToWipeDeviceData(e.toString())),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -1146,7 +1146,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (!mounted) return;
       messenger.showSnackBar(
         SnackBar(
-          content: Text('Failed to clear contacts: $e'),
+          content: Text(AppLocalizations.of(context)!.failedToClearContacts(e.toString())),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -1252,7 +1252,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (!mounted) return;
       messenger.showSnackBar(
         SnackBar(
-          content: Text('Failed to clear channels: $e'),
+          content: Text(AppLocalizations.of(context)!.failedToClearChannels(e.toString())),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -1273,7 +1273,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     final locationSet = _advertLocationPolicy != 0;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Device Settings')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.deviceSettings)),
       body: ColoredBox(
         color: colorScheme.surface,
         child: SafeArea(
@@ -1303,7 +1303,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
               ),
               SizedBox(height: 12),
               _ConfigSectionCard(
-                title: 'Device info',
+                title: AppLocalizations.of(context)!.deviceInfo,
                 subtitle:
                     'Capabilities, storage, and maintenance tools.',
                 icon: Icons.info_outline_rounded,
@@ -1323,7 +1323,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                             SizedBox(
                               width: cardWidth,
                               child: _StorageStat(
-                                label: 'BLE PIN',
+                                label: AppLocalizations.of(context)!.blePin,
                                 value: _formatBlePin(deviceInfo.blePin),
                                 compact: true,
                               ),
@@ -1356,7 +1356,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                               SizedBox(
                                 width: cardWidth,
                                 child: _StorageStat(
-                                  label: 'Path hash',
+                                  label: AppLocalizations.of(context)!.pathHash,
                                   value: _pathHashModeLabel(
                                     deviceInfo.pathHashMode!,
                                   ),
@@ -1416,7 +1416,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                             icon: _buzzerEnabled!
                                 ? Icons.volume_up_rounded
                                 : Icons.volume_off_rounded,
-                            title: 'Buzzer alerts',
+                            title: AppLocalizations.of(context)!.buzzerAlerts,
                             description: 'Onboard buzzer for radio alerts',
                             accentColor: _buzzerEnabled!
                                 ? colorScheme.primary
@@ -1440,7 +1440,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                           icon: _multiAcksEnabled
                               ? Icons.mark_email_read_outlined
                               : Icons.mark_email_unread_outlined,
-                          title: 'Multi-ACK mode',
+                          title: AppLocalizations.of(context)!.multiAckMode,
                           description: 'Request extra acknowledgements',
                           accentColor: _multiAcksEnabled
                               ? colorScheme.primary
@@ -1463,7 +1463,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
               SizedBox(height: 12),
               _ConfigSectionCard(
                 title: AppLocalizations.of(context)!.publicInfo,
-                subtitle: 'Name and telemetry shared with other devices.',
+                subtitle: AppLocalizations.of(context)!.nameAndTelemetryShared,
                 icon: Icons.public_rounded,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1484,15 +1484,15 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                     ),
                     const SizedBox(height: 10),
                     _ConfigDropdownField(
-                      label: 'Base telemetry',
+                      label: AppLocalizations.of(context)!.baseTelemetry,
                       value: _baseTelemetryMode,
-                      items: const [
-                        DropdownMenuItem(value: 0, child: Text('Deny')),
+                      items: [
+                        DropdownMenuItem(value: 0, child: Text(AppLocalizations.of(context)!.deny)),
                         DropdownMenuItem(
                           value: 1,
-                          child: Text('Use contact flags'),
+                          child: Text(AppLocalizations.of(context)!.useContactFlags),
                         ),
-                        DropdownMenuItem(value: 2, child: Text('Allow all')),
+                        DropdownMenuItem(value: 2, child: Text(AppLocalizations.of(context)!.allowAll)),
                       ],
                       onChanged: (value) {
                         if (value == null) return;
@@ -1504,15 +1504,15 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                     ),
                     const SizedBox(height: 10),
                     _ConfigDropdownField(
-                      label: 'Location telemetry',
+                      label: AppLocalizations.of(context)!.locationTelemetry,
                       value: _locationTelemetryMode,
-                      items: const [
-                        DropdownMenuItem(value: 0, child: Text('Deny')),
+                      items: [
+                        DropdownMenuItem(value: 0, child: Text(AppLocalizations.of(context)!.deny)),
                         DropdownMenuItem(
                           value: 1,
-                          child: Text('Use contact flags'),
+                          child: Text(AppLocalizations.of(context)!.useContactFlags),
                         ),
-                        DropdownMenuItem(value: 2, child: Text('Allow all')),
+                        DropdownMenuItem(value: 2, child: Text(AppLocalizations.of(context)!.allowAll)),
                       ],
                       onChanged: (value) {
                         if (value == null) return;
@@ -1524,15 +1524,15 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                     ),
                     const SizedBox(height: 10),
                     _ConfigDropdownField(
-                      label: 'Environmental telemetry',
+                      label: AppLocalizations.of(context)!.environmentalTelemetry,
                       value: _environmentTelemetryMode,
-                      items: const [
-                        DropdownMenuItem(value: 0, child: Text('Deny')),
+                      items: [
+                        DropdownMenuItem(value: 0, child: Text(AppLocalizations.of(context)!.deny)),
                         DropdownMenuItem(
                           value: 1,
-                          child: Text('Use contact flags'),
+                          child: Text(AppLocalizations.of(context)!.useContactFlags),
                         ),
-                        DropdownMenuItem(value: 2, child: Text('Allow all')),
+                        DropdownMenuItem(value: 2, child: Text(AppLocalizations.of(context)!.allowAll)),
                       ],
                       onChanged: (value) {
                         if (value == null) return;
@@ -1566,24 +1566,24 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
               ),
               SizedBox(height: 12),
               _ConfigSectionCard(
-                title: 'GPS',
-                subtitle: 'Location sharing, hardware, and update interval.',
+                title: AppLocalizations.of(context)!.gpsSection,
+                subtitle: AppLocalizations.of(context)!.locationSharingHardwareAndUpdateInterval,
                 icon: Icons.gps_fixed,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _ConfigDropdownField(
-                      label: 'GPS advert policy',
+                      label: AppLocalizations.of(context)!.gpsAdvertPolicy,
                       value: _advertLocationPolicy,
-                      items: const [
-                        DropdownMenuItem(value: 0, child: Text('Hidden')),
+                      items: [
+                        DropdownMenuItem(value: 0, child: Text(AppLocalizations.of(context)!.hidden)),
                         DropdownMenuItem(
                           value: 1,
-                          child: Text('Share live GPS'),
+                          child: Text(AppLocalizations.of(context)!.shareLiveGps),
                         ),
                         DropdownMenuItem(
                           value: 2,
-                          child: Text('Use saved coordinates'),
+                          child: Text(AppLocalizations.of(context)!.useSavedCoordinates),
                         ),
                       ],
                       onChanged: (value) {
@@ -1641,20 +1641,20 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                         fillColor: colorScheme.surfaceContainerLowest,
                       ),
                       isExpanded: true,
-                      items: const [
-                        DropdownMenuItem(value: null, child: Text('Not set')),
-                        DropdownMenuItem(value: 0, child: Text('Off (0 s)')),
-                        DropdownMenuItem(value: 5, child: Text('5 seconds')),
-                        DropdownMenuItem(value: 10, child: Text('10 seconds')),
-                        DropdownMenuItem(value: 15, child: Text('15 seconds')),
-                        DropdownMenuItem(value: 30, child: Text('30 seconds')),
-                        DropdownMenuItem(value: 60, child: Text('1 minute')),
-                        DropdownMenuItem(value: 120, child: Text('2 minutes')),
-                        DropdownMenuItem(value: 300, child: Text('5 minutes')),
-                        DropdownMenuItem(value: 600, child: Text('10 minutes')),
-                        DropdownMenuItem(value: 900, child: Text('15 minutes')),
-                        DropdownMenuItem(value: 1800, child: Text('30 minutes')),
-                        DropdownMenuItem(value: 3600, child: Text('1 hour')),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(AppLocalizations.of(context)!.notSet)),
+                        DropdownMenuItem(value: 0, child: Text(AppLocalizations.of(context)!.offZeroSeconds)),
+                        DropdownMenuItem(value: 5, child: Text(AppLocalizations.of(context)!.fiveSeconds)),
+                        DropdownMenuItem(value: 10, child: Text(AppLocalizations.of(context)!.tenSeconds)),
+                        DropdownMenuItem(value: 15, child: Text(AppLocalizations.of(context)!.fifteenSeconds)),
+                        DropdownMenuItem(value: 30, child: Text(AppLocalizations.of(context)!.thirtySeconds)),
+                        DropdownMenuItem(value: 60, child: Text(AppLocalizations.of(context)!.oneMinute)),
+                        DropdownMenuItem(value: 120, child: Text(AppLocalizations.of(context)!.twoMinutes)),
+                        DropdownMenuItem(value: 300, child: Text(AppLocalizations.of(context)!.fiveMinutes)),
+                        DropdownMenuItem(value: 600, child: Text(AppLocalizations.of(context)!.tenMinutes)),
+                        DropdownMenuItem(value: 900, child: Text(AppLocalizations.of(context)!.fifteenMinutes)),
+                        DropdownMenuItem(value: 1800, child: Text(AppLocalizations.of(context)!.thirtyMinutes)),
+                        DropdownMenuItem(value: 3600, child: Text(AppLocalizations.of(context)!.oneHour)),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -1687,7 +1687,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                                 Expanded(
                                   child: _CompactCoordinateField(
                                     controller: _latController,
-                                    label: 'Latitude',
+                                    label: AppLocalizations.of(context)!.latitude,
                                     onChanged: (_) => _markPublicInfoDirty(),
                                   ),
                                 ),
@@ -1695,7 +1695,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                                 Expanded(
                                   child: _CompactCoordinateField(
                                     controller: _lonController,
-                                    label: 'Longitude',
+                                    label: AppLocalizations.of(context)!.longitude,
                                     onChanged: (_) => _markPublicInfoDirty(),
                                   ),
                                 ),
@@ -1994,18 +1994,18 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                           helperText:
                               'Hash size used in adverts and flood paths',
                         ),
-                        items: const [
+                        items: [
                           DropdownMenuItem(
                             value: 0,
-                            child: Text('1 byte (mode 0)'),
+                            child: Text(AppLocalizations.of(context)!.oneByteMode0),
                           ),
                           DropdownMenuItem(
                             value: 1,
-                            child: Text('2 bytes (mode 1)'),
+                            child: Text(AppLocalizations.of(context)!.twoBytesMode1),
                           ),
                           DropdownMenuItem(
                             value: 2,
-                            child: Text('3 bytes (mode 2)'),
+                            child: Text(AppLocalizations.of(context)!.threeBytesMode2),
                           ),
                         ],
                         onChanged: (int? newValue) {
@@ -2070,7 +2070,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
               SizedBox(height: 12),
               _ConfigSectionCard(
                 title: AppLocalizations.of(context)!.autoDiscovery,
-                subtitle: 'How the radio auto-adds discovered nodes.',
+                subtitle: AppLocalizations.of(context)!.howTheRadioAutoAddsDiscoveredNodes,
                 icon: Icons.person_search_rounded,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2754,14 +2754,14 @@ class _SaveActionButton extends StatelessWidget {
             ? Row(
                 key: const ValueKey('saving'),
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  SizedBox(
+                children: [
+                  const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2.2),
                   ),
-                  SizedBox(width: 10),
-                  Text('Saving...'),
+                  const SizedBox(width: 10),
+                  Text(AppLocalizations.of(context)!.saving),
                 ],
               )
             : Row(
@@ -2881,14 +2881,14 @@ class _GpsDiagnosticsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          _GpsDiagnosticsRow(label: 'Fix', value: fixValue),
+          _GpsDiagnosticsRow(label: AppLocalizations.of(context)!.fix, value: fixValue),
           const SizedBox(height: 4),
-          _GpsDiagnosticsRow(label: 'Satellites', value: satellitesValue),
+          _GpsDiagnosticsRow(label: AppLocalizations.of(context)!.satellites, value: satellitesValue),
           const SizedBox(height: 4),
-          _GpsDiagnosticsRow(label: 'Last fix', value: lastFixValue),
+          _GpsDiagnosticsRow(label: AppLocalizations.of(context)!.lastFix, value: lastFixValue),
           const SizedBox(height: 4),
           _GpsDiagnosticsRow(
-            label: 'Location',
+            label: AppLocalizations.of(context)!.location,
             value: locationValue,
             maxLines: 2,
           ),

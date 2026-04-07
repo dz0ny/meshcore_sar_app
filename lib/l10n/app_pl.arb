@@ -36,10 +36,6 @@
   "@scanAgain": {
     "description": "Button to restart BLE scanning"
   },
-  "tapToConnect": "Dotknij, aby połączyć",
-  "@tapToConnect": {
-    "description": "Subtitle text for device in scan list"
-  },
   "deviceNotConnected": "Urządzenie nie jest połączone",
   "@deviceNotConnected": {
     "description": "Error message when device is not connected"
@@ -133,17 +129,9 @@
   "@showRxTxIndicators": {
     "description": "Setting to show RX/TX indicators"
   },
-  "displayPacketActivity": "Wyświetlaj wskaźniki aktywności pakietów na górnym pasku",
-  "@displayPacketActivity": {
-    "description": "Description for RX/TX indicators setting"
-  },
   "disableMap": "Wyłącz mapę",
   "@disableMap": {
     "description": "Setting to disable the map tab"
-  },
-  "disableMapDescription": "Ukryj kartę mapy, aby zmniejszyć zużycie baterii",
-  "@disableMapDescription": {
-    "description": "Description for disable map setting"
   },
   "language": "Język",
   "@language": {
@@ -172,10 +160,6 @@
   "appVersion": "Wersja aplikacji",
   "@appVersion": {
     "description": "App version label"
-  },
-  "appName": "Nazwa aplikacji",
-  "@appName": {
-    "description": "App name label"
   },
   "aboutMeshCoreSar": "O MeshCore SAR",
   "@aboutMeshCoreSar": {
@@ -307,10 +291,6 @@
   "resetPath": "Resetuj trasę (wyznacz ponownie)",
   "@resetPath": {
     "description": "Action to reset contact path for re-routing"
-  },
-  "publicKeyCopied": "Klucz publiczny skopiowano do schowka",
-  "@publicKeyCopied": {
-    "description": "Success message when public key is copied"
   },
   "copiedToClipboard": "Skopiowano {label} do schowka",
   "@copiedToClipboard": {
@@ -720,22 +700,6 @@
   "@lastSeen": {
     "description": "Last seen label"
   },
-  "roomStatus": "Status pokoju",
-  "@roomStatus": {
-    "description": "Room status section header"
-  },
-  "loginStatus": "Status logowania",
-  "@loginStatus": {
-    "description": "Login status label"
-  },
-  "notLoggedIn": "Niezalogowany",
-  "@notLoggedIn": {
-    "description": "Not logged in status"
-  },
-  "adminAccess": "Dostęp administratora",
-  "@adminAccess": {
-    "description": "Admin access label"
-  },
   "yes": "Tak",
   "@yes": {
     "description": "Yes answer"
@@ -747,14 +711,6 @@
   "permissions": "Uprawnienia",
   "@permissions": {
     "description": "Permissions label"
-  },
-  "passwordSaved": "Hasło zapisano",
-  "@passwordSaved": {
-    "description": "Password saved label"
-  },
-  "locationColon": "Lokalizacja:",
-  "@locationColon": {
-    "description": "Location section header"
   },
   "telemetry": "Telemetria",
   "@telemetry": {
@@ -783,19 +739,6 @@
   "gpsTelemetry": "GPS (telemetria)",
   "@gpsTelemetry": {
     "description": "GPS from telemetry label"
-  },
-  "updated": "Zaktualizowano",
-  "@updated": {
-    "description": "Updated timestamp label"
-  },
-  "pathResetInfo": "Trasa dla {name} została zresetowana. Następna wiadomość znajdzie nową trasę.",
-  "@pathResetInfo": {
-    "description": "Info message after path reset",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
   },
   "reLoginToRoom": "Zaloguj ponownie do pokoju",
   "@reLoginToRoom": {
@@ -1158,10 +1101,6 @@
   "@frequencyMHz": {
     "description": "Label for radio frequency field"
   },
-  "frequencyExample": "np. 869.618",
-  "@frequencyExample": {
-    "description": "Helper text example for frequency"
-  },
   "bandwidth": "Szerokość pasma",
   "@bandwidth": {
     "description": "Label for bandwidth dropdown"
@@ -1265,47 +1204,6 @@
   "@trailControls": {
     "description": "Trail controls tooltip"
   },
-  "contactTrails": "Ślady kontaktów",
-  "@contactTrails": {
-    "description": "Contact trails section header"
-  },
-  "showAllContactTrails": "Pokaż wszystkie ślady kontaktów",
-  "@showAllContactTrails": {
-    "description": "Toggle label to show all contact trails"
-  },
-  "noContactsWithLocationHistory": "Brak kontaktów z historią lokalizacji",
-  "@noContactsWithLocationHistory": {
-    "description": "Subtitle when no contacts have trails"
-  },
-  "showingTrailsForContacts": "Pokazywane są ślady dla {count} kontaktów",
-  "@showingTrailsForContacts": {
-    "description": "Subtitle showing number of contacts with trails",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "individualContactTrails": "Indywidualne ślady kontaktów",
-  "@individualContactTrails": {
-    "description": "Expansion tile title for individual contact trails"
-  },
-  "deviceInformation": "Informacje o urządzeniu",
-  "@deviceInformation": {
-    "description": "Device information section header"
-  },
-  "bleName": "Nazwa BLE",
-  "@bleName": {
-    "description": "Bluetooth Low Energy device name label"
-  },
-  "meshName": "Nazwa mesh",
-  "@meshName": {
-    "description": "Mesh network name label"
-  },
-  "notSet": "Nie ustawiono",
-  "@notSet": {
-    "description": "Label when a value is not set"
-  },
   "model": "Model",
   "@model": {
     "description": "Device model label"
@@ -1313,14 +1211,6 @@
   "version": "Wersja",
   "@version": {
     "description": "Version label"
-  },
-  "buildDate": "Data kompilacji",
-  "@buildDate": {
-    "description": "Firmware build date label"
-  },
-  "firmware": "Firmware",
-  "@firmware": {
-    "description": "Firmware label"
   },
   "maxContacts": "Maks. kontaktów",
   "@maxContacts": {
@@ -1333,26 +1223,6 @@
   "publicInfo": "Informacje publiczne",
   "@publicInfo": {
     "description": "Public information section header"
-  },
-  "meshNetworkName": "Nazwa sieci mesh",
-  "@meshNetworkName": {
-    "description": "Mesh network name field label"
-  },
-  "nameBroadcastInMesh": "Nazwa nadawana w ogłoszeniach mesh",
-  "@nameBroadcastInMesh": {
-    "description": "Helper text for mesh network name field"
-  },
-  "telemetryAndLocationSharing": "Telemetria i udostępnianie lokalizacji",
-  "@telemetryAndLocationSharing": {
-    "description": "Telemetry and location sharing toggle label"
-  },
-  "lat": "Szer.",
-  "@lat": {
-    "description": "Latitude field label (short form)"
-  },
-  "lon": "Dł.",
-  "@lon": {
-    "description": "Longitude field label (short form)"
   },
   "useCurrentLocation": "Użyj bieżącej lokalizacji",
   "@useCurrentLocation": {
@@ -1383,15 +1253,6 @@
       }
     }
   },
-  "copiedToClipboardShort": "Skopiowano {label} do schowka",
-  "@copiedToClipboardShort": {
-    "description": "Short success message when copying to clipboard",
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
   "failedToSave": "Nie udało się zapisać: {error}",
   "@failedToSave": {
     "description": "Generic error message for save failures",
@@ -1413,10 +1274,6 @@
   "sarTemplates": "Szablony SAR",
   "@sarTemplates": {
     "description": "SAR templates menu title"
-  },
-  "manageSarTemplates": "Zarządzaj szablonami SAR",
-  "@manageSarTemplates": {
-    "description": "Subtitle for SAR templates settings"
   },
   "addTemplate": "Dodaj szablon",
   "@addTemplate": {
@@ -1540,10 +1397,6 @@
   "ok": "OK",
   "@ok": {
     "description": "OK button label"
-  },
-  "permissionsSection": "Uprawnienia",
-  "@permissionsSection": {
-    "description": "Permissions section header"
   },
   "locationPermission": "Uprawnienie lokalizacji",
   "@locationPermission": {
@@ -2109,94 +1962,6 @@
   "@wizardWelcomeTitle": {
     "description": "Welcome wizard first page title"
   },
-  "wizardWelcomeDescription": "Potężne narzędzie komunikacji poza siecią do operacji poszukiwawczo-ratowniczych. Połącz się ze swoim zespołem przy użyciu technologii radia mesh, gdy tradycyjne sieci są niedostępne.",
-  "@wizardWelcomeDescription": {
-    "description": "Welcome wizard first page description"
-  },
-  "wizardConnectingTitle": "Łączenie z radiem",
-  "@wizardConnectingTitle": {
-    "description": "Wizard connecting page title"
-  },
-  "wizardConnectingDescription": "Połącz smartfon z urządzeniem radiowym MeshCore przez Bluetooth, aby rozpocząć komunikację poza siecią.",
-  "@wizardConnectingDescription": {
-    "description": "Wizard connecting page description"
-  },
-  "wizardConnectingFeature1": "Skanuj pobliskie urządzenia MeshCore",
-  "@wizardConnectingFeature1": {
-    "description": "Wizard connecting feature 1"
-  },
-  "wizardConnectingFeature2": "Sparuj radio przez Bluetooth",
-  "@wizardConnectingFeature2": {
-    "description": "Wizard connecting feature 2"
-  },
-  "wizardConnectingFeature3": "Działa całkowicie offline - internet nie jest wymagany",
-  "@wizardConnectingFeature3": {
-    "description": "Wizard connecting feature 3"
-  },
-  "wizardChannelTitle": "Kanały",
-  "@wizardChannelTitle": {
-    "description": "Wizard channel page title"
-  },
-  "wizardChannelDescription": "Nadawaj wiadomości do wszystkich na kanale, idealne do ogłoszeń i koordynacji całego zespołu.",
-  "@wizardChannelDescription": {
-    "description": "Wizard channel page description"
-  },
-  "wizardChannelFeature1": "Kanał publiczny do ogólnej komunikacji zespołu",
-  "@wizardChannelFeature1": {
-    "description": "Wizard channel feature 1"
-  },
-  "wizardChannelFeature2": "Twórz własne kanały dla konkretnych grup",
-  "@wizardChannelFeature2": {
-    "description": "Wizard channel feature 2"
-  },
-  "wizardChannelFeature3": "Wiadomości są automatycznie przekazywane przez mesh",
-  "@wizardChannelFeature3": {
-    "description": "Wizard channel feature 3"
-  },
-  "wizardContactsTitle": "Kontakty",
-  "@wizardContactsTitle": {
-    "description": "Wizard contacts page title"
-  },
-  "wizardContactsDescription": "Członkowie zespołu pojawiają się automatycznie, gdy dołączają do sieci mesh. Wyślij im wiadomość bezpośrednią lub zobacz ich lokalizację.",
-  "@wizardContactsDescription": {
-    "description": "Wizard contacts page description"
-  },
-  "wizardContactsFeature1": "Kontakty wykrywane automatycznie",
-  "@wizardContactsFeature1": {
-    "description": "Wizard contacts feature 1"
-  },
-  "wizardContactsFeature2": "Wysyłaj prywatne wiadomości bezpośrednie",
-  "@wizardContactsFeature2": {
-    "description": "Wizard contacts feature 2"
-  },
-  "wizardContactsFeature3": "Podgląd poziomu baterii i czasu ostatniej aktywności",
-  "@wizardContactsFeature3": {
-    "description": "Wizard contacts feature 3"
-  },
-  "wizardMapTitle": "Mapa i lokalizacja",
-  "@wizardMapTitle": {
-    "description": "Wizard map page title"
-  },
-  "wizardMapDescription": "Śledź swój zespół w czasie rzeczywistym i oznaczaj ważne lokalizacje dla działań poszukiwawczo-ratowniczych.",
-  "@wizardMapDescription": {
-    "description": "Wizard map page description"
-  },
-  "wizardMapFeature1": "Znaczniki SAR dla odnalezionych osób, pożarów i stref zbiórki",
-  "@wizardMapFeature1": {
-    "description": "Wizard map feature 1"
-  },
-  "wizardMapFeature2": "Śledzenie GPS członków zespołu w czasie rzeczywistym",
-  "@wizardMapFeature2": {
-    "description": "Wizard map feature 2"
-  },
-  "wizardMapFeature3": "Pobieraj mapy offline dla odległych obszarów",
-  "@wizardMapFeature3": {
-    "description": "Wizard map feature 3"
-  },
-  "wizardMapFeature4": "Rysuj kształty i udostępniaj informacje taktyczne",
-  "@wizardMapFeature4": {
-    "description": "Wizard map feature 4"
-  },
   "viewWelcomeTutorial": "Pokaż samouczek powitalny",
   "@viewWelcomeTutorial": {
     "description": "Settings option to re-show welcome wizard"
@@ -2352,29 +2117,10 @@
   "posttxDelay": "Opóźnienie po nadawaniu",
   "bandpass": "Pasmowy",
   "bandpassFilterVoice": "Filtr pasmowy głosu",
-  "frequency": "Częstotliwość",
-  "australia": "Australia",
-  "australiaNarrow": "Australia (wąski)",
-  "australiaQld": "Australia: QLD",
-  "australiaSaWa": "Australia: SA, WA",
-  "newZealand": "Nowa Zelandia",
-  "newZealandNarrow": "Nowa Zelandia (wąski)",
-  "switzerland": "Szwajcaria",
-  "portugal433": "Portugalia 433",
-  "portugal868": "Portugalia 868",
-  "czechRepublicNarrow": "Czechy (wąski)",
-  "eu433mhzLongRange": "EU 433MHz (daleki zasięg)",
-  "euukDeprecated": "EU/UK (przestarzały)",
-  "euukNarrow": "EU/UK (wąski)",
-  "usacanadaRecommended": "USA/Kanada (zalecany)",
-  "vietnamDeprecated": "Wietnam (przestarzały)",
-  "vietnamNarrow": "Wietnam (wąski)",
   "active": "Aktywny",
   "addContact": "Dodaj kontakt",
   "all": "Wszystko",
-  "autoResolve": "Automatyczne rozwiązanie",
   "clearAllLabel": "Wyczyść wszystko",
-  "clearRelays": "Wyczyść przekaźniki",
   "clearFilters": "Wyczyść filtry",
   "clearRoute": "Wyczyść trasę",
   "clearMessages": "Wyczyść wiadomości",
@@ -2400,10 +2146,7 @@
   "send": "Wyślij",
   "sendAnyway": "Wyślij mimo to",
   "share": "Udostępnij",
-  "shareContact": "Udostępnij kontakt",
   "trace": "Śledzenie",
-  "use": "Użyj",
-  "useSelectedFrequency": "Użyj wybranej częstotliwości",
   "discovery": "Wykrywanie",
   "discoverRepeaters": "Wykryj przekaźniki",
   "discoverSensors": "Wykryj czujniki",
@@ -2426,7 +2169,6 @@
   "gpsModule": "Moduł GPS",
   "liveTraffic": "Ruch na żywo",
   "repeatersMap": "Mapa przekaźników",
-  "spectrumScan": "Skanowanie spektrum",
   "blePacketLogs": "Logi pakietów BLE",
   "onlineTraceDatabase": "Baza śladów",
   "routePathByteSize": "Rozmiar ścieżki w bajtach",
@@ -2438,7 +2180,6 @@
   "disableContacts": "Wyłącz kontakty",
   "enableSensorsTab": "Włącz kartę Czujniki",
   "enableProfiles": "Włącz profile",
-  "autoRouteRotation": "Automatyczna rotacja trasy",
   "nearestRepeaterFallback": "Najbliższy przekaźnik awaryjny",
   "deleteAllStoredMessageHistory": "Usuń całą historię wiadomości",
   "messageFontSize": "Rozmiar czcionki wiadomości",
@@ -2446,18 +2187,13 @@
   "showMapDebugInfo": "Pokaż info debugowania mapy",
   "openMapInFullscreen": "Otwórz mapę na pełnym ekranie",
   "showSarMarkersLabel": "Pokaż znaczniki SAR",
-  "displaySarMarkersOnTheMainMap": "Wyświetlaj znaczniki SAR na głównej mapie",
-  "showAllContactTrailsLabel": "Pokaż wszystkie ślady kontaktów",
   "hideRepeatersOnMap": "Ukryj przekaźniki na mapie",
   "setMapScale": "Ustaw skalę mapy",
   "customMapScaleSaved": "Niestandardowa skala mapy zapisana",
   "voiceBitrate": "Bitrate głosu",
   "voiceCompressor": "Kompresor głosu",
-  "balancesQuietAndLoudSpeechLevels": "Wyrównuje ciche i głośne poziomy mowy",
   "voiceLimiter": "Limiter głosu",
-  "preventsClippingPeaksBeforeEncoding": "Zapobiega przycinaniu szczytów przed kodowaniem",
   "micAutoGain": "Automatyczne wzmocnienie mikrofonu",
-  "letsTheRecorderAdjustInputLevel": "Pozwala nagrywarkowi dostosować poziom wejścia",
   "echoCancellation": "Usuwanie echa",
   "noiseSuppression": "Tłumienie szumu",
   "trimSilenceInVoiceMessages": "Przytnij ciszę w wiadomościach głosowych",
@@ -2499,13 +2235,10 @@
   "staging": "Punkt zbiórki",
   "object": "Obiekt",
   "quiet": "Cicho",
-  "moderate": "Umiarkowane",
   "busy": "Zajęty",
-  "spectrumScanReturnedNoCandidateFrequencies": "Skanowanie spektrum nie znalazło częstotliwości kandydatów",
   "searchMessages": "Szukaj wiadomości",
   "sendImageFromGallery": "Wyślij obraz z galerii",
   "takePhoto": "Zrób zdjęcie",
-  "dmOnly": "Tylko wiadomość bezpośrednia",
   "allMessages": "Wszystkie wiadomości",
   "sendToPublicChannel": "Wysłać na kanał publiczny?",
   "selectMarkerTypeAndDestination": "Wybierz typ znacznika i cel",
@@ -2524,8 +2257,6 @@
   "wipeDevice": "Wyczyść urządzenie",
   "destructiveDeviceActions": "Destrukcyjne akcje na urządzeniu.",
   "chooseAPresetOrFinetuneCustomRadioSettings": "Wybierz ustawienie wstępne lub dostosuj ustawienia radia.",
-  "chooseTheNameAndLocationThisDeviceShares": "Wybierz nazwę i lokalizację udostępnianą przez to urządzenie.",
-  "availableSpaceOnThisDevice": "Dostępne miejsce na tym urządzeniu.",
   "used": "Użyto",
   "total": "Razem",
   "renameValue": "Zmień nazwę wartości",
@@ -2543,8 +2274,6 @@
   "onlineOnly": "Tylko online",
   "inBoth": "W obu",
   "source": "Źródło",
-  "manualRouteEdit": "Ręczna edycja trasy",
-  "observedMeshRoute": "Obserwowana trasa sieci",
   "allMessagesCleared": "Wszystkie wiadomości wyczyszczone",
   "onlineTraceDatabaseCleared": "Baza śladów wyczyszczona",
   "packetLogsCleared": "Logi pakietów wyczyszczone",
@@ -2575,5 +2304,194 @@
   "captured": "Przechwycone",
   "size": "Rozmiar",
   "noCustomChannelsToClear": "Brak niestandardowych kanałów do wyczyszczenia.",
-  "noDeviceContactsToClear": "Brak kontaktów urządzenia do wyczyszczenia."
+  "noDeviceContactsToClear": "Brak kontaktów urządzenia do wyczyszczenia.",
+  "autoSend": "Automatyczne wysyłanie",
+  "autoSendDescription": "Wyślij bieżącą trasą.",
+  "sendDirect": "Wysyłanie bezpośrednie",
+  "sendDirectDescription": "Wyślij bezpośrednio do tego kontaktu.",
+  "sendFlood": "Wysyłanie zalewowe",
+  "sendFloodDescription": "Wyślij przez wszystkie przekaźniki.",
+  "postConnectDiscoveryTitle": "Odkryć przekaźniki teraz?",
+  "postConnectDiscoveryDescription": "Uruchom odkrywanie przekaźników zaraz po połączeniu, aby zobaczyć pobliskie węzły MeshCore i szybciej dodać je do sieci.",
+  "aToZ": "A-Z",
+  "add": "Dodaj",
+  "addAdditionalDetails": "Dodaj dodatkowe szczegóły",
+  "addPeer": "Dodaj węzeł",
+  "addPeerManually": "Dodaj węzeł ręcznie",
+  "addedToContacts": "{name} dodano do kontaktów",
+  "addedToSensors": "{name} dodano do czujników",
+  "allowAll": "Zezwól na wszystko",
+  "anonymousRxStats": "Anonimowe statystyki RX",
+  "appearance": "Wygląd",
+  "ascii": "ASCII",
+  "baseTelemetry": "Telemetria bazowa",
+  "blePin": "PIN BLE",
+  "buzzerAlerts": "Alerty brzęczyka",
+  "cancelImageReceive": "Anuluj odbieranie obrazu",
+  "choose": "Wybierz",
+  "chooseWhichTabsAndContactSectionsToShow": "Wybierz, które zakładki i sekcje kontaktów mają być widoczne",
+  "clearCache": "Wyczyść pamięć podręczną",
+  "clearHistory": "Wyczyść historię",
+  "clearLiveView": "Wyczyść widok na żywo",
+  "clearLogs": "Wyczyść logi",
+  "clearOfflineCache": "Wyczyścić pamięć podręczną offline?",
+  "clearOverlay": "Wyczyść nakładkę",
+  "clearRouteOnlyAfterAllRetriesFail": "Wyczyść trasę dopiero po wyczerpaniu wszystkich prób",
+  "codecBitrateAndAudioProcessing": "Kodek, bitrate i przetwarzanie dźwięku",
+  "connectByIpAddress": "Połącz przez adres IP",
+  "controlWhichAlertsYouReceive": "Kontroluj, które alerty otrzymujesz",
+  "copyFullHex": "Kopiuj pełny Hex",
+  "copyRawResponse": "Kopiuj surową odpowiedź",
+  "couldNotLoadMetHistory": "Nie udało się wczytać historii MET",
+  "customizeSensor": "Dostosuj {name}",
+  "data": "Dane",
+  "deleteGroup": "Usuń grupę",
+  "deleteStyleConfirm": "Usunąć {name}?",
+  "deleteThisDrawing": "Usunąć ten {type}?",
+  "deny": "Odmów",
+  "deviceInfo": "Informacje o urządzeniu",
+  "deviceSettings": "Ustawienia urządzenia",
+  "deviceTimeSynced": "Czas urządzenia zsynchronizowany z tym telefonem.",
+  "disableFastGpsPublishing": "Wyłącz szybkie publikowanie GPS",
+  "displayMarkersAndTraceDatabase": "Wyświetlanie, znaczniki i baza danych tras",
+  "download": "Pobierz",
+  "environmentalTelemetry": "Telemetria środowiskowa",
+  "errorCheckingForUpdates": "Błąd sprawdzania aktualizacji: {error}",
+  "errorGeneric": "Błąd: {error}",
+  "errorOpeningDownload": "Błąd otwierania pobranego pliku: {error}",
+  "exportLogs": "Eksportuj logi",
+  "extraAggressiveAvifCompression": "Bardzo agresywna kompresja AVIF",
+  "failedToAddContact": "Nie udało się dodać kontaktu: {error}",
+  "failedToAddName": "Nie udało się dodać {name}: {error}",
+  "failedToClearChannels": "Nie udało się wyczyścić kanałów: {error}",
+  "failedToClearContacts": "Nie udało się wyczyścić kontaktów: {error}",
+  "failedToConnectViaSerial": "Nie udało się połączyć przez port szeregowy",
+  "failedToLoadPreviewImage": "Nie udało się wczytać podglądu obrazu: {error}",
+  "failedToLoadTrace": "Nie udało się wczytać trasy: {error}",
+  "failedToSendSarMarker": "Nie udało się wysłać znacznika SAR: {error}",
+  "failedToSetBuzzerMode": "Nie udało się ustawić trybu brzęczyka: {error}",
+  "failedToSetGpsMode": "Nie udało się ustawić trybu GPS: {error}",
+  "failedToSyncDeviceTime": "Nie udało się zsynchronizować czasu urządzenia: {error}",
+  "failedToWipeDeviceData": "Nie udało się wymazać danych urządzenia: {error}",
+  "fastGpsTargetChannel": "Docelowy kanał szybkiego GPS",
+  "fastUpdatesThresholdsAndPermissions": "Szybkie aktualizacje, progi i uprawnienia",
+  "fetchingCatalog": "Pobieranie katalogu...",
+  "fifteenMinutes": "15 minut",
+  "fifteenSeconds": "15 sekund",
+  "filterByDirection": "Filtruj według kierunku",
+  "finish": "Zakończ",
+  "fiveMinutes": "5 minut",
+  "fiveSeconds": "5 sekund",
+  "fix": "Napraw",
+  "gps": "GPS",
+  "gpsAdvertPolicy": "Zasady rozgłaszania GPS",
+  "gpsAndLocation": "GPS i lokalizacja",
+  "gpsDiagnostics": "Diagnostyka GPS",
+  "gpsSection": "GPS",
+  "help": "Pomoc",
+  "hex": "Hex",
+  "hidden": "Ukryte",
+  "howTheRadioAutoAddsDiscoveredNodes": "Jak radio automatycznie dodaje odkryte węzły.",
+  "images": "Obrazy",
+  "importProfile": "Importuj profil",
+  "lastFix": "Ostatni fix",
+  "latest": "Najnowsze",
+  "latitude": "Szerokość geograficzna",
+  "loadASavedRegion": "Wczytaj zapisany region",
+  "loading": "Ładowanie",
+  "locationSharingHardwareAndUpdateInterval": "Udostępnianie lokalizacji, sprzęt i interwał aktualizacji.",
+  "locationTelemetry": "Telemetria lokalizacji",
+  "lockDestination": "Zablokuj cel",
+  "longitude": "Długość geograficzna",
+  "mapStyle": "Styl mapy",
+  "max": "Maks.",
+  "maxZoom": "Maks. przybliżenie",
+  "messaging": "Wiadomości",
+  "metHistory": "Historia MET",
+  "min": "Min.",
+  "minZoom": "Min. przybliżenie",
+  "moveDown": "Przesuń w dół",
+  "moveUp": "Przesuń w górę",
+  "multiAckMode": "Tryb multi-ACK",
+  "multiDeviceWorkspaceManagement": "Zarządzanie przestrzenią roboczą wielu urządzeń",
+  "myLocation": "Moja lokalizacja",
+  "nameAndTelemetryShared": "Nazwa i telemetria udostępniana innym urządzeniom.",
+  "newVersionAvailable": "Nowa wersja: {version}",
+  "newer": "Nowsze",
+  "noNeighboursFound": "Nie znaleziono sąsiadów",
+  "noServersFound": "Nie znaleziono serwerów",
+  "notSet": "Nie ustawiono",
+  "notifications": "Powiadomienia",
+  "offZeroSeconds": "Wył. (0 s)",
+  "offlineMaps": "Mapy offline",
+  "older": "Starsze",
+  "oneByteMode0": "1 bajt (tryb 0)",
+  "oneHour": "1 godzina",
+  "oneMinute": "1 minuta",
+  "openPacketLogs": "Otwórz logi pakietów",
+  "packetTypeHelp": "Pomoc typów pakietów",
+  "pasteShareLinkOrHexAdvert": "Wklej link udostępniania lub ogłoszenie Hex",
+  "pathHash": "Hash ścieżki",
+  "pathSize": "Rozmiar ścieżki",
+  "ping": "Ping",
+  "polygon": "Wielokąt",
+  "rawResponseCopied": "Skopiowano surową odpowiedź",
+  "resendThroughNearestRepeaterOnFailure": "Ponów wysyłkę przez najbliższy przekaźnik po niepowodzeniu",
+  "resolveContact": "Rozwiąż kontakt",
+  "routingRetriesAndDestinationLock": "Routing, ponawianie i blokada celu",
+  "samples": "Próbki",
+  "satellites": "Satelity",
+  "saving": "Zapisywanie...",
+  "search": "Szukaj",
+  "searchByNameOrToken": "Szukaj po nazwie lub tokenie",
+  "searchDiscoveredNodes": "Szukaj odkrytych węzłów",
+  "searchInCurrentFilter": "Szukaj w bieżącym filtrze",
+  "searchLogs": "Szukaj w logach...",
+  "searchSensors": "Szukaj czujników",
+  "searchThisSection": "Szukaj w tej sekcji",
+  "selectedRelays": "Wybrane przekaźniki",
+  "sensor": "Czujnik",
+  "serialError": "Błąd portu szeregowego: {error}",
+  "setPathForContact": "Ustaw ścieżkę dla {name}",
+  "shareLiveGps": "Udostępnij GPS na żywo",
+  "shareMyTiles": "Udostępnij moje kafelki",
+  "sharingLocationFromPhone": "Udostępnianie lokalizacji na tym kanale z telefonu.",
+  "sharingLocationFromRadio": "Udostępnianie lokalizacji na tym kanale z radia.",
+  "signalDbm": "Sygnał {rssi} dBm",
+  "sizeCompressionAndPreview": "Rozmiar, kompresja i podgląd",
+  "skip": "Pomiń",
+  "smallerFileSize": "Mniejszy rozmiar pliku",
+  "sort": "Sortuj",
+  "stoppedSharingLocation": "Zatrzymano udostępnianie lokalizacji na tym kanale.",
+  "suppressNotificationsWhileInForeground": "Wycisz powiadomienia, gdy aplikacja jest na pierwszym planie",
+  "tabsAndNavigation": "Zakładki i nawigacja",
+  "templatesAndTutorials": "Szablony i samouczki",
+  "tenMinutes": "10 minut",
+  "tenSeconds": "10 sekund",
+  "testSendUpdate": "Testowe wysłanie aktualizacji",
+  "themeLanguageAndDisplayPreferences": "Motyw, język i preferencje wyświetlania",
+  "thirtyMinutes": "30 minut",
+  "thirtySeconds": "30 sekund",
+  "threeBytesMode2": "3 bajty (tryb 2)",
+  "trafficStatsMessageHistoryAndDeveloperTools": "Statystyki ruchu, historia wiadomości i narzędzia deweloperskie",
+  "twoBytesMode1": "2 bajty (tryb 1)",
+  "twoMinutes": "2 minuty",
+  "undo": "Cofnij",
+  "updated": "Zaktualizowano",
+  "useContactFlags": "Używaj flag kontaktów",
+  "useSavedCoordinates": "Użyj zapisanych współrzędnych",
+  "view": "Widok",
+  "viewNeighbours": "Pokaż sąsiadów",
+  "viewPublicStats": "Pokaż publiczne statystyki",
+  "setRegionScope": "Ustaw zakres regionu",
+  "regionScope": "Zakres regionu",
+  "regionScopeNone": "Brak (globalny)",
+  "clearRegionScope": "Wyczyść zakres",
+  "regionScopeWarning": "Tylko przekaźniki zezwalające na ten region będą przekazywać.",
+  "discoverRegions": "Odkryj z przekaźników",
+  "discoveringRegions": "Odkrywanie regionów...",
+  "enterRegionName": "Nazwa regionu (np. auckland)",
+  "noRegionsFound": "Nie znaleziono regionów na tym przekaźniku.",
+  "regionScopeSet": "Zakres regionu ustawiony na {name}",
+  "regionScopeCleared": "Zakres regionu wyczyszczony"
 }

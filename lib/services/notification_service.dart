@@ -737,7 +737,7 @@ class NotificationService {
         presentSound: false,
         threadIdentifier: 'app_updates',
         categoryIdentifier: 'APP_UPDATE',
-        subtitle: 'New version: $latestVersion',
+        subtitle: localizations?.newVersionAvailable(latestVersion) ?? 'New version: $latestVersion',
       );
 
       // Combined notification details

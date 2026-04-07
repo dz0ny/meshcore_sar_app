@@ -654,7 +654,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                       title: device.platformName.isNotEmpty
                           ? device.platformName
                           : 'Unknown Device',
-                      subtitle: 'Signal $rssi dBm',
+                      subtitle: AppLocalizations.of(context)!.signalDbm(rssi.toString()),
                       trailing: isConnecting
                           ? const SizedBox(
                               width: 24,
@@ -665,7 +665,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                             )
                           : FilledButton.tonal(
                               onPressed: connectBle,
-                              child: const Text('Connect'),
+                              child: Text(AppLocalizations.of(context)!.connect),
                             ),
                       onTap: isConnecting ? null : connectBle,
                       enabled: !isConnecting,
@@ -721,7 +721,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
               : _discoveredServers.isEmpty
               ? _buildEmptyState(
                   icon: Icons.wifi_off_rounded,
-                  title: 'No servers found',
+                  title: AppLocalizations.of(context)!.noServersFound,
                   actionLabel: 'Scan Again',
                   onAction: _startNetworkScan,
                 )
@@ -792,7 +792,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                               onPressed: isAnyConnectionInProgress
                                   ? null
                                   : connectServer,
-                              child: const Text('Connect'),
+                              child: Text(AppLocalizations.of(context)!.connect),
                             ),
                       enabled: !isAnyConnectionInProgress,
                       onTap: isAnyConnectionInProgress ? null : connectServer,
@@ -885,7 +885,7 @@ class _ManualTcpHostDialogState extends State<_ManualTcpHostDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Connect by IP address'),
+      title: Text(AppLocalizations.of(context)!.connectByIpAddress),
       content: TextField(
         controller: _controller,
         autofocus: true,
@@ -910,11 +910,11 @@ class _ManualTcpHostDialogState extends State<_ManualTcpHostDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         FilledButton(
           onPressed: _submit,
-          child: const Text('Connect'),
+          child: Text(AppLocalizations.of(context)!.connect),
         ),
       ],
     );
@@ -1053,7 +1053,7 @@ class _SerialDeviceListState extends State<_SerialDeviceList> {
         if (!mounted) return;
         setState(() => _isConnecting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to connect via serial')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToConnectViaSerial)),
         );
       }
     } catch (e) {
@@ -1061,7 +1061,7 @@ class _SerialDeviceListState extends State<_SerialDeviceList> {
       setState(() => _isConnecting = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Serial error: $e')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.serialError(e.toString()))));
     }
   }
 
@@ -1127,7 +1127,7 @@ class _SerialDeviceListState extends State<_SerialDeviceList> {
                           onPressed: _isConnecting
                               ? null
                               : () => _connectToDevice(device),
-                          child: const Text('Connect'),
+                          child: Text(AppLocalizations.of(context)!.connect),
                         ),
                   enabled: !_isConnecting,
                   onTap: _isConnecting ? null : () => _connectToDevice(device),

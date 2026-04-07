@@ -25,7 +25,7 @@ class ProfilesScreen extends StatelessWidget {
                       .importProfileFromFile();
                 },
                 icon: const Icon(Icons.file_open),
-                tooltip: 'Import profile',
+                tooltip: AppLocalizations.of(context)!.importProfile,
               ),
             ],
           ),
@@ -143,9 +143,9 @@ class ProfilesScreen extends StatelessWidget {
                                         child: Text(AppLocalizations.of(context)!.rename),
                                       ),
                                     if (!profile.isDefault)
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: 'delete',
-                                        child: Text('Delete'),
+                                        child: Text(AppLocalizations.of(context)!.delete),
                                       ),
                                   ],
                                 ),
@@ -197,7 +197,7 @@ class ProfilesScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
@@ -231,11 +231,11 @@ class ProfilesScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),

@@ -11,6 +11,7 @@ import '../../providers/contacts_provider.dart';
 import '../../providers/image_provider.dart' as ip;
 import '../../providers/messages_provider.dart';
 import '../../utils/image_message_parser.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/transmission_target_resolver.dart';
 import 'transfer_timeout.dart';
 
@@ -237,7 +238,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
                   onPressed: () => _cancelReceive(envelope.sessionId),
                   icon: const Icon(Icons.close, size: 20),
                   color: Colors.white70,
-                  tooltip: 'Cancel image receive',
+                  tooltip: AppLocalizations.of(context)!.cancelImageReceive,
                 ),
               ),
             ] else if (_errorText != null) ...[
@@ -255,7 +256,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
                       pathLen: pathLen,
                     ),
                     icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('Retry'),
+                    label: Text(AppLocalizations.of(context)!.retry),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.white70,
                     ),
@@ -657,7 +658,7 @@ class _ImageMessageBubbleState extends State<ImageMessageBubble> {
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   icon: const Icon(Icons.close),
                   color: Colors.white,
-                  tooltip: 'Close',
+                  tooltip: AppLocalizations.of(context)!.close,
                 ),
               ),
             ),

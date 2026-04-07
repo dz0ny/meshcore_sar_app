@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:meshcore_client/meshcore_client.dart' show Message;
 import 'package:provider/provider.dart';
 
@@ -233,7 +234,7 @@ class _BTHomeMetHistorySheetState extends State<_BTHomeMetHistorySheet> {
                             ),
                           ),
                     icon: const Icon(Icons.chevron_left),
-                    label: const Text('Newer'),
+                    label: Text(AppLocalizations.of(context)!.newer),
                   ),
                   const SizedBox(width: 8),
                   OutlinedButton.icon(
@@ -249,7 +250,7 @@ class _BTHomeMetHistorySheetState extends State<_BTHomeMetHistorySheet> {
                             ),
                           ),
                     icon: const Icon(Icons.chevron_right),
-                    label: const Text('Older'),
+                    label: Text(AppLocalizations.of(context)!.older),
                   ),
                   const Spacer(),
                   if (_loading)
@@ -276,13 +277,13 @@ class _BTHomeMetHistorySheetState extends State<_BTHomeMetHistorySheet> {
                       if (_error != null)
                         _HistoryMessageCard(
                           icon: Icons.error_outline,
-                          title: 'Could not load MET history',
+                          title: AppLocalizations.of(context)!.couldNotLoadMetHistory,
                           body: _error!,
                         )
                       else if (_loading && history == null)
-                        const _HistoryMessageCard(
+                        _HistoryMessageCard(
                           icon: Icons.hourglass_top,
-                          title: 'Loading',
+                          title: AppLocalizations.of(context)!.loading,
                           body: 'Waiting for the sensor to reply.',
                         )
                       else if (history != null) ...[
@@ -362,19 +363,19 @@ class _HistoryStatsGrid extends StatelessWidget {
         final compact = constraints.maxWidth < 520;
         final tiles = <Widget>[
           _HistoryStatTile(
-            label: 'Latest',
+            label: AppLocalizations.of(context)!.latest,
             value: _formatMeasurementValue(measurement, history.latest),
           ),
           _HistoryStatTile(
-            label: 'Min',
+            label: AppLocalizations.of(context)!.min,
             value: _formatMeasurementValue(measurement, history.minimum),
           ),
           _HistoryStatTile(
-            label: 'Max',
+            label: AppLocalizations.of(context)!.max,
             value: _formatMeasurementValue(measurement, history.maximum),
           ),
           _HistoryStatTile(
-            label: 'Samples',
+            label: AppLocalizations.of(context)!.samples,
             value: history.values.length.toString(),
           ),
         ];

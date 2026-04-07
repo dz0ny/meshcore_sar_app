@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../services/traffic_stats_reporting_service.dart';
 
 class TrafficStatsReportingSection extends StatelessWidget {
@@ -18,7 +19,7 @@ class TrafficStatsReportingSection extends StatelessWidget {
         SwitchListTile(
           dense: true,
           secondary: const Icon(Icons.cloud_upload_outlined, size: 20),
-          title: const Text('Anonymous RX stats'),
+          title: Text(AppLocalizations.of(context)!.anonymousRxStats),
           subtitle: const Text(
             'Upload packet totals every 5 min',
           ),
@@ -43,7 +44,7 @@ class TrafficStatsReportingSection extends StatelessWidget {
                 TextButton.icon(
                   onPressed: _openStatsDashboard,
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('View'),
+                  label: Text(AppLocalizations.of(context)!.view),
                   style: TextButton.styleFrom(
                     visualDensity: VisualDensity.compact,
                     textStyle: theme.textTheme.labelSmall,

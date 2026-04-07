@@ -1881,7 +1881,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to send SAR marker: $e'),
+          content: Text(AppLocalizations.of(context)!.failedToSendSarMarker(e.toString())),
           backgroundColor: Colors.red,
         ),
       );

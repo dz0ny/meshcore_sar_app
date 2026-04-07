@@ -176,7 +176,7 @@ class _PermissionRequestDialogState extends State<PermissionRequestDialog> {
               Navigator.of(context).pop();
               widget.onPermissionsDenied?.call();
             },
-            child: const Text('Skip'),
+            child: Text(AppLocalizations.of(context)!.skip),
           ),
           if (_errorMessage != null && !_isRequesting)
             ElevatedButton(
@@ -184,13 +184,13 @@ class _PermissionRequestDialogState extends State<PermissionRequestDialog> {
                 // Open app settings
                 await Geolocator.openLocationSettings();
               },
-              child: const Text('Open Settings'),
+              child: Text(AppLocalizations.of(context)!.openSettings),
             ),
           if (_errorMessage != null && !_isRequesting &&
               !_errorMessage!.contains('permanently denied'))
             ElevatedButton(
               onPressed: _checkAndRequestPermissions,
-              child: const Text('Retry'),
+              child: Text(AppLocalizations.of(context)!.retry),
             ),
         ],
       ),

@@ -36,10 +36,6 @@
   "@scanAgain": {
     "description": "重新开始 BLE 扫描的按钮"
   },
-  "tapToConnect": "点击连接",
-  "@tapToConnect": {
-    "description": "扫描列表中设备的副标题文本"
-  },
   "deviceNotConnected": "设备未连接",
   "@deviceNotConnected": {
     "description": "设备未连接时的错误消息"
@@ -133,17 +129,9 @@
   "@showRxTxIndicators": {
     "description": "显示 RX/TX 指示器的设置"
   },
-  "displayPacketActivity": "在顶部栏显示数据包活动指示器",
-  "@displayPacketActivity": {
-    "description": "RX/TX 指示器设置的描述"
-  },
   "disableMap": "禁用地图",
   "@disableMap": {
     "description": "禁用地图标签页的设置"
-  },
-  "disableMapDescription": "隐藏地图标签页以减少电池消耗",
-  "@disableMapDescription": {
-    "description": "禁用地图设置的描述"
   },
   "language": "语言",
   "@language": {
@@ -172,10 +160,6 @@
   "appVersion": "应用版本",
   "@appVersion": {
     "description": "应用版本标签"
-  },
-  "appName": "应用名称",
-  "@appName": {
-    "description": "应用名称标签"
   },
   "aboutMeshCoreSar": "关于 MeshCore 搜救助手",
   "@aboutMeshCoreSar": {
@@ -307,10 +291,6 @@
   "resetPath": "重置路径 (重新路由)",
   "@resetPath": {
     "description": "重置联系人路径以重新路由的操作"
-  },
-  "publicKeyCopied": "公钥已复制到剪贴板",
-  "@publicKeyCopied": {
-    "description": "复制公钥后的成功消息"
   },
   "copiedToClipboard": "{label} 已复制到剪贴板",
   "@copiedToClipboard": {
@@ -720,22 +700,6 @@
   "@lastSeen": {
     "description": "最后在线标签"
   },
-  "roomStatus": "房间状态",
-  "@roomStatus": {
-    "description": "房间状态区域标题"
-  },
-  "loginStatus": "登录状态",
-  "@loginStatus": {
-    "description": "登录状态标签"
-  },
-  "notLoggedIn": "未登录",
-  "@notLoggedIn": {
-    "description": "未登录状态"
-  },
-  "adminAccess": "管理员权限",
-  "@adminAccess": {
-    "description": "管理员权限标签"
-  },
   "yes": "是",
   "@yes": {
     "description": "肯定回答"
@@ -747,14 +711,6 @@
   "permissions": "权限",
   "@permissions": {
     "description": "权限标签"
-  },
-  "passwordSaved": "密码已保存",
-  "@passwordSaved": {
-    "description": "密码已保存标签"
-  },
-  "locationColon": "位置：",
-  "@locationColon": {
-    "description": "位置区域标题"
   },
   "telemetry": "遥测",
   "@telemetry": {
@@ -783,19 +739,6 @@
   "gpsTelemetry": "GPS（遥测）",
   "@gpsTelemetry": {
     "description": "来自遥测的 GPS 标签"
-  },
-  "updated": "更新于",
-  "@updated": {
-    "description": "更新时间戳标签"
-  },
-  "pathResetInfo": "已重置 {name} 的路径。下一条消息将寻找新路由。",
-  "@pathResetInfo": {
-    "description": "路径重置后的信息消息",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
   },
   "reLoginToRoom": "重新登录到房间",
   "@reLoginToRoom": {
@@ -1158,10 +1101,6 @@
   "@frequencyMHz": {
     "description": "无线电频率字段标签"
   },
-  "frequencyExample": "例如 869.618",
-  "@frequencyExample": {
-    "description": "频率示例帮助文本"
-  },
   "bandwidth": "带宽",
   "@bandwidth": {
     "description": "带宽下拉菜单标签"
@@ -1265,47 +1204,6 @@
   "@trailControls": {
     "description": "轨迹控制工具提示"
   },
-  "contactTrails": "联系人轨迹",
-  "@contactTrails": {
-    "description": "联系人轨迹区域标题"
-  },
-  "showAllContactTrails": "显示所有联系人轨迹",
-  "@showAllContactTrails": {
-    "description": "显示所有联系人轨迹的开关标签"
-  },
-  "noContactsWithLocationHistory": "没有带位置历史的联系人",
-  "@noContactsWithLocationHistory": {
-    "description": "当没有联系人拥有轨迹时的副标题"
-  },
-  "showingTrailsForContacts": "正在显示 {count} 个联系人的轨迹",
-  "@showingTrailsForContacts": {
-    "description": "显示拥有轨迹的联系人数量的副标题",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "individualContactTrails": "单个联系人轨迹",
-  "@individualContactTrails": {
-    "description": "单个联系人轨迹的扩展磁贴标题"
-  },
-  "deviceInformation": "设备信息",
-  "@deviceInformation": {
-    "description": "设备信息区域标题"
-  },
-  "bleName": "BLE 名称",
-  "@bleName": {
-    "description": "低功耗蓝牙设备名称标签"
-  },
-  "meshName": "Mesh 名称",
-  "@meshName": {
-    "description": "Mesh 网络名称标签"
-  },
-  "notSet": "未设置",
-  "@notSet": {
-    "description": "当值未设置时的标签"
-  },
   "model": "型号",
   "@model": {
     "description": "设备型号标签"
@@ -1313,14 +1211,6 @@
   "version": "版本",
   "@version": {
     "description": "版本标签"
-  },
-  "buildDate": "构建日期",
-  "@buildDate": {
-    "description": "固件构建日期标签"
-  },
-  "firmware": "固件",
-  "@firmware": {
-    "description": "固件标签"
   },
   "maxContacts": "最大联系人数量",
   "@maxContacts": {
@@ -1333,26 +1223,6 @@
   "publicInfo": "公共信息",
   "@publicInfo": {
     "description": "公共信息区域标题"
-  },
-  "meshNetworkName": "Mesh 网络名称",
-  "@meshNetworkName": {
-    "description": "Mesh 网络名称字段标签"
-  },
-  "nameBroadcastInMesh": "在 Mesh 广播中公布的名称",
-  "@nameBroadcastInMesh": {
-    "description": "Mesh 网络名称字段的帮助文本"
-  },
-  "telemetryAndLocationSharing": "遥测与位置共享",
-  "@telemetryAndLocationSharing": {
-    "description": "遥测和位置共享开关标签"
-  },
-  "lat": "纬度",
-  "@lat": {
-    "description": "纬度字段标签（短格式）"
-  },
-  "lon": "经度",
-  "@lon": {
-    "description": "经度字段标签（短格式）"
   },
   "useCurrentLocation": "使用当前位置",
   "@useCurrentLocation": {
@@ -1383,15 +1253,6 @@
       }
     }
   },
-  "copiedToClipboardShort": "{label} 已复制到剪贴板",
-  "@copiedToClipboardShort": {
-    "description": "复制到剪贴板的简短成功消息",
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
   "failedToSave": "保存失败：{error}",
   "@failedToSave": {
     "description": "保存失败的通用错误消息",
@@ -1413,10 +1274,6 @@
   "sarTemplates": "搜救模板",
   "@sarTemplates": {
     "description": "搜救模板菜单标题"
-  },
-  "manageSarTemplates": "管理光标目标模板",
-  "@manageSarTemplates": {
-    "description": "搜救模板设置的副标题"
   },
   "addTemplate": "添加模板",
   "@addTemplate": {
@@ -1540,10 +1397,6 @@
   "ok": "确定",
   "@ok": {
     "description": "确定按钮标签"
-  },
-  "permissionsSection": "权限",
-  "@permissionsSection": {
-    "description": "权限区域标题"
   },
   "locationPermission": "位置权限",
   "@locationPermission": {
@@ -2109,94 +1962,6 @@
   "@wizardWelcomeTitle": {
     "description": "欢迎向导第一页标题"
   },
-  "wizardWelcomeDescription": "一个功能强大的离网通信工具，用于搜索和救援行动。当传统网络不可用时，使用 Mesh 无线电技术与您的团队保持联系。",
-  "@wizardWelcomeDescription": {
-    "description": "欢迎向导第一页描述"
-  },
-  "wizardConnectingTitle": "连接到您的无线电",
-  "@wizardConnectingTitle": {
-    "description": "向导连接页面标题"
-  },
-  "wizardConnectingDescription": "通过蓝牙将您的智能手机连接到 MeshCore 无线电设备，开始离网通信。",
-  "@wizardConnectingDescription": {
-    "description": "向导连接页面描述"
-  },
-  "wizardConnectingFeature1": "扫描附近的 MeshCore 设备",
-  "@wizardConnectingFeature1": {
-    "description": "向导连接功能 1"
-  },
-  "wizardConnectingFeature2": "通过蓝牙与您的无线电配对",
-  "@wizardConnectingFeature2": {
-    "description": "向导连接功能 2"
-  },
-  "wizardConnectingFeature3": "完全离线工作 - 无需互联网",
-  "@wizardConnectingFeature3": {
-    "description": "向导连接功能 3"
-  },
-  "wizardChannelTitle": "频道",
-  "@wizardChannelTitle": {
-    "description": "向导频道页面标题"
-  },
-  "wizardChannelDescription": "向频道上的所有人广播消息，非常适合全队通告和协调。",
-  "@wizardChannelDescription": {
-    "description": "向导频道页面描述"
-  },
-  "wizardChannelFeature1": "用于一般团队通信的公共频道",
-  "@wizardChannelFeature1": {
-    "description": "向导频道功能 1"
-  },
-  "wizardChannelFeature2": "为特定小组创建自定义频道",
-  "@wizardChannelFeature2": {
-    "description": "向导频道功能 2"
-  },
-  "wizardChannelFeature3": "消息由 Mesh 网络自动转发",
-  "@wizardChannelFeature3": {
-    "description": "向导频道功能 3"
-  },
-  "wizardContactsTitle": "联系人",
-  "@wizardContactsTitle": {
-    "description": "向导联系人页面标题"
-  },
-  "wizardContactsDescription": "您的团队成员在加入 Mesh 网络时会自动出现。向他们发送直连消息或查看他们的位置。",
-  "@wizardContactsDescription": {
-    "description": "向导联系人页面描述"
-  },
-  "wizardContactsFeature1": "联系人自动发现",
-  "@wizardContactsFeature1": {
-    "description": "向导联系人功能 1"
-  },
-  "wizardContactsFeature2": "发送私密的直连消息",
-  "@wizardContactsFeature2": {
-    "description": "向导联系人功能 2"
-  },
-  "wizardContactsFeature3": "查看电池电量和最后在线时间",
-  "@wizardContactsFeature3": {
-    "description": "向导联系人功能 3"
-  },
-  "wizardMapTitle": "地图与位置",
-  "@wizardMapTitle": {
-    "description": "向导地图页面标题"
-  },
-  "wizardMapDescription": "实时跟踪您的团队，并为搜救行动标记重要位置。",
-  "@wizardMapDescription": {
-    "description": "向导地图页面描述"
-  },
-  "wizardMapFeature1": "用于标记找到的人员、火灾和集结区的搜救标记",
-  "@wizardMapFeature1": {
-    "description": "向导地图功能 1"
-  },
-  "wizardMapFeature2": "团队成员的实时 GPS 跟踪",
-  "@wizardMapFeature2": {
-    "description": "向导地图功能 2"
-  },
-  "wizardMapFeature3": "为偏远地区下载离线地图",
-  "@wizardMapFeature3": {
-    "description": "向导地图功能 3"
-  },
-  "wizardMapFeature4": "绘制形状并共享战术信息",
-  "@wizardMapFeature4": {
-    "description": "向导地图功能 4"
-  },
   "viewWelcomeTutorial": "查看欢迎教程",
   "@viewWelcomeTutorial": {
     "description": "设置中重新显示欢迎向导的选项"
@@ -2352,29 +2117,10 @@
   "posttxDelay": "发送后延迟",
   "bandpass": "带通",
   "bandpassFilterVoice": "带通语音滤波",
-  "frequency": "频率",
-  "australia": "澳大利亚",
-  "australiaNarrow": "澳大利亚（窄带）",
-  "australiaQld": "澳大利亚：QLD",
-  "australiaSaWa": "澳大利亚：SA, WA",
-  "newZealand": "新西兰",
-  "newZealandNarrow": "新西兰（窄带）",
-  "switzerland": "瑞士",
-  "portugal433": "葡萄牙 433",
-  "portugal868": "葡萄牙 868",
-  "czechRepublicNarrow": "捷克（窄带）",
-  "eu433mhzLongRange": "欧盟 433MHz（远距离）",
-  "euukDeprecated": "欧盟/英国（已弃用）",
-  "euukNarrow": "欧盟/英国（窄带）",
-  "usacanadaRecommended": "美国/加拿大（推荐）",
-  "vietnamDeprecated": "越南（已弃用）",
-  "vietnamNarrow": "越南（窄带）",
   "active": "活动",
   "addContact": "添加联系人",
   "all": "全部",
-  "autoResolve": "自动解析",
   "clearAllLabel": "清除全部",
-  "clearRelays": "清除中继",
   "clearFilters": "清除过滤器",
   "clearRoute": "清除路由",
   "clearMessages": "清除消息",
@@ -2400,10 +2146,7 @@
   "send": "发送",
   "sendAnyway": "仍然发送",
   "share": "分享",
-  "shareContact": "分享联系人",
   "trace": "追踪",
-  "use": "使用",
-  "useSelectedFrequency": "使用选定频率",
   "discovery": "发现",
   "discoverRepeaters": "发现中继器",
   "discoverSensors": "发现传感器",
@@ -2426,7 +2169,6 @@
   "gpsModule": "GPS 模块",
   "liveTraffic": "实时流量",
   "repeatersMap": "中继器地图",
-  "spectrumScan": "频谱扫描",
   "blePacketLogs": "BLE 数据包日志",
   "onlineTraceDatabase": "在线追踪数据库",
   "routePathByteSize": "路由路径字节大小",
@@ -2438,7 +2180,6 @@
   "disableContacts": "禁用联系人",
   "enableSensorsTab": "启用传感器标签",
   "enableProfiles": "启用配置文件",
-  "autoRouteRotation": "自动路由轮换",
   "nearestRepeaterFallback": "最近中继器回退",
   "deleteAllStoredMessageHistory": "删除所有存储的消息历史",
   "messageFontSize": "消息字体大小",
@@ -2446,18 +2187,13 @@
   "showMapDebugInfo": "显示地图调试信息",
   "openMapInFullscreen": "全屏打开地图",
   "showSarMarkersLabel": "显示 SAR 标记",
-  "displaySarMarkersOnTheMainMap": "在主地图上显示 SAR 标记",
-  "showAllContactTrailsLabel": "显示所有联系人轨迹",
   "hideRepeatersOnMap": "在地图上隐藏中继器",
   "setMapScale": "设置地图比例",
   "customMapScaleSaved": "自定义地图比例已保存",
   "voiceBitrate": "语音比特率",
   "voiceCompressor": "语音压缩器",
-  "balancesQuietAndLoudSpeechLevels": "平衡安静和响亮的语音级别",
   "voiceLimiter": "语音限制器",
-  "preventsClippingPeaksBeforeEncoding": "防止编码前的削波",
   "micAutoGain": "麦克风自动增益",
-  "letsTheRecorderAdjustInputLevel": "让录音器调整输入级别",
   "echoCancellation": "回声消除",
   "noiseSuppression": "噪音抑制",
   "trimSilenceInVoiceMessages": "修剪语音消息中的静音",
@@ -2499,13 +2235,10 @@
   "staging": "集结区",
   "object": "物体",
   "quiet": "安静",
-  "moderate": "中等",
   "busy": "繁忙",
-  "spectrumScanReturnedNoCandidateFrequencies": "频谱扫描未找到候选频率",
   "searchMessages": "搜索消息",
   "sendImageFromGallery": "从图库发送图片",
   "takePhoto": "拍照",
-  "dmOnly": "仅私信",
   "allMessages": "所有消息",
   "sendToPublicChannel": "发送到公共频道？",
   "selectMarkerTypeAndDestination": "选择标记类型和目标",
@@ -2524,8 +2257,6 @@
   "wipeDevice": "擦除设备",
   "destructiveDeviceActions": "破坏性设备操作。",
   "chooseAPresetOrFinetuneCustomRadioSettings": "选择预设或微调自定义无线电设置。",
-  "chooseTheNameAndLocationThisDeviceShares": "选择此设备共享的名称和位置。",
-  "availableSpaceOnThisDevice": "此设备上的可用空间。",
   "used": "已使用",
   "total": "总计",
   "renameValue": "重命名值",
@@ -2543,8 +2274,6 @@
   "onlineOnly": "仅在线",
   "inBoth": "两者中",
   "source": "来源",
-  "manualRouteEdit": "手动路由编辑",
-  "observedMeshRoute": "观察到的网格路由",
   "allMessagesCleared": "所有消息已清除",
   "onlineTraceDatabaseCleared": "在线追踪数据库已清除",
   "packetLogsCleared": "数据包日志已清除",
@@ -2575,5 +2304,194 @@
   "captured": "已捕获",
   "size": "大小",
   "noCustomChannelsToClear": "没有自定义频道可清除。",
-  "noDeviceContactsToClear": "没有设备联系人可清除。"
+  "noDeviceContactsToClear": "没有设备联系人可清除。",
+  "autoSend": "自动发送",
+  "autoSendDescription": "通过当前路径发送。",
+  "sendDirect": "直接发送",
+  "sendDirectDescription": "直接发送给此联系人。",
+  "sendFlood": "泛洪发送",
+  "sendFloodDescription": "通过所有中继器发送。",
+  "postConnectDiscoveryTitle": "现在发现中继器？",
+  "postConnectDiscoveryDescription": "连接后立即运行中继器发现，以查看附近的 MeshCore 节点并更快地将它们添加到您的网络中。",
+  "aToZ": "A-Z",
+  "add": "添加",
+  "addAdditionalDetails": "添加其他详情",
+  "addPeer": "添加节点",
+  "addPeerManually": "手动添加节点",
+  "addedToContacts": "{name} 已添加到联系人",
+  "addedToSensors": "{name} 已添加到传感器",
+  "allowAll": "全部允许",
+  "anonymousRxStats": "匿名接收统计",
+  "appearance": "外观",
+  "ascii": "ASCII",
+  "baseTelemetry": "基础遥测",
+  "blePin": "BLE PIN",
+  "buzzerAlerts": "蜂鸣器警报",
+  "cancelImageReceive": "取消接收图片",
+  "choose": "选择",
+  "chooseWhichTabsAndContactSectionsToShow": "选择要显示的标签页和联系人分区",
+  "clearCache": "清除缓存",
+  "clearHistory": "清除历史",
+  "clearLiveView": "清除实时视图",
+  "clearLogs": "清除日志",
+  "clearOfflineCache": "清除离线缓存？",
+  "clearOverlay": "清除叠加层",
+  "clearRouteOnlyAfterAllRetriesFail": "仅在所有重试失败后清除路由",
+  "codecBitrateAndAudioProcessing": "编解码器、比特率和音频处理",
+  "connectByIpAddress": "通过 IP 地址连接",
+  "controlWhichAlertsYouReceive": "控制接收哪些警报",
+  "copyFullHex": "复制完整 Hex",
+  "copyRawResponse": "复制原始响应",
+  "couldNotLoadMetHistory": "无法加载 MET 历史",
+  "customizeSensor": "自定义 {name}",
+  "data": "数据",
+  "deleteGroup": "删除群组",
+  "deleteStyleConfirm": "删除 {name}？",
+  "deleteThisDrawing": "删除此{type}？",
+  "deny": "拒绝",
+  "deviceInfo": "设备信息",
+  "deviceSettings": "设备设置",
+  "deviceTimeSynced": "设备时间已同步到此手机。",
+  "disableFastGpsPublishing": "禁用快速 GPS 发布",
+  "displayMarkersAndTraceDatabase": "显示、标记和轨迹数据库",
+  "download": "下载",
+  "environmentalTelemetry": "环境遥测",
+  "errorCheckingForUpdates": "检查更新出错：{error}",
+  "errorGeneric": "错误：{error}",
+  "errorOpeningDownload": "打开下载出错：{error}",
+  "exportLogs": "导出日志",
+  "extraAggressiveAvifCompression": "超强 AVIF 压缩",
+  "failedToAddContact": "添加联系人失败：{error}",
+  "failedToAddName": "添加 {name} 失败：{error}",
+  "failedToClearChannels": "清除频道失败：{error}",
+  "failedToClearContacts": "清除联系人失败：{error}",
+  "failedToConnectViaSerial": "通过串口连接失败",
+  "failedToLoadPreviewImage": "加载预览图片失败：{error}",
+  "failedToLoadTrace": "加载轨迹失败：{error}",
+  "failedToSendSarMarker": "发送 SAR 标记失败：{error}",
+  "failedToSetBuzzerMode": "设置蜂鸣器模式失败：{error}",
+  "failedToSetGpsMode": "设置 GPS 模式失败：{error}",
+  "failedToSyncDeviceTime": "同步设备时间失败：{error}",
+  "failedToWipeDeviceData": "擦除设备数据失败：{error}",
+  "fastGpsTargetChannel": "快速 GPS 目标频道",
+  "fastUpdatesThresholdsAndPermissions": "快速更新、阈值和权限",
+  "fetchingCatalog": "正在获取目录…",
+  "fifteenMinutes": "15 分钟",
+  "fifteenSeconds": "15 秒",
+  "filterByDirection": "按方向筛选",
+  "finish": "完成",
+  "fiveMinutes": "5 分钟",
+  "fiveSeconds": "5 秒",
+  "fix": "定位",
+  "gps": "GPS",
+  "gpsAdvertPolicy": "GPS 广播策略",
+  "gpsAndLocation": "GPS 与位置",
+  "gpsDiagnostics": "GPS 诊断",
+  "gpsSection": "GPS",
+  "help": "帮助",
+  "hex": "Hex",
+  "hidden": "已隐藏",
+  "howTheRadioAutoAddsDiscoveredNodes": "无线电自动添加已发现节点的方式。",
+  "images": "图片",
+  "importProfile": "导入配置文件",
+  "lastFix": "最后定位",
+  "latest": "最新",
+  "latitude": "纬度",
+  "loadASavedRegion": "加载已保存的区域",
+  "loading": "加载中",
+  "locationSharingHardwareAndUpdateInterval": "位置共享、硬件和更新间隔。",
+  "locationTelemetry": "位置遥测",
+  "lockDestination": "锁定目的地",
+  "longitude": "经度",
+  "mapStyle": "地图样式",
+  "max": "最大",
+  "maxZoom": "最大缩放",
+  "messaging": "消息传递",
+  "metHistory": "MET 历史",
+  "min": "最小",
+  "minZoom": "最小缩放",
+  "moveDown": "下移",
+  "moveUp": "上移",
+  "multiAckMode": "多重 ACK 模式",
+  "multiDeviceWorkspaceManagement": "多设备工作区管理",
+  "myLocation": "我的位置",
+  "nameAndTelemetryShared": "名称和遥测数据已与其他设备共享。",
+  "newVersionAvailable": "新版本：{version}",
+  "newer": "较新",
+  "noNeighboursFound": "未找到邻近节点",
+  "noServersFound": "未找到服务器",
+  "notSet": "未设置",
+  "notifications": "通知",
+  "offZeroSeconds": "关闭 (0 秒)",
+  "offlineMaps": "离线地图",
+  "older": "较旧",
+  "oneByteMode0": "1 字节（模式 0）",
+  "oneHour": "1 小时",
+  "oneMinute": "1 分钟",
+  "openPacketLogs": "打开数据包日志",
+  "packetTypeHelp": "数据包类型帮助",
+  "pasteShareLinkOrHexAdvert": "粘贴分享链接或 Hex 广播",
+  "pathHash": "路径哈希",
+  "pathSize": "路径大小",
+  "ping": "Ping",
+  "polygon": "多边形",
+  "rawResponseCopied": "原始响应已复制",
+  "resendThroughNearestRepeaterOnFailure": "失败时通过最近的中继器重新发送",
+  "resolveContact": "解析联系人",
+  "routingRetriesAndDestinationLock": "路由、重试和目的地锁定",
+  "samples": "采样",
+  "satellites": "卫星",
+  "saving": "保存中…",
+  "search": "搜索",
+  "searchByNameOrToken": "按名称或令牌搜索",
+  "searchDiscoveredNodes": "搜索已发现的节点",
+  "searchInCurrentFilter": "在当前筛选中搜索",
+  "searchLogs": "搜索日志…",
+  "searchSensors": "搜索传感器",
+  "searchThisSection": "搜索此分区",
+  "selectedRelays": "已选中继器",
+  "sensor": "传感器",
+  "serialError": "串口错误：{error}",
+  "setPathForContact": "为 {name} 设置路径",
+  "shareLiveGps": "共享实时 GPS",
+  "shareMyTiles": "共享我的地图瓦片",
+  "sharingLocationFromPhone": "正在从手机共享此频道的位置。",
+  "sharingLocationFromRadio": "正在从无线电共享此频道的位置。",
+  "signalDbm": "信号 {rssi} dBm",
+  "sizeCompressionAndPreview": "大小、压缩和预览",
+  "skip": "跳过",
+  "smallerFileSize": "更小的文件大小",
+  "sort": "排序",
+  "stoppedSharingLocation": "已停止在此频道上共享位置。",
+  "suppressNotificationsWhileInForeground": "前台运行时抑制通知",
+  "tabsAndNavigation": "标签页与导航",
+  "templatesAndTutorials": "模板和教程",
+  "tenMinutes": "10 分钟",
+  "tenSeconds": "10 秒",
+  "testSendUpdate": "测试发送更新",
+  "themeLanguageAndDisplayPreferences": "主题、语言和显示偏好",
+  "thirtyMinutes": "30 分钟",
+  "thirtySeconds": "30 秒",
+  "threeBytesMode2": "3 字节（模式 2）",
+  "trafficStatsMessageHistoryAndDeveloperTools": "流量统计、消息历史和开发者工具",
+  "twoBytesMode1": "2 字节（模式 1）",
+  "twoMinutes": "2 分钟",
+  "undo": "撤销",
+  "updated": "已更新",
+  "useContactFlags": "使用联系人标志",
+  "useSavedCoordinates": "使用已保存的坐标",
+  "view": "查看",
+  "viewNeighbours": "查看邻近节点",
+  "viewPublicStats": "查看公开统计",
+  "setRegionScope": "设置区域范围",
+  "regionScope": "区域范围",
+  "regionScopeNone": "无（全局）",
+  "clearRegionScope": "清除范围",
+  "regionScopeWarning": "只有允许此区域的中继器会转发。",
+  "discoverRegions": "从中继器发现",
+  "discoveringRegions": "正在发现区域...",
+  "enterRegionName": "区域名称（例如 auckland）",
+  "noRegionsFound": "此中继器上未找到区域。",
+  "regionScopeSet": "区域范围已设置为 {name}",
+  "regionScopeCleared": "区域范围已清除"
 }

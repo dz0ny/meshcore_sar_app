@@ -1691,7 +1691,7 @@ class _MessagesTabState extends State<MessagesTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(dialogContext)!.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -1776,6 +1776,7 @@ class _MessagesTabState extends State<MessagesTab> {
       final result = await context.read<AppProvider>().setChannelLocationSharingEnabled(
         channelIdx,
         enabled,
+        l10n: AppLocalizations.of(context),
       );
       if (!mounted) return;
       ToastLogger.success(context, result.message);
@@ -2059,7 +2060,7 @@ class _MessagesTabState extends State<MessagesTab> {
                           controller: searchController,
                           autofocus: true,
                           decoration: InputDecoration(
-                            hintText: 'Search in current filter',
+                            hintText: AppLocalizations.of(context)!.searchInCurrentFilter,
                             prefixIcon: const Icon(Icons.search),
                             suffixIcon: searchController.text.isEmpty
                                 ? null

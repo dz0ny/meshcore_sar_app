@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import '../l10n/app_localizations.dart';
 import 'package:meshcore_client/meshcore_client.dart'
     show BufferReader, MeshCoreConstants;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -2819,6 +2820,12 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _clearAppFallbackChannelLocationSharingState() async {
+    await locationTrackingService.updateFastLocationChannelIdx(null);
+    await locationTrackingService.setFastLocationUpdatesEnabled(false);
+    notifyListeners();
+  }
+
   bool _isAppFallbackLocationSharingActiveForChannel(int channelIdx) {
     return locationTrackingService.fastLocationUpdatesEnabled &&
         locationTrackingService.fastLocationChannelIdx == channelIdx;
@@ -2874,8 +2881,9 @@ class AppProvider with ChangeNotifier {
 
   Future<ChannelLocationSharingResult> setChannelLocationSharingEnabled(
     int channelIdx,
-    bool enabled,
-  ) async {
+    bool enabled, {
+    AppLocalizations? l10n,
+  }) async {
     if (channelIdx <= 0) {
       throw ArgumentError.value(
         channelIdx,
@@ -2906,14 +2914,14 @@ class AppProvider with ChangeNotifier {
           throw StateError('Radio location sharing did not enable for this channel');
         }
         notifyListeners();
-        return const ChannelLocationSharingResult(
-          state: ChannelLocationSharingState(
+        return ChannelLocationSharingResult(
+          state: const ChannelLocationSharingState(
             mode: ChannelLocationSharingMode.hardware,
             isSharing: true,
             hardwareSupported: true,
             isConnected: true,
           ),
-          message: 'Sharing location on this channel from the radio.',
+          message: l10n?.sharingLocationFromRadio ?? 'Sharing location on this channel from the radio.',
         );
       }
 
@@ -2940,14 +2948,14 @@ class AppProvider with ChangeNotifier {
         rethrow;
       }
       notifyListeners();
-      return const ChannelLocationSharingResult(
-        state: ChannelLocationSharingState(
+      return ChannelLocationSharingResult(
+        state: const ChannelLocationSharingState(
           mode: ChannelLocationSharingMode.appFallback,
           isSharing: true,
             hardwareSupported: false,
             isConnected: true,
           ),
-          message: 'Sharing location on this channel from the phone.',
+          message: l10n?.sharingLocationFromPhone ?? 'Sharing location on this channel from the phone.',
         );
       }
 
@@ -2974,28 +2982,28 @@ class AppProvider with ChangeNotifier {
         throw StateError('Radio location sharing is still enabled for this channel');
       }
       notifyListeners();
-      return const ChannelLocationSharingResult(
-        state: ChannelLocationSharingState(
+      return ChannelLocationSharingResult(
+        state: const ChannelLocationSharingState(
           mode: ChannelLocationSharingMode.hardware,
           isSharing: false,
           hardwareSupported: true,
           isConnected: true,
         ),
-        message: 'Stopped sharing location on this channel.',
+        message: l10n?.stoppedSharingLocation ?? 'Stopped sharing location on this channel.',
       );
     }
 
     _hardwareChannelLocationSharingSupported = false;
     _hardwareChannelLocationSharingChannelIdx = null;
     notifyListeners();
-    return const ChannelLocationSharingResult(
-      state: ChannelLocationSharingState(
+    return ChannelLocationSharingResult(
+      state: const ChannelLocationSharingState(
         mode: ChannelLocationSharingMode.appFallback,
         isSharing: false,
         hardwareSupported: false,
         isConnected: true,
       ),
-      message: 'Stopped sharing location on this channel.',
+      message: l10n?.stoppedSharingLocation ?? 'Stopped sharing location on this channel.',
     );
   }
 
@@ -4102,6 +4110,10 @@ class AppProvider with ChangeNotifier {
     final wasConnected = _wasDeviceConnected;
     _wasDeviceConnected = isConnected;
     final wasTracking = locationTrackingService.isTracking;
+
+    if (isConnected != wasConnected) {
+      unawaited(_clearAppFallbackChannelLocationSharingState());
+    }
 
     // Only stop tracking on disconnect - DON'T start on connect
     // Location tracking will be started AFTER initialization completes

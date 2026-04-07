@@ -393,7 +393,7 @@ class _MeshCoreSarAppState extends State<MeshCoreSarApp> {
           key: ValueKey<String?>(
             '${_locale?.languageCode ?? 'system'}_${_themeMode.name}',
           ),
-          title: 'MeshCore SAR',
+          onGenerateTitle: (context) => AppLocalizations.of(context)?.appTitle ?? 'MeshCore SAR',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.getTheme(_themeMode, systemBrightness),
           locale: _locale,

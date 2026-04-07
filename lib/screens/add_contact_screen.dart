@@ -272,7 +272,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
                   },
                   decoration: InputDecoration(
                     labelText: 'Contact advert',
-                    hintText: 'Paste a share link or hex advert',
+                    hintText: AppLocalizations.of(context)!.pasteShareLinkOrHexAdvert,
                     alignLabelWithHint: true,
                     border: const OutlineInputBorder(),
                     errorText: _validationError,

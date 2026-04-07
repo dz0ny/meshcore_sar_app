@@ -170,7 +170,7 @@ class UpdateDialog extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error opening download: $e'),
+            content: Text(AppLocalizations.of(context)!.errorOpeningDownload(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

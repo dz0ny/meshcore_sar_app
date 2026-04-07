@@ -36,10 +36,6 @@
   "@scanAgain": {
     "description": "Button to restart BLE scanning"
   },
-  "tapToConnect": "Торкніться, щоб підключитися",
-  "@tapToConnect": {
-    "description": "Subtitle text for device in scan list"
-  },
   "deviceNotConnected": "Пристрій не підключено",
   "@deviceNotConnected": {
     "description": "Error message when device is not connected"
@@ -133,17 +129,9 @@
   "@showRxTxIndicators": {
     "description": "Setting to show RX/TX indicators"
   },
-  "displayPacketActivity": "Показувати індикатори активності пакетів у верхній панелі",
-  "@displayPacketActivity": {
-    "description": "Description for RX/TX indicators setting"
-  },
   "disableMap": "Вимкнути мапу",
   "@disableMap": {
     "description": "Setting to disable the map tab"
-  },
-  "disableMapDescription": "Приховати вкладку мапи для зменшення споживання батареї",
-  "@disableMapDescription": {
-    "description": "Description for disable map setting"
   },
   "language": "Мова",
   "@language": {
@@ -172,10 +160,6 @@
   "appVersion": "Версія застосунку",
   "@appVersion": {
     "description": "App version label"
-  },
-  "appName": "Назва застосунку",
-  "@appName": {
-    "description": "App name label"
   },
   "aboutMeshCoreSar": "Про MeshCore SAR",
   "@aboutMeshCoreSar": {
@@ -307,10 +291,6 @@
   "resetPath": "Скинути маршрут (побудувати заново)",
   "@resetPath": {
     "description": "Action to reset contact path for re-routing"
-  },
-  "publicKeyCopied": "Публічний ключ скопійовано в буфер обміну",
-  "@publicKeyCopied": {
-    "description": "Success message when public key is copied"
   },
   "copiedToClipboard": "{label} скопійовано в буфер обміну",
   "@copiedToClipboard": {
@@ -720,22 +700,6 @@
   "@lastSeen": {
     "description": "Last seen label"
   },
-  "roomStatus": "Стан кімнати",
-  "@roomStatus": {
-    "description": "Room status section header"
-  },
-  "loginStatus": "Стан входу",
-  "@loginStatus": {
-    "description": "Login status label"
-  },
-  "notLoggedIn": "Не увійшли",
-  "@notLoggedIn": {
-    "description": "Not logged in status"
-  },
-  "adminAccess": "Доступ адміністратора",
-  "@adminAccess": {
-    "description": "Admin access label"
-  },
   "yes": "Так",
   "@yes": {
     "description": "Yes answer"
@@ -747,14 +711,6 @@
   "permissions": "Дозволи",
   "@permissions": {
     "description": "Permissions label"
-  },
-  "passwordSaved": "Пароль збережено",
-  "@passwordSaved": {
-    "description": "Password saved label"
-  },
-  "locationColon": "Місцезнаходження:",
-  "@locationColon": {
-    "description": "Location section header"
   },
   "telemetry": "Телеметрія",
   "@telemetry": {
@@ -783,19 +739,6 @@
   "gpsTelemetry": "GPS (телеметрія)",
   "@gpsTelemetry": {
     "description": "GPS from telemetry label"
-  },
-  "updated": "Оновлено",
-  "@updated": {
-    "description": "Updated timestamp label"
-  },
-  "pathResetInfo": "Маршрут для {name} скинуто. Наступне повідомлення знайде новий маршрут.",
-  "@pathResetInfo": {
-    "description": "Info message after path reset",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
   },
   "reLoginToRoom": "Повторно увійти до кімнати",
   "@reLoginToRoom": {
@@ -1158,10 +1101,6 @@
   "@frequencyMHz": {
     "description": "Label for radio frequency field"
   },
-  "frequencyExample": "напр., 869.618",
-  "@frequencyExample": {
-    "description": "Helper text example for frequency"
-  },
   "bandwidth": "Ширина смуги",
   "@bandwidth": {
     "description": "Label for bandwidth dropdown"
@@ -1265,47 +1204,6 @@
   "@trailControls": {
     "description": "Trail controls tooltip"
   },
-  "contactTrails": "Сліди контактів",
-  "@contactTrails": {
-    "description": "Contact trails section header"
-  },
-  "showAllContactTrails": "Показати всі сліди контактів",
-  "@showAllContactTrails": {
-    "description": "Toggle label to show all contact trails"
-  },
-  "noContactsWithLocationHistory": "Немає контактів з історією місцезнаходження",
-  "@noContactsWithLocationHistory": {
-    "description": "Subtitle when no contacts have trails"
-  },
-  "showingTrailsForContacts": "Показуються сліди для {count} контактів",
-  "@showingTrailsForContacts": {
-    "description": "Subtitle showing number of contacts with trails",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "individualContactTrails": "Окремі сліди контактів",
-  "@individualContactTrails": {
-    "description": "Expansion tile title for individual contact trails"
-  },
-  "deviceInformation": "Інформація про пристрій",
-  "@deviceInformation": {
-    "description": "Device information section header"
-  },
-  "bleName": "Назва BLE",
-  "@bleName": {
-    "description": "Bluetooth Low Energy device name label"
-  },
-  "meshName": "Назва mesh",
-  "@meshName": {
-    "description": "Mesh network name label"
-  },
-  "notSet": "Не задано",
-  "@notSet": {
-    "description": "Label when a value is not set"
-  },
   "model": "Модель",
   "@model": {
     "description": "Device model label"
@@ -1313,14 +1211,6 @@
   "version": "Версія",
   "@version": {
     "description": "Version label"
-  },
-  "buildDate": "Дата збірки",
-  "@buildDate": {
-    "description": "Firmware build date label"
-  },
-  "firmware": "Прошивка",
-  "@firmware": {
-    "description": "Firmware label"
   },
   "maxContacts": "Макс. контактів",
   "@maxContacts": {
@@ -1333,26 +1223,6 @@
   "publicInfo": "Публічна інформація",
   "@publicInfo": {
     "description": "Public information section header"
-  },
-  "meshNetworkName": "Назва mesh-мережі",
-  "@meshNetworkName": {
-    "description": "Mesh network name field label"
-  },
-  "nameBroadcastInMesh": "Ім’я, що транслюється в mesh-оголошеннях",
-  "@nameBroadcastInMesh": {
-    "description": "Helper text for mesh network name field"
-  },
-  "telemetryAndLocationSharing": "Телеметрія та поширення місцезнаходження",
-  "@telemetryAndLocationSharing": {
-    "description": "Telemetry and location sharing toggle label"
-  },
-  "lat": "Шир.",
-  "@lat": {
-    "description": "Latitude field label (short form)"
-  },
-  "lon": "Довг.",
-  "@lon": {
-    "description": "Longitude field label (short form)"
   },
   "useCurrentLocation": "Використати поточне місцезнаходження",
   "@useCurrentLocation": {
@@ -1383,15 +1253,6 @@
       }
     }
   },
-  "copiedToClipboardShort": "{label} скопійовано в буфер обміну",
-  "@copiedToClipboardShort": {
-    "description": "Short success message when copying to clipboard",
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
   "failedToSave": "Не вдалося зберегти: {error}",
   "@failedToSave": {
     "description": "Generic error message for save failures",
@@ -1413,10 +1274,6 @@
   "sarTemplates": "Шаблони SAR",
   "@sarTemplates": {
     "description": "SAR templates menu title"
-  },
-  "manageSarTemplates": "Керувати шаблонами SAR",
-  "@manageSarTemplates": {
-    "description": "Subtitle for SAR templates settings"
   },
   "addTemplate": "Додати шаблон",
   "@addTemplate": {
@@ -1540,10 +1397,6 @@
   "ok": "OK",
   "@ok": {
     "description": "OK button label"
-  },
-  "permissionsSection": "Дозволи",
-  "@permissionsSection": {
-    "description": "Permissions section header"
   },
   "locationPermission": "Дозвіл на геолокацію",
   "@locationPermission": {
@@ -2109,94 +1962,6 @@
   "@wizardWelcomeTitle": {
     "description": "Welcome wizard first page title"
   },
-  "wizardWelcomeDescription": "Потужний інструмент офлайн-комунікації для операцій пошуку та рятування. Зв’язуйтеся зі своєю командою за допомогою mesh-радіо, коли традиційні мережі недоступні.",
-  "@wizardWelcomeDescription": {
-    "description": "Welcome wizard first page description"
-  },
-  "wizardConnectingTitle": "Підключення до радіо",
-  "@wizardConnectingTitle": {
-    "description": "Wizard connecting page title"
-  },
-  "wizardConnectingDescription": "Підключіть смартфон до радіопристрою MeshCore через Bluetooth, щоб почати спілкування поза мережею.",
-  "@wizardConnectingDescription": {
-    "description": "Wizard connecting page description"
-  },
-  "wizardConnectingFeature1": "Скануйте сусідні пристрої MeshCore",
-  "@wizardConnectingFeature1": {
-    "description": "Wizard connecting feature 1"
-  },
-  "wizardConnectingFeature2": "Сполучіть свій радіопристрій через Bluetooth",
-  "@wizardConnectingFeature2": {
-    "description": "Wizard connecting feature 2"
-  },
-  "wizardConnectingFeature3": "Працює повністю офлайн - інтернет не потрібен",
-  "@wizardConnectingFeature3": {
-    "description": "Wizard connecting feature 3"
-  },
-  "wizardChannelTitle": "Канали",
-  "@wizardChannelTitle": {
-    "description": "Wizard channel page title"
-  },
-  "wizardChannelDescription": "Транслюйте повідомлення всім у каналі - ідеально для загальнокомандних оголошень і координації.",
-  "@wizardChannelDescription": {
-    "description": "Wizard channel page description"
-  },
-  "wizardChannelFeature1": "Публічний канал для загального спілкування команди",
-  "@wizardChannelFeature1": {
-    "description": "Wizard channel feature 1"
-  },
-  "wizardChannelFeature2": "Створюйте власні канали для окремих груп",
-  "@wizardChannelFeature2": {
-    "description": "Wizard channel feature 2"
-  },
-  "wizardChannelFeature3": "Повідомлення автоматично ретранслюються mesh-мережею",
-  "@wizardChannelFeature3": {
-    "description": "Wizard channel feature 3"
-  },
-  "wizardContactsTitle": "Контакти",
-  "@wizardContactsTitle": {
-    "description": "Wizard contacts page title"
-  },
-  "wizardContactsDescription": "Члени вашої команди з’являються автоматично, коли приєднуються до mesh-мережі. Надсилайте їм прямі повідомлення або переглядайте їхнє місцезнаходження.",
-  "@wizardContactsDescription": {
-    "description": "Wizard contacts page description"
-  },
-  "wizardContactsFeature1": "Контакти виявляються автоматично",
-  "@wizardContactsFeature1": {
-    "description": "Wizard contacts feature 1"
-  },
-  "wizardContactsFeature2": "Надсилайте приватні прямі повідомлення",
-  "@wizardContactsFeature2": {
-    "description": "Wizard contacts feature 2"
-  },
-  "wizardContactsFeature3": "Переглядайте рівень батареї та час останньої появи",
-  "@wizardContactsFeature3": {
-    "description": "Wizard contacts feature 3"
-  },
-  "wizardMapTitle": "Мапа та місцезнаходження",
-  "@wizardMapTitle": {
-    "description": "Wizard map page title"
-  },
-  "wizardMapDescription": "Відстежуйте команду в реальному часі та позначайте важливі місця для операцій пошуку та рятування.",
-  "@wizardMapDescription": {
-    "description": "Wizard map page description"
-  },
-  "wizardMapFeature1": "Маркери SAR для знайдених людей, пожеж і зон збору",
-  "@wizardMapFeature1": {
-    "description": "Wizard map feature 1"
-  },
-  "wizardMapFeature2": "GPS-відстеження членів команди в реальному часі",
-  "@wizardMapFeature2": {
-    "description": "Wizard map feature 2"
-  },
-  "wizardMapFeature3": "Завантажуйте офлайн-мапи для віддалених районів",
-  "@wizardMapFeature3": {
-    "description": "Wizard map feature 3"
-  },
-  "wizardMapFeature4": "Малюйте фігури та діліться тактичною інформацією",
-  "@wizardMapFeature4": {
-    "description": "Wizard map feature 4"
-  },
   "viewWelcomeTutorial": "Переглянути вступний посібник",
   "@viewWelcomeTutorial": {
     "description": "Settings option to re-show welcome wizard"
@@ -2352,29 +2117,10 @@
   "posttxDelay": "Затримка після передачі",
   "bandpass": "Смуговий",
   "bandpassFilterVoice": "Смуговий фільтр голосу",
-  "frequency": "Частота",
-  "australia": "Австралія",
-  "australiaNarrow": "Австралія (Вузький)",
-  "australiaQld": "Австралія: QLD",
-  "australiaSaWa": "Австралія: SA, WA",
-  "newZealand": "Нова Зеландія",
-  "newZealandNarrow": "Нова Зеландія (Вузький)",
-  "switzerland": "Швейцарія",
-  "portugal433": "Португалія 433",
-  "portugal868": "Португалія 868",
-  "czechRepublicNarrow": "Чехія (Вузький)",
-  "eu433mhzLongRange": "ЄС 433МГц (Далекий)",
-  "euukDeprecated": "ЄС/Великобританія (Застаріле)",
-  "euukNarrow": "ЄС/Великобританія (Вузький)",
-  "usacanadaRecommended": "США/Канада (Рекомендовано)",
-  "vietnamDeprecated": "В'єтнам (Застаріле)",
-  "vietnamNarrow": "В'єтнам (Вузький)",
   "active": "Активно",
   "addContact": "Додати контакт",
   "all": "Усі",
-  "autoResolve": "Автоматичне вирішення",
   "clearAllLabel": "Очистити все",
-  "clearRelays": "Очистити реле",
   "clearFilters": "Очистити фільтри",
   "clearRoute": "Очистити маршрут",
   "clearMessages": "Очистити повідомлення",
@@ -2400,10 +2146,7 @@
   "send": "Надіслати",
   "sendAnyway": "Надіслати все одно",
   "share": "Поділитися",
-  "shareContact": "Поділитися контактом",
   "trace": "Трасування",
-  "use": "Використати",
-  "useSelectedFrequency": "Використати обрану частоту",
   "discovery": "Виявлення",
   "discoverRepeaters": "Виявити повторювачі",
   "discoverSensors": "Виявити датчики",
@@ -2426,7 +2169,6 @@
   "gpsModule": "Модуль GPS",
   "liveTraffic": "Живий трафік",
   "repeatersMap": "Карта повторювачів",
-  "spectrumScan": "Сканування спектру",
   "blePacketLogs": "Журнали BLE-пакетів",
   "onlineTraceDatabase": "База трасувань",
   "routePathByteSize": "Розмір шляху в байтах",
@@ -2438,7 +2180,6 @@
   "disableContacts": "Вимкнути контакти",
   "enableSensorsTab": "Увімкнути вкладку Датчики",
   "enableProfiles": "Увімкнути профілі",
-  "autoRouteRotation": "Автоматична ротація маршруту",
   "nearestRepeaterFallback": "Найближчий повторювач як резерв",
   "deleteAllStoredMessageHistory": "Видалити всю історію повідомлень",
   "messageFontSize": "Розмір шрифту повідомлень",
@@ -2446,18 +2187,13 @@
   "showMapDebugInfo": "Показати налагоджувальну інфо карти",
   "openMapInFullscreen": "Відкрити карту на повний екран",
   "showSarMarkersLabel": "Показати SAR-маркери",
-  "displaySarMarkersOnTheMainMap": "Показувати SAR-маркери на головній карті",
-  "showAllContactTrailsLabel": "Показати всі сліди контактів",
   "hideRepeatersOnMap": "Сховати повторювачі на карті",
   "setMapScale": "Встановити масштаб карти",
   "customMapScaleSaved": "Користувацький масштаб карти збережено",
   "voiceBitrate": "Бітрейт голосу",
   "voiceCompressor": "Компресор голосу",
-  "balancesQuietAndLoudSpeechLevels": "Вирівнює тихий і гучний рівні мови",
   "voiceLimiter": "Лімітер голосу",
-  "preventsClippingPeaksBeforeEncoding": "Запобігає обрізанню піків перед кодуванням",
   "micAutoGain": "Автопідсилення мікрофона",
-  "letsTheRecorderAdjustInputLevel": "Дозволяє рекордеру налаштувати рівень входу",
   "echoCancellation": "Придушення ехо",
   "noiseSuppression": "Придушення шуму",
   "trimSilenceInVoiceMessages": "Обрізати тишу в голосових повідомленнях",
@@ -2499,13 +2235,10 @@
   "staging": "Місце збору",
   "object": "Об'єкт",
   "quiet": "Тихо",
-  "moderate": "Помірно",
   "busy": "Зайнято",
-  "spectrumScanReturnedNoCandidateFrequencies": "Сканування спектру не знайшло частот-кандидатів",
   "searchMessages": "Пошук повідомлень",
   "sendImageFromGallery": "Надіслати зображення з галереї",
   "takePhoto": "Зробити фото",
-  "dmOnly": "Лише особисті повідомлення",
   "allMessages": "Усі повідомлення",
   "sendToPublicChannel": "Надіслати в публічний канал?",
   "selectMarkerTypeAndDestination": "Виберіть тип маркера та призначення",
@@ -2524,8 +2257,6 @@
   "wipeDevice": "Стерти пристрій",
   "destructiveDeviceActions": "Деструктивні дії пристрою.",
   "chooseAPresetOrFinetuneCustomRadioSettings": "Оберіть пресет або налаштуйте радіо вручну.",
-  "chooseTheNameAndLocationThisDeviceShares": "Оберіть ім'я та місцеположення, якими ділиться пристрій.",
-  "availableSpaceOnThisDevice": "Доступний простір на цьому пристрої.",
   "used": "Використано",
   "total": "Загалом",
   "renameValue": "Перейменувати значення",
@@ -2543,8 +2274,6 @@
   "onlineOnly": "Лише онлайн",
   "inBoth": "В обох",
   "source": "Джерело",
-  "manualRouteEdit": "Ручне редагування маршруту",
-  "observedMeshRoute": "Спостережуваний mesh-маршрут",
   "allMessagesCleared": "Усі повідомлення очищено",
   "onlineTraceDatabaseCleared": "Базу трасувань очищено",
   "packetLogsCleared": "Журнали пакетів очищено",
@@ -2575,5 +2304,194 @@
   "captured": "Захоплено",
   "size": "Розмір",
   "noCustomChannelsToClear": "Немає користувацьких каналів для очищення.",
-  "noDeviceContactsToClear": "Немає контактів пристрою для очищення."
+  "noDeviceContactsToClear": "Немає контактів пристрою для очищення.",
+  "autoSend": "Автовідправлення",
+  "autoSendDescription": "Надіслати поточним маршрутом.",
+  "sendDirect": "Пряме надсилання",
+  "sendDirectDescription": "Надіслати безпосередньо цьому контакту.",
+  "sendFlood": "Надсилання лавиною",
+  "sendFloodDescription": "Надіслати через усі ретранслятори.",
+  "postConnectDiscoveryTitle": "Виявити ретранслятори зараз?",
+  "postConnectDiscoveryDescription": "Запустіть виявлення ретрансляторів одразу після підключення, щоб побачити найближчі вузли MeshCore та швидше додати їх до своєї мережі.",
+  "aToZ": "А-Я",
+  "add": "Додати",
+  "addAdditionalDetails": "Додати додаткові деталі",
+  "addPeer": "Додати вузол",
+  "addPeerManually": "Додати вузол вручну",
+  "addedToContacts": "{name} додано до контактів",
+  "addedToSensors": "{name} додано до сенсорів",
+  "allowAll": "Дозволити все",
+  "anonymousRxStats": "Анонімна статистика RX",
+  "appearance": "Зовнішній вигляд",
+  "ascii": "ASCII",
+  "baseTelemetry": "Базова телеметрія",
+  "blePin": "BLE PIN",
+  "buzzerAlerts": "Сповіщення зумером",
+  "cancelImageReceive": "Скасувати отримання зображення",
+  "choose": "Обрати",
+  "chooseWhichTabsAndContactSectionsToShow": "Оберіть, які вкладки та розділи контактів показувати",
+  "clearCache": "Очистити кеш",
+  "clearHistory": "Очистити історію",
+  "clearLiveView": "Очистити живий перегляд",
+  "clearLogs": "Очистити журнали",
+  "clearOfflineCache": "Очистити офлайн-кеш?",
+  "clearOverlay": "Очистити накладання",
+  "clearRouteOnlyAfterAllRetriesFail": "Очистити маршрут лише після невдачі всіх спроб",
+  "codecBitrateAndAudioProcessing": "Кодек, бітрейт та обробка звуку",
+  "connectByIpAddress": "Підключити за IP-адресою",
+  "controlWhichAlertsYouReceive": "Керуйте сповіщеннями, які ви отримуєте",
+  "copyFullHex": "Копіювати повний Hex",
+  "copyRawResponse": "Копіювати необроблену відповідь",
+  "couldNotLoadMetHistory": "Не вдалося завантажити історію MET",
+  "customizeSensor": "Налаштувати {name}",
+  "data": "Дані",
+  "deleteGroup": "Видалити групу",
+  "deleteStyleConfirm": "Видалити {name}?",
+  "deleteThisDrawing": "Видалити цей {type}?",
+  "deny": "Відхилити",
+  "deviceInfo": "Інформація про пристрій",
+  "deviceSettings": "Налаштування пристрою",
+  "deviceTimeSynced": "Час пристрою синхронізовано з цим телефоном.",
+  "disableFastGpsPublishing": "Вимкнути швидку публікацію GPS",
+  "displayMarkersAndTraceDatabase": "Відображення, маркери та база даних трасувань",
+  "download": "Завантажити",
+  "environmentalTelemetry": "Телеметрія довкілля",
+  "errorCheckingForUpdates": "Помилка перевірки оновлень: {error}",
+  "errorGeneric": "Помилка: {error}",
+  "errorOpeningDownload": "Помилка відкриття завантаження: {error}",
+  "exportLogs": "Експортувати журнали",
+  "extraAggressiveAvifCompression": "Надагресивне стиснення AVIF",
+  "failedToAddContact": "Не вдалося додати контакт: {error}",
+  "failedToAddName": "Не вдалося додати {name}: {error}",
+  "failedToClearChannels": "Не вдалося очистити канали: {error}",
+  "failedToClearContacts": "Не вдалося очистити контакти: {error}",
+  "failedToConnectViaSerial": "Не вдалося підключитися через послідовний порт",
+  "failedToLoadPreviewImage": "Не вдалося завантажити попередній перегляд: {error}",
+  "failedToLoadTrace": "Не вдалося завантажити трасування: {error}",
+  "failedToSendSarMarker": "Не вдалося надіслати SAR маркер: {error}",
+  "failedToSetBuzzerMode": "Не вдалося встановити режим зумера: {error}",
+  "failedToSetGpsMode": "Не вдалося встановити режим GPS: {error}",
+  "failedToSyncDeviceTime": "Не вдалося синхронізувати час пристрою: {error}",
+  "failedToWipeDeviceData": "Не вдалося стерти дані пристрою: {error}",
+  "fastGpsTargetChannel": "Цільовий канал швидкого GPS",
+  "fastUpdatesThresholdsAndPermissions": "Швидкі оновлення, пороги та дозволи",
+  "fetchingCatalog": "Завантаження каталогу...",
+  "fifteenMinutes": "15 хвилин",
+  "fifteenSeconds": "15 секунд",
+  "filterByDirection": "Фільтрувати за напрямком",
+  "finish": "Завершити",
+  "fiveMinutes": "5 хвилин",
+  "fiveSeconds": "5 секунд",
+  "fix": "Фіксація",
+  "gps": "GPS",
+  "gpsAdvertPolicy": "Політика оголошень GPS",
+  "gpsAndLocation": "GPS та місцезнаходження",
+  "gpsDiagnostics": "Діагностика GPS",
+  "gpsSection": "GPS",
+  "help": "Допомога",
+  "hex": "Hex",
+  "hidden": "Приховано",
+  "howTheRadioAutoAddsDiscoveredNodes": "Як радіо автоматично додає виявлені вузли.",
+  "images": "Зображення",
+  "importProfile": "Імпортувати профіль",
+  "lastFix": "Остання фіксація",
+  "latest": "Найновіші",
+  "latitude": "Широта",
+  "loadASavedRegion": "Завантажити збережений регіон",
+  "loading": "Завантаження",
+  "locationSharingHardwareAndUpdateInterval": "Обмін місцезнаходженням, обладнання та інтервал оновлення.",
+  "locationTelemetry": "Телеметрія місцезнаходження",
+  "lockDestination": "Зафіксувати призначення",
+  "longitude": "Довгота",
+  "mapStyle": "Стиль мапи",
+  "max": "Макс",
+  "maxZoom": "Макс. масштаб",
+  "messaging": "Обмін повідомленнями",
+  "metHistory": "Історія MET",
+  "min": "Мін",
+  "minZoom": "Мін. масштаб",
+  "moveDown": "Перемістити вниз",
+  "moveUp": "Перемістити вгору",
+  "multiAckMode": "Режим мульти-ACK",
+  "multiDeviceWorkspaceManagement": "Керування робочим простором кількох пристроїв",
+  "myLocation": "Моє місцезнаходження",
+  "nameAndTelemetryShared": "Ім'я та телеметрія надсилаються іншим пристроям.",
+  "newVersionAvailable": "Нова версія: {version}",
+  "newer": "Новіші",
+  "noNeighboursFound": "Сусідів не знайдено",
+  "noServersFound": "Серверів не знайдено",
+  "notSet": "Не встановлено",
+  "notifications": "Сповіщення",
+  "offZeroSeconds": "Вимк (0 с)",
+  "offlineMaps": "Офлайн-мапи",
+  "older": "Старіші",
+  "oneByteMode0": "1 байт (режим 0)",
+  "oneHour": "1 година",
+  "oneMinute": "1 хвилина",
+  "openPacketLogs": "Відкрити журнали пакетів",
+  "packetTypeHelp": "Довідка типів пакетів",
+  "pasteShareLinkOrHexAdvert": "Вставте посилання або hex-оголошення",
+  "pathHash": "Хеш шляху",
+  "pathSize": "Розмір шляху",
+  "ping": "Ping",
+  "polygon": "Полігон",
+  "rawResponseCopied": "Необроблену відповідь скопійовано",
+  "resendThroughNearestRepeaterOnFailure": "Повторно надіслати через найближчий ретранслятор у разі невдачі",
+  "resolveContact": "Розв'язати контакт",
+  "routingRetriesAndDestinationLock": "Маршрутизація, повторні спроби та фіксація призначення",
+  "samples": "Зразки",
+  "satellites": "Супутники",
+  "saving": "Збереження...",
+  "search": "Пошук",
+  "searchByNameOrToken": "Шукати за іменем або токеном",
+  "searchDiscoveredNodes": "Шукати виявлені вузли",
+  "searchInCurrentFilter": "Шукати в поточному фільтрі",
+  "searchLogs": "Шукати в журналах...",
+  "searchSensors": "Шукати сенсори",
+  "searchThisSection": "Шукати в цьому розділі",
+  "selectedRelays": "Обрані ретранслятори",
+  "sensor": "Сенсор",
+  "serialError": "Помилка послідовного порту: {error}",
+  "setPathForContact": "Встановити шлях для {name}",
+  "shareLiveGps": "Поділитися GPS у реальному часі",
+  "shareMyTiles": "Поділитися моїми тайлами",
+  "sharingLocationFromPhone": "Обмін місцезнаходженням на цьому каналі з телефону.",
+  "sharingLocationFromRadio": "Обмін місцезнаходженням на цьому каналі з радіо.",
+  "signalDbm": "Сигнал {rssi} дБм",
+  "sizeCompressionAndPreview": "Розмір, стиснення та попередній перегляд",
+  "skip": "Пропустити",
+  "smallerFileSize": "Менший розмір файлу",
+  "sort": "Сортувати",
+  "stoppedSharingLocation": "Обмін місцезнаходженням на цьому каналі зупинено.",
+  "suppressNotificationsWhileInForeground": "Придушити сповіщення, коли застосунок на передньому плані",
+  "tabsAndNavigation": "Вкладки та навігація",
+  "templatesAndTutorials": "Шаблони та посібники",
+  "tenMinutes": "10 хвилин",
+  "tenSeconds": "10 секунд",
+  "testSendUpdate": "Тестове надсилання оновлення",
+  "themeLanguageAndDisplayPreferences": "Тема, мова та налаштування відображення",
+  "thirtyMinutes": "30 хвилин",
+  "thirtySeconds": "30 секунд",
+  "threeBytesMode2": "3 байти (режим 2)",
+  "trafficStatsMessageHistoryAndDeveloperTools": "Статистика трафіку, історія повідомлень та інструменти розробника",
+  "twoBytesMode1": "2 байти (режим 1)",
+  "twoMinutes": "2 хвилини",
+  "undo": "Скасувати",
+  "updated": "Оновлено",
+  "useContactFlags": "Використовувати прапорці контактів",
+  "useSavedCoordinates": "Використати збережені координати",
+  "view": "Перегляд",
+  "viewNeighbours": "Переглянути сусідів",
+  "viewPublicStats": "Переглянути публічну статистику",
+  "setRegionScope": "Встановити область регіону",
+  "regionScope": "Область регіону",
+  "regionScopeNone": "Немає (глобально)",
+  "clearRegionScope": "Очистити область",
+  "regionScopeWarning": "Лише ретранслятори, що дозволяють цей регіон, будуть пересилати.",
+  "discoverRegions": "Виявити з ретрансляторів",
+  "discoveringRegions": "Виявлення регіонів...",
+  "enterRegionName": "Назва регіону (напр. auckland)",
+  "noRegionsFound": "Регіони не знайдені на цьому ретрансляторі.",
+  "regionScopeSet": "Область регіону встановлена на {name}",
+  "regionScopeCleared": "Область регіону очищена"
 }

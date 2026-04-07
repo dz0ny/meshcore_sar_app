@@ -1140,7 +1140,7 @@ class SensorTelemetryCard extends StatelessWidget {
         await Clipboard.setData(ClipboardData(text: rawTelemetry));
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Raw response copied')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.rawResponseCopied)),
           );
         }
       }
@@ -1173,13 +1173,13 @@ class SensorTelemetryCard extends StatelessWidget {
       if (onPing != null)
         _SensorSheetAction(
           icon: Icons.network_ping,
-          label: 'Ping',
+          label: AppLocalizations.of(context)!.ping,
           onTap: () => _handleAction(context, 'ping'),
         ),
       if (_rawTelemetryHex(contact?.telemetry) != null)
         _SensorSheetAction(
           icon: Icons.copy_all_outlined,
-          label: 'Copy raw response',
+          label: AppLocalizations.of(context)!.copyRawResponse,
           onTap: () => _handleAction(context, 'copy_raw'),
         ),
       if (onCustomize != null)
@@ -1193,7 +1193,7 @@ class SensorTelemetryCard extends StatelessWidget {
           supportsBTHomeMetHistory(contact))
         _SensorSheetAction(
           icon: Icons.show_chart,
-          label: 'MET history',
+          label: AppLocalizations.of(context)!.metHistory,
           onTap: () => _handleAction(context, 'met_history'),
         ),
       if (onRemove != null)
@@ -1309,10 +1309,10 @@ class SensorTelemetryCard extends StatelessWidget {
                                 tooltip: l10n.refreshing,
                               ),
                             if (state == SensorRefreshState.success)
-                              const _InlineStateMeta(
+                              _InlineStateMeta(
                                 color: Color(0xFF218B63),
                                 icon: Icons.check_circle,
-                                tooltip: 'Updated',
+                                tooltip: AppLocalizations.of(context)!.updated,
                               ),
                             if (state == SensorRefreshState.unavailable)
                               _InlineStateMeta(

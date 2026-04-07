@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/offline_tiles_provider.dart';
 
 /// Renders polygon/rectangle drawing interaction on the map.
@@ -199,7 +200,7 @@ class DrawingToolbar extends StatelessWidget {
             children: [
               _ToolButton(
                 icon: Icons.crop_square,
-                label: 'Rectangle',
+                label: AppLocalizations.of(context)!.rectangle,
                 isActive: provider.drawingMode == DrawingMode.rectangle,
                 onTap: () => provider.setDrawingMode(
                   provider.drawingMode == DrawingMode.rectangle
@@ -210,7 +211,7 @@ class DrawingToolbar extends StatelessWidget {
               const SizedBox(height: 8),
               _ToolButton(
                 icon: Icons.pentagon_outlined,
-                label: 'Polygon',
+                label: AppLocalizations.of(context)!.polygon,
                 isActive: provider.drawingMode == DrawingMode.polygon,
                 onTap: () => provider.setDrawingMode(
                   provider.drawingMode == DrawingMode.polygon
@@ -223,7 +224,7 @@ class DrawingToolbar extends StatelessWidget {
                 const SizedBox(height: 8),
                 _ToolButton(
                   icon: Icons.check,
-                  label: 'Finish',
+                  label: AppLocalizations.of(context)!.finish,
                   isActive: false,
                   color: Colors.green,
                   onTap: () => provider.finishPolygon(),
@@ -234,7 +235,7 @@ class DrawingToolbar extends StatelessWidget {
                 const SizedBox(height: 8),
                 _ToolButton(
                   icon: Icons.undo,
-                  label: 'Undo',
+                  label: AppLocalizations.of(context)!.undo,
                   isActive: false,
                   onTap: () => provider.undoLastVertex(),
                 ),
@@ -243,7 +244,7 @@ class DrawingToolbar extends StatelessWidget {
                 const SizedBox(height: 8),
                 _ToolButton(
                   icon: Icons.delete_outline,
-                  label: 'Clear',
+                  label: AppLocalizations.of(context)!.clear,
                   isActive: false,
                   color: Colors.red,
                   onTap: () => provider.clearPolygons(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -42,7 +43,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Offline Maps'),
+        title: Text(AppLocalizations.of(context)!.offlineMaps),
         actions: [
           Consumer<OfflineTilesProvider>(
             builder: (context, provider, _) {
@@ -67,7 +68,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
             builder: (context, provider, _) {
               return PopupMenuButton<MapLayer>(
                 icon: const Icon(Icons.layers),
-                tooltip: 'Map Style',
+                tooltip: AppLocalizations.of(context)!.mapStyle,
                 onSelected: (layer) => provider.setSelectedLayer(layer),
                 itemBuilder: (_) => [
                   for (final layer in MapLayer.allLayers)
@@ -195,7 +196,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                           border: OutlineInputBorder(),
                         ),
                         isExpanded: true,
-                        hint: const Text('Load a saved region'),
+                        hint: Text(AppLocalizations.of(context)!.loadASavedRegion),
                         items: provider.localStyles
                             .where((s) => s.region != null)
                             .map((style) => DropdownMenuItem(
@@ -224,7 +225,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                         children: [
                           Expanded(
                             child: _ZoomSelector(
-                              label: 'Min Zoom',
+                              label: AppLocalizations.of(context)!.minZoom,
                               value: provider.minZoom,
                               onChanged: provider.setMinZoom,
                             ),
@@ -232,7 +233,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: _ZoomSelector(
-                              label: 'Max Zoom',
+                              label: AppLocalizations.of(context)!.maxZoom,
                               value: provider.maxZoom,
                               onChanged: provider.setMaxZoom,
                             ),
@@ -305,7 +306,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                                   ? () => provider.startDownload()
                                   : null,
                               icon: const Icon(Icons.download),
-                              label: const Text('Download'),
+                              label: Text(AppLocalizations.of(context)!.download),
                             ),
                           ),
                           if (provider.tileOverlays.isNotEmpty) ...[
@@ -313,7 +314,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                             IconButton(
                               onPressed: provider.clearOverlays,
                               icon: const Icon(Icons.layers_clear),
-                              tooltip: 'Clear overlay',
+                              tooltip: AppLocalizations.of(context)!.clearOverlay,
                             ),
                           ],
                           if (provider.cacheSizeBytes > 0) ...[
@@ -321,7 +322,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                             IconButton(
                               onPressed: () => _confirmClearCache(provider),
                               icon: const Icon(Icons.delete_forever),
-                              tooltip: 'Clear cache',
+                              tooltip: AppLocalizations.of(context)!.clearCache,
                             ),
                           ],
                         ],
@@ -330,7 +331,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                             child: OutlinedButton.icon(
                               onPressed: () => provider.cancelDownload(),
                               icon: const Icon(Icons.cancel),
-                              label: const Text('Cancel'),
+                              label: Text(AppLocalizations.of(context)!.cancel),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.red,
                               ),
@@ -390,7 +391,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
 
                     // Server toggle
                     SwitchListTile(
-                      title: const Text('Share my tiles'),
+                      title: Text(AppLocalizations.of(context)!.shareMyTiles),
                       subtitle: Text(
                         provider.isServerRunning
                             ? 'Other devices can fetch tiles from this device'
@@ -449,7 +450,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                               IconButton(
                                 icon: const Icon(Icons.delete_outline,
                                     size: 20),
-                                tooltip: 'Delete',
+                                tooltip: AppLocalizations.of(context)!.delete,
                                 onPressed: () => _confirmDeleteStyle(
                                     context, provider, style),
                               ),
@@ -481,13 +482,13 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                           else
                             IconButton(
                               icon: const Icon(Icons.refresh, size: 20),
-                              tooltip: 'Refresh',
+                              tooltip: AppLocalizations.of(context)!.refresh,
                               onPressed: () =>
                                   provider.refreshPeerCatalogs(),
                             ),
                           IconButton(
                             icon: const Icon(Icons.add, size: 20),
-                            tooltip: 'Add peer manually',
+                            tooltip: AppLocalizations.of(context)!.addPeerManually,
                             onPressed: () =>
                                 _showAddPeerDialog(context, provider),
                           ),
@@ -524,7 +525,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                         .map((peer) => ListTile(
                               leading: const Icon(Icons.devices),
                               title: Text(peer.ipAddress),
-                              subtitle: const Text('Fetching catalog...'),
+                              subtitle: Text(AppLocalizations.of(context)!.fetchingCatalog),
                               trailing: IconButton(
                                 icon: const Icon(
                                     Icons.remove_circle_outline,
@@ -556,7 +557,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                             if (provider.isSyncing)
                               TextButton(
                                 onPressed: () => provider.cancelSync(),
-                                child: const Text('Cancel'),
+                                child: Text(AppLocalizations.of(context)!.cancel),
                               ),
                           ],
                         ),
@@ -691,7 +692,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Peer'),
+        title: Text(AppLocalizations.of(context)!.addPeer),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
@@ -710,7 +711,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -720,7 +721,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                 Navigator.pop(context);
               }
             },
-            child: const Text('Add'),
+            child: Text(AppLocalizations.of(context)!.add),
           ),
         ],
       ),
@@ -735,7 +736,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('Delete ${style.displayName}?'),
+        title: Text(AppLocalizations.of(context)!.deleteStyleConfirm(style.displayName)),
         content: Text(
           '${_formatNumber(style.tileCount)} tiles, '
           '${_formatBytes(style.sizeBytes)} will be deleted.',
@@ -743,7 +744,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -751,7 +752,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
               Navigator.pop(dialogContext);
             },
             child:
-                const Text('Delete', style: TextStyle(color: Colors.red)),
+                Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -762,13 +763,13 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear offline cache?'),
+        title: Text(AppLocalizations.of(context)!.clearOfflineCache),
         content: Text(
             'This will delete ${_formatBytes(provider.cacheSizeBytes)} of cached tiles.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -776,7 +777,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
               Navigator.pop(context);
             },
             child:
-                const Text('Delete', style: TextStyle(color: Colors.red)),
+                Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

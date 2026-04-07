@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/ble_packet_log.dart';
 import '../../models/message.dart';
 import '../../providers/connection_provider.dart';
@@ -133,7 +134,7 @@ class _MessageTraceSheetState extends State<MessageTraceSheet> {
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text('Failed to load trace: ${snapshot.error}'),
+                  child: Text(AppLocalizations.of(context)!.failedToLoadTrace(snapshot.error.toString())),
                 ),
               ),
             );

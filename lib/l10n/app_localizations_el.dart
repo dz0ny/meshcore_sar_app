@@ -36,9 +36,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get scanAgain => 'Σάρωση ξανά';
 
   @override
-  String get tapToConnect => 'Πατήστε για σύνδεση';
-
-  @override
   String get deviceNotConnected => 'Η συσκευή δεν είναι συνδεδεμένη';
 
   @override
@@ -110,15 +107,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get showRxTxIndicators => 'Εμφάνιση ενδείξεων RX/TX';
 
   @override
-  String get displayPacketActivity =>
-      'Εμφάνιση ενδείξεων δραστηριότητας πακέτων στην επάνω μπάρα';
-
-  @override
   String get disableMap => 'Απενεργοποίηση χάρτη';
-
-  @override
-  String get disableMapDescription =>
-      'Απόκρυψη της καρτέλας χάρτη για μείωση κατανάλωσης μπαταρίας';
 
   @override
   String get language => 'Γλώσσα';
@@ -140,9 +129,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get appVersion => 'Έκδοση εφαρμογής';
-
-  @override
-  String get appName => 'Όνομα εφαρμογής';
 
   @override
   String get aboutMeshCoreSar => 'Σχετικά με το MeshCore SAR';
@@ -239,9 +225,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get resetPath => 'Επαναφορά διαδρομής (νέα δρομολόγηση)';
-
-  @override
-  String get publicKeyCopied => 'Το δημόσιο κλειδί αντιγράφηκε στο πρόχειρο';
 
   @override
   String copiedToClipboard(String label) {
@@ -484,22 +467,22 @@ class AppLocalizationsEl extends AppLocalizations {
   String get flood => 'Πλημμυρικό';
 
   @override
-  String get autoSend => 'Auto Send';
+  String get autoSend => 'Αυτόματη αποστολή';
 
   @override
-  String get autoSendDescription => 'Send via current path.';
+  String get autoSendDescription => 'Αποστολή μέσω τρέχουσας διαδρομής.';
 
   @override
-  String get sendDirect => 'Send Direct';
+  String get sendDirect => 'Άμεση αποστολή';
 
   @override
-  String get sendDirectDescription => 'Send directly to this contact.';
+  String get sendDirectDescription => 'Αποστολή απευθείας σε αυτήν την επαφή.';
 
   @override
-  String get sendFlood => 'Send Flood';
+  String get sendFlood => 'Αποστολή πλημμύρας';
 
   @override
-  String get sendFloodDescription => 'Send via all repeaters.';
+  String get sendFloodDescription => 'Αποστολή μέσω όλων των αναμεταδοτών.';
 
   @override
   String get loggedIn => 'Συνδεδεμένος';
@@ -540,18 +523,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get lastSeen => 'Τελευταία εμφάνιση';
 
   @override
-  String get roomStatus => 'Κατάσταση δωματίου';
-
-  @override
-  String get loginStatus => 'Κατάσταση σύνδεσης';
-
-  @override
-  String get notLoggedIn => 'Μη συνδεδεμένος';
-
-  @override
-  String get adminAccess => 'Πρόσβαση διαχειριστή';
-
-  @override
   String get yes => 'Ναι';
 
   @override
@@ -559,12 +530,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get permissions => 'Δικαιώματα';
-
-  @override
-  String get passwordSaved => 'Ο κωδικός αποθηκεύτηκε';
-
-  @override
-  String get locationColon => 'Τοποθεσία:';
 
   @override
   String get telemetry => 'Τηλεμετρία';
@@ -586,14 +551,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get gpsTelemetry => 'GPS (τηλεμετρία)';
-
-  @override
-  String get updated => 'Ενημερώθηκε';
-
-  @override
-  String pathResetInfo(String name) {
-    return 'Η διαδρομή για το $name επαναφέρθηκε. Το επόμενο μήνυμα θα βρει νέα διαδρομή.';
-  }
 
   @override
   String get reLoginToRoom => 'Επανασύνδεση στο δωμάτιο';
@@ -847,9 +804,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get frequencyMHz => 'Συχνότητα (MHz)';
 
   @override
-  String get frequencyExample => 'π.χ. 869.618';
-
-  @override
   String get bandwidth => 'Εύρος ζώνης';
 
   @override
@@ -925,46 +879,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get trailControls => 'Στοιχεία ελέγχου ίχνους';
 
   @override
-  String get contactTrails => 'Ίχνη επαφών';
-
-  @override
-  String get showAllContactTrails => 'Εμφάνιση όλων των ιχνών επαφών';
-
-  @override
-  String get noContactsWithLocationHistory =>
-      'Δεν υπάρχουν επαφές με ιστορικό τοποθεσίας';
-
-  @override
-  String showingTrailsForContacts(int count) {
-    return 'Εμφανίζονται ίχνη για $count επαφές';
-  }
-
-  @override
-  String get individualContactTrails => 'Μεμονωμένα ίχνη επαφών';
-
-  @override
-  String get deviceInformation => 'Πληροφορίες συσκευής';
-
-  @override
-  String get bleName => 'Όνομα BLE';
-
-  @override
-  String get meshName => 'Όνομα mesh';
-
-  @override
-  String get notSet => 'Δεν έχει οριστεί';
-
-  @override
   String get model => 'Μοντέλο';
 
   @override
   String get version => 'Έκδοση';
-
-  @override
-  String get buildDate => 'Ημερομηνία build';
-
-  @override
-  String get firmware => 'Υλικολογισμικό';
 
   @override
   String get maxContacts => 'Μέγιστες επαφές';
@@ -974,23 +892,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get publicInfo => 'Δημόσιες πληροφορίες';
-
-  @override
-  String get meshNetworkName => 'Όνομα δικτύου mesh';
-
-  @override
-  String get nameBroadcastInMesh =>
-      'Όνομα που μεταδίδεται στις διαφημίσεις mesh';
-
-  @override
-  String get telemetryAndLocationSharing =>
-      'Τηλεμετρία και κοινοποίηση τοποθεσίας';
-
-  @override
-  String get lat => 'Πλάτος';
-
-  @override
-  String get lon => 'Μήκος';
 
   @override
   String get useCurrentLocation => 'Χρήση τρέχουσας τοποθεσίας';
@@ -1013,11 +914,6 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String copiedToClipboardShort(String label) {
-    return 'Το $label αντιγράφηκε στο πρόχειρο';
-  }
-
-  @override
   String failedToSave(String error) {
     return 'Αποτυχία αποθήκευσης: $error';
   }
@@ -1029,9 +925,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get sarTemplates => 'Πρότυπα SAR';
-
-  @override
-  String get manageSarTemplates => 'Διαχείριση προτύπων SAR';
 
   @override
   String get addTemplate => 'Προσθήκη προτύπου';
@@ -1134,9 +1027,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get ok => 'ΟΚ';
-
-  @override
-  String get permissionsSection => 'Δικαιώματα';
 
   @override
   String get locationPermission => 'Άδεια τοποθεσίας';
@@ -1584,88 +1474,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get wizardWelcomeTitle => 'Καλώς ήρθατε στο MeshCore SAR';
 
   @override
-  String get wizardWelcomeDescription =>
-      'Ένα ισχυρό εργαλείο επικοινωνίας εκτός δικτύου για επιχειρήσεις έρευνας και διάσωσης. Συνδεθείτε με την ομάδα σας χρησιμοποιώντας τεχνολογία mesh radio όταν τα παραδοσιακά δίκτυα δεν είναι διαθέσιμα.';
-
-  @override
-  String get wizardConnectingTitle => 'Σύνδεση στο radio σας';
-
-  @override
-  String get wizardConnectingDescription =>
-      'Συνδέστε το smartphone σας με μια συσκευή MeshCore radio μέσω Bluetooth για να αρχίσετε να επικοινωνείτε εκτός δικτύου.';
-
-  @override
-  String get wizardConnectingFeature1 =>
-      'Σάρωση για κοντινές συσκευές MeshCore';
-
-  @override
-  String get wizardConnectingFeature2 =>
-      'Σύζευξη με το radio σας μέσω Bluetooth';
-
-  @override
-  String get wizardConnectingFeature3 =>
-      'Λειτουργεί πλήρως εκτός σύνδεσης - δεν απαιτείται internet';
-
-  @override
-  String get wizardChannelTitle => 'Κανάλια';
-
-  @override
-  String get wizardChannelDescription =>
-      'Μεταδώστε μηνύματα σε όλους σε ένα κανάλι, ιδανικό για ανακοινώσεις και συντονισμό σε όλη την ομάδα.';
-
-  @override
-  String get wizardChannelFeature1 =>
-      'Δημόσιο κανάλι για γενική επικοινωνία ομάδας';
-
-  @override
-  String get wizardChannelFeature2 =>
-      'Δημιουργία προσαρμοσμένων καναλιών για συγκεκριμένες ομάδες';
-
-  @override
-  String get wizardChannelFeature3 =>
-      'Τα μηνύματα αναμεταδίδονται αυτόματα από το mesh';
-
-  @override
-  String get wizardContactsTitle => 'Επαφές';
-
-  @override
-  String get wizardContactsDescription =>
-      'Τα μέλη της ομάδας σας εμφανίζονται αυτόματα καθώς συνδέονται στο δίκτυο mesh. Στείλτε τους άμεσα μηνύματα ή δείτε την τοποθεσία τους.';
-
-  @override
-  String get wizardContactsFeature1 => 'Οι επαφές εντοπίζονται αυτόματα';
-
-  @override
-  String get wizardContactsFeature2 => 'Αποστολή ιδιωτικών άμεσων μηνυμάτων';
-
-  @override
-  String get wizardContactsFeature3 =>
-      'Προβολή επιπέδου μπαταρίας και χρόνου τελευταίας εμφάνισης';
-
-  @override
-  String get wizardMapTitle => 'Χάρτης και τοποθεσία';
-
-  @override
-  String get wizardMapDescription =>
-      'Παρακολουθήστε την ομάδα σας σε πραγματικό χρόνο και σημειώστε σημαντικές τοποθεσίες για επιχειρήσεις έρευνας και διάσωσης.';
-
-  @override
-  String get wizardMapFeature1 =>
-      'Δείκτες SAR για εντοπισμένα άτομα, φωτιές και σημεία συγκέντρωσης';
-
-  @override
-  String get wizardMapFeature2 =>
-      'Παρακολούθηση GPS των μελών της ομάδας σε πραγματικό χρόνο';
-
-  @override
-  String get wizardMapFeature3 =>
-      'Λήψη χαρτών εκτός σύνδεσης για απομακρυσμένες περιοχές';
-
-  @override
-  String get wizardMapFeature4 =>
-      'Σχεδίαση σχημάτων και κοινοποίηση τακτικών πληροφοριών';
-
-  @override
   String get viewWelcomeTutorial => 'Προβολή οδηγού καλωσορίσματος';
 
   @override
@@ -1924,11 +1732,11 @@ class AppLocalizationsEl extends AppLocalizations {
       'Χρησιμοποιήστε καταγραφές πακέτων, σάρωση φάσματος και διαγνωστικά προγραμματιστή κατά την αντιμετώπιση προβλημάτων του mesh.';
 
   @override
-  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+  String get postConnectDiscoveryTitle => 'Ανακάλυψη αναμεταδοτών τώρα;';
 
   @override
   String get postConnectDiscoveryDescription =>
-      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+      'Εκτελέστε ανακάλυψη αναμεταδοτών αμέσως μετά τη σύνδεση, ώστε να μπορείτε να δείτε κοντινούς κόμβους MeshCore και να τους προσθέσετε στο δίκτυό σας πιο γρήγορα.';
 
   @override
   String get contactInSensors => 'Στους αισθητήρες';
@@ -2032,57 +1840,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get bandpassFilterVoice => 'Ζωνοπερατό φίλτρο φωνής';
 
   @override
-  String get frequency => 'Συχνότητα';
-
-  @override
-  String get australia => 'Αυστραλία';
-
-  @override
-  String get australiaNarrow => 'Αυστραλία (Στενό)';
-
-  @override
-  String get australiaQld => 'Αυστραλία: QLD';
-
-  @override
-  String get australiaSaWa => 'Αυστραλία: SA, WA';
-
-  @override
-  String get newZealand => 'Νέα Ζηλανδία';
-
-  @override
-  String get newZealandNarrow => 'Νέα Ζηλανδία (Στενό)';
-
-  @override
-  String get switzerland => 'Ελβετία';
-
-  @override
-  String get portugal433 => 'Πορτογαλία 433';
-
-  @override
-  String get portugal868 => 'Πορτογαλία 868';
-
-  @override
-  String get czechRepublicNarrow => 'Τσεχία (Στενό)';
-
-  @override
-  String get eu433mhzLongRange => 'ΕΕ 433MHz (Μεγάλη Εμβέλεια)';
-
-  @override
-  String get euukDeprecated => 'ΕΕ/ΗΒ (Παρωχημένο)';
-
-  @override
-  String get euukNarrow => 'ΕΕ/ΗΒ (Στενό)';
-
-  @override
-  String get usacanadaRecommended => 'ΗΠΑ/Καναδάς (Προτεινόμενο)';
-
-  @override
-  String get vietnamDeprecated => 'Βιετνάμ (Παρωχημένο)';
-
-  @override
-  String get vietnamNarrow => 'Βιετνάμ (Στενό)';
-
-  @override
   String get active => 'Ενεργό';
 
   @override
@@ -2092,13 +1849,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get all => 'Όλα';
 
   @override
-  String get autoResolve => 'Αυτόματη επίλυση';
-
-  @override
   String get clearAllLabel => 'Εκκαθάριση όλων';
-
-  @override
-  String get clearRelays => 'Εκκαθάριση αναμεταδοτών';
 
   @override
   String get clearFilters => 'Εκκαθάριση φίλτρων';
@@ -2176,16 +1927,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get share => 'Κοινοποίηση';
 
   @override
-  String get shareContact => 'Κοινοποίηση επαφής';
-
-  @override
   String get trace => 'Ίχνος';
-
-  @override
-  String get use => 'Χρήση';
-
-  @override
-  String get useSelectedFrequency => 'Χρήση επιλεγμένης συχνότητας';
 
   @override
   String get discovery => 'Ανακάλυψη';
@@ -2255,9 +1997,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get repeatersMap => 'Χάρτης αναμεταδοτών';
 
   @override
-  String get spectrumScan => 'Σάρωση φάσματος';
-
-  @override
   String get blePacketLogs => 'Αρχεία πακέτων BLE';
 
   @override
@@ -2291,9 +2030,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get enableProfiles => 'Ενεργοποίηση προφίλ';
 
   @override
-  String get autoRouteRotation => 'Αυτόματη εναλλαγή διαδρομής';
-
-  @override
   String get nearestRepeaterFallback => 'Πλησιέστερος αναμεταδότης ως εφεδρεία';
 
   @override
@@ -2315,13 +2051,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get showSarMarkersLabel => 'Εμφάνιση δεικτών SAR';
 
   @override
-  String get displaySarMarkersOnTheMainMap =>
-      'Εμφάνιση δεικτών SAR στον κύριο χάρτη';
-
-  @override
-  String get showAllContactTrailsLabel => 'Εμφάνιση όλων των ιχνών επαφών';
-
-  @override
   String get hideRepeatersOnMap => 'Απόκρυψη αναμεταδοτών στον χάρτη';
 
   @override
@@ -2337,22 +2066,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get voiceCompressor => 'Συμπιεστής φωνής';
 
   @override
-  String get balancesQuietAndLoudSpeechLevels =>
-      'Εξισορρόπηση χαμηλών και δυνατών επιπέδων';
-
-  @override
   String get voiceLimiter => 'Περιοριστής φωνής';
 
   @override
-  String get preventsClippingPeaksBeforeEncoding =>
-      'Αποτρέπει κοπή κορυφών πριν την κωδικοποίηση';
-
-  @override
   String get micAutoGain => 'Αυτόματη ενίσχυση μικροφώνου';
-
-  @override
-  String get letsTheRecorderAdjustInputLevel =>
-      'Αφήνει τη συσκευή να ρυθμίσει την ένταση';
 
   @override
   String get echoCancellation => 'Ακύρωση ηχούς';
@@ -2484,14 +2201,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get quiet => 'Ήσυχο';
 
   @override
-  String get moderate => 'Μέτριο';
-
-  @override
   String get busy => 'Απασχολημένο';
-
-  @override
-  String get spectrumScanReturnedNoCandidateFrequencies =>
-      'Η σάρωση φάσματος δεν βρήκε υποψήφιες συχνότητες';
 
   @override
   String get searchMessages => 'Αναζήτηση μηνυμάτων';
@@ -2501,9 +2211,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get takePhoto => 'Λήψη φωτογραφίας';
-
-  @override
-  String get dmOnly => 'Μόνο απευθείας';
 
   @override
   String get allMessages => 'Όλα τα μηνύματα';
@@ -2563,14 +2270,6 @@ class AppLocalizationsEl extends AppLocalizations {
       'Επιλέξτε μια προεπιλογή ή ρυθμίστε τις ρυθμίσεις ραδιοφώνου.';
 
   @override
-  String get chooseTheNameAndLocationThisDeviceShares =>
-      'Επιλέξτε το όνομα και την τοποθεσία που μοιράζεται αυτή η συσκευή.';
-
-  @override
-  String get availableSpaceOnThisDevice =>
-      'Διαθέσιμος χώρος σε αυτή τη συσκευή.';
-
-  @override
   String get used => 'Χρησιμοποιήθηκε';
 
   @override
@@ -2622,12 +2321,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get source => 'Πηγή';
-
-  @override
-  String get manualRouteEdit => 'Χειροκίνητη επεξεργασία διαδρομής';
-
-  @override
-  String get observedMeshRoute => 'Παρατηρούμενη διαδρομή δικτύου';
 
   @override
   String get allMessagesCleared => 'Όλα τα μηνύματα διαγράφηκαν';
@@ -2727,38 +2420,619 @@ class AppLocalizationsEl extends AppLocalizations {
   String get noDeviceContactsToClear => 'Δεν υπάρχουν επαφές συσκευής.';
 
   @override
-  String get setRegionScope => 'Set region scope';
+  String get aToZ => 'A-Z';
 
   @override
-  String get regionScope => 'Region scope';
+  String get add => 'Προσθήκη';
 
   @override
-  String get regionScopeNone => 'None (global)';
+  String get addAdditionalDetails => 'Προσθήκη επιπλέον λεπτομερειών';
 
   @override
-  String get clearRegionScope => 'Clear scope';
+  String get addPeer => 'Προσθήκη κόμβου';
 
   @override
-  String get regionScopeWarning =>
-      'Only repeaters allowing this region will forward.';
+  String get addPeerManually => 'Χειροκίνητη προσθήκη κόμβου';
 
   @override
-  String get discoverRegions => 'Discover from repeaters';
-
-  @override
-  String get discoveringRegions => 'Discovering regions...';
-
-  @override
-  String get enterRegionName => 'Region name (e.g. auckland)';
-
-  @override
-  String get noRegionsFound => 'No regions found on this repeater.';
-
-  @override
-  String regionScopeSet(String name) {
-    return 'Region scope set to $name';
+  String addedToContacts(String name) {
+    return 'Ο/Η $name προστέθηκε στις επαφές';
   }
 
   @override
-  String get regionScopeCleared => 'Region scope cleared';
+  String addedToSensors(String name) {
+    return 'Ο/Η $name προστέθηκε στους αισθητήρες';
+  }
+
+  @override
+  String get allowAll => 'Επιτρέπονται όλα';
+
+  @override
+  String get anonymousRxStats => 'Ανώνυμα στατιστικά λήψης';
+
+  @override
+  String get appearance => 'Εμφάνιση';
+
+  @override
+  String get ascii => 'ASCII';
+
+  @override
+  String get baseTelemetry => 'Βασική τηλεμετρία';
+
+  @override
+  String get blePin => 'BLE PIN';
+
+  @override
+  String get buzzerAlerts => 'Ειδοποιήσεις βομβητή';
+
+  @override
+  String get cancelImageReceive => 'Ακύρωση λήψης εικόνας';
+
+  @override
+  String get choose => 'Επιλογή';
+
+  @override
+  String get chooseWhichTabsAndContactSectionsToShow =>
+      'Επιλέξτε ποιες καρτέλες και ενότητες επαφών θα εμφανίζονται';
+
+  @override
+  String get clearCache => 'Εκκαθάριση προσωρινής μνήμης';
+
+  @override
+  String get clearHistory => 'Εκκαθάριση ιστορικού';
+
+  @override
+  String get clearLiveView => 'Εκκαθάριση ζωντανής προβολής';
+
+  @override
+  String get clearLogs => 'Εκκαθάριση αρχείων καταγραφής';
+
+  @override
+  String get clearOfflineCache =>
+      'Εκκαθάριση προσωρινής μνήμης εκτός σύνδεσης;';
+
+  @override
+  String get clearOverlay => 'Εκκαθάριση επικάλυψης';
+
+  @override
+  String get clearRouteOnlyAfterAllRetriesFail =>
+      'Εκκαθάριση διαδρομής μόνο μετά την αποτυχία όλων των επαναπροσπαθειών';
+
+  @override
+  String get codecBitrateAndAudioProcessing =>
+      'Κωδικοποιητής, ρυθμός bit και επεξεργασία ήχου';
+
+  @override
+  String get connectByIpAddress => 'Σύνδεση μέσω διεύθυνσης IP';
+
+  @override
+  String get controlWhichAlertsYouReceive =>
+      'Ελέγξτε ποιες ειδοποιήσεις λαμβάνετε';
+
+  @override
+  String get copyFullHex => 'Αντιγραφή πλήρους Hex';
+
+  @override
+  String get copyRawResponse => 'Αντιγραφή ακατέργαστης απόκρισης';
+
+  @override
+  String get couldNotLoadMetHistory => 'Αδυναμία φόρτωσης ιστορικού MET';
+
+  @override
+  String customizeSensor(String name) {
+    return 'Προσαρμογή $name';
+  }
+
+  @override
+  String get data => 'Δεδομένα';
+
+  @override
+  String get deleteGroup => 'Διαγραφή ομάδας';
+
+  @override
+  String deleteStyleConfirm(String name) {
+    return 'Διαγραφή $name;';
+  }
+
+  @override
+  String deleteThisDrawing(String type) {
+    return 'Διαγραφή αυτού του $type;';
+  }
+
+  @override
+  String get deny => 'Απόρριψη';
+
+  @override
+  String get deviceInfo => 'Πληροφορίες συσκευής';
+
+  @override
+  String get deviceSettings => 'Ρυθμίσεις συσκευής';
+
+  @override
+  String get deviceTimeSynced =>
+      'Ο χρόνος της συσκευής συγχρονίστηκε με αυτό το τηλέφωνο.';
+
+  @override
+  String get disableFastGpsPublishing =>
+      'Απενεργοποίηση γρήγορης δημοσίευσης GPS';
+
+  @override
+  String get displayMarkersAndTraceDatabase =>
+      'Εμφάνιση, δείκτες και βάση δεδομένων ιχνών';
+
+  @override
+  String get download => 'Λήψη';
+
+  @override
+  String get environmentalTelemetry => 'Περιβαλλοντική τηλεμετρία';
+
+  @override
+  String errorCheckingForUpdates(String error) {
+    return 'Σφάλμα ελέγχου ενημερώσεων: $error';
+  }
+
+  @override
+  String errorGeneric(String error) {
+    return 'Σφάλμα: $error';
+  }
+
+  @override
+  String errorOpeningDownload(String error) {
+    return 'Σφάλμα ανοίγματος λήψης: $error';
+  }
+
+  @override
+  String get exportLogs => 'Εξαγωγή αρχείων καταγραφής';
+
+  @override
+  String get extraAggressiveAvifCompression =>
+      'Εξαιρετικά επιθετική συμπίεση AVIF';
+
+  @override
+  String failedToAddContact(String error) {
+    return 'Αποτυχία προσθήκης επαφής: $error';
+  }
+
+  @override
+  String failedToAddName(String name, String error) {
+    return 'Αποτυχία προσθήκης $name: $error';
+  }
+
+  @override
+  String failedToClearChannels(String error) {
+    return 'Αποτυχία εκκαθάρισης καναλιών: $error';
+  }
+
+  @override
+  String failedToClearContacts(String error) {
+    return 'Αποτυχία εκκαθάρισης επαφών: $error';
+  }
+
+  @override
+  String get failedToConnectViaSerial =>
+      'Αποτυχία σύνδεσης μέσω σειριακής θύρας';
+
+  @override
+  String failedToLoadPreviewImage(String error) {
+    return 'Αποτυχία φόρτωσης εικόνας προεπισκόπησης: $error';
+  }
+
+  @override
+  String failedToLoadTrace(String error) {
+    return 'Αποτυχία φόρτωσης ίχνους: $error';
+  }
+
+  @override
+  String failedToSendSarMarker(String error) {
+    return 'Αποτυχία αποστολής δείκτη SAR: $error';
+  }
+
+  @override
+  String failedToSetBuzzerMode(String error) {
+    return 'Αποτυχία ρύθμισης λειτουργίας βομβητή: $error';
+  }
+
+  @override
+  String failedToSetGpsMode(String error) {
+    return 'Αποτυχία ρύθμισης λειτουργίας GPS: $error';
+  }
+
+  @override
+  String failedToSyncDeviceTime(String error) {
+    return 'Αποτυχία συγχρονισμού χρόνου συσκευής: $error';
+  }
+
+  @override
+  String failedToWipeDeviceData(String error) {
+    return 'Αποτυχία διαγραφής δεδομένων συσκευής: $error';
+  }
+
+  @override
+  String get fastGpsTargetChannel => 'Κανάλι-στόχος γρήγορου GPS';
+
+  @override
+  String get fastUpdatesThresholdsAndPermissions =>
+      'Γρήγορες ενημερώσεις, όρια και δικαιώματα';
+
+  @override
+  String get fetchingCatalog => 'Ανάκτηση καταλόγου...';
+
+  @override
+  String get fifteenMinutes => '15 λεπτά';
+
+  @override
+  String get fifteenSeconds => '15 δευτερόλεπτα';
+
+  @override
+  String get filterByDirection => 'Φιλτράρισμα κατά κατεύθυνση';
+
+  @override
+  String get finish => 'Τέλος';
+
+  @override
+  String get fiveMinutes => '5 λεπτά';
+
+  @override
+  String get fiveSeconds => '5 δευτερόλεπτα';
+
+  @override
+  String get fix => 'Στίξη';
+
+  @override
+  String get gps => 'GPS';
+
+  @override
+  String get gpsAdvertPolicy => 'Πολιτική διαφήμισης GPS';
+
+  @override
+  String get gpsAndLocation => 'GPS & Τοποθεσία';
+
+  @override
+  String get gpsDiagnostics => 'Διαγνωστικά GPS';
+
+  @override
+  String get gpsSection => 'GPS';
+
+  @override
+  String get help => 'Βοήθεια';
+
+  @override
+  String get hex => 'Hex';
+
+  @override
+  String get hidden => 'Κρυφό';
+
+  @override
+  String get howTheRadioAutoAddsDiscoveredNodes =>
+      'Πώς το ραδιόφωνο προσθέτει αυτόματα ανακαλυφθέντες κόμβους.';
+
+  @override
+  String get images => 'Εικόνες';
+
+  @override
+  String get importProfile => 'Εισαγωγή προφίλ';
+
+  @override
+  String get lastFix => 'Τελευταία στίξη';
+
+  @override
+  String get latest => 'Πιο πρόσφατο';
+
+  @override
+  String get latitude => 'Γεωγραφικό πλάτος';
+
+  @override
+  String get loadASavedRegion => 'Φόρτωση αποθηκευμένης περιοχής';
+
+  @override
+  String get loading => 'Φόρτωση';
+
+  @override
+  String get locationSharingHardwareAndUpdateInterval =>
+      'Κοινοποίηση τοποθεσίας, υλικό και διάστημα ενημέρωσης.';
+
+  @override
+  String get locationTelemetry => 'Τηλεμετρία τοποθεσίας';
+
+  @override
+  String get lockDestination => 'Κλείδωμα προορισμού';
+
+  @override
+  String get longitude => 'Γεωγραφικό μήκος';
+
+  @override
+  String get mapStyle => 'Στυλ χάρτη';
+
+  @override
+  String get max => 'Μέγ.';
+
+  @override
+  String get maxZoom => 'Μέγ. ζουμ';
+
+  @override
+  String get messaging => 'Μηνύματα';
+
+  @override
+  String get metHistory => 'Ιστορικό MET';
+
+  @override
+  String get min => 'Ελάχ.';
+
+  @override
+  String get minZoom => 'Ελάχ. ζουμ';
+
+  @override
+  String get moveDown => 'Μετακίνηση κάτω';
+
+  @override
+  String get moveUp => 'Μετακίνηση πάνω';
+
+  @override
+  String get multiAckMode => 'Λειτουργία πολλαπλού ACK';
+
+  @override
+  String get multiDeviceWorkspaceManagement =>
+      'Διαχείριση χώρου εργασίας πολλαπλών συσκευών';
+
+  @override
+  String get myLocation => 'Η τοποθεσία μου';
+
+  @override
+  String get nameAndTelemetryShared =>
+      'Το όνομα και η τηλεμετρία κοινοποιούνται σε άλλες συσκευές.';
+
+  @override
+  String newVersionAvailable(String version) {
+    return 'Νέα έκδοση: $version';
+  }
+
+  @override
+  String get newer => 'Νεότερο';
+
+  @override
+  String get noNeighboursFound => 'Δεν βρέθηκαν γείτονες';
+
+  @override
+  String get noServersFound => 'Δεν βρέθηκαν διακομιστές';
+
+  @override
+  String get notSet => 'Δεν έχει οριστεί';
+
+  @override
+  String get notifications => 'Ειδοποιήσεις';
+
+  @override
+  String get offZeroSeconds => 'Ανενεργό (0 δ)';
+
+  @override
+  String get offlineMaps => 'Χάρτες εκτός σύνδεσης';
+
+  @override
+  String get older => 'Παλαιότερο';
+
+  @override
+  String get oneByteMode0 => '1 byte (mode 0)';
+
+  @override
+  String get oneHour => '1 ώρα';
+
+  @override
+  String get oneMinute => '1 λεπτό';
+
+  @override
+  String get openPacketLogs => 'Άνοιγμα αρχείων πακέτων';
+
+  @override
+  String get packetTypeHelp => 'Βοήθεια τύπων πακέτων';
+
+  @override
+  String get pasteShareLinkOrHexAdvert =>
+      'Επικολλήστε σύνδεσμο κοινοποίησης ή hex διαφήμιση';
+
+  @override
+  String get pathHash => 'Hash διαδρομής';
+
+  @override
+  String get pathSize => 'Μέγεθος διαδρομής';
+
+  @override
+  String get ping => 'Ping';
+
+  @override
+  String get polygon => 'Πολύγωνο';
+
+  @override
+  String get rawResponseCopied => 'Η ακατέργαστη απόκριση αντιγράφηκε';
+
+  @override
+  String get resendThroughNearestRepeaterOnFailure =>
+      'Επαναποστολή μέσω πλησιέστερου αναμεταδότη σε αποτυχία';
+
+  @override
+  String get resolveContact => 'Επίλυση επαφής';
+
+  @override
+  String get routingRetriesAndDestinationLock =>
+      'Δρομολόγηση, επαναπροσπάθειες και κλείδωμα προορισμού';
+
+  @override
+  String get samples => 'Δείγματα';
+
+  @override
+  String get satellites => 'Δορυφόροι';
+
+  @override
+  String get saving => 'Αποθήκευση...';
+
+  @override
+  String get search => 'Αναζήτηση';
+
+  @override
+  String get searchByNameOrToken => 'Αναζήτηση με όνομα ή token';
+
+  @override
+  String get searchDiscoveredNodes => 'Αναζήτηση ανακαλυφθέντων κόμβων';
+
+  @override
+  String get searchInCurrentFilter => 'Αναζήτηση στο τρέχον φίλτρο';
+
+  @override
+  String get searchLogs => 'Αναζήτηση αρχείων καταγραφής...';
+
+  @override
+  String get searchSensors => 'Αναζήτηση αισθητήρων';
+
+  @override
+  String get searchThisSection => 'Αναζήτηση σε αυτήν την ενότητα';
+
+  @override
+  String get selectedRelays => 'Επιλεγμένοι αναμεταδότες';
+
+  @override
+  String get sensor => 'Αισθητήρας';
+
+  @override
+  String serialError(String error) {
+    return 'Σφάλμα σειριακής: $error';
+  }
+
+  @override
+  String setPathForContact(String name) {
+    return 'Ορισμός διαδρομής για $name';
+  }
+
+  @override
+  String get shareLiveGps => 'Κοινοποίηση ζωντανού GPS';
+
+  @override
+  String get shareMyTiles => 'Κοινοποίηση πλακιδίων μου';
+
+  @override
+  String get sharingLocationFromPhone =>
+      'Κοινοποίηση τοποθεσίας σε αυτό το κανάλι από το τηλέφωνο.';
+
+  @override
+  String get sharingLocationFromRadio =>
+      'Κοινοποίηση τοποθεσίας σε αυτό το κανάλι από το ραδιόφωνο.';
+
+  @override
+  String signalDbm(String rssi) {
+    return 'Σήμα $rssi dBm';
+  }
+
+  @override
+  String get sizeCompressionAndPreview => 'Μέγεθος, συμπίεση και προεπισκόπηση';
+
+  @override
+  String get skip => 'Παράλειψη';
+
+  @override
+  String get smallerFileSize => 'Μικρότερο μέγεθος αρχείου';
+
+  @override
+  String get sort => 'Ταξινόμηση';
+
+  @override
+  String get stoppedSharingLocation =>
+      'Σταμάτησε η κοινοποίηση τοποθεσίας σε αυτό το κανάλι.';
+
+  @override
+  String get suppressNotificationsWhileInForeground =>
+      'Αποσιώπηση ειδοποιήσεων όταν η εφαρμογή είναι στο προσκήνιο';
+
+  @override
+  String get tabsAndNavigation => 'Καρτέλες & Πλοήγηση';
+
+  @override
+  String get templatesAndTutorials => 'Πρότυπα και οδηγίες';
+
+  @override
+  String get tenMinutes => '10 λεπτά';
+
+  @override
+  String get tenSeconds => '10 δευτερόλεπτα';
+
+  @override
+  String get testSendUpdate => 'Δοκιμαστική αποστολή ενημέρωσης';
+
+  @override
+  String get themeLanguageAndDisplayPreferences =>
+      'Θέμα, γλώσσα και προτιμήσεις εμφάνισης';
+
+  @override
+  String get thirtyMinutes => '30 λεπτά';
+
+  @override
+  String get thirtySeconds => '30 δευτερόλεπτα';
+
+  @override
+  String get threeBytesMode2 => '3 bytes (mode 2)';
+
+  @override
+  String get trafficStatsMessageHistoryAndDeveloperTools =>
+      'Στατιστικά κίνησης, ιστορικό μηνυμάτων και εργαλεία προγραμματιστή';
+
+  @override
+  String get twoBytesMode1 => '2 bytes (mode 1)';
+
+  @override
+  String get twoMinutes => '2 λεπτά';
+
+  @override
+  String get undo => 'Αναίρεση';
+
+  @override
+  String get updated => 'Ενημερώθηκε';
+
+  @override
+  String get useContactFlags => 'Χρήση σημαιών επαφής';
+
+  @override
+  String get useSavedCoordinates => 'Χρήση αποθηκευμένων συντεταγμένων';
+
+  @override
+  String get view => 'Προβολή';
+
+  @override
+  String get viewNeighbours => 'Προβολή γειτόνων';
+
+  @override
+  String get viewPublicStats => 'Προβολή δημόσιων στατιστικών';
+
+  @override
+  String get setRegionScope => 'Ορισμός εύρους περιοχής';
+
+  @override
+  String get regionScope => 'Εύρος περιοχής';
+
+  @override
+  String get regionScopeNone => 'Κανένα (καθολικό)';
+
+  @override
+  String get clearRegionScope => 'Εκκαθάριση εύρους';
+
+  @override
+  String get regionScopeWarning =>
+      'Μόνο οι αναμεταδότες που επιτρέπουν αυτή την περιοχή θα προωθήσουν.';
+
+  @override
+  String get discoverRegions => 'Ανακάλυψη από αναμεταδότες';
+
+  @override
+  String get discoveringRegions => 'Ανακάλυψη περιοχών...';
+
+  @override
+  String get enterRegionName => 'Όνομα περιοχής (π.χ. auckland)';
+
+  @override
+  String get noRegionsFound =>
+      'Δεν βρέθηκαν περιοχές σε αυτόν τον αναμεταδότη.';
+
+  @override
+  String regionScopeSet(String name) {
+    return 'Εύρος περιοχής ορίστηκε σε $name';
+  }
+
+  @override
+  String get regionScopeCleared => 'Εύρος περιοχής εκκαθαρίστηκε';
 }

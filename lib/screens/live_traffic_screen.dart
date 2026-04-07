@@ -155,17 +155,17 @@ class _LiveTrafficScreenState extends State<LiveTrafficScreen> {
           if (widget.openPacketLogs != null)
             IconButton(
               onPressed: widget.openPacketLogs,
-              tooltip: 'Open packet logs',
+              tooltip: AppLocalizations.of(context)!.openPacketLogs,
               icon: const Icon(Icons.list_alt_rounded),
             ),
           IconButton(
             onPressed: _openStatsDashboard,
-            tooltip: 'View public stats',
+            tooltip: AppLocalizations.of(context)!.viewPublicStats,
             icon: const Icon(Icons.open_in_new),
           ),
           IconButton(
             onPressed: () => _showPacketTypeHelpSheet(context),
-            tooltip: 'Packet type help',
+            tooltip: AppLocalizations.of(context)!.packetTypeHelp,
             icon: const Icon(Icons.help_outline),
           ),
           IconButton(
@@ -174,7 +174,7 @@ class _LiveTrafficScreenState extends State<LiveTrafficScreen> {
                 _clearedAt = widget.now();
               });
             },
-            tooltip: 'Clear live view',
+            tooltip: AppLocalizations.of(context)!.clearLiveView,
             icon: const Icon(Icons.cleaning_services_outlined),
           ),
         ],
@@ -986,7 +986,7 @@ class _LiveTrafficCard extends StatelessWidget {
                     style: TextStyle(color: scheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 16),
-                  Text('Hex', style: Theme.of(context).textTheme.titleSmall),
+                  Text(AppLocalizations.of(context)!.hex, style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
@@ -1006,7 +1006,7 @@ class _LiveTrafficCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('ASCII', style: Theme.of(context).textTheme.titleSmall),
+                  Text(AppLocalizations.of(context)!.ascii, style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,

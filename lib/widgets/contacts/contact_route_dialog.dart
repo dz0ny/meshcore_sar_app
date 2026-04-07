@@ -320,7 +320,7 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Selected relays', style: Theme.of(context).textTheme.titleSmall),
+        Text(AppLocalizations.of(context)!.selectedRelays, style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -355,11 +355,11 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
         TextField(
           controller: _relaySearchController,
           onChanged: (_) => setState(() {}),
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search),
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.search),
             labelText: 'Find relay',
-            hintText: 'Search by name or token',
-            border: OutlineInputBorder(),
+            hintText: AppLocalizations.of(context)!.searchByNameOrToken,
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 12),
@@ -509,7 +509,7 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('Path size', style: Theme.of(context).textTheme.labelLarge),
+            Text(AppLocalizations.of(context)!.pathSize, style: Theme.of(context).textTheme.labelLarge),
             const Spacer(),
             SegmentedButton<int>(
               segments: [
@@ -621,7 +621,7 @@ class _ContactRouteDialogState extends State<ContactRouteDialog> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Set Path for ${widget.contact.displayName}'),
+          title: Text(AppLocalizations.of(context)!.setPathForContact(widget.contact.displayName)),
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Build'),

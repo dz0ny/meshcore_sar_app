@@ -36,9 +36,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get scanAgain => 'Erneut scannen';
 
   @override
-  String get tapToConnect => 'Zum Verbinden tippen';
-
-  @override
   String get deviceNotConnected => 'Gerät nicht verbunden';
 
   @override
@@ -111,15 +108,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get showRxTxIndicators => 'RX/TX-Indikatoren anzeigen';
 
   @override
-  String get displayPacketActivity =>
-      'Paketaktivitätsindikatoren in der oberen Leiste anzeigen';
-
-  @override
   String get disableMap => 'Karte deaktivieren';
-
-  @override
-  String get disableMapDescription =>
-      'Karten-Tab ausblenden, um Akku zu sparen';
 
   @override
   String get language => 'Sprache';
@@ -141,9 +130,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get appVersion => 'App-Version';
-
-  @override
-  String get appName => 'App-Name';
 
   @override
   String get aboutMeshCoreSar => 'Über MeshCore SAR';
@@ -240,10 +226,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get resetPath => 'Pfad zurücksetzen (Umleitung)';
-
-  @override
-  String get publicKeyCopied =>
-      'Öffentlicher Schlüssel in die Zwischenablage kopiert';
 
   @override
   String copiedToClipboard(String label) {
@@ -482,22 +464,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get flood => 'Flut';
 
   @override
-  String get autoSend => 'Auto Send';
+  String get autoSend => 'Automatisch senden';
 
   @override
-  String get autoSendDescription => 'Send via current path.';
+  String get autoSendDescription => 'Über aktuellen Pfad senden.';
 
   @override
-  String get sendDirect => 'Send Direct';
+  String get sendDirect => 'Direkt senden';
 
   @override
-  String get sendDirectDescription => 'Send directly to this contact.';
+  String get sendDirectDescription => 'Direkt an diesen Kontakt senden.';
 
   @override
-  String get sendFlood => 'Send Flood';
+  String get sendFlood => 'Per Flutung senden';
 
   @override
-  String get sendFloodDescription => 'Send via all repeaters.';
+  String get sendFloodDescription => 'Über alle Repeater senden.';
 
   @override
   String get loggedIn => 'Angemeldet';
@@ -538,18 +520,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get lastSeen => 'Zuletzt gesehen';
 
   @override
-  String get roomStatus => 'Raumstatus';
-
-  @override
-  String get loginStatus => 'Anmeldestatus';
-
-  @override
-  String get notLoggedIn => 'Nicht angemeldet';
-
-  @override
-  String get adminAccess => 'Admin-Zugriff';
-
-  @override
   String get yes => 'Ja';
 
   @override
@@ -557,12 +527,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get permissions => 'Berechtigungen';
-
-  @override
-  String get passwordSaved => 'Passwort gespeichert';
-
-  @override
-  String get locationColon => 'Standort:';
 
   @override
   String get telemetry => 'Telemetrie';
@@ -584,14 +548,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gpsTelemetry => 'GPS (Telemetrie)';
-
-  @override
-  String get updated => 'Aktualisiert';
-
-  @override
-  String pathResetInfo(String name) {
-    return 'Pfad zurückgesetzt für $name. Nächste Nachricht findet eine neue Route.';
-  }
 
   @override
   String get reLoginToRoom => 'Erneut bei Raum anmelden';
@@ -846,9 +802,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get frequencyMHz => 'Frequenz (MHz)';
 
   @override
-  String get frequencyExample => 'z.B. 869.618';
-
-  @override
   String get bandwidth => 'Bandbreite';
 
   @override
@@ -924,46 +877,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trailControls => 'Verlaufssteuerung';
 
   @override
-  String get contactTrails => 'Kontaktverläufe';
-
-  @override
-  String get showAllContactTrails => 'Alle Kontaktverläufe anzeigen';
-
-  @override
-  String get noContactsWithLocationHistory =>
-      'Keine Kontakte mit Standortverlauf';
-
-  @override
-  String showingTrailsForContacts(int count) {
-    return 'Verläufe für $count Kontakte anzeigen';
-  }
-
-  @override
-  String get individualContactTrails => 'Einzelne Kontaktverläufe';
-
-  @override
-  String get deviceInformation => 'Geräteinformationen';
-
-  @override
-  String get bleName => 'BLE-Name';
-
-  @override
-  String get meshName => 'Mesh-Name';
-
-  @override
-  String get notSet => 'Nicht festgelegt';
-
-  @override
   String get model => 'Modell';
 
   @override
   String get version => 'Version';
-
-  @override
-  String get buildDate => 'Build-Datum';
-
-  @override
-  String get firmware => 'Firmware';
 
   @override
   String get maxContacts => 'Max. Kontakte';
@@ -973,22 +890,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get publicInfo => 'Öffentliche Informationen';
-
-  @override
-  String get meshNetworkName => 'Mesh-Netzwerkname';
-
-  @override
-  String get nameBroadcastInMesh =>
-      'Name, der in Mesh-Sendungen übertragen wird';
-
-  @override
-  String get telemetryAndLocationSharing => 'Telemetrie & Standortfreigabe';
-
-  @override
-  String get lat => 'Breite';
-
-  @override
-  String get lon => 'Lange';
 
   @override
   String get useCurrentLocation => 'Aktuellen Standort verwenden';
@@ -1011,11 +912,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String copiedToClipboardShort(String label) {
-    return '$label in Zwischenablage kopiert';
-  }
-
-  @override
   String failedToSave(String error) {
     return 'Fehler beim Speichern: $error';
   }
@@ -1027,9 +923,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sarTemplates => 'SAR-Vorlagen';
-
-  @override
-  String get manageSarTemplates => 'SAR-Vorlagen verwalten';
 
   @override
   String get addTemplate => 'Vorlage hinzufügen';
@@ -1132,9 +1025,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get ok => 'OK';
-
-  @override
-  String get permissionsSection => 'Berechtigungen';
 
   @override
   String get locationPermission => 'Standortberechtigung';
@@ -1577,88 +1467,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get wizardWelcomeTitle => 'Willkommen bei MeshCore SAR';
 
   @override
-  String get wizardWelcomeDescription =>
-      'Ein leistungsstarkes Offline-Kommunikationstool für Such- und Rettungseinsätze. Verbinden Sie sich mit Ihrem Team über Mesh-Funktechnologie, wenn herkömmliche Netzwerke nicht verfügbar sind.';
-
-  @override
-  String get wizardConnectingTitle => 'Verbindung zum Radio';
-
-  @override
-  String get wizardConnectingDescription =>
-      'Verbinden Sie Ihr Smartphone über Bluetooth mit einem MeshCore-Funkgerät, um offline zu kommunizieren.';
-
-  @override
-  String get wizardConnectingFeature1 =>
-      'Nach MeshCore-Geräten in der Nähe suchen';
-
-  @override
-  String get wizardConnectingFeature2 =>
-      'Mit Ihrem Funkgerät über Bluetooth koppeln';
-
-  @override
-  String get wizardConnectingFeature3 =>
-      'Funktioniert vollständig offline - kein Internet erforderlich';
-
-  @override
-  String get wizardChannelTitle => 'Kanäle';
-
-  @override
-  String get wizardChannelDescription =>
-      'Senden Sie Nachrichten an alle auf einem Kanal, perfekt für teamweite Ankündigungen und Koordination.';
-
-  @override
-  String get wizardChannelFeature1 =>
-      'Öffentlicher Kanal für allgemeine Teamkommunikation';
-
-  @override
-  String get wizardChannelFeature2 =>
-      'Erstellen Sie benutzerdefinierte Kanäle für bestimmte Gruppen';
-
-  @override
-  String get wizardChannelFeature3 =>
-      'Nachrichten werden automatisch über das Mesh weitergeleitet';
-
-  @override
-  String get wizardContactsTitle => 'Kontakte';
-
-  @override
-  String get wizardContactsDescription =>
-      'Ihre Teammitglieder erscheinen automatisch, wenn sie dem Mesh-Netzwerk beitreten. Senden Sie ihnen direkte Nachrichten oder sehen Sie ihren Standort.';
-
-  @override
-  String get wizardContactsFeature1 => 'Kontakte werden automatisch erkannt';
-
-  @override
-  String get wizardContactsFeature2 => 'Private Direktnachrichten senden';
-
-  @override
-  String get wizardContactsFeature3 =>
-      'Batteriestand und letzte Aktivität anzeigen';
-
-  @override
-  String get wizardMapTitle => 'Karte & Standort';
-
-  @override
-  String get wizardMapDescription =>
-      'Verfolgen Sie Ihr Team in Echtzeit und markieren Sie wichtige Standorte für Such- und Rettungseinsätze.';
-
-  @override
-  String get wizardMapFeature1 =>
-      'SAR-Markierungen für gefundene Personen, Feuer und Sammelstellen';
-
-  @override
-  String get wizardMapFeature2 =>
-      'GPS-Verfolgung von Teammitgliedern in Echtzeit';
-
-  @override
-  String get wizardMapFeature3 =>
-      'Offline-Karten für entlegene Gebiete herunterladen';
-
-  @override
-  String get wizardMapFeature4 =>
-      'Formen zeichnen und taktische Informationen teilen';
-
-  @override
   String get viewWelcomeTutorial => 'Willkommens-Tutorial ansehen';
 
   @override
@@ -1917,11 +1725,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nutze Paketprotokolle, Spektrumsuche und Entwicklerdiagnosen zur Fehlersuche im Mesh.';
 
   @override
-  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+  String get postConnectDiscoveryTitle => 'Repeater jetzt entdecken?';
 
   @override
   String get postConnectDiscoveryDescription =>
-      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+      'Repeater-Erkennung direkt nach dem Verbinden ausführen, damit Sie nahegelegene MeshCore-Knoten sehen und schneller zu Ihrem Netzwerk hinzufügen können.';
 
   @override
   String get contactInSensors => 'In Sensoren';
@@ -2025,57 +1833,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get bandpassFilterVoice => 'Bandpassfilter Sprache';
 
   @override
-  String get frequency => 'Frequenz';
-
-  @override
-  String get australia => 'Australien';
-
-  @override
-  String get australiaNarrow => 'Australien (Schmal)';
-
-  @override
-  String get australiaQld => 'Australien: QLD';
-
-  @override
-  String get australiaSaWa => 'Australien: SA, WA';
-
-  @override
-  String get newZealand => 'Neuseeland';
-
-  @override
-  String get newZealandNarrow => 'Neuseeland (Schmal)';
-
-  @override
-  String get switzerland => 'Schweiz';
-
-  @override
-  String get portugal433 => 'Portugal 433';
-
-  @override
-  String get portugal868 => 'Portugal 868';
-
-  @override
-  String get czechRepublicNarrow => 'Tschechien (Schmal)';
-
-  @override
-  String get eu433mhzLongRange => 'EU 433MHz (Langstrecke)';
-
-  @override
-  String get euukDeprecated => 'EU/UK (Veraltet)';
-
-  @override
-  String get euukNarrow => 'EU/UK (Schmal)';
-
-  @override
-  String get usacanadaRecommended => 'USA/Kanada (Empfohlen)';
-
-  @override
-  String get vietnamDeprecated => 'Vietnam (Veraltet)';
-
-  @override
-  String get vietnamNarrow => 'Vietnam (Schmal)';
-
-  @override
   String get active => 'Aktiv';
 
   @override
@@ -2085,13 +1842,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get all => 'Alle';
 
   @override
-  String get autoResolve => 'Automatisch auflösen';
-
-  @override
   String get clearAllLabel => 'Alle löschen';
-
-  @override
-  String get clearRelays => 'Relais löschen';
 
   @override
   String get clearFilters => 'Filter löschen';
@@ -2169,16 +1920,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get share => 'Teilen';
 
   @override
-  String get shareContact => 'Kontakt teilen';
-
-  @override
   String get trace => 'Trace';
-
-  @override
-  String get use => 'Verwenden';
-
-  @override
-  String get useSelectedFrequency => 'Ausgewählte Frequenz verwenden';
 
   @override
   String get discovery => 'Erkennung';
@@ -2248,9 +1990,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get repeatersMap => 'Repeater-Karte';
 
   @override
-  String get spectrumScan => 'Spektrum-Scan';
-
-  @override
   String get blePacketLogs => 'BLE-Paketprotokolle';
 
   @override
@@ -2284,9 +2023,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enableProfiles => 'Profile aktivieren';
 
   @override
-  String get autoRouteRotation => 'Automatische Routenrotation';
-
-  @override
   String get nearestRepeaterFallback => 'Nächster Repeater als Fallback';
 
   @override
@@ -2309,13 +2045,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get showSarMarkersLabel => 'SAR-Markierungen anzeigen';
 
   @override
-  String get displaySarMarkersOnTheMainMap =>
-      'SAR-Markierungen auf der Hauptkarte anzeigen';
-
-  @override
-  String get showAllContactTrailsLabel => 'Alle Kontaktpfade anzeigen';
-
-  @override
   String get hideRepeatersOnMap => 'Repeater auf Karte ausblenden';
 
   @override
@@ -2332,22 +2061,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get voiceCompressor => 'Sprachkompressor';
 
   @override
-  String get balancesQuietAndLoudSpeechLevels =>
-      'Gleicht leise und laute Sprache aus';
-
-  @override
   String get voiceLimiter => 'Sprach-Limiter';
 
   @override
-  String get preventsClippingPeaksBeforeEncoding =>
-      'Verhindert Clipping-Spitzen vor der Kodierung';
-
-  @override
   String get micAutoGain => 'Mikrofon-Automatik';
-
-  @override
-  String get letsTheRecorderAdjustInputLevel =>
-      'Lässt den Rekorder den Eingangspegel anpassen';
 
   @override
   String get echoCancellation => 'Echounterdrückung';
@@ -2481,14 +2198,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get quiet => 'Ruhig';
 
   @override
-  String get moderate => 'Mäßig';
-
-  @override
   String get busy => 'Beschäftigt';
-
-  @override
-  String get spectrumScanReturnedNoCandidateFrequencies =>
-      'Spektrum-Scan hat keine Kandidatenfrequenzen gefunden';
 
   @override
   String get searchMessages => 'Nachrichten suchen';
@@ -2498,9 +2208,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get takePhoto => 'Foto aufnehmen';
-
-  @override
-  String get dmOnly => 'Nur Direktnachricht';
 
   @override
   String get allMessages => 'Alle Nachrichten';
@@ -2559,14 +2266,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wählen Sie eine Voreinstellung oder passen Sie die Funkeinstellungen an.';
 
   @override
-  String get chooseTheNameAndLocationThisDeviceShares =>
-      'Wählen Sie den Namen und Standort, den dieses Gerät teilt.';
-
-  @override
-  String get availableSpaceOnThisDevice =>
-      'Verfügbarer Speicherplatz auf diesem Gerät.';
-
-  @override
   String get used => 'Belegt';
 
   @override
@@ -2618,12 +2317,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get source => 'Quelle';
-
-  @override
-  String get manualRouteEdit => 'Manuelle Routenbearbeitung';
-
-  @override
-  String get observedMeshRoute => 'Beobachtete Mesh-Route';
 
   @override
   String get allMessagesCleared => 'Alle Nachrichten gelöscht';
@@ -2725,38 +2418,618 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noDeviceContactsToClear => 'Keine Gerätekontakte zum Löschen.';
 
   @override
-  String get setRegionScope => 'Set region scope';
+  String get aToZ => 'A-Z';
 
   @override
-  String get regionScope => 'Region scope';
+  String get add => 'Hinzufügen';
 
   @override
-  String get regionScopeNone => 'None (global)';
+  String get addAdditionalDetails => 'Zusätzliche Details hinzufügen';
 
   @override
-  String get clearRegionScope => 'Clear scope';
+  String get addPeer => 'Peer hinzufügen';
 
   @override
-  String get regionScopeWarning =>
-      'Only repeaters allowing this region will forward.';
+  String get addPeerManually => 'Peer manuell hinzufügen';
 
   @override
-  String get discoverRegions => 'Discover from repeaters';
-
-  @override
-  String get discoveringRegions => 'Discovering regions...';
-
-  @override
-  String get enterRegionName => 'Region name (e.g. auckland)';
-
-  @override
-  String get noRegionsFound => 'No regions found on this repeater.';
-
-  @override
-  String regionScopeSet(String name) {
-    return 'Region scope set to $name';
+  String addedToContacts(String name) {
+    return '$name zu Kontakten hinzugefügt';
   }
 
   @override
-  String get regionScopeCleared => 'Region scope cleared';
+  String addedToSensors(String name) {
+    return '$name zu Sensoren hinzugefügt';
+  }
+
+  @override
+  String get allowAll => 'Alle zulassen';
+
+  @override
+  String get anonymousRxStats => 'Anonyme RX-Statistiken';
+
+  @override
+  String get appearance => 'Erscheinungsbild';
+
+  @override
+  String get ascii => 'ASCII';
+
+  @override
+  String get baseTelemetry => 'Basistelemetrie';
+
+  @override
+  String get blePin => 'BLE PIN';
+
+  @override
+  String get buzzerAlerts => 'Summer-Alarme';
+
+  @override
+  String get cancelImageReceive => 'Bildempfang abbrechen';
+
+  @override
+  String get choose => 'Auswählen';
+
+  @override
+  String get chooseWhichTabsAndContactSectionsToShow =>
+      'Wähle, welche Tabs und Kontaktbereiche angezeigt werden';
+
+  @override
+  String get clearCache => 'Cache leeren';
+
+  @override
+  String get clearHistory => 'Verlauf löschen';
+
+  @override
+  String get clearLiveView => 'Live-Ansicht leeren';
+
+  @override
+  String get clearLogs => 'Protokolle löschen';
+
+  @override
+  String get clearOfflineCache => 'Offline-Cache leeren?';
+
+  @override
+  String get clearOverlay => 'Overlay löschen';
+
+  @override
+  String get clearRouteOnlyAfterAllRetriesFail =>
+      'Route erst nach allen fehlgeschlagenen Versuchen löschen';
+
+  @override
+  String get codecBitrateAndAudioProcessing =>
+      'Codec, Bitrate und Audioverarbeitung';
+
+  @override
+  String get connectByIpAddress => 'Über IP-Adresse verbinden';
+
+  @override
+  String get controlWhichAlertsYouReceive =>
+      'Steuere, welche Benachrichtigungen du erhältst';
+
+  @override
+  String get copyFullHex => 'Vollständigen Hex kopieren';
+
+  @override
+  String get copyRawResponse => 'Rohantwort kopieren';
+
+  @override
+  String get couldNotLoadMetHistory =>
+      'MET-Verlauf konnte nicht geladen werden';
+
+  @override
+  String customizeSensor(String name) {
+    return '$name anpassen';
+  }
+
+  @override
+  String get data => 'Daten';
+
+  @override
+  String get deleteGroup => 'Gruppe löschen';
+
+  @override
+  String deleteStyleConfirm(String name) {
+    return '$name löschen?';
+  }
+
+  @override
+  String deleteThisDrawing(String type) {
+    return 'Diese(s) $type löschen?';
+  }
+
+  @override
+  String get deny => 'Ablehnen';
+
+  @override
+  String get deviceInfo => 'Geräteinformationen';
+
+  @override
+  String get deviceSettings => 'Geräteeinstellungen';
+
+  @override
+  String get deviceTimeSynced =>
+      'Gerätezeit mit diesem Telefon synchronisiert.';
+
+  @override
+  String get disableFastGpsPublishing =>
+      'Schnelle GPS-Veröffentlichung deaktivieren';
+
+  @override
+  String get displayMarkersAndTraceDatabase =>
+      'Anzeige, Markierungen und Trace-Datenbank';
+
+  @override
+  String get download => 'Herunterladen';
+
+  @override
+  String get environmentalTelemetry => 'Umwelttelemetrie';
+
+  @override
+  String errorCheckingForUpdates(String error) {
+    return 'Fehler bei der Suche nach Updates: $error';
+  }
+
+  @override
+  String errorGeneric(String error) {
+    return 'Fehler: $error';
+  }
+
+  @override
+  String errorOpeningDownload(String error) {
+    return 'Fehler beim Öffnen des Downloads: $error';
+  }
+
+  @override
+  String get exportLogs => 'Protokolle exportieren';
+
+  @override
+  String get extraAggressiveAvifCompression =>
+      'Extra-aggressive AVIF-Komprimierung';
+
+  @override
+  String failedToAddContact(String error) {
+    return 'Kontakt konnte nicht hinzugefügt werden: $error';
+  }
+
+  @override
+  String failedToAddName(String name, String error) {
+    return '$name konnte nicht hinzugefügt werden: $error';
+  }
+
+  @override
+  String failedToClearChannels(String error) {
+    return 'Kanäle konnten nicht gelöscht werden: $error';
+  }
+
+  @override
+  String failedToClearContacts(String error) {
+    return 'Kontakte konnten nicht gelöscht werden: $error';
+  }
+
+  @override
+  String get failedToConnectViaSerial =>
+      'Verbindung über seriell fehlgeschlagen';
+
+  @override
+  String failedToLoadPreviewImage(String error) {
+    return 'Vorschaubild konnte nicht geladen werden: $error';
+  }
+
+  @override
+  String failedToLoadTrace(String error) {
+    return 'Trace konnte nicht geladen werden: $error';
+  }
+
+  @override
+  String failedToSendSarMarker(String error) {
+    return 'SAR-Markierung konnte nicht gesendet werden: $error';
+  }
+
+  @override
+  String failedToSetBuzzerMode(String error) {
+    return 'Summermodus konnte nicht gesetzt werden: $error';
+  }
+
+  @override
+  String failedToSetGpsMode(String error) {
+    return 'GPS-Modus konnte nicht gesetzt werden: $error';
+  }
+
+  @override
+  String failedToSyncDeviceTime(String error) {
+    return 'Gerätezeit konnte nicht synchronisiert werden: $error';
+  }
+
+  @override
+  String failedToWipeDeviceData(String error) {
+    return 'Gerätedaten konnten nicht gelöscht werden: $error';
+  }
+
+  @override
+  String get fastGpsTargetChannel => 'Schneller GPS-Zielkanal';
+
+  @override
+  String get fastUpdatesThresholdsAndPermissions =>
+      'Schnelle Updates, Schwellenwerte und Berechtigungen';
+
+  @override
+  String get fetchingCatalog => 'Katalog wird geladen...';
+
+  @override
+  String get fifteenMinutes => '15 Minuten';
+
+  @override
+  String get fifteenSeconds => '15 Sekunden';
+
+  @override
+  String get filterByDirection => 'Nach Richtung filtern';
+
+  @override
+  String get finish => 'Fertig';
+
+  @override
+  String get fiveMinutes => '5 Minuten';
+
+  @override
+  String get fiveSeconds => '5 Sekunden';
+
+  @override
+  String get fix => 'Fix';
+
+  @override
+  String get gps => 'GPS';
+
+  @override
+  String get gpsAdvertPolicy => 'GPS-Anzeigenrichtlinie';
+
+  @override
+  String get gpsAndLocation => 'GPS & Standort';
+
+  @override
+  String get gpsDiagnostics => 'GPS-Diagnose';
+
+  @override
+  String get gpsSection => 'GPS';
+
+  @override
+  String get help => 'Hilfe';
+
+  @override
+  String get hex => 'Hex';
+
+  @override
+  String get hidden => 'Ausgeblendet';
+
+  @override
+  String get howTheRadioAutoAddsDiscoveredNodes =>
+      'Wie das Funkgerät entdeckte Knoten automatisch hinzufügt.';
+
+  @override
+  String get images => 'Bilder';
+
+  @override
+  String get importProfile => 'Profil importieren';
+
+  @override
+  String get lastFix => 'Letzter Fix';
+
+  @override
+  String get latest => 'Neueste';
+
+  @override
+  String get latitude => 'Breitengrad';
+
+  @override
+  String get loadASavedRegion => 'Gespeicherte Region laden';
+
+  @override
+  String get loading => 'Laden';
+
+  @override
+  String get locationSharingHardwareAndUpdateInterval =>
+      'Standortfreigabe, Hardware und Aktualisierungsintervall.';
+
+  @override
+  String get locationTelemetry => 'Standorttelemetrie';
+
+  @override
+  String get lockDestination => 'Ziel sperren';
+
+  @override
+  String get longitude => 'Längengrad';
+
+  @override
+  String get mapStyle => 'Kartenstil';
+
+  @override
+  String get max => 'Max';
+
+  @override
+  String get maxZoom => 'Max. Zoom';
+
+  @override
+  String get messaging => 'Nachrichten';
+
+  @override
+  String get metHistory => 'MET-Verlauf';
+
+  @override
+  String get min => 'Min';
+
+  @override
+  String get minZoom => 'Min. Zoom';
+
+  @override
+  String get moveDown => 'Nach unten';
+
+  @override
+  String get moveUp => 'Nach oben';
+
+  @override
+  String get multiAckMode => 'Multi-ACK-Modus';
+
+  @override
+  String get multiDeviceWorkspaceManagement =>
+      'Mehrgeräte-Arbeitsbereichsverwaltung';
+
+  @override
+  String get myLocation => 'Mein Standort';
+
+  @override
+  String get nameAndTelemetryShared =>
+      'Name und Telemetrie werden mit anderen Geräten geteilt.';
+
+  @override
+  String newVersionAvailable(String version) {
+    return 'Neue Version: $version';
+  }
+
+  @override
+  String get newer => 'Neuer';
+
+  @override
+  String get noNeighboursFound => 'Keine Nachbarn gefunden';
+
+  @override
+  String get noServersFound => 'Keine Server gefunden';
+
+  @override
+  String get notSet => 'Nicht gesetzt';
+
+  @override
+  String get notifications => 'Benachrichtigungen';
+
+  @override
+  String get offZeroSeconds => 'Aus (0 s)';
+
+  @override
+  String get offlineMaps => 'Offlinekarten';
+
+  @override
+  String get older => 'Älter';
+
+  @override
+  String get oneByteMode0 => '1 Byte (Modus 0)';
+
+  @override
+  String get oneHour => '1 Stunde';
+
+  @override
+  String get oneMinute => '1 Minute';
+
+  @override
+  String get openPacketLogs => 'Paketprotokolle öffnen';
+
+  @override
+  String get packetTypeHelp => 'Pakettyp-Hilfe';
+
+  @override
+  String get pasteShareLinkOrHexAdvert =>
+      'Teilen-Link oder Hex-Anzeige einfügen';
+
+  @override
+  String get pathHash => 'Pfad-Hash';
+
+  @override
+  String get pathSize => 'Pfadgröße';
+
+  @override
+  String get ping => 'Ping';
+
+  @override
+  String get polygon => 'Polygon';
+
+  @override
+  String get rawResponseCopied => 'Rohantwort kopiert';
+
+  @override
+  String get resendThroughNearestRepeaterOnFailure =>
+      'Bei Fehler über nächsten Repeater erneut senden';
+
+  @override
+  String get resolveContact => 'Kontakt auflösen';
+
+  @override
+  String get routingRetriesAndDestinationLock =>
+      'Routing, Wiederholungsversuche und Zielsperre';
+
+  @override
+  String get samples => 'Proben';
+
+  @override
+  String get satellites => 'Satelliten';
+
+  @override
+  String get saving => 'Speichern...';
+
+  @override
+  String get search => 'Suchen';
+
+  @override
+  String get searchByNameOrToken => 'Nach Name oder Token suchen';
+
+  @override
+  String get searchDiscoveredNodes => 'Entdeckte Knoten suchen';
+
+  @override
+  String get searchInCurrentFilter => 'Im aktuellen Filter suchen';
+
+  @override
+  String get searchLogs => 'Protokolle durchsuchen...';
+
+  @override
+  String get searchSensors => 'Sensoren suchen';
+
+  @override
+  String get searchThisSection => 'Diesen Bereich durchsuchen';
+
+  @override
+  String get selectedRelays => 'Ausgewählte Relais';
+
+  @override
+  String get sensor => 'Sensor';
+
+  @override
+  String serialError(String error) {
+    return 'Serieller Fehler: $error';
+  }
+
+  @override
+  String setPathForContact(String name) {
+    return 'Pfad für $name festlegen';
+  }
+
+  @override
+  String get shareLiveGps => 'Live-GPS teilen';
+
+  @override
+  String get shareMyTiles => 'Meine Kacheln teilen';
+
+  @override
+  String get sharingLocationFromPhone =>
+      'Standort auf diesem Kanal vom Telefon wird geteilt.';
+
+  @override
+  String get sharingLocationFromRadio =>
+      'Standort auf diesem Kanal vom Funkgerät wird geteilt.';
+
+  @override
+  String signalDbm(String rssi) {
+    return 'Signal $rssi dBm';
+  }
+
+  @override
+  String get sizeCompressionAndPreview => 'Größe, Komprimierung und Vorschau';
+
+  @override
+  String get skip => 'Überspringen';
+
+  @override
+  String get smallerFileSize => 'Kleinere Dateigröße';
+
+  @override
+  String get sort => 'Sortieren';
+
+  @override
+  String get stoppedSharingLocation =>
+      'Standortfreigabe auf diesem Kanal beendet.';
+
+  @override
+  String get suppressNotificationsWhileInForeground =>
+      'Benachrichtigungen im Vordergrund unterdrücken';
+
+  @override
+  String get tabsAndNavigation => 'Tabs & Navigation';
+
+  @override
+  String get templatesAndTutorials => 'Vorlagen und Anleitungen';
+
+  @override
+  String get tenMinutes => '10 Minuten';
+
+  @override
+  String get tenSeconds => '10 Sekunden';
+
+  @override
+  String get testSendUpdate => 'Testupdate senden';
+
+  @override
+  String get themeLanguageAndDisplayPreferences =>
+      'Design, Sprache und Anzeigeeinstellungen';
+
+  @override
+  String get thirtyMinutes => '30 Minuten';
+
+  @override
+  String get thirtySeconds => '30 Sekunden';
+
+  @override
+  String get threeBytesMode2 => '3 Bytes (Modus 2)';
+
+  @override
+  String get trafficStatsMessageHistoryAndDeveloperTools =>
+      'Verkehrsstatistiken, Nachrichtenverlauf und Entwicklertools';
+
+  @override
+  String get twoBytesMode1 => '2 Bytes (Modus 1)';
+
+  @override
+  String get twoMinutes => '2 Minuten';
+
+  @override
+  String get undo => 'Rückgängig';
+
+  @override
+  String get updated => 'Aktualisiert';
+
+  @override
+  String get useContactFlags => 'Kontakt-Flags verwenden';
+
+  @override
+  String get useSavedCoordinates => 'Gespeicherte Koordinaten verwenden';
+
+  @override
+  String get view => 'Ansicht';
+
+  @override
+  String get viewNeighbours => 'Nachbarn anzeigen';
+
+  @override
+  String get viewPublicStats => 'Öffentliche Statistiken anzeigen';
+
+  @override
+  String get setRegionScope => 'Regionsbereich festlegen';
+
+  @override
+  String get regionScope => 'Regionsbereich';
+
+  @override
+  String get regionScopeNone => 'Keiner (global)';
+
+  @override
+  String get clearRegionScope => 'Bereich löschen';
+
+  @override
+  String get regionScopeWarning =>
+      'Nur Repeater, die diese Region zulassen, werden weiterleiten.';
+
+  @override
+  String get discoverRegions => 'Von Repeatern entdecken';
+
+  @override
+  String get discoveringRegions => 'Regionen werden entdeckt...';
+
+  @override
+  String get enterRegionName => 'Regionsname (z.B. auckland)';
+
+  @override
+  String get noRegionsFound => 'Keine Regionen auf diesem Repeater gefunden.';
+
+  @override
+  String regionScopeSet(String name) {
+    return 'Regionsbereich auf $name gesetzt';
+  }
+
+  @override
+  String get regionScopeCleared => 'Regionsbereich gelöscht';
 }

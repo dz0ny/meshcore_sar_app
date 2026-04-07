@@ -108,7 +108,7 @@ class _SensorsTabState extends State<SensorsTab> {
           if (!sheetContext.mounted) return;
           Navigator.of(sheetContext).pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${contact.displayName} added to Sensors')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.addedToSensors(contact.displayName))),
           );
         },
       ),
@@ -183,14 +183,14 @@ class _SensorsTabState extends State<SensorsTab> {
         actions: [
           if (sensorsProvider.labelOverrideFor(publicKeyHex, option.key) !=
               null)
-            TextButton(onPressed: controller.clear, child: const Text('Reset')),
+            TextButton(onPressed: controller.clear, child: Text(AppLocalizations.of(dialogContext)!.reset)),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(dialogContext)!.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(dialogContext)!.save),
           ),
         ],
       ),
@@ -543,10 +543,10 @@ class _AddSensorSheetState extends State<AddSensorSheet> {
                 child: TextField(
                   controller: _searchController,
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    hintText: 'Search sensors',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search),
+                    hintText: AppLocalizations.of(context)!.searchSensors,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -655,7 +655,7 @@ class SensorCustomizeView extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('Customize ${contact?.displayName ?? 'Sensor'}'),
+            title: Text(AppLocalizations.of(context)!.customizeSensor(contact?.displayName ?? AppLocalizations.of(context)!.sensor)),
           ),
           body: ListView(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -1094,12 +1094,12 @@ class SensorMetricSelectorItem extends StatelessWidget {
                 ),
                 const Spacer(),
                 IconButton(
-                  tooltip: 'Move up',
+                  tooltip: AppLocalizations.of(context)!.moveUp,
                   onPressed: canMoveUp ? onMoveUp : null,
                   icon: const Icon(Icons.arrow_upward),
                 ),
                 IconButton(
-                  tooltip: 'Move down',
+                  tooltip: AppLocalizations.of(context)!.moveDown,
                   onPressed: canMoveDown ? onMoveDown : null,
                   icon: const Icon(Icons.arrow_downward),
                 ),
@@ -1259,7 +1259,7 @@ class _SelfOnlySensorsCta extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: onAddSensor,
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Choose'),
+              label: Text(AppLocalizations.of(context)!.choose),
             ),
           ),
         ],

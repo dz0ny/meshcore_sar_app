@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/contact.dart';
 import '../../providers/connection_provider.dart';
 import '../../providers/contacts_provider.dart';
@@ -84,7 +85,7 @@ class _ContactTraceSheetState extends State<ContactTraceSheet> {
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text('Failed to load trace: ${snapshot.error}'),
+                  child: Text(AppLocalizations.of(context)!.failedToLoadTrace(snapshot.error.toString())),
                 ),
               ),
             );

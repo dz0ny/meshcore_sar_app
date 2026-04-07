@@ -437,6 +437,7 @@ class ContactTile extends StatelessWidget {
       final result = await context.read<AppProvider>().setChannelLocationSharingEnabled(
         channelIdx,
         enabled,
+        l10n: AppLocalizations.of(context),
       );
       if (!context.mounted) return;
       ToastLogger.success(context, result.message);
@@ -655,7 +656,7 @@ class ContactTile extends StatelessWidget {
             if (contact.type == ContactType.repeater)
               _ContactSheetAction(
                 icon: Icons.hub_outlined,
-                label: 'View Neighbours',
+                label: AppLocalizations.of(context)!.viewNeighbours,
                 onTap: () async {
                   Navigator.pop(context);
                   _showNeighbours(context, contact);
@@ -665,7 +666,7 @@ class ContactTile extends StatelessWidget {
                 contact.type == ContactType.room)
               _ContactSheetAction(
                 icon: Icons.network_ping,
-                label: 'Ping',
+                label: AppLocalizations.of(context)!.ping,
                 onTap: () async {
                   Navigator.pop(context);
                   _pingRelay(context, contact);
@@ -2395,7 +2396,7 @@ class _NeighboursSheetState extends State<_NeighboursSheet> {
                       ),
                     )
                   : _neighbours.isEmpty
-                  ? const Center(child: Text('No neighbours found'))
+                  ? Center(child: Text(AppLocalizations.of(context)!.noNeighboursFound))
                   : Padding(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                       child: Column(
@@ -2768,7 +2769,7 @@ class _PingRelaySheetState extends State<_PingRelaySheet> {
                   IconButton(
                     onPressed: () => setState(() => _history.clear()),
                     icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Clear history',
+                    tooltip: AppLocalizations.of(context)!.clearHistory,
                     style: IconButton.styleFrom(
                       foregroundColor: colorScheme.onSurfaceVariant,
                     ),

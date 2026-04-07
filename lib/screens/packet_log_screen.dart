@@ -96,7 +96,7 @@ class _PacketLogScreenState extends State<PacketLogScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.exportFailed(e.toString()))));
       }
     }
   }
@@ -147,7 +147,7 @@ class _PacketLogScreenState extends State<PacketLogScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.exportFailed(e.toString()))));
       }
     }
   }
@@ -222,7 +222,7 @@ class _PacketLogScreenState extends State<PacketLogScreen> {
                   ? Icons.arrow_downward
                   : Icons.arrow_upward,
             ),
-            tooltip: 'Filter by direction',
+            tooltip: AppLocalizations.of(context)!.filterByDirection,
             onSelected: (direction) {
               setState(() {
                 _filterDirection = direction;
@@ -314,7 +314,7 @@ class _PacketLogScreenState extends State<PacketLogScreen> {
           // Export menu
           PopupMenuButton(
             icon: const Icon(Icons.share),
-            tooltip: 'Export logs',
+            tooltip: AppLocalizations.of(context)!.exportLogs,
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'csv',
@@ -348,7 +348,7 @@ class _PacketLogScreenState extends State<PacketLogScreen> {
           // Clear logs
           IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: 'Clear logs',
+            tooltip: AppLocalizations.of(context)!.clearLogs,
             onPressed: () => _clearLogs(context),
           ),
         ],
@@ -360,7 +360,7 @@ class _PacketLogScreenState extends State<PacketLogScreen> {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               decoration: InputDecoration(
-                hintText: 'Search logs...',
+                hintText: AppLocalizations.of(context)!.searchLogs,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -615,7 +615,7 @@ class _PacketLogCard extends StatelessWidget {
                           const Spacer(),
                           IconButton(
                             onPressed: onCopy,
-                            tooltip: 'Copy full hex',
+                            tooltip: AppLocalizations.of(context)!.copyFullHex,
                             icon: const Icon(Icons.copy_all_rounded, size: 18),
                             visualDensity: VisualDensity.compact,
                           ),

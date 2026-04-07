@@ -398,7 +398,7 @@ class DrawingToolbar extends StatelessWidget {
                                     );
                                   }
                                 },
-                                tooltip: 'Share',
+                                tooltip: AppLocalizations.of(context)!.share,
                                 color: Colors.blue,
                                 padding: const EdgeInsets.all(4),
                                 constraints: const BoxConstraints(),
@@ -415,7 +415,7 @@ class DrawingToolbar extends StatelessWidget {
                                   drawing,
                                 );
                               },
-                              tooltip: 'Delete',
+                              tooltip: AppLocalizations.of(context)!.delete,
                               color: Colors.red,
                               padding: const EdgeInsets.all(4),
                               constraints: const BoxConstraints(),

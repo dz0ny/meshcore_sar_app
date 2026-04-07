@@ -602,7 +602,7 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return PopupMenuButton<_RecipientSortMode>(
-      tooltip: 'Sort',
+      tooltip: AppLocalizations.of(context)!.sort,
       initialValue: _sortMode,
       onSelected: (sortMode) {
         setState(() {
@@ -642,13 +642,13 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
             ],
           ),
         ),
-        const PopupMenuItem<_RecipientSortMode>(
+        PopupMenuItem<_RecipientSortMode>(
           value: _RecipientSortMode.alphabetical,
           child: Row(
             children: [
-              Icon(Icons.sort_by_alpha_rounded, size: 18),
-              SizedBox(width: 8),
-              Text('A-Z'),
+              const Icon(Icons.sort_by_alpha_rounded, size: 18),
+              const SizedBox(width: 8),
+              Text(AppLocalizations.of(context)!.aToZ),
             ],
           ),
         ),

@@ -36,9 +36,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get scanAgain => 'Сканувати знову';
 
   @override
-  String get tapToConnect => 'Торкніться, щоб підключитися';
-
-  @override
   String get deviceNotConnected => 'Пристрій не підключено';
 
   @override
@@ -110,15 +107,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get showRxTxIndicators => 'Показувати індикатори RX/TX';
 
   @override
-  String get displayPacketActivity =>
-      'Показувати індикатори активності пакетів у верхній панелі';
-
-  @override
   String get disableMap => 'Вимкнути мапу';
-
-  @override
-  String get disableMapDescription =>
-      'Приховати вкладку мапи для зменшення споживання батареї';
 
   @override
   String get language => 'Мова';
@@ -140,9 +129,6 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get appVersion => 'Версія застосунку';
-
-  @override
-  String get appName => 'Назва застосунку';
 
   @override
   String get aboutMeshCoreSar => 'Про MeshCore SAR';
@@ -239,9 +225,6 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get resetPath => 'Скинути маршрут (побудувати заново)';
-
-  @override
-  String get publicKeyCopied => 'Публічний ключ скопійовано в буфер обміну';
 
   @override
   String copiedToClipboard(String label) {
@@ -481,22 +464,22 @@ class AppLocalizationsUk extends AppLocalizations {
   String get flood => 'Широкомовно';
 
   @override
-  String get autoSend => 'Auto Send';
+  String get autoSend => 'Автовідправлення';
 
   @override
-  String get autoSendDescription => 'Send via current path.';
+  String get autoSendDescription => 'Надіслати поточним маршрутом.';
 
   @override
-  String get sendDirect => 'Send Direct';
+  String get sendDirect => 'Пряме надсилання';
 
   @override
-  String get sendDirectDescription => 'Send directly to this contact.';
+  String get sendDirectDescription => 'Надіслати безпосередньо цьому контакту.';
 
   @override
-  String get sendFlood => 'Send Flood';
+  String get sendFlood => 'Надсилання лавиною';
 
   @override
-  String get sendFloodDescription => 'Send via all repeaters.';
+  String get sendFloodDescription => 'Надіслати через усі ретранслятори.';
 
   @override
   String get loggedIn => 'Увійшли';
@@ -537,18 +520,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get lastSeen => 'Востаннє бачили';
 
   @override
-  String get roomStatus => 'Стан кімнати';
-
-  @override
-  String get loginStatus => 'Стан входу';
-
-  @override
-  String get notLoggedIn => 'Не увійшли';
-
-  @override
-  String get adminAccess => 'Доступ адміністратора';
-
-  @override
   String get yes => 'Так';
 
   @override
@@ -556,12 +527,6 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get permissions => 'Дозволи';
-
-  @override
-  String get passwordSaved => 'Пароль збережено';
-
-  @override
-  String get locationColon => 'Місцезнаходження:';
 
   @override
   String get telemetry => 'Телеметрія';
@@ -583,14 +548,6 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get gpsTelemetry => 'GPS (телеметрія)';
-
-  @override
-  String get updated => 'Оновлено';
-
-  @override
-  String pathResetInfo(String name) {
-    return 'Маршрут для $name скинуто. Наступне повідомлення знайде новий маршрут.';
-  }
 
   @override
   String get reLoginToRoom => 'Повторно увійти до кімнати';
@@ -844,9 +801,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get frequencyMHz => 'Частота (MHz)';
 
   @override
-  String get frequencyExample => 'напр., 869.618';
-
-  @override
   String get bandwidth => 'Ширина смуги';
 
   @override
@@ -921,46 +875,10 @@ class AppLocalizationsUk extends AppLocalizations {
   String get trailControls => 'Керування слідом';
 
   @override
-  String get contactTrails => 'Сліди контактів';
-
-  @override
-  String get showAllContactTrails => 'Показати всі сліди контактів';
-
-  @override
-  String get noContactsWithLocationHistory =>
-      'Немає контактів з історією місцезнаходження';
-
-  @override
-  String showingTrailsForContacts(int count) {
-    return 'Показуються сліди для $count контактів';
-  }
-
-  @override
-  String get individualContactTrails => 'Окремі сліди контактів';
-
-  @override
-  String get deviceInformation => 'Інформація про пристрій';
-
-  @override
-  String get bleName => 'Назва BLE';
-
-  @override
-  String get meshName => 'Назва mesh';
-
-  @override
-  String get notSet => 'Не задано';
-
-  @override
   String get model => 'Модель';
 
   @override
   String get version => 'Версія';
-
-  @override
-  String get buildDate => 'Дата збірки';
-
-  @override
-  String get firmware => 'Прошивка';
 
   @override
   String get maxContacts => 'Макс. контактів';
@@ -970,22 +888,6 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get publicInfo => 'Публічна інформація';
-
-  @override
-  String get meshNetworkName => 'Назва mesh-мережі';
-
-  @override
-  String get nameBroadcastInMesh => 'Ім’я, що транслюється в mesh-оголошеннях';
-
-  @override
-  String get telemetryAndLocationSharing =>
-      'Телеметрія та поширення місцезнаходження';
-
-  @override
-  String get lat => 'Шир.';
-
-  @override
-  String get lon => 'Довг.';
 
   @override
   String get useCurrentLocation => 'Використати поточне місцезнаходження';
@@ -1008,11 +910,6 @@ class AppLocalizationsUk extends AppLocalizations {
   }
 
   @override
-  String copiedToClipboardShort(String label) {
-    return '$label скопійовано в буфер обміну';
-  }
-
-  @override
   String failedToSave(String error) {
     return 'Не вдалося зберегти: $error';
   }
@@ -1024,9 +921,6 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get sarTemplates => 'Шаблони SAR';
-
-  @override
-  String get manageSarTemplates => 'Керувати шаблонами SAR';
 
   @override
   String get addTemplate => 'Додати шаблон';
@@ -1128,9 +1022,6 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get ok => 'OK';
-
-  @override
-  String get permissionsSection => 'Дозволи';
 
   @override
   String get locationPermission => 'Дозвіл на геолокацію';
@@ -1576,87 +1467,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get wizardWelcomeTitle => 'Ласкаво просимо до MeshCore SAR';
 
   @override
-  String get wizardWelcomeDescription =>
-      'Потужний інструмент офлайн-комунікації для операцій пошуку та рятування. Зв’язуйтеся зі своєю командою за допомогою mesh-радіо, коли традиційні мережі недоступні.';
-
-  @override
-  String get wizardConnectingTitle => 'Підключення до радіо';
-
-  @override
-  String get wizardConnectingDescription =>
-      'Підключіть смартфон до радіопристрою MeshCore через Bluetooth, щоб почати спілкування поза мережею.';
-
-  @override
-  String get wizardConnectingFeature1 => 'Скануйте сусідні пристрої MeshCore';
-
-  @override
-  String get wizardConnectingFeature2 =>
-      'Сполучіть свій радіопристрій через Bluetooth';
-
-  @override
-  String get wizardConnectingFeature3 =>
-      'Працює повністю офлайн - інтернет не потрібен';
-
-  @override
-  String get wizardChannelTitle => 'Канали';
-
-  @override
-  String get wizardChannelDescription =>
-      'Транслюйте повідомлення всім у каналі - ідеально для загальнокомандних оголошень і координації.';
-
-  @override
-  String get wizardChannelFeature1 =>
-      'Публічний канал для загального спілкування команди';
-
-  @override
-  String get wizardChannelFeature2 =>
-      'Створюйте власні канали для окремих груп';
-
-  @override
-  String get wizardChannelFeature3 =>
-      'Повідомлення автоматично ретранслюються mesh-мережею';
-
-  @override
-  String get wizardContactsTitle => 'Контакти';
-
-  @override
-  String get wizardContactsDescription =>
-      'Члени вашої команди з’являються автоматично, коли приєднуються до mesh-мережі. Надсилайте їм прямі повідомлення або переглядайте їхнє місцезнаходження.';
-
-  @override
-  String get wizardContactsFeature1 => 'Контакти виявляються автоматично';
-
-  @override
-  String get wizardContactsFeature2 => 'Надсилайте приватні прямі повідомлення';
-
-  @override
-  String get wizardContactsFeature3 =>
-      'Переглядайте рівень батареї та час останньої появи';
-
-  @override
-  String get wizardMapTitle => 'Мапа та місцезнаходження';
-
-  @override
-  String get wizardMapDescription =>
-      'Відстежуйте команду в реальному часі та позначайте важливі місця для операцій пошуку та рятування.';
-
-  @override
-  String get wizardMapFeature1 =>
-      'Маркери SAR для знайдених людей, пожеж і зон збору';
-
-  @override
-  String get wizardMapFeature2 =>
-      'GPS-відстеження членів команди в реальному часі';
-
-  @override
-  String get wizardMapFeature3 =>
-      'Завантажуйте офлайн-мапи для віддалених районів';
-
-  @override
-  String get wizardMapFeature4 =>
-      'Малюйте фігури та діліться тактичною інформацією';
-
-  @override
   String get viewWelcomeTutorial => 'Переглянути вступний посібник';
 
   @override
@@ -1915,11 +1725,11 @@ class AppLocalizationsUk extends AppLocalizations {
       'Використовуйте журнали пакетів, сканування спектра та діагностику розробника для усунення проблем mesh-мережі.';
 
   @override
-  String get postConnectDiscoveryTitle => 'Discover repeaters now?';
+  String get postConnectDiscoveryTitle => 'Виявити ретранслятори зараз?';
 
   @override
   String get postConnectDiscoveryDescription =>
-      'Run repeater discovery right after connecting so you can see nearby MeshCore nodes and add them to your network faster.';
+      'Запустіть виявлення ретрансляторів одразу після підключення, щоб побачити найближчі вузли MeshCore та швидше додати їх до своєї мережі.';
 
   @override
   String get contactInSensors => 'У датчиках';
@@ -2023,57 +1833,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get bandpassFilterVoice => 'Смуговий фільтр голосу';
 
   @override
-  String get frequency => 'Частота';
-
-  @override
-  String get australia => 'Австралія';
-
-  @override
-  String get australiaNarrow => 'Австралія (Вузький)';
-
-  @override
-  String get australiaQld => 'Австралія: QLD';
-
-  @override
-  String get australiaSaWa => 'Австралія: SA, WA';
-
-  @override
-  String get newZealand => 'Нова Зеландія';
-
-  @override
-  String get newZealandNarrow => 'Нова Зеландія (Вузький)';
-
-  @override
-  String get switzerland => 'Швейцарія';
-
-  @override
-  String get portugal433 => 'Португалія 433';
-
-  @override
-  String get portugal868 => 'Португалія 868';
-
-  @override
-  String get czechRepublicNarrow => 'Чехія (Вузький)';
-
-  @override
-  String get eu433mhzLongRange => 'ЄС 433МГц (Далекий)';
-
-  @override
-  String get euukDeprecated => 'ЄС/Великобританія (Застаріле)';
-
-  @override
-  String get euukNarrow => 'ЄС/Великобританія (Вузький)';
-
-  @override
-  String get usacanadaRecommended => 'США/Канада (Рекомендовано)';
-
-  @override
-  String get vietnamDeprecated => 'В\'єтнам (Застаріле)';
-
-  @override
-  String get vietnamNarrow => 'В\'єтнам (Вузький)';
-
-  @override
   String get active => 'Активно';
 
   @override
@@ -2083,13 +1842,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get all => 'Усі';
 
   @override
-  String get autoResolve => 'Автоматичне вирішення';
-
-  @override
   String get clearAllLabel => 'Очистити все';
-
-  @override
-  String get clearRelays => 'Очистити реле';
 
   @override
   String get clearFilters => 'Очистити фільтри';
@@ -2167,16 +1920,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get share => 'Поділитися';
 
   @override
-  String get shareContact => 'Поділитися контактом';
-
-  @override
   String get trace => 'Трасування';
-
-  @override
-  String get use => 'Використати';
-
-  @override
-  String get useSelectedFrequency => 'Використати обрану частоту';
 
   @override
   String get discovery => 'Виявлення';
@@ -2246,9 +1990,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get repeatersMap => 'Карта повторювачів';
 
   @override
-  String get spectrumScan => 'Сканування спектру';
-
-  @override
   String get blePacketLogs => 'Журнали BLE-пакетів';
 
   @override
@@ -2282,9 +2023,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get enableProfiles => 'Увімкнути профілі';
 
   @override
-  String get autoRouteRotation => 'Автоматична ротація маршруту';
-
-  @override
   String get nearestRepeaterFallback => 'Найближчий повторювач як резерв';
 
   @override
@@ -2307,13 +2045,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get showSarMarkersLabel => 'Показати SAR-маркери';
 
   @override
-  String get displaySarMarkersOnTheMainMap =>
-      'Показувати SAR-маркери на головній карті';
-
-  @override
-  String get showAllContactTrailsLabel => 'Показати всі сліди контактів';
-
-  @override
   String get hideRepeatersOnMap => 'Сховати повторювачі на карті';
 
   @override
@@ -2329,22 +2060,10 @@ class AppLocalizationsUk extends AppLocalizations {
   String get voiceCompressor => 'Компресор голосу';
 
   @override
-  String get balancesQuietAndLoudSpeechLevels =>
-      'Вирівнює тихий і гучний рівні мови';
-
-  @override
   String get voiceLimiter => 'Лімітер голосу';
 
   @override
-  String get preventsClippingPeaksBeforeEncoding =>
-      'Запобігає обрізанню піків перед кодуванням';
-
-  @override
   String get micAutoGain => 'Автопідсилення мікрофона';
-
-  @override
-  String get letsTheRecorderAdjustInputLevel =>
-      'Дозволяє рекордеру налаштувати рівень входу';
 
   @override
   String get echoCancellation => 'Придушення ехо';
@@ -2479,14 +2198,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get quiet => 'Тихо';
 
   @override
-  String get moderate => 'Помірно';
-
-  @override
   String get busy => 'Зайнято';
-
-  @override
-  String get spectrumScanReturnedNoCandidateFrequencies =>
-      'Сканування спектру не знайшло частот-кандидатів';
 
   @override
   String get searchMessages => 'Пошук повідомлень';
@@ -2496,9 +2208,6 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get takePhoto => 'Зробити фото';
-
-  @override
-  String get dmOnly => 'Лише особисті повідомлення';
 
   @override
   String get allMessages => 'Усі повідомлення';
@@ -2557,14 +2266,6 @@ class AppLocalizationsUk extends AppLocalizations {
       'Оберіть пресет або налаштуйте радіо вручну.';
 
   @override
-  String get chooseTheNameAndLocationThisDeviceShares =>
-      'Оберіть ім\'я та місцеположення, якими ділиться пристрій.';
-
-  @override
-  String get availableSpaceOnThisDevice =>
-      'Доступний простір на цьому пристрої.';
-
-  @override
   String get used => 'Використано';
 
   @override
@@ -2616,12 +2317,6 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get source => 'Джерело';
-
-  @override
-  String get manualRouteEdit => 'Ручне редагування маршруту';
-
-  @override
-  String get observedMeshRoute => 'Спостережуваний mesh-маршрут';
 
   @override
   String get allMessagesCleared => 'Усі повідомлення очищено';
@@ -2723,38 +2418,615 @@ class AppLocalizationsUk extends AppLocalizations {
       'Немає контактів пристрою для очищення.';
 
   @override
-  String get setRegionScope => 'Set region scope';
+  String get aToZ => 'А-Я';
 
   @override
-  String get regionScope => 'Region scope';
+  String get add => 'Додати';
 
   @override
-  String get regionScopeNone => 'None (global)';
+  String get addAdditionalDetails => 'Додати додаткові деталі';
 
   @override
-  String get clearRegionScope => 'Clear scope';
+  String get addPeer => 'Додати вузол';
 
   @override
-  String get regionScopeWarning =>
-      'Only repeaters allowing this region will forward.';
+  String get addPeerManually => 'Додати вузол вручну';
 
   @override
-  String get discoverRegions => 'Discover from repeaters';
-
-  @override
-  String get discoveringRegions => 'Discovering regions...';
-
-  @override
-  String get enterRegionName => 'Region name (e.g. auckland)';
-
-  @override
-  String get noRegionsFound => 'No regions found on this repeater.';
-
-  @override
-  String regionScopeSet(String name) {
-    return 'Region scope set to $name';
+  String addedToContacts(String name) {
+    return '$name додано до контактів';
   }
 
   @override
-  String get regionScopeCleared => 'Region scope cleared';
+  String addedToSensors(String name) {
+    return '$name додано до сенсорів';
+  }
+
+  @override
+  String get allowAll => 'Дозволити все';
+
+  @override
+  String get anonymousRxStats => 'Анонімна статистика RX';
+
+  @override
+  String get appearance => 'Зовнішній вигляд';
+
+  @override
+  String get ascii => 'ASCII';
+
+  @override
+  String get baseTelemetry => 'Базова телеметрія';
+
+  @override
+  String get blePin => 'BLE PIN';
+
+  @override
+  String get buzzerAlerts => 'Сповіщення зумером';
+
+  @override
+  String get cancelImageReceive => 'Скасувати отримання зображення';
+
+  @override
+  String get choose => 'Обрати';
+
+  @override
+  String get chooseWhichTabsAndContactSectionsToShow =>
+      'Оберіть, які вкладки та розділи контактів показувати';
+
+  @override
+  String get clearCache => 'Очистити кеш';
+
+  @override
+  String get clearHistory => 'Очистити історію';
+
+  @override
+  String get clearLiveView => 'Очистити живий перегляд';
+
+  @override
+  String get clearLogs => 'Очистити журнали';
+
+  @override
+  String get clearOfflineCache => 'Очистити офлайн-кеш?';
+
+  @override
+  String get clearOverlay => 'Очистити накладання';
+
+  @override
+  String get clearRouteOnlyAfterAllRetriesFail =>
+      'Очистити маршрут лише після невдачі всіх спроб';
+
+  @override
+  String get codecBitrateAndAudioProcessing =>
+      'Кодек, бітрейт та обробка звуку';
+
+  @override
+  String get connectByIpAddress => 'Підключити за IP-адресою';
+
+  @override
+  String get controlWhichAlertsYouReceive =>
+      'Керуйте сповіщеннями, які ви отримуєте';
+
+  @override
+  String get copyFullHex => 'Копіювати повний Hex';
+
+  @override
+  String get copyRawResponse => 'Копіювати необроблену відповідь';
+
+  @override
+  String get couldNotLoadMetHistory => 'Не вдалося завантажити історію MET';
+
+  @override
+  String customizeSensor(String name) {
+    return 'Налаштувати $name';
+  }
+
+  @override
+  String get data => 'Дані';
+
+  @override
+  String get deleteGroup => 'Видалити групу';
+
+  @override
+  String deleteStyleConfirm(String name) {
+    return 'Видалити $name?';
+  }
+
+  @override
+  String deleteThisDrawing(String type) {
+    return 'Видалити цей $type?';
+  }
+
+  @override
+  String get deny => 'Відхилити';
+
+  @override
+  String get deviceInfo => 'Інформація про пристрій';
+
+  @override
+  String get deviceSettings => 'Налаштування пристрою';
+
+  @override
+  String get deviceTimeSynced => 'Час пристрою синхронізовано з цим телефоном.';
+
+  @override
+  String get disableFastGpsPublishing => 'Вимкнути швидку публікацію GPS';
+
+  @override
+  String get displayMarkersAndTraceDatabase =>
+      'Відображення, маркери та база даних трасувань';
+
+  @override
+  String get download => 'Завантажити';
+
+  @override
+  String get environmentalTelemetry => 'Телеметрія довкілля';
+
+  @override
+  String errorCheckingForUpdates(String error) {
+    return 'Помилка перевірки оновлень: $error';
+  }
+
+  @override
+  String errorGeneric(String error) {
+    return 'Помилка: $error';
+  }
+
+  @override
+  String errorOpeningDownload(String error) {
+    return 'Помилка відкриття завантаження: $error';
+  }
+
+  @override
+  String get exportLogs => 'Експортувати журнали';
+
+  @override
+  String get extraAggressiveAvifCompression => 'Надагресивне стиснення AVIF';
+
+  @override
+  String failedToAddContact(String error) {
+    return 'Не вдалося додати контакт: $error';
+  }
+
+  @override
+  String failedToAddName(String name, String error) {
+    return 'Не вдалося додати $name: $error';
+  }
+
+  @override
+  String failedToClearChannels(String error) {
+    return 'Не вдалося очистити канали: $error';
+  }
+
+  @override
+  String failedToClearContacts(String error) {
+    return 'Не вдалося очистити контакти: $error';
+  }
+
+  @override
+  String get failedToConnectViaSerial =>
+      'Не вдалося підключитися через послідовний порт';
+
+  @override
+  String failedToLoadPreviewImage(String error) {
+    return 'Не вдалося завантажити попередній перегляд: $error';
+  }
+
+  @override
+  String failedToLoadTrace(String error) {
+    return 'Не вдалося завантажити трасування: $error';
+  }
+
+  @override
+  String failedToSendSarMarker(String error) {
+    return 'Не вдалося надіслати SAR маркер: $error';
+  }
+
+  @override
+  String failedToSetBuzzerMode(String error) {
+    return 'Не вдалося встановити режим зумера: $error';
+  }
+
+  @override
+  String failedToSetGpsMode(String error) {
+    return 'Не вдалося встановити режим GPS: $error';
+  }
+
+  @override
+  String failedToSyncDeviceTime(String error) {
+    return 'Не вдалося синхронізувати час пристрою: $error';
+  }
+
+  @override
+  String failedToWipeDeviceData(String error) {
+    return 'Не вдалося стерти дані пристрою: $error';
+  }
+
+  @override
+  String get fastGpsTargetChannel => 'Цільовий канал швидкого GPS';
+
+  @override
+  String get fastUpdatesThresholdsAndPermissions =>
+      'Швидкі оновлення, пороги та дозволи';
+
+  @override
+  String get fetchingCatalog => 'Завантаження каталогу...';
+
+  @override
+  String get fifteenMinutes => '15 хвилин';
+
+  @override
+  String get fifteenSeconds => '15 секунд';
+
+  @override
+  String get filterByDirection => 'Фільтрувати за напрямком';
+
+  @override
+  String get finish => 'Завершити';
+
+  @override
+  String get fiveMinutes => '5 хвилин';
+
+  @override
+  String get fiveSeconds => '5 секунд';
+
+  @override
+  String get fix => 'Фіксація';
+
+  @override
+  String get gps => 'GPS';
+
+  @override
+  String get gpsAdvertPolicy => 'Політика оголошень GPS';
+
+  @override
+  String get gpsAndLocation => 'GPS та місцезнаходження';
+
+  @override
+  String get gpsDiagnostics => 'Діагностика GPS';
+
+  @override
+  String get gpsSection => 'GPS';
+
+  @override
+  String get help => 'Допомога';
+
+  @override
+  String get hex => 'Hex';
+
+  @override
+  String get hidden => 'Приховано';
+
+  @override
+  String get howTheRadioAutoAddsDiscoveredNodes =>
+      'Як радіо автоматично додає виявлені вузли.';
+
+  @override
+  String get images => 'Зображення';
+
+  @override
+  String get importProfile => 'Імпортувати профіль';
+
+  @override
+  String get lastFix => 'Остання фіксація';
+
+  @override
+  String get latest => 'Найновіші';
+
+  @override
+  String get latitude => 'Широта';
+
+  @override
+  String get loadASavedRegion => 'Завантажити збережений регіон';
+
+  @override
+  String get loading => 'Завантаження';
+
+  @override
+  String get locationSharingHardwareAndUpdateInterval =>
+      'Обмін місцезнаходженням, обладнання та інтервал оновлення.';
+
+  @override
+  String get locationTelemetry => 'Телеметрія місцезнаходження';
+
+  @override
+  String get lockDestination => 'Зафіксувати призначення';
+
+  @override
+  String get longitude => 'Довгота';
+
+  @override
+  String get mapStyle => 'Стиль мапи';
+
+  @override
+  String get max => 'Макс';
+
+  @override
+  String get maxZoom => 'Макс. масштаб';
+
+  @override
+  String get messaging => 'Обмін повідомленнями';
+
+  @override
+  String get metHistory => 'Історія MET';
+
+  @override
+  String get min => 'Мін';
+
+  @override
+  String get minZoom => 'Мін. масштаб';
+
+  @override
+  String get moveDown => 'Перемістити вниз';
+
+  @override
+  String get moveUp => 'Перемістити вгору';
+
+  @override
+  String get multiAckMode => 'Режим мульти-ACK';
+
+  @override
+  String get multiDeviceWorkspaceManagement =>
+      'Керування робочим простором кількох пристроїв';
+
+  @override
+  String get myLocation => 'Моє місцезнаходження';
+
+  @override
+  String get nameAndTelemetryShared =>
+      'Ім\'я та телеметрія надсилаються іншим пристроям.';
+
+  @override
+  String newVersionAvailable(String version) {
+    return 'Нова версія: $version';
+  }
+
+  @override
+  String get newer => 'Новіші';
+
+  @override
+  String get noNeighboursFound => 'Сусідів не знайдено';
+
+  @override
+  String get noServersFound => 'Серверів не знайдено';
+
+  @override
+  String get notSet => 'Не встановлено';
+
+  @override
+  String get notifications => 'Сповіщення';
+
+  @override
+  String get offZeroSeconds => 'Вимк (0 с)';
+
+  @override
+  String get offlineMaps => 'Офлайн-мапи';
+
+  @override
+  String get older => 'Старіші';
+
+  @override
+  String get oneByteMode0 => '1 байт (режим 0)';
+
+  @override
+  String get oneHour => '1 година';
+
+  @override
+  String get oneMinute => '1 хвилина';
+
+  @override
+  String get openPacketLogs => 'Відкрити журнали пакетів';
+
+  @override
+  String get packetTypeHelp => 'Довідка типів пакетів';
+
+  @override
+  String get pasteShareLinkOrHexAdvert =>
+      'Вставте посилання або hex-оголошення';
+
+  @override
+  String get pathHash => 'Хеш шляху';
+
+  @override
+  String get pathSize => 'Розмір шляху';
+
+  @override
+  String get ping => 'Ping';
+
+  @override
+  String get polygon => 'Полігон';
+
+  @override
+  String get rawResponseCopied => 'Необроблену відповідь скопійовано';
+
+  @override
+  String get resendThroughNearestRepeaterOnFailure =>
+      'Повторно надіслати через найближчий ретранслятор у разі невдачі';
+
+  @override
+  String get resolveContact => 'Розв\'язати контакт';
+
+  @override
+  String get routingRetriesAndDestinationLock =>
+      'Маршрутизація, повторні спроби та фіксація призначення';
+
+  @override
+  String get samples => 'Зразки';
+
+  @override
+  String get satellites => 'Супутники';
+
+  @override
+  String get saving => 'Збереження...';
+
+  @override
+  String get search => 'Пошук';
+
+  @override
+  String get searchByNameOrToken => 'Шукати за іменем або токеном';
+
+  @override
+  String get searchDiscoveredNodes => 'Шукати виявлені вузли';
+
+  @override
+  String get searchInCurrentFilter => 'Шукати в поточному фільтрі';
+
+  @override
+  String get searchLogs => 'Шукати в журналах...';
+
+  @override
+  String get searchSensors => 'Шукати сенсори';
+
+  @override
+  String get searchThisSection => 'Шукати в цьому розділі';
+
+  @override
+  String get selectedRelays => 'Обрані ретранслятори';
+
+  @override
+  String get sensor => 'Сенсор';
+
+  @override
+  String serialError(String error) {
+    return 'Помилка послідовного порту: $error';
+  }
+
+  @override
+  String setPathForContact(String name) {
+    return 'Встановити шлях для $name';
+  }
+
+  @override
+  String get shareLiveGps => 'Поділитися GPS у реальному часі';
+
+  @override
+  String get shareMyTiles => 'Поділитися моїми тайлами';
+
+  @override
+  String get sharingLocationFromPhone =>
+      'Обмін місцезнаходженням на цьому каналі з телефону.';
+
+  @override
+  String get sharingLocationFromRadio =>
+      'Обмін місцезнаходженням на цьому каналі з радіо.';
+
+  @override
+  String signalDbm(String rssi) {
+    return 'Сигнал $rssi дБм';
+  }
+
+  @override
+  String get sizeCompressionAndPreview =>
+      'Розмір, стиснення та попередній перегляд';
+
+  @override
+  String get skip => 'Пропустити';
+
+  @override
+  String get smallerFileSize => 'Менший розмір файлу';
+
+  @override
+  String get sort => 'Сортувати';
+
+  @override
+  String get stoppedSharingLocation =>
+      'Обмін місцезнаходженням на цьому каналі зупинено.';
+
+  @override
+  String get suppressNotificationsWhileInForeground =>
+      'Придушити сповіщення, коли застосунок на передньому плані';
+
+  @override
+  String get tabsAndNavigation => 'Вкладки та навігація';
+
+  @override
+  String get templatesAndTutorials => 'Шаблони та посібники';
+
+  @override
+  String get tenMinutes => '10 хвилин';
+
+  @override
+  String get tenSeconds => '10 секунд';
+
+  @override
+  String get testSendUpdate => 'Тестове надсилання оновлення';
+
+  @override
+  String get themeLanguageAndDisplayPreferences =>
+      'Тема, мова та налаштування відображення';
+
+  @override
+  String get thirtyMinutes => '30 хвилин';
+
+  @override
+  String get thirtySeconds => '30 секунд';
+
+  @override
+  String get threeBytesMode2 => '3 байти (режим 2)';
+
+  @override
+  String get trafficStatsMessageHistoryAndDeveloperTools =>
+      'Статистика трафіку, історія повідомлень та інструменти розробника';
+
+  @override
+  String get twoBytesMode1 => '2 байти (режим 1)';
+
+  @override
+  String get twoMinutes => '2 хвилини';
+
+  @override
+  String get undo => 'Скасувати';
+
+  @override
+  String get updated => 'Оновлено';
+
+  @override
+  String get useContactFlags => 'Використовувати прапорці контактів';
+
+  @override
+  String get useSavedCoordinates => 'Використати збережені координати';
+
+  @override
+  String get view => 'Перегляд';
+
+  @override
+  String get viewNeighbours => 'Переглянути сусідів';
+
+  @override
+  String get viewPublicStats => 'Переглянути публічну статистику';
+
+  @override
+  String get setRegionScope => 'Встановити область регіону';
+
+  @override
+  String get regionScope => 'Область регіону';
+
+  @override
+  String get regionScopeNone => 'Немає (глобально)';
+
+  @override
+  String get clearRegionScope => 'Очистити область';
+
+  @override
+  String get regionScopeWarning =>
+      'Лише ретранслятори, що дозволяють цей регіон, будуть пересилати.';
+
+  @override
+  String get discoverRegions => 'Виявити з ретрансляторів';
+
+  @override
+  String get discoveringRegions => 'Виявлення регіонів...';
+
+  @override
+  String get enterRegionName => 'Назва регіону (напр. auckland)';
+
+  @override
+  String get noRegionsFound => 'Регіони не знайдені на цьому ретрансляторі.';
+
+  @override
+  String regionScopeSet(String name) {
+    return 'Область регіону встановлена на $name';
+  }
+
+  @override
+  String get regionScopeCleared => 'Область регіону очищена';
 }
