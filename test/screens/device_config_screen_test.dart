@@ -42,6 +42,10 @@ Future<void> _pumpDeviceConfigScreen(
   WidgetTester tester, {
   required ConnectionProvider connectionProvider,
 }) async {
+  tester.view.physicalSize = const Size(1440, 4000);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
   await tester.pumpWidget(
     MultiProvider(
       providers: [
