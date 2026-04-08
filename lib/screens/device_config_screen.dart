@@ -219,6 +219,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   bool _autoDiscoverySettingsSaved = false;
   bool _autoDiscoverySettingsDirty = false;
   String? _lastAutoDiscoverySignature;
+  String? _lastRadioSettingsSignature;
   String? _publicInfoError;
   String? _radioSettingsError;
   String? _autoDiscoverySettingsError;
@@ -226,6 +227,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   int _selectedSpreadingFactor = 8;
   int _selectedCodingRate = 8;
   _RadioPreset? _selectedRadioPreset;
+  bool _radioSettingsDirty = false;
 
   final List<String> _bandwidthOptions = [
     '7.8 kHz',
@@ -280,29 +282,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       text: (deviceInfo.autoAddMaxHops ?? 0).toString(),
     );
 
-    if (deviceInfo.radioBw != null &&
-        deviceInfo.radioBw! >= 0 &&
-        deviceInfo.radioBw! <= 9) {
-      _selectedBandwidth = _bandwidthFromValue(deviceInfo.radioBw!);
-    }
-    if (deviceInfo.radioSf != null &&
-        deviceInfo.radioSf! >= 7 &&
-        deviceInfo.radioSf! <= 12) {
-      _selectedSpreadingFactor = deviceInfo.radioSf!;
-    }
-    if (deviceInfo.radioCr != null &&
-        deviceInfo.radioCr! >= 5 &&
-        deviceInfo.radioCr! <= 8) {
-      _selectedCodingRate = deviceInfo.radioCr!;
-    }
-
-    _selectedRadioPreset = _matchRadioPreset(
-      frequencyKhz: deviceInfo.radioFreq,
-      bandwidth: deviceInfo.radioBw,
-      spreadingFactor: deviceInfo.radioSf,
-      codingRate: deviceInfo.radioCr,
-    );
-    _showCustomRadioSettings = _selectedRadioPreset == null;
+    _syncRadioSettingsState(deviceInfo);
 
     final telemetryModes = deviceInfo.telemetryModes;
     _baseTelemetryMode = telemetryModes != null ? telemetryModes & 0x03 : 0;
@@ -381,28 +361,138 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     return _bandwidthOptions.indexOf(bw);
   }
 
+  int? _normalizeBandwidthValue(int? bw) {
+    if (bw == null) {
+      return null;
+    }
+    if (bw >= 0 && bw <= 9) {
+      return bw;
+    }
+    switch (bw) {
+      case 7800:
+        return 0;
+      case 10400:
+        return 1;
+      case 15600:
+        return 2;
+      case 20800:
+        return 3;
+      case 31250:
+        return 4;
+      case 41700:
+        return 5;
+      case 62500:
+        return 6;
+      case 125000:
+        return 7;
+      case 250000:
+        return 8;
+      case 500000:
+        return 9;
+      default:
+        return null;
+    }
+  }
+
+  int? _normalizeSpreadingFactor(int? spreadingFactor) {
+    if (spreadingFactor == null ||
+        spreadingFactor < 7 ||
+        spreadingFactor > 12) {
+      return null;
+    }
+    return spreadingFactor;
+  }
+
+  int? _normalizeCodingRate(int? codingRate) {
+    if (codingRate == null) {
+      return null;
+    }
+    if (codingRate >= 5 && codingRate <= 8) {
+      return codingRate;
+    }
+    if (codingRate >= 1 && codingRate <= 4) {
+      return codingRate + 4;
+    }
+    return null;
+  }
+
   _RadioPreset? _matchRadioPreset({
     int? frequencyKhz,
     int? bandwidth,
     int? spreadingFactor,
     int? codingRate,
   }) {
+    final normalizedBandwidth = _normalizeBandwidthValue(bandwidth);
+    final normalizedSpreadingFactor = _normalizeSpreadingFactor(
+      spreadingFactor,
+    );
+    final normalizedCodingRate = _normalizeCodingRate(codingRate);
+
     if (frequencyKhz == null ||
-        bandwidth == null ||
-        spreadingFactor == null ||
-        codingRate == null) {
+        normalizedBandwidth == null ||
+        normalizedSpreadingFactor == null ||
+        normalizedCodingRate == null) {
       return null;
     }
 
     for (final preset in _radioPresets) {
       if (preset.frequencyKhz == frequencyKhz &&
-          preset.bandwidth == bandwidth &&
-          preset.spreadingFactor == spreadingFactor &&
-          preset.codingRate == codingRate) {
+          preset.bandwidth == normalizedBandwidth &&
+          preset.spreadingFactor == normalizedSpreadingFactor &&
+          preset.codingRate == normalizedCodingRate) {
         return preset;
       }
     }
     return null;
+  }
+
+  String _radioSettingsSignature(DeviceInfo deviceInfo) {
+    return [
+      deviceInfo.radioFreq,
+      _normalizeBandwidthValue(deviceInfo.radioBw),
+      _normalizeSpreadingFactor(deviceInfo.radioSf),
+      _normalizeCodingRate(deviceInfo.radioCr),
+      deviceInfo.txPower,
+      deviceInfo.clientRepeat,
+      deviceInfo.pathHashMode,
+    ].join('|');
+  }
+
+  void _syncRadioSettingsState(DeviceInfo deviceInfo) {
+    final normalizedBandwidth = _normalizeBandwidthValue(deviceInfo.radioBw);
+    final normalizedSpreadingFactor = _normalizeSpreadingFactor(
+      deviceInfo.radioSf,
+    );
+    final normalizedCodingRate = _normalizeCodingRate(deviceInfo.radioCr);
+
+    if (deviceInfo.radioFreq != null) {
+      _freqController.text = (deviceInfo.radioFreq! / 1000).toStringAsFixed(3);
+    }
+    if (normalizedBandwidth != null) {
+      _selectedBandwidth = _bandwidthFromValue(normalizedBandwidth);
+    }
+    if (normalizedSpreadingFactor != null) {
+      _selectedSpreadingFactor = normalizedSpreadingFactor;
+    }
+    if (normalizedCodingRate != null) {
+      _selectedCodingRate = normalizedCodingRate;
+    }
+    if (deviceInfo.txPower != null) {
+      _txPowerController.text = deviceInfo.txPower!.toString();
+    }
+    if (deviceInfo.clientRepeat != null) {
+      _repeatEnabled = deviceInfo.clientRepeat!;
+    }
+    _selectedPathHashMode = deviceInfo.pathHashMode;
+    _selectedRadioPreset = _matchRadioPreset(
+      frequencyKhz: deviceInfo.radioFreq,
+      bandwidth: deviceInfo.radioBw,
+      spreadingFactor: deviceInfo.radioSf,
+      codingRate: deviceInfo.radioCr,
+    );
+    _showCustomRadioSettings = _selectedRadioPreset == null;
+    _radioSettingsDirty = false;
+    _lastRadioSettingsSignature = _radioSettingsSignature(deviceInfo);
   }
 
   void _applyRadioPreset(_RadioPreset preset) {
@@ -441,6 +531,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   }
 
   void _markRadioSettingsDirty() {
+    _radioSettingsDirty = true;
     if (_radioSettingsSaved || _radioSettingsError != null) {
       setState(() {
         _radioSettingsSaved = false;
@@ -472,15 +563,30 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   }
 
   void _handleConnectionProviderChanged() {
-    if (!mounted || _autoDiscoverySettingsDirty) return;
+    if (!mounted) return;
 
     final deviceInfo = _connectionProvider.deviceInfo;
-    final nextSignature = _autoDiscoverySignature(deviceInfo);
-    if (nextSignature == _lastAutoDiscoverySignature) return;
+    final nextRadioSettingsSignature = _radioSettingsSignature(deviceInfo);
+    final nextAutoDiscoverySignature = _autoDiscoverySignature(deviceInfo);
+    final shouldSyncRadioSettings =
+        !_radioSettingsDirty &&
+        nextRadioSettingsSignature != _lastRadioSettingsSignature;
+    final shouldSyncAutoDiscovery =
+        !_autoDiscoverySettingsDirty &&
+        nextAutoDiscoverySignature != _lastAutoDiscoverySignature;
 
-    _lastAutoDiscoverySignature = nextSignature;
+    if (!shouldSyncRadioSettings && !shouldSyncAutoDiscovery) {
+      return;
+    }
+
     setState(() {
-      _syncAutoDiscoveryState(deviceInfo);
+      if (shouldSyncRadioSettings) {
+        _syncRadioSettingsState(deviceInfo);
+      }
+      if (shouldSyncAutoDiscovery) {
+        _lastAutoDiscoverySignature = nextAutoDiscoverySignature;
+        _syncAutoDiscoveryState(deviceInfo);
+      }
     });
   }
 
@@ -722,6 +828,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
 
       if (mounted) {
         setState(() {
+          _syncRadioSettingsState(connectionProvider.deviceInfo);
           _isSavingRadioSettings = false;
           _radioSettingsSaved = true;
         });
@@ -1754,6 +1861,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                           setState(() {
                             _selectedRadioPreset = null;
                             _showCustomRadioSettings = true;
+                            _radioSettingsDirty = true;
                             _radioSettingsSaved = false;
                             _radioSettingsError = null;
                           });
