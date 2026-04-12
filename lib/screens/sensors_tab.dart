@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,6 +8,7 @@ import '../providers/map_provider.dart';
 import '../providers/sensors_provider.dart';
 import '../widgets/contacts/ping_contact_sheet.dart';
 import '../widgets/sensors/bthome_met_history_sheet.dart';
+import '../widgets/sensors/sensor_history_sheet.dart';
 import '../widgets/sensors/sensor_telemetry_card.dart';
 import '../l10n/app_localizations.dart';
 
@@ -23,70 +22,17 @@ class SensorsTab extends StatefulWidget {
 }
 
 class _SensorsTabState extends State<SensorsTab> {
-  static const Duration _autoRefreshTickInterval = Duration(seconds: 30);
-  Timer? _minuteTicker;
   final Map<String, DateTime> _lastCenteredTelemetryAtBySensor =
       <String, DateTime>{};
 
   @override
   void initState() {
     super.initState();
-    if (widget.isActive) {
-      unawaited(_handleMinuteTick());
-      _scheduleMinuteTicker();
-    }
   }
 
   @override
   void dispose() {
-    _minuteTicker?.cancel();
     super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant SensorsTab oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.isActive == widget.isActive) {
-      return;
-    }
-
-    if (widget.isActive) {
-      unawaited(_handleMinuteTick());
-      _scheduleMinuteTicker();
-      return;
-    }
-
-    _minuteTicker?.cancel();
-    _minuteTicker = null;
-  }
-
-  void _scheduleMinuteTicker() {
-    _minuteTicker?.cancel();
-    if (!widget.isActive) {
-      return;
-    }
-
-    _minuteTicker = Timer.periodic(_autoRefreshTickInterval, (_) {
-      unawaited(_handleMinuteTick());
-    });
-  }
-
-  Future<void> _handleMinuteTick() async {
-    if (!mounted || !widget.isActive) {
-      return;
-    }
-
-    final sensorsProvider = context.read<SensorsProvider>();
-    sensorsProvider.clearExpiredRefreshStates();
-    await sensorsProvider.refreshDueSensors(
-      contactsProvider: context.read<ContactsProvider>(),
-      connectionProvider: context.read<ConnectionProvider>(),
-      now: DateTime.now(),
-    );
-    if (!mounted) {
-      return;
-    }
-    setState(() {});
   }
 
   Future<void> _showAddSensorSheet(BuildContext context) async {
@@ -356,6 +302,20 @@ class _SensorsTabState extends State<SensorsTab> {
                           : null,
                       onCustomize: () =>
                           _showMetricSelector(context, key, contact),
+                      onMetricTap: (fieldKey) async {
+                        final history = sensorsProvider.historyFor(key);
+                        final hasHistoryForField = history.any(
+                          (sample) => sample.values.containsKey(fieldKey),
+                        );
+                        if (!hasHistoryForField) {
+                          return;
+                        }
+                        await showSensorHistorySheet(
+                          context,
+                          publicKeyHex: key,
+                          initialFieldKey: fieldKey,
+                        );
+                      },
                       onShowMetHistory: (contact) =>
                           showBTHomeMetHistorySheet(context, contact: contact),
                       onMoveUp: isWatchedCard && index > 0

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore_sar_app/l10n/app_localizations.dart';
 import 'package:meshcore_sar_app/models/contact.dart';
+import 'package:meshcore_sar_app/providers/app_provider.dart';
 import 'package:meshcore_sar_app/providers/connection_provider.dart';
 import 'package:meshcore_sar_app/providers/contacts_provider.dart';
 import 'package:meshcore_sar_app/providers/map_provider.dart';
@@ -13,6 +14,32 @@ import 'package:meshcore_sar_app/widgets/contacts/contact_tile.dart';
 import 'package:meshcore_sar_app/widgets/sensors/sensor_telemetry_card.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class _FakeAppProvider extends ChangeNotifier implements AppProvider {
+  @override
+  ChannelLocationSharingMode? channelLocationSharingModeForChannel(
+    int channelIdx,
+  ) {
+    return null;
+  }
+
+  @override
+  Future<ChannelLocationSharingState> getChannelLocationSharingState(
+    int channelIdx,
+  ) async {
+    return const ChannelLocationSharingState(
+      mode: ChannelLocationSharingMode.appFallback,
+      isSharing: false,
+      hardwareSupported: false,
+      isConnected: false,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return null;
+  }
+}
 
 void main() {
   setUp(() {
@@ -41,22 +68,31 @@ void main() {
     );
   }
 
-  Future<void> pumpTile(
+  Future<Future<void> Function()> pumpTile(
     WidgetTester tester,
     Contact contact, {
     SensorsProvider? sensorsProvider,
   }) async {
+    final connectionProvider = ConnectionProvider();
+    final contactsProvider = ContactsProvider();
+    final messagesProvider = MessagesProvider();
+    final mapProvider = MapProvider();
+    final appProvider = _FakeAppProvider();
     final resolvedSensorsProvider = sensorsProvider ?? SensorsProvider();
+    final ownsSensorsProvider = sensorsProvider == null;
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => ConnectionProvider()),
-          ChangeNotifierProvider(create: (_) => ContactsProvider()),
-          ChangeNotifierProvider(create: (_) => MessagesProvider()),
+          ChangeNotifierProvider<ConnectionProvider>.value(
+            value: connectionProvider,
+          ),
+          ChangeNotifierProvider<ContactsProvider>.value(value: contactsProvider),
+          ChangeNotifierProvider<MessagesProvider>.value(value: messagesProvider),
           ChangeNotifierProvider<SensorsProvider>.value(
             value: resolvedSensorsProvider,
           ),
-          ChangeNotifierProvider(create: (_) => MapProvider()),
+          ChangeNotifierProvider<MapProvider>.value(value: mapProvider),
+          ChangeNotifierProvider<AppProvider>.value(value: appProvider),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -65,64 +101,97 @@ void main() {
         ),
       ),
     );
+
+    return () async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      connectionProvider.dispose();
+      if (ownsSensorsProvider) {
+        resolvedSensorsProvider.dispose();
+      }
+      await tester.pump();
+    };
   }
 
-  testWidgets('shows trace action for non-channel contacts', (tester) async {
-    await pumpTile(
+  Future<void> withPumpedTile(
+    WidgetTester tester,
+    Contact contact,
+    Future<void> Function() body, {
+    SensorsProvider? sensorsProvider,
+  }) async {
+    final dispose = await pumpTile(
+      tester,
+      contact,
+      sensorsProvider: sensorsProvider,
+    );
+    try {
+      await body();
+    } finally {
+      await dispose();
+    }
+  }
+
+  testWidgets('does not show diagnostic action for non-channel contacts', (
+    tester,
+  ) async {
+    await withPumpedTile(
       tester,
       buildContact(name: 'John Smith', type: ContactType.chat),
+      () async {
+        await tester.tap(find.text('John Smith'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Trace'), findsNothing);
+      },
     );
-
-    await tester.tap(find.text('John Smith'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Trace'), findsOneWidget);
   });
 
-  testWidgets('does not show trace action for channels', (tester) async {
-    await pumpTile(
+  testWidgets('does not show diagnostic action for channels', (tester) async {
+    await withPumpedTile(
       tester,
       buildContact(name: 'Ops', type: ContactType.channel, secondByte: 3),
+      () async {
+        await tester.tap(find.text('Ops'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Trace'), findsNothing);
+      },
     );
-
-    await tester.tap(find.text('Ops'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Trace'), findsNothing);
   });
 
   testWidgets('shows overridden contact name as primary label', (tester) async {
-    await pumpTile(
+    await withPumpedTile(
       tester,
       buildContact(
         name: 'John Smith',
         type: ContactType.chat,
       ).copyWith(nameOverride: 'Rescue One'),
+      () async {
+        expect(find.text('Rescue One'), findsOneWidget);
+        expect(find.text('John Smith'), findsNothing);
+      },
     );
-
-    expect(find.text('Rescue One'), findsOneWidget);
-    expect(find.text('John Smith'), findsNothing);
   });
 
   testWidgets('hides public key in contact tile', (tester) async {
     final contact = buildContact(name: 'John Smith', type: ContactType.chat);
 
-    await pumpTile(tester, contact);
-
-    expect(find.text(contact.publicKeyShort), findsNothing);
-    expect(find.byIcon(Icons.key_outlined), findsNothing);
+    await withPumpedTile(tester, contact, () async {
+      expect(find.text(contact.publicKeyShort), findsNothing);
+      expect(find.byIcon(Icons.key_outlined), findsNothing);
+    });
   });
 
   testWidgets('sensor contacts can be added to sensors', (tester) async {
-    await pumpTile(
+    await withPumpedTile(
       tester,
       buildContact(name: 'WX Station', type: ContactType.sensor),
+      () async {
+        await tester.tap(find.text('WX Station'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Add to Sensors'), findsOneWidget);
+      },
     );
-
-    await tester.tap(find.text('WX Station'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Add to Sensors'), findsOneWidget);
   });
 
   testWidgets('sensor preview shows telemetry card', (tester) async {
@@ -146,46 +215,49 @@ void main() {
           ),
         );
 
-    await pumpTile(tester, contact);
+    await withPumpedTile(tester, contact, () async {
+      await tester.tap(find.text('WX Station'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('WX Station'));
-    await tester.pumpAndSettle();
+      expect(find.text('Preview'), findsOneWidget);
 
-    expect(find.text('Preview'), findsOneWidget);
+      await tester.tap(find.text('Preview'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Preview'));
-    await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.close), findsOneWidget);
+      expect(find.text('Battery'), findsOneWidget);
+      expect(find.text('84%'), findsOneWidget);
+      expect(find.text('Temperature'), findsOneWidget);
+      expect(find.text('21.5°C'), findsOneWidget);
+      expect(find.text('CO2'), findsOneWidget);
+      expect(find.text('415 ppm'), findsOneWidget);
+      expect(find.text('Illuminance'), findsOneWidget);
+      expect(find.text('~4.2 W/m2'), findsOneWidget);
+      expect(find.textContaining('lx'), findsNothing);
+      expect(find.text('Current'), findsOneWidget);
+      expect(find.text('15 mA'), findsOneWidget);
+      expect(find.text('Power'), findsOneWidget);
+      expect(find.text('Distance'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('sensor_metric_battery')),
+        findsOneWidget,
+      );
+      expect(find.text('ch1'), findsWidgets);
+      expect(
+        find.byKey(const ValueKey('sensor_metric_extra:illuminance_2')),
+        findsOneWidget,
+      );
 
-    expect(find.byIcon(Icons.close), findsOneWidget);
-    expect(find.text('Battery'), findsOneWidget);
-    expect(find.text('84%'), findsOneWidget);
-    expect(find.text('Temperature'), findsOneWidget);
-    expect(find.text('21.5°C'), findsOneWidget);
-    expect(find.text('CO2'), findsOneWidget);
-    expect(find.text('415 ppm'), findsOneWidget);
-    expect(find.text('Illuminance'), findsOneWidget);
-    expect(find.text('~4.2 W/m2'), findsOneWidget);
-    expect(find.textContaining('lx'), findsNothing);
-    expect(find.text('Current'), findsOneWidget);
-    expect(find.text('15 mA'), findsOneWidget);
-    expect(find.text('Power'), findsOneWidget);
-    expect(find.text('Distance'), findsOneWidget);
-    expect(find.byKey(const ValueKey('sensor_metric_battery')), findsOneWidget);
-    expect(find.text('ch1'), findsWidgets);
-    expect(
-      find.byKey(const ValueKey('sensor_metric_extra:illuminance_2')),
-      findsOneWidget,
-    );
+      final sensorCardSize = tester.getSize(find.byType(SensorTelemetryCard));
+      final batteryTileSize = tester.getSize(
+        find.byKey(const ValueKey('sensor_metric_battery')),
+      );
+      expect(batteryTileSize.width, greaterThan(sensorCardSize.width * 0.8));
 
-    final sensorCardSize = tester.getSize(find.byType(SensorTelemetryCard));
-    final batteryTileSize = tester.getSize(
-      find.byKey(const ValueKey('sensor_metric_battery')),
-    );
-    expect(batteryTileSize.width, greaterThan(sensorCardSize.width * 0.8));
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.close));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(SensorTelemetryCard), findsNothing);
+      expect(find.byType(SensorTelemetryCard), findsNothing);
+    });
   });
 }

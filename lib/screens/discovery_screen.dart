@@ -35,9 +35,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   @override
   void initState() {
     super.initState();
-    _cachedNodesFuture = MeshMapNodesService.loadCachedNodes(
-      cacheTtl: MeshMapNodesService.traceCacheTtl,
-    );
+    _cachedNodesFuture = MeshMapNodesService.loadCachedNodes();
 
     if (widget.autoDiscoverRepeatersOnOpen) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

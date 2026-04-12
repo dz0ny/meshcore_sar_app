@@ -41,7 +41,6 @@ import '../../screens/add_contact_screen.dart';
 import 'voice_message_bubble.dart';
 import 'image_message_bubble.dart';
 import 'tictactoe_message_bubble.dart';
-import 'message_trace_sheet.dart';
 import 'message_bubble_header.dart';
 import 'message_bubble_signal.dart';
 import 'system_message_bubble.dart';
@@ -544,17 +543,6 @@ class _MessageBubbleState extends State<MessageBubble> {
                 _showTechnicalDetails(parentContext);
               },
             ),
-            if (!isOwnMessage &&
-                widget.message.pathLen > 0 &&
-                widget.message.pathLen < 255)
-              ListTile(
-                leading: Icon(Icons.route),
-                title: Text(l10n.trace),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showTraceSheet(parentContext);
-                },
-              ),
             // Delete message option
             ListTile(
               leading: Icon(Icons.delete, color: Colors.red),
@@ -570,18 +558,6 @@ class _MessageBubbleState extends State<MessageBubble> {
           ],
         ),
       ),
-    );
-  }
-
-  void _showTraceSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => MessageTraceSheet(message: widget.message),
     );
   }
 

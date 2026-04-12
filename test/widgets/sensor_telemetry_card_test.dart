@@ -1,5 +1,6 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
@@ -517,7 +518,69 @@ void main() {
     expect(moveDownCount, 1);
   });
 
-  testWidgets('overflow menu copies raw response', (tester) async {
+  testWidgets('tapping a measurement tile triggers metric callback', (
+    tester,
+  ) async {
+    final contact = buildContact();
+    String? tappedFieldKey;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SensorTelemetryCard(
+            contact: contact,
+            state: SensorRefreshState.idle,
+            visibleFields: const {'temperature'},
+            fieldSpans: sensorFullWidthFieldSpans(const {'temperature'}),
+            onMetricTap: (fieldKey) async {
+              tappedFieldKey = fieldKey;
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('sensor_metric_temperature')));
+    await tester.pumpAndSettle();
+
+    expect(tappedFieldKey, 'temperature');
+  });
+
+  testWidgets('tapping the card body does not trigger metric callback', (
+    tester,
+  ) async {
+    final contact = buildContact();
+    var tapCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SensorTelemetryCard(
+            contact: contact,
+            state: SensorRefreshState.idle,
+            visibleFields: const {'temperature'},
+            fieldSpans: sensorFullWidthFieldSpans(const {'temperature'}),
+            onMetricTap: (_) async {
+              tapCount += 1;
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('WX Station'));
+    await tester.pumpAndSettle();
+
+    expect(tapCount, 0);
+  });
+
+  testWidgets('raw response metadata alone does not show an overflow menu', (
+    tester,
+  ) async {
     final publicKey = Uint8List(32);
     publicKey[0] = 0x48;
     final contact = Contact(
@@ -538,11 +601,8 @@ void main() {
       ),
     );
 
-    final scaffoldKey = GlobalKey<ScaffoldMessengerState>();
-
     await tester.pumpWidget(
       MaterialApp(
-        scaffoldMessengerKey: scaffoldKey,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -556,44 +616,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(find.text('Copy raw response'), findsOneWidget);
-
-    // Capture clipboard writes via the test platform channel mock.
-    String? clipboardText;
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (MethodCall call) async {
-        if (call.method == 'Clipboard.setData') {
-          final args = call.arguments as Map<dynamic, dynamic>;
-          clipboardText = args['text'] as String?;
-        }
-        if (call.method == 'Clipboard.getData') {
-          return <String, dynamic>{'text': clipboardText};
-        }
-        return null;
-      },
-    );
-    addTearDown(() {
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        null,
-      );
-    });
-
-    await tester.tap(find.text('Copy raw response'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(clipboardText, '01 67 00 d7');
-    expect(find.text('Raw response copied'), findsOneWidget);
-
-    // Clear the SnackBar to prevent its timer from blocking teardown.
-    scaffoldKey.currentState?.clearSnackBars();
-    await tester.pump(const Duration(seconds: 5));
-    await tester.pump(const Duration(seconds: 5));
+    expect(find.byIcon(Icons.more_vert), findsNothing);
+    expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
   });
 }

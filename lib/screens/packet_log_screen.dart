@@ -750,9 +750,7 @@ class _DecodedRouteSection extends StatelessWidget {
     return FutureBuilder<List<dynamic>>(
       future: Future.wait<dynamic>([
         RouteHashPreferences.getHashSize(),
-        MeshMapNodesService.loadCachedNodes(
-          cacheTtl: MeshMapNodesService.traceCacheTtl,
-        ),
+        MeshMapNodesService.loadCachedNodes(),
       ]),
       builder: (context, snapshot) {
         final decodedRoute = LogRxRouteDecoder.decode(

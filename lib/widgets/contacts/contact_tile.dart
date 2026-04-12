@@ -17,7 +17,6 @@ import '../../services/message_destination_preferences.dart';
 import '../../services/path_history_service.dart';
 import 'contact_route_dialog.dart';
 import 'ping_contact_sheet.dart';
-import 'contact_trace_sheet.dart';
 import 'room_login_sheet.dart';
 import '../common/contact_avatar.dart';
 import '../sensors/bthome_met_history_sheet.dart';
@@ -644,15 +643,6 @@ class ContactTile extends StatelessWidget {
                   await _addContactToSensors(context, contact);
                 },
               ),
-            if (!contact.isChannel)
-              _ContactSheetAction(
-                icon: Icons.route,
-                label: l10n.trace,
-                onTap: () async {
-                  Navigator.pop(context);
-                  _showTraceSheet(context, contact);
-                },
-              ),
             if (contact.type == ContactType.repeater)
               _ContactSheetAction(
                 icon: Icons.hub_outlined,
@@ -802,18 +792,6 @@ class ContactTile extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) => _NeighboursSheet(contact: contact),
-    );
-  }
-
-  void _showTraceSheet(BuildContext context, Contact contact) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => ContactTraceSheet(contact: contact),
     );
   }
 

@@ -215,6 +215,70 @@ void main() {
     expect(reloadedProvider.autoRefreshMinutesFor(contact.publicKeyHex), 1440);
   });
 
+  test('tracked auto refresh history is captured and persisted', () async {
+    SharedPreferences.setMockInitialValues({});
+    final timestamp = DateTime(2026, 3, 15, 9, 0);
+    final contacts = <Contact>[
+      buildSensorContact().copyWith(
+        telemetry: ContactTelemetry(
+          temperature: 12.5,
+          humidity: 54,
+          pressure: 918.2,
+          timestamp: timestamp,
+          extraSensorData: const {'illuminance_2': 150.0},
+        ),
+      ),
+    ];
+    final contactsProvider = _FakeContactsProvider(contacts);
+    final connectionProvider = _FakeConnectionProvider(isConnected: true);
+
+    final provider = SensorsProvider();
+    await waitUntilLoaded(provider);
+    await provider.addSensor(contacts.first);
+    await provider.setAutoRefreshMinutes(contacts.first.publicKeyHex, 5);
+
+    await provider.captureTrackedTelemetryHistory(
+      contactsProvider: contactsProvider,
+      connectionProvider: connectionProvider,
+    );
+
+    final firstHistory = provider.historyFor(contacts.first.publicKeyHex);
+    expect(firstHistory, hasLength(1));
+    expect(firstHistory.first.values['temperature'], 12.5);
+    expect(firstHistory.first.values['humidity'], 54);
+    expect(firstHistory.first.values['pressure'], 918.2);
+    expect(firstHistory.first.values['extra:illuminance_2'], 150.0);
+
+    await provider.captureTrackedTelemetryHistory(
+      contactsProvider: contactsProvider,
+      connectionProvider: connectionProvider,
+    );
+    expect(provider.historyFor(contacts.first.publicKeyHex), hasLength(1));
+
+    contacts[0] = contacts[0].copyWith(
+      telemetry: ContactTelemetry(
+        temperature: 13.1,
+        humidity: 52,
+        pressure: 919.0,
+        timestamp: timestamp.add(const Duration(minutes: 5)),
+        extraSensorData: const {'illuminance_2': 160.0},
+      ),
+    );
+
+    await provider.captureTrackedTelemetryHistory(
+      contactsProvider: contactsProvider,
+      connectionProvider: connectionProvider,
+    );
+
+    final updatedHistory = provider.historyFor(contacts.first.publicKeyHex);
+    expect(updatedHistory, hasLength(2));
+    expect(updatedHistory.last.values['temperature'], 13.1);
+
+    final reloadedProvider = SensorsProvider();
+    await waitUntilLoaded(reloadedProvider);
+    expect(reloadedProvider.historyFor(contacts.first.publicKeyHex), hasLength(2));
+  });
+
   test('watched sensors and preferences are isolated per profile', () async {
     SharedPreferences.setMockInitialValues({});
     final contact = buildSensorContact();

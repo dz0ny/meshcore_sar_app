@@ -16,7 +16,6 @@ import '../services/route_hash_preferences.dart';
 import '../services/traffic_stats_reporting_service.dart';
 import '../utils/log_rx_route_decoder.dart';
 import '../widgets/compact_signal_indicator.dart';
-import '../widgets/messages/message_trace_sheet.dart';
 import 'packet_log_screen.dart';
 import '../l10n/app_localizations.dart';
 
@@ -769,7 +768,6 @@ class _LiveTrafficCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _showPacketBytesSheet(context, log.rawData),
-        onLongPress: () => _showTraceSheet(context, entry),
         borderRadius: BorderRadius.circular(18),
         child: Container(
           padding: const EdgeInsets.all(14),
@@ -1034,30 +1032,6 @@ class _LiveTrafficCard extends StatelessWidget {
     );
   }
 
-  static Future<void> _showTraceSheet(
-    BuildContext context,
-    LiveTrafficEntry entry,
-  ) {
-    final route = entry.route;
-    if (route == null || route.pathBytes.isEmpty) {
-      return Future.value();
-    }
-    return showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => MessageTraceSheet.packetPath(
-        packetPath: route.pathBytes,
-        descriptionOverride:
-            'Relay path from packet path bytes (${route.hopHashes.length} hop${route.hopHashes.length == 1 ? '' : 's'})',
-        noRelayMatchTextOverride:
-            'No named nodes could be matched for this packet path.',
-      ),
-    );
-  }
 }
 
 class _LiveTrafficPacketDetails {

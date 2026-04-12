@@ -12,6 +12,30 @@ import 'contacts_provider.dart';
 
 enum SensorRefreshState { idle, refreshing, success, timeout, unavailable }
 
+class SensorHistorySample {
+  final DateTime timestamp;
+  final Map<String, double> values;
+
+  const SensorHistorySample({required this.timestamp, required this.values});
+
+  factory SensorHistorySample.fromJson(Map<String, dynamic> json) {
+    final rawValues = json['values'] as Map<String, dynamic>? ?? const {};
+    return SensorHistorySample(
+      timestamp: DateTime.fromMillisecondsSinceEpoch(
+        (json['timestampMillis'] as num?)?.toInt() ?? 0,
+      ),
+      values: rawValues.map(
+        (key, value) => MapEntry(key, (value as num).toDouble()),
+      ),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'timestampMillis': timestamp.millisecondsSinceEpoch,
+    'values': values,
+  };
+}
+
 class SensorsProvider with ChangeNotifier {
   static const Duration _successStateRetention = Duration(minutes: 1);
   static const Duration selfAutoRefreshInterval = Duration(seconds: 30);
@@ -21,6 +45,10 @@ class SensorsProvider with ChangeNotifier {
   static const String _metricLabelKey = 'sensor_metric_labels';
   static const String _metricOrderKey = 'sensor_metric_order';
   static const String _autoRefreshMinutesKey = 'sensor_auto_refresh_minutes';
+  static const String _historyKey = 'sensor_history_v1';
+  static const String _telemetrySourceChannelPrefix = '__source_channel:';
+  static const String _rawTelemetryHexKey = '__raw_lpp_hex';
+  static const int _maxHistorySamplesPerSensor = 288;
   static const List<int> supportedAutoRefreshIntervals = <int>[
     0,
     5,
@@ -62,6 +90,8 @@ class SensorsProvider with ChangeNotifier {
       <String, List<String>>{};
   final Map<String, int> _autoRefreshMinutesBySensor = <String, int>{};
   final Map<String, DateTime> _lastRefreshAttemptAt = <String, DateTime>{};
+  final Map<String, List<SensorHistorySample>> _historyBySensor =
+      <String, List<SensorHistorySample>>{};
   bool _isLoaded = false;
   bool _isRefreshingAll = false;
   bool _isRunningAutoRefreshTick = false;
@@ -91,6 +121,7 @@ class SensorsProvider with ChangeNotifier {
       final storedAutoRefreshJson = prefs.getString(
         _key(_autoRefreshMinutesKey),
       );
+      final storedHistoryJson = prefs.getString(_key(_historyKey));
       _watchedSensorKeys
         ..clear()
         ..addAll(stored);
@@ -102,6 +133,7 @@ class SensorsProvider with ChangeNotifier {
       _metricOrderBySensor.clear();
       _autoRefreshMinutesBySensor.clear();
       _lastRefreshAttemptAt.clear();
+      _historyBySensor.clear();
       if (storedMetricsJson != null && storedMetricsJson.isNotEmpty) {
         final decoded = jsonDecode(storedMetricsJson) as Map<String, dynamic>;
         for (final entry in decoded.entries) {
@@ -143,6 +175,21 @@ class SensorsProvider with ChangeNotifier {
           );
           if (minutes > 0) {
             _autoRefreshMinutesBySensor[entry.key] = minutes;
+          }
+        }
+      }
+      if (storedHistoryJson != null && storedHistoryJson.isNotEmpty) {
+        final decoded = jsonDecode(storedHistoryJson) as Map<String, dynamic>;
+        for (final entry in decoded.entries) {
+          final rawSamples = entry.value as List<dynamic>? ?? const [];
+          final samples = rawSamples
+              .whereType<Map<String, dynamic>>()
+              .map(SensorHistorySample.fromJson)
+              .where((sample) => sample.values.isNotEmpty)
+              .toList()
+            ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+          if (samples.isNotEmpty) {
+            _historyBySensor[entry.key] = samples;
           }
         }
       }
@@ -247,6 +294,24 @@ class SensorsProvider with ChangeNotifier {
     }
   }
 
+  Future<void> _persistHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = <String, dynamic>{};
+      for (final entry in _historyBySensor.entries) {
+        if (entry.value.isEmpty) {
+          continue;
+        }
+        encoded[entry.key] = entry.value
+            .map((sample) => sample.toJson())
+            .toList(growable: false);
+      }
+      await prefs.setString(_key(_historyKey), jsonEncode(encoded));
+    } catch (e) {
+      debugPrint('Error saving sensor history: $e');
+    }
+  }
+
   Set<String> visibleFieldsFor(String publicKeyHex) => Set<String>.unmodifiable(
     _visibleFieldsBySensor[publicKeyHex] ?? _defaultVisibleFields,
   );
@@ -311,6 +376,11 @@ class SensorsProvider with ChangeNotifier {
 
   int autoRefreshMinutesFor(String publicKeyHex) =>
       _autoRefreshMinutesBySensor[publicKeyHex] ?? 0;
+
+  List<SensorHistorySample> historyFor(String publicKeyHex) =>
+      List<SensorHistorySample>.unmodifiable(
+        _historyBySensor[publicKeyHex] ?? const <SensorHistorySample>[],
+      );
 
   Future<void> setAutoRefreshMinutes(String publicKeyHex, int minutes) async {
     final normalizedMinutes = _normalizeAutoRefreshMinutes(minutes);
@@ -577,12 +647,14 @@ class SensorsProvider with ChangeNotifier {
     _metricOrderBySensor.remove(publicKeyHex);
     _autoRefreshMinutesBySensor.remove(publicKeyHex);
     _lastRefreshAttemptAt.remove(publicKeyHex);
+    _historyBySensor.remove(publicKeyHex);
     await _persistWatchedSensors();
     await _persistVisibleMetrics();
     await _persistFieldSpans();
     await _persistMetricLabels();
     await _persistMetricOrder();
     await _persistAutoRefreshMinutes();
+    await _persistHistory();
     notifyListeners();
   }
 
@@ -795,6 +867,42 @@ class SensorsProvider with ChangeNotifier {
     }
   }
 
+  Future<void> captureTrackedTelemetryHistory({
+    required ContactsProvider contactsProvider,
+    required ConnectionProvider connectionProvider,
+  }) async {
+    final trackedKeys = <String>{
+      ..._watchedSensorKeys.where((key) => autoRefreshMinutesFor(key) > 0),
+    };
+    final self = selfContact(contactsProvider, connectionProvider);
+    if (self != null && _lastRefreshAttemptAt.containsKey(self.publicKeyHex)) {
+      trackedKeys.add(self.publicKeyHex);
+    }
+    if (trackedKeys.isEmpty) {
+      return;
+    }
+
+    var changed = false;
+    for (final key in trackedKeys) {
+      final contact = contactForDisplay(
+        key,
+        contactsProvider: contactsProvider,
+        connectionProvider: connectionProvider,
+      );
+      if (contact == null) {
+        continue;
+      }
+      changed = _captureTelemetryHistory(contact) || changed;
+    }
+
+    if (!changed) {
+      return;
+    }
+
+    await _persistHistory();
+    notifyListeners();
+  }
+
   void clearExpiredRefreshStates({DateTime? now}) {
     final cutoff = (now ?? DateTime.now()).subtract(_successStateRetention);
     final keysToClear = <String>[];
@@ -850,5 +958,101 @@ class SensorsProvider with ChangeNotifier {
       lastMod: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       telemetry: telemetry,
     );
+  }
+
+  bool _captureTelemetryHistory(Contact contact) {
+    final telemetry = contact.telemetry;
+    if (telemetry == null) {
+      return false;
+    }
+
+    final values = _historyValuesForTelemetry(telemetry);
+    if (values.isEmpty) {
+      return false;
+    }
+
+    final samples = _historyBySensor.putIfAbsent(
+      contact.publicKeyHex,
+      () => <SensorHistorySample>[],
+    );
+    final timestamp = telemetry.timestamp;
+    final existingIndex = samples.lastIndexWhere(
+      (sample) => sample.timestamp.millisecondsSinceEpoch ==
+          timestamp.millisecondsSinceEpoch,
+    );
+    final nextSample = SensorHistorySample(timestamp: timestamp, values: values);
+
+    if (existingIndex >= 0) {
+      final current = samples[existingIndex];
+      if (mapEquals(current.values, values)) {
+        return false;
+      }
+      samples[existingIndex] = nextSample;
+      return true;
+    }
+
+    samples.add(nextSample);
+    samples.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    if (samples.length > _maxHistorySamplesPerSensor) {
+      samples.removeRange(0, samples.length - _maxHistorySamplesPerSensor);
+    }
+    return true;
+  }
+
+  Map<String, double> _historyValuesForTelemetry(ContactTelemetry telemetry) {
+    final values = <String, double>{};
+
+    if (telemetry.batteryMilliVolts != null) {
+      values['voltage'] = telemetry.batteryMilliVolts! / 1000;
+    }
+    if (telemetry.batteryPercentage != null) {
+      values['battery'] = telemetry.batteryPercentage!;
+    }
+    if (telemetry.temperature != null) {
+      values['temperature'] = telemetry.temperature!;
+    }
+    if (telemetry.humidity != null) {
+      values['humidity'] = telemetry.humidity!;
+    }
+    if (telemetry.pressure != null) {
+      values['pressure'] = telemetry.pressure!;
+    }
+
+    final extraSensorData = telemetry.extraSensorData;
+    if (extraSensorData != null) {
+      for (final entry in extraSensorData.entries) {
+        if (_isTelemetryMetadataKey(entry.key)) {
+          continue;
+        }
+
+        final numericValue = _historyNumericValue(entry.value);
+        if (numericValue == null) {
+          continue;
+        }
+
+        values[_extraFieldKey(entry.key)] = numericValue;
+      }
+    }
+
+    return values;
+  }
+
+  double? _historyNumericValue(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    if (value is bool) {
+      return value ? 1 : 0;
+    }
+    return null;
+  }
+
+  bool _isTelemetryMetadataKey(String key) {
+    return key.startsWith(_telemetrySourceChannelPrefix) ||
+        key == _rawTelemetryHexKey;
+  }
+
+  String _extraFieldKey(String key) {
+    return 'extra:$key';
   }
 }

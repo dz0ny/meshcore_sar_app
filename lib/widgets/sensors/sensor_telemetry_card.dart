@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:latlong2/latlong.dart';
 
@@ -1067,6 +1066,7 @@ class SensorTelemetryCard extends StatelessWidget {
   final Future<void> Function()? onPing;
   final VoidCallback? onCustomize;
   final Future<void> Function(Contact contact)? onShowMetHistory;
+  final Future<void> Function(String fieldKey)? onMetricTap;
   final Future<void> Function()? onMoveUp;
   final Future<void> Function()? onMoveDown;
   final EdgeInsetsGeometry margin;
@@ -1086,6 +1086,7 @@ class SensorTelemetryCard extends StatelessWidget {
     this.onPing,
     this.onCustomize,
     this.onShowMetHistory,
+    this.onMetricTap,
     this.onMoveUp,
     this.onMoveDown,
     this.margin = const EdgeInsets.only(bottom: 16),
@@ -1112,7 +1113,6 @@ class SensorTelemetryCard extends StatelessWidget {
       onRemove != null ||
       onMoveUp != null ||
       onMoveDown != null ||
-      _rawTelemetryHex(contact?.telemetry) != null ||
       (contact != null &&
           onShowMetHistory != null &&
           supportsBTHomeMetHistory(contact));
@@ -1132,18 +1132,6 @@ class SensorTelemetryCard extends StatelessWidget {
     }
     if (value == 'move_down' && onMoveDown != null) {
       await onMoveDown!();
-      return;
-    }
-    if (value == 'copy_raw') {
-      final rawTelemetry = _rawTelemetryHex(contact?.telemetry);
-      if (rawTelemetry != null && context.mounted) {
-        await Clipboard.setData(ClipboardData(text: rawTelemetry));
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.rawResponseCopied)),
-          );
-        }
-      }
       return;
     }
     if (value == 'remove' && onRemove != null) {
@@ -1176,17 +1164,23 @@ class SensorTelemetryCard extends StatelessWidget {
           label: AppLocalizations.of(context)!.ping,
           onTap: () => _handleAction(context, 'ping'),
         ),
-      if (_rawTelemetryHex(contact?.telemetry) != null)
-        _SensorSheetAction(
-          icon: Icons.copy_all_outlined,
-          label: AppLocalizations.of(context)!.copyRawResponse,
-          onTap: () => _handleAction(context, 'copy_raw'),
-        ),
       if (onCustomize != null)
         _SensorSheetAction(
           icon: Icons.tune,
           label: l10n.customizeFields,
           onTap: () => _handleAction(context, 'customize'),
+        ),
+      if (onMoveUp != null)
+        _SensorSheetAction(
+          icon: Icons.arrow_upward,
+          label: l10n.moveUp,
+          onTap: () => _handleAction(context, 'move_up'),
+        ),
+      if (onMoveDown != null)
+        _SensorSheetAction(
+          icon: Icons.arrow_downward,
+          label: l10n.moveDown,
+          onTap: () => _handleAction(context, 'move_down'),
         ),
       if (contact != null &&
           onShowMetHistory != null &&
@@ -1327,11 +1321,14 @@ class SensorTelemetryCard extends StatelessWidget {
                   ),
                 ),
                 if (_showsMenu)
-                  Icon(
-                    showActionSheetOnTap
-                        ? Icons.chevron_right_rounded
-                        : Icons.more_horiz,
-                    color: colorScheme.onSurfaceVariant,
+                  IconButton(
+                    onPressed: () => _showActionSheet(context),
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+                    visualDensity: VisualDensity.compact,
                   ),
               ],
             ),
@@ -1364,6 +1361,11 @@ class SensorTelemetryCard extends StatelessWidget {
                                     metric.wide)
                                 ? constraints.maxWidth
                                 : compactWidth,
+                            onTap: onMetricTap == null
+                                ? null
+                                : () async {
+                                    await onMetricTap!(metric.fieldKey);
+                                  },
                             onLongPress: onRefresh == null
                                 ? null
                                 : () async {
@@ -1380,15 +1382,7 @@ class SensorTelemetryCard extends StatelessWidget {
       ),
     );
 
-    if (!_showsMenu || !showActionSheetOnTap) {
-      return card;
-    }
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _showActionSheet(context),
-      child: card,
-    );
+    return card;
   }
 
   List<SensorMetricCardData> _buildMetricCards(
@@ -2326,6 +2320,7 @@ class SensorMetricTile extends StatefulWidget {
   final double width;
   final String keyPrefix;
   final bool allowMapPreview;
+  final GestureTapCallback? onTap;
   final GestureLongPressCallback? onLongPress;
 
   const SensorMetricTile({
@@ -2334,6 +2329,7 @@ class SensorMetricTile extends StatefulWidget {
     required this.width,
     this.keyPrefix = 'sensor_metric',
     this.allowMapPreview = true,
+    this.onTap,
     this.onLongPress,
   });
 
@@ -2450,6 +2446,7 @@ class _SensorMetricTileState extends State<SensorMetricTile> {
       child: InkWell(
         key: ValueKey('${widget.keyPrefix}_${data.fieldKey}'),
         borderRadius: BorderRadius.circular(22),
+        onTap: widget.onTap,
         onLongPress: widget.onLongPress,
         child: Container(
           width: widget.width,
@@ -3100,11 +3097,6 @@ String _extraFieldKey(String label) {
 bool _isTelemetryMetadataKey(String key) {
   return key.startsWith(_telemetrySourceChannelPrefix) ||
       key == _rawTelemetryHexKey;
-}
-
-String? _rawTelemetryHex(ContactTelemetry? telemetry) {
-  final value = telemetry?.extraSensorData?[_rawTelemetryHexKey];
-  return value is String && value.trim().isNotEmpty ? value : null;
 }
 
 String _telemetrySourceChannelKey(String fieldKey) {

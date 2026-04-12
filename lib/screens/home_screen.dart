@@ -11,6 +11,7 @@ import '../providers/app_provider.dart';
 import '../models/device_info.dart' show ConnectionMode, DeviceInfo;
 import '../providers/messages_provider.dart';
 import '../providers/contacts_provider.dart';
+import '../providers/sensors_provider.dart';
 import '../theme/app_theme.dart';
 import 'messages_tab.dart';
 import 'contacts_tab.dart';
@@ -71,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen>
   bool _isSensorsEnabled = false;
   AppLifecycleState _lifecycleState = AppLifecycleState.resumed;
   String? _lastProfileDeviceKey;
+  Timer? _sensorAutoRefreshTicker;
 
   List<_HomeTab> get _enabledTabs {
     return [
@@ -116,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handleConnectionProviderChanged();
     });
+    _configureSensorAutoRefreshTicker();
   }
 
   void _initTabController() {
@@ -182,6 +185,7 @@ class _HomeScreenState extends State<HomeScreen>
     if (!_isMapEnabled) {
       _isMapFullscreen = false;
     }
+    _configureSensorAutoRefreshTicker();
 
     final newTabs = _enabledTabs;
     final newIndex = newTabs.indexOf(oldTab);
@@ -252,6 +256,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void dispose() {
+    _sensorAutoRefreshTicker?.cancel();
     _connectionProvider.removeListener(_handleConnectionProviderChanged);
     WidgetsBinding.instance.removeObserver(this);
     _appProvider.setFastLocationUiActive(false);
@@ -269,9 +274,48 @@ class _HomeScreenState extends State<HomeScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _lifecycleState = state;
     _syncFastLocationUiState();
+    _configureSensorAutoRefreshTicker();
     if (state == AppLifecycleState.resumed) {
       MeshMapNodesService.syncInBackgroundIfStale();
     }
+  }
+
+  void _configureSensorAutoRefreshTicker() {
+    _sensorAutoRefreshTicker?.cancel();
+    if (!_isSensorsEnabled || _lifecycleState != AppLifecycleState.resumed) {
+      _sensorAutoRefreshTicker = null;
+      return;
+    }
+
+    unawaited(_runSensorAutoRefreshTick());
+    _sensorAutoRefreshTicker = Timer.periodic(
+      SensorsProvider.selfAutoRefreshInterval,
+      (_) {
+        unawaited(_runSensorAutoRefreshTick());
+      },
+    );
+  }
+
+  Future<void> _runSensorAutoRefreshTick() async {
+    if (!mounted ||
+        !_isSensorsEnabled ||
+        _lifecycleState != AppLifecycleState.resumed) {
+      return;
+    }
+
+    final sensorsProvider = context.read<SensorsProvider>();
+    final contactsProvider = context.read<ContactsProvider>();
+    final connectionProvider = context.read<ConnectionProvider>();
+    sensorsProvider.clearExpiredRefreshStates();
+    await sensorsProvider.refreshDueSensors(
+      contactsProvider: contactsProvider,
+      connectionProvider: connectionProvider,
+      now: DateTime.now(),
+    );
+    await sensorsProvider.captureTrackedTelemetryHistory(
+      contactsProvider: contactsProvider,
+      connectionProvider: connectionProvider,
+    );
   }
 
   Future<void> _loadRxTxPreference() async {

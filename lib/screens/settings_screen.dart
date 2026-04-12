@@ -20,7 +20,6 @@ import '../models/contact.dart';
 import '../models/config_profile.dart';
 import '../services/location_tracking_service.dart';
 import '../services/locale_preferences.dart';
-import '../services/mesh_map_nodes_service.dart';
 import '../services/update_checker_service.dart';
 import '../services/voice_bitrate_preferences.dart';
 import '../services/image_preferences.dart';
@@ -99,8 +98,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _messageDestinationLockType =
       MessageDestinationPreferences.destinationTypeChannel;
   String? _messageDestinationLockPublicKey = _publicChannelPublicKeyHex;
-  DateTime? _onlineTraceCacheUpdatedAt;
-  bool _isClearingOnlineTraceCache = false;
   int _versionTapCount = 0;
   final ImagePicker _imagePicker = ImagePicker();
   final LocationTrackingService _locationService = LocationTrackingService();
@@ -119,7 +116,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadFastLocationSettings();
     _loadDeveloperMode();
     _loadProfilesEnabled();
-    _loadOnlineTraceCacheStatus();
     _loadMapPreferences();
     _loadNotificationPreferences();
     _loadMessageDestinationLock();
@@ -182,14 +178,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _discoveryNotificationsEnabled = service.discoveryNotificationsEnabled;
       _updateNotificationsEnabled = service.updateNotificationsEnabled;
       _muteForegroundNotifications = service.muteForegroundNotifications;
-    });
-  }
-
-  Future<void> _loadOnlineTraceCacheStatus() async {
-    final cachedAt = await MeshMapNodesService.cachedAt();
-    if (!mounted) return;
-    setState(() {
-      _onlineTraceCacheUpdatedAt = cachedAt;
     });
   }
 
@@ -1119,66 +1107,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _clearOnlineTraceCache() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.clearOnlineTraceDatabase),
-        content: const Text(
-          'This removes the cached online node database used as a trace fallback.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(AppLocalizations.of(context)!.clear),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    setState(() {
-      _isClearingOnlineTraceCache = true;
-    });
-
-    await MeshMapNodesService.clearCache();
-
-    if (!mounted) return;
-    setState(() {
-      _onlineTraceCacheUpdatedAt = null;
-      _isClearingOnlineTraceCache = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.onlineTraceDatabaseCleared),
-        backgroundColor: Colors.orange,
-      ),
-    );
-  }
-
-  String _onlineTraceCacheSubtitle() {
-    final cachedAt = _onlineTraceCacheUpdatedAt;
-    if (cachedAt == null) {
-      return 'No cached online database. Refresh runs in background when internet is available.';
-    }
-
-    final expiresAt = cachedAt.add(MeshMapNodesService.traceCacheTtl);
-    return 'Last synced ${_formatDateTime(cachedAt)}. Cached for 24 hours until ${_formatDateTime(expiresAt)}.';
-  }
-
-  String _formatDateTime(DateTime value) {
-    final local = value.toLocal();
-    String two(int part) => part.toString().padLeft(2, '0');
-    return '${local.year}-${two(local.month)}-${two(local.day)} ${two(local.hour)}:${two(local.minute)}';
-  }
-
   Future<void> _showRouteHashSizeDialog() async {
     final selected = await showDialog<int>(
       context: context,
@@ -1614,11 +1542,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
           const SizedBox(height: 12),
 
-          // ── Map & Tracing ──
+          // ── Map ──
           _buildSection(
             icon: Icons.map_rounded,
             title: AppLocalizations.of(context)!.map,
-            subtitle: AppLocalizations.of(context)!.displayMarkersAndTraceDatabase,
             children: [
             SwitchListTile(
               dense: true,
@@ -1671,29 +1598,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() => _showMapDebugInfo = value);
                 await _saveMapPreference('map_show_debug_info', value);
               },
-            ),
-            const Divider(height: 1),
-            ListTile(
-              dense: true,
-              leading: const Icon(Icons.cloud_sync, size: 20),
-              title: Text(l10n.onlineTraceDatabase),
-              subtitle: Text(
-                _onlineTraceCacheSubtitle(),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              trailing: _isClearingOnlineTraceCache
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : TextButton(
-                      onPressed: _clearOnlineTraceCache,
-                      child: const Text(
-                        'Clear',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
             ),
           ]),
           const SizedBox(height: 12),

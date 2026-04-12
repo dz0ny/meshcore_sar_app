@@ -69,7 +69,7 @@ void main() {
     expect(await MeshMapNodesService.hasFreshCache(), isFalse);
   });
 
-  test('clearCache removes persisted online trace database', () async {
+  test('clearCache removes persisted online node cache', () async {
     final client = MockClient(
       (_) async => http.Response(
         jsonEncode({
