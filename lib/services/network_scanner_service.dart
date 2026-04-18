@@ -5,18 +5,23 @@ import 'package:nsd/nsd.dart';
 
 /// Discovered MeshCore device on the network (TCP/WiFi)
 class DiscoveredServer {
+  final String name;
   final String ipAddress;
   final int port;
   final int responseTime; // milliseconds
 
   const DiscoveredServer({
+    required this.name,
     required this.ipAddress,
     required this.port,
     required this.responseTime,
   });
 
+  String get displayName => name.trim().isNotEmpty ? name.trim() : ipAddress;
+
   @override
-  String toString() => 'DiscoveredServer($ipAddress:$port, ${responseTime}ms)';
+  String toString() =>
+      'DiscoveredServer($displayName @ $ipAddress:$port, ${responseTime}ms)';
 
   @override
   bool operator ==(Object other) =>
@@ -46,6 +51,7 @@ class NetworkScannerService {
 
   bool _isScanning = false;
   bool get isScanning => _isScanning;
+  int _scanSession = 0;
 
   List<DiscoveredServer> _cachedServers = [];
   List<DiscoveredServer> get cachedServers => List.unmodifiable(_cachedServers);
@@ -88,7 +94,11 @@ class NetworkScannerService {
   }
 
   /// Try a raw TCP connect to check if the MeshCore TCP server is listening.
-  Future<DiscoveredServer?> _checkDevice(String ip, int port) async {
+  Future<DiscoveredServer?> _checkDevice(
+    String ip,
+    int port, {
+    String? name,
+  }) async {
     final sw = Stopwatch()..start();
     Socket? socket;
     try {
@@ -101,6 +111,7 @@ class NetworkScannerService {
       debugPrint(
           '✅ [NetworkScanner] Found device at $ip:$port (${sw.elapsedMilliseconds}ms)');
       return DiscoveredServer(
+        name: (name ?? ip).trim(),
         ipAddress: ip,
         port: port,
         responseTime: sw.elapsedMilliseconds,
@@ -117,7 +128,10 @@ class NetworkScannerService {
 
   // ── mDNS discovery ─────────────────────────────────────────────────────────
 
-  Future<List<DiscoveredServer>> _discoverViaMdns({int? port}) async {
+  Future<List<DiscoveredServer>> _discoverViaMdns({
+    int? port,
+    required int scanSession,
+  }) async {
     final scanPort = port ?? defaultPort;
     final found = <DiscoveredServer>[];
 
@@ -131,12 +145,25 @@ class NetworkScannerService {
       );
 
       await Future.delayed(bonjourTimeout);
+      if (!_isScanSessionActive(scanSession)) {
+        return found;
+      }
 
       for (final service in _activeDiscovery?.services ?? []) {
+        if (!_isScanSessionActive(scanSession)) {
+          break;
+        }
         for (final addr in service.addresses ?? []) {
+          if (!_isScanSessionActive(scanSession)) {
+            break;
+          }
           if (localIps.contains(addr.address)) continue;
           final result =
-              await _checkDevice(addr.address, service.port ?? scanPort);
+              await _checkDevice(
+                addr.address,
+                service.port ?? scanPort,
+                name: service.name,
+              );
           if (result != null) {
             found.add(result);
             onServerDiscovered?.call(result);
@@ -163,7 +190,10 @@ class NetworkScannerService {
 
   // ── Port scan fallback ─────────────────────────────────────────────────────
 
-  Future<List<DiscoveredServer>> _scanByPort({int? port}) async {
+  Future<List<DiscoveredServer>> _scanByPort({
+    int? port,
+    required int scanSession,
+  }) async {
     final scanPort = port ?? defaultPort;
     final found = <DiscoveredServer>[];
 
@@ -175,10 +205,12 @@ class NetworkScannerService {
         '🔍 [NetworkScanner] Port scan: ${ips.length} IPs, port $scanPort');
 
     int scanned = 0;
-    for (int i = 0; i < ips.length; i += parallelScans) {
+    for (int i = 0; i < ips.length && _isScanSessionActive(scanSession); i += parallelScans) {
       final batch = ips.skip(i).take(parallelScans).toList();
       final results =
-          await Future.wait(batch.map((ip) => _checkDevice(ip, scanPort)));
+          await Future.wait(
+            batch.map((ip) => _checkDevice(ip, scanPort, name: ip)),
+          );
 
       for (final result in results) {
         if (result != null && !localIps.contains(result.ipAddress)) {
@@ -200,28 +232,51 @@ class NetworkScannerService {
   Future<List<DiscoveredServer>> scan({int? port}) async {
     if (_isScanning) return [];
     _isScanning = true;
+    final scanSession = ++_scanSession;
 
     try {
-      var found = await _discoverViaMdns(port: port);
-      if (found.isEmpty) {
+      var found = await _discoverViaMdns(port: port, scanSession: scanSession);
+      if (_isScanSessionActive(scanSession) && found.isEmpty) {
         debugPrint(
             '🔍 [NetworkScanner] mDNS found nothing, falling back to port scan');
-        found = await _scanByPort(port: port);
+        found = await _scanByPort(port: port, scanSession: scanSession);
       }
-      _cachedServers = found;
+      if (_isScanSessionActive(scanSession)) {
+        _cachedServers = found;
+      }
       return found;
     } finally {
-      _isScanning = false;
+      if (_scanSession == scanSession) {
+        _isScanning = false;
+      }
     }
   }
 
   /// Verify a previously discovered device is still reachable.
   Future<bool> verifyServer(DiscoveredServer server) async {
-    final result = await _checkDevice(server.ipAddress, server.port);
+    final result = await _checkDevice(
+      server.ipAddress,
+      server.port,
+      name: server.name,
+    );
     return result != null;
   }
 
   void clearCache() => _cachedServers = [];
 
-  void stopScan() => _isScanning = false;
+  bool _isScanSessionActive(int session) => _isScanning && _scanSession == session;
+
+  void stopScan() {
+    _scanSession += 1;
+    _isScanning = false;
+    final activeDiscovery = _activeDiscovery;
+    _activeDiscovery = null;
+    if (activeDiscovery != null) {
+      unawaited(
+        stopDiscovery(activeDiscovery).catchError((Object error) {
+          debugPrint('⚠️ [NetworkScanner] Failed to stop mDNS discovery: $error');
+        }),
+      );
+    }
+  }
 }

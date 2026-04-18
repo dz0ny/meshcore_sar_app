@@ -10,9 +10,17 @@ import '../providers/contacts_provider.dart';
 import '../screens/discovery_screen.dart';
 import '../services/network_scanner_service.dart';
 import '../services/profile_workspace_coordinator.dart';
+import '../services/recent_tcp_connections_service.dart';
 import '../services/serial/serial_transport.dart';
 
 enum _ConnectionDialogResult { connected }
+
+class _ManualTcpEndpoint {
+  final String host;
+  final int port;
+
+  const _ManualTcpEndpoint({required this.host, required this.port});
+}
 
 Future<void> _initializeConnectedWorkspace({
   required ProfileWorkspaceCoordinator profileWorkspaceCoordinator,
@@ -135,6 +143,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
   late final ConnectionProvider _connectionProvider;
   late final NetworkScannerService _networkScanner;
   final List<DiscoveredServer> _discoveredServers = [];
+  List<RecentTcpConnection> _recentServers = const <RecentTcpConnection>[];
   int _scannedCount = 0;
   int _totalToScan = 0;
   int _lastTabIndex = 0;
@@ -156,6 +165,16 @@ class _ConnectionDialogState extends State<ConnectionDialog>
         _startNetworkScan();
       }
     }
+  }
+
+  Future<void> _loadRecentServers() async {
+    final recentServers = await RecentTcpConnectionsService.load();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _recentServers = recentServers;
+    });
   }
 
   @override
@@ -186,6 +205,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
     };
 
     _tabController.addListener(_onTabChanged);
+    _loadRecentServers();
   }
 
   @override
@@ -198,6 +218,7 @@ class _ConnectionDialogState extends State<ConnectionDialog>
   }
 
   void _startNetworkScan() {
+    _networkScanner.stopScan();
     setState(() {
       _discoveredServers.clear();
       _scannedCount = 0;
@@ -234,6 +255,56 @@ class _ConnectionDialogState extends State<ConnectionDialog>
   void _showConnectionError(Object error) {
     if (!mounted) return;
     _showConnectionErrorSnackBar(context, error);
+  }
+
+  Future<void> _rememberRecentServer({
+    required String name,
+    required String host,
+    required int port,
+  }) async {
+    final recentServers = await RecentTcpConnectionsService.remember(
+      name: name,
+      host: host,
+      port: port,
+    );
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _recentServers = recentServers;
+    });
+  }
+
+  Future<void> _connectTcpEndpoint({
+    required String host,
+    required int port,
+    required String name,
+    required String serverKey,
+  }) async {
+    final connectionProvider = context.read<ConnectionProvider>();
+
+    setState(() {
+      _connectingToServerKey = serverKey;
+    });
+
+    try {
+      final success = await connectionProvider.connectTcp(host, port);
+      if (!success) {
+        throw Exception(
+          connectionProvider.error ?? 'Failed to connect to $host:$port',
+        );
+      }
+      await _rememberRecentServer(name: name, host: host, port: port);
+      _closeOnSuccessfulConnection();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _connectingToServerKey = null;
+      });
+      _showConnectionError(error);
+    }
   }
 
   @override
@@ -389,49 +460,35 @@ class _ConnectionDialogState extends State<ConnectionDialog>
     );
   }
 
-  Future<String?> _promptForManualTcpHost() async {
-    return showDialog<String>(
+  Future<_ManualTcpEndpoint?> _promptForManualTcpHost() async {
+    return showDialog<_ManualTcpEndpoint>(
       context: context,
       builder: (dialogContext) => _ManualTcpHostDialog(
         initialHost: _connectionProvider.tcpHost,
+        initialPort: NetworkScannerService.defaultPort,
       ),
     );
   }
 
   Future<void> _connectManualTcpHost() async {
-    final host = await _promptForManualTcpHost();
-    if (host == null || !mounted) {
+    if (_networkScanner.isScanning) {
+      _networkScanner.stopScan();
+      if (mounted) {
+        setState(() {});
+      }
+    }
+
+    final endpoint = await _promptForManualTcpHost();
+    if (endpoint == null || !mounted) {
       return;
     }
 
-    final serverKey = '$host:${NetworkScannerService.defaultPort}';
-    final connectionProvider = context.read<ConnectionProvider>();
-
-    setState(() {
-      _connectingToServerKey = serverKey;
-    });
-
-    try {
-      final success = await connectionProvider.connectTcp(
-        host,
-        NetworkScannerService.defaultPort,
-      );
-      if (!success) {
-        throw Exception(
-          connectionProvider.error ??
-              'Failed to connect to $host:${NetworkScannerService.defaultPort}',
-        );
-      }
-      _closeOnSuccessfulConnection();
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _connectingToServerKey = null;
-      });
-      _showConnectionError(error);
-    }
+    await _connectTcpEndpoint(
+      host: endpoint.host,
+      port: endpoint.port,
+      name: endpoint.host,
+      serverKey: '${endpoint.host}:${endpoint.port}',
+    );
   }
 
   Widget _buildErrorBanner(String message) {
@@ -582,6 +639,23 @@ class _ConnectionDialogState extends State<ConnectionDialog>
     );
   }
 
+  Widget _buildNetworkSectionHeader(String label) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBleDevicesTab(ConnectionProvider connectionProvider) {
     final l10n = AppLocalizations.of(context)!;
 
@@ -682,6 +756,13 @@ class _ConnectionDialogState extends State<ConnectionDialog>
         !_networkScanner.isScanning &&
         _networkScanner.hasCachedResults &&
         _discoveredServers.isNotEmpty;
+    final bool hasRecentServers = _recentServers.isNotEmpty;
+    final bool hasDiscoveredServers = _discoveredServers.isNotEmpty;
+    final bool showEmptyState =
+        !_networkScanner.isScanning &&
+        !hasRecentServers &&
+        !hasDiscoveredServers;
+    final bool isAnyConnectionInProgress = _connectingToServerKey != null;
 
     return Column(
       children: [
@@ -693,8 +774,10 @@ class _ConnectionDialogState extends State<ConnectionDialog>
               ? 'Showing cached results. Tap refresh to rescan.'
               : 'Scanning local network for MeshCore WiFi devices on port 5000',
           secondaryActionIcon: Icons.add_rounded,
-          secondaryActionTooltip: 'Add IP address',
-          onSecondaryAction: _connectingToServerKey != null
+          secondaryActionTooltip: _networkScanner.isScanning
+              ? 'Cancel scan and add server'
+              : 'Add server',
+          onSecondaryAction: isAnyConnectionInProgress
               ? null
               : _connectManualTcpHost,
           onRefresh: _startNetworkScan,
@@ -712,92 +795,132 @@ class _ConnectionDialogState extends State<ConnectionDialog>
                   'Scanning... $_scannedCount/${_totalToScan > 0 ? _totalToScan : "?"} IPs',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: _connectManualTcpHost,
+                    icon: const Icon(Icons.close_rounded),
+                    label: const Text('Cancel and enter manually'),
+                  ),
+                ),
               ],
             ),
           ),
         Expanded(
-          child: _networkScanner.isScanning && _discoveredServers.isEmpty
-              ? const Center(child: CircularProgressIndicator())
-              : _discoveredServers.isEmpty
+          child: showEmptyState
               ? _buildEmptyState(
                   icon: Icons.wifi_off_rounded,
-                  title: AppLocalizations.of(context)!.noServersFound,
+                  title: 'No recent or discovered servers yet',
                   actionLabel: 'Scan Again',
                   onAction: _startNetworkScan,
                 )
-              : ListView.builder(
-                  itemCount: _discoveredServers.length,
-                  itemBuilder: (context, index) {
-                    final server = _discoveredServers[index];
-                    final serverKey = '${server.ipAddress}:${server.port}';
-                    final isConnectingToThisServer =
-                        _connectingToServerKey == serverKey;
-                    final isAnyConnectionInProgress =
-                        _connectingToServerKey != null;
-
-                    Future<void> connectServer() async {
-                      final connectionProvider = context
-                          .read<ConnectionProvider>();
-
-                      setState(() {
-                        _connectingToServerKey = serverKey;
-                      });
-
-                      try {
-                        final isAvailable = await _networkScanner.verifyServer(
-                          server,
-                        );
-                        if (!isAvailable) {
-                          throw Exception(
-                            'Server at ${server.ipAddress}:${server.port} is no longer available. Please scan again to find active servers.',
-                          );
-                        }
-
-                        final success = await connectionProvider.connectTcp(
-                          server.ipAddress,
-                          server.port,
-                        );
-                        if (!success) {
-                          throw Exception(
-                            connectionProvider.error ??
-                                'Failed to connect to ${server.ipAddress}:${server.port}',
-                          );
-                        }
-                        _closeOnSuccessfulConnection();
-                      } catch (e) {
-                        if (!mounted) return;
-                        setState(() {
-                          _connectingToServerKey = null;
-                        });
-                        _showConnectionError(e);
-                      }
-                    }
-
-                    return _buildTransportCard(
-                      icon: Icons.wifi_rounded,
-                      iconColor: Colors.green,
-                      title: server.ipAddress,
-                      subtitle: isConnectingToThisServer
-                          ? 'Connecting...'
-                          : 'Port ${server.port} • ${server.responseTime}ms',
-                      trailing: isConnectingToThisServer
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
+              : ListView(
+                  children: [
+                    if (hasRecentServers)
+                      _buildNetworkSectionHeader('Recently used'),
+                    for (final server in _recentServers)
+                      _buildTransportCard(
+                        icon: Icons.history_rounded,
+                        iconColor: Theme.of(context).colorScheme.primary,
+                        title: server.name,
+                        subtitle:
+                            _connectingToServerKey == '${server.host}:${server.port}'
+                            ? 'Connecting...'
+                            : '${server.host}:${server.port}',
+                        trailing:
+                            _connectingToServerKey == '${server.host}:${server.port}'
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : FilledButton.tonal(
+                                onPressed: isAnyConnectionInProgress
+                                    ? null
+                                    : () => _connectTcpEndpoint(
+                                        host: server.host,
+                                        port: server.port,
+                                        name: server.name,
+                                        serverKey: '${server.host}:${server.port}',
+                                      ),
+                                child: Text(AppLocalizations.of(context)!.connect),
                               ),
-                            )
-                          : FilledButton.tonal(
-                              onPressed: isAnyConnectionInProgress
-                                  ? null
-                                  : connectServer,
-                              child: Text(AppLocalizations.of(context)!.connect),
-                            ),
-                      enabled: !isAnyConnectionInProgress,
-                      onTap: isAnyConnectionInProgress ? null : connectServer,
-                    );
-                  },
+                        enabled: !isAnyConnectionInProgress,
+                        onTap: isAnyConnectionInProgress
+                            ? null
+                            : () => _connectTcpEndpoint(
+                                host: server.host,
+                                port: server.port,
+                                name: server.name,
+                                serverKey: '${server.host}:${server.port}',
+                              ),
+                      ),
+                    if (hasDiscoveredServers)
+                      _buildNetworkSectionHeader('Discovered on this network'),
+                    for (final server in _discoveredServers)
+                      Builder(
+                        builder: (context) {
+                          final serverKey = '${server.ipAddress}:${server.port}';
+                          final isConnectingToThisServer =
+                              _connectingToServerKey == serverKey;
+
+                          Future<void> connectServer() async {
+                            try {
+                              final isAvailable = await _networkScanner.verifyServer(
+                                server,
+                              );
+                              if (!isAvailable) {
+                                throw Exception(
+                                  'Server at ${server.ipAddress}:${server.port} is no longer available. Please scan again to find active servers.',
+                                );
+                              }
+
+                              await _connectTcpEndpoint(
+                                host: server.ipAddress,
+                                port: server.port,
+                                name: server.displayName,
+                                serverKey: serverKey,
+                              );
+                            } catch (e) {
+                              _showConnectionError(e);
+                            }
+                          }
+
+                          return _buildTransportCard(
+                            icon: Icons.wifi_rounded,
+                            iconColor: Colors.green,
+                            title: server.displayName,
+                            subtitle: isConnectingToThisServer
+                                ? 'Connecting...'
+                                : '${server.ipAddress}:${server.port} • ${server.responseTime}ms',
+                            trailing: isConnectingToThisServer
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                : FilledButton.tonal(
+                                    onPressed: isAnyConnectionInProgress
+                                        ? null
+                                        : connectServer,
+                                    child: Text(AppLocalizations.of(context)!.connect),
+                                  ),
+                            enabled: !isAnyConnectionInProgress,
+                            onTap: isAnyConnectionInProgress ? null : connectServer,
+                          );
+                        },
+                      ),
+                    if (_networkScanner.isScanning && !hasDiscoveredServers)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                  ],
                 ),
         ),
       ],
@@ -847,65 +970,112 @@ class _ConnectionDialogState extends State<ConnectionDialog>
 
 class _ManualTcpHostDialog extends StatefulWidget {
   final String? initialHost;
+  final int initialPort;
 
-  const _ManualTcpHostDialog({this.initialHost});
+  const _ManualTcpHostDialog({
+    this.initialHost,
+    required this.initialPort,
+  });
 
   @override
   State<_ManualTcpHostDialog> createState() => _ManualTcpHostDialogState();
 }
 
 class _ManualTcpHostDialogState extends State<_ManualTcpHostDialog> {
-  late final TextEditingController _controller;
-  String? _errorText;
+  late final TextEditingController _hostController;
+  late final TextEditingController _portController;
+  String? _hostErrorText;
+  String? _portErrorText;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialHost);
+    _hostController = TextEditingController(text: widget.initialHost);
+    _portController = TextEditingController(text: widget.initialPort.toString());
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _hostController.dispose();
+    _portController.dispose();
     super.dispose();
   }
 
   void _submit() {
-    final host = _controller.text.trim();
+    final host = _hostController.text.trim();
+    final portText = _portController.text.trim();
     final parsedAddress = InternetAddress.tryParse(host);
+    final parsedPort = int.tryParse(portText);
+    String? hostErrorText;
+    String? portErrorText;
+
     if (parsedAddress == null) {
+      hostErrorText = 'Enter a valid IP address';
+    }
+    if (parsedPort == null || parsedPort < 1 || parsedPort > 65535) {
+      portErrorText = 'Enter a valid TCP port';
+    }
+    if (hostErrorText != null || portErrorText != null) {
       setState(() {
-        _errorText = 'Enter a valid IP address';
+        _hostErrorText = hostErrorText;
+        _portErrorText = portErrorText;
       });
       return;
     }
-    Navigator.of(context).pop(parsedAddress.address);
+    Navigator.of(
+      context,
+    ).pop(_ManualTcpEndpoint(host: parsedAddress!.address, port: parsedPort!));
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(AppLocalizations.of(context)!.connectByIpAddress),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        keyboardType: TextInputType.url,
-        decoration: InputDecoration(
-          labelText: 'IP address',
-          hintText: '192.168.1.42',
-          helperText: 'Uses TCP port 5000',
-          border: const OutlineInputBorder(),
-          errorText: _errorText,
-        ),
-        onChanged: (_) {
-          if (_errorText == null) {
-            return;
-          }
-          setState(() {
-            _errorText = null;
-          });
-        },
-        onSubmitted: (_) => _submit(),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _hostController,
+            autofocus: true,
+            keyboardType: TextInputType.url,
+            decoration: InputDecoration(
+              labelText: 'IP address',
+              hintText: '192.168.1.42',
+              border: const OutlineInputBorder(),
+              errorText: _hostErrorText,
+            ),
+            onChanged: (_) {
+              if (_hostErrorText == null) {
+                return;
+              }
+              setState(() {
+                _hostErrorText = null;
+              });
+            },
+            onSubmitted: (_) => _submit(),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _portController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'TCP port',
+              hintText: NetworkScannerService.defaultPort.toString(),
+              helperText: 'Custom server port',
+              border: const OutlineInputBorder(),
+              errorText: _portErrorText,
+            ),
+            onChanged: (_) {
+              if (_portErrorText == null) {
+                return;
+              }
+              setState(() {
+                _portErrorText = null;
+              });
+            },
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
       ),
       actions: [
         TextButton(
