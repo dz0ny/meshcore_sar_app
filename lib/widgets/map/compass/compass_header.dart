@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/contact.dart';
 import '../../../models/sar_marker.dart';
+import '../../../utils/location_formats.dart';
 import 'compass_math.dart';
 
 /// Header component for the compass dialog showing compass rose,
@@ -563,21 +564,7 @@ class _LocationFormatToggle extends StatefulWidget {
 }
 
 class _LocationFormatToggleState extends State<_LocationFormatToggle> {
-  bool _showDMS = false;
-
-  String _formatDMS(double degrees, bool isLatitude) {
-    final direction = isLatitude
-        ? (degrees >= 0 ? 'N' : 'S')
-        : (degrees >= 0 ? 'E' : 'W');
-
-    final absolute = degrees.abs();
-    final deg = absolute.floor();
-    final minDecimal = (absolute - deg) * 60;
-    final min = minDecimal.floor();
-    final sec = (minDecimal - min) * 60;
-
-    return '$deg°${min.toString().padLeft(2, '0')}\'${sec.toStringAsFixed(2).padLeft(5, '0')}"$direction';
-  }
+  CoordinateDisplayFormat _format = CoordinateDisplayFormat.decimal;
 
   @override
   Widget build(BuildContext context) {
@@ -589,20 +576,24 @@ class _LocationFormatToggleState extends State<_LocationFormatToggle> {
     final l10n = AppLocalizations.of(context)!;
     final String displayText;
 
-    if (_showDMS) {
-      displayText =
-          '${_formatDMS(position.latitude, true)} ${_formatDMS(position.longitude, false)}';
-    } else {
+    if (_format == CoordinateDisplayFormat.decimal) {
       displayText = l10n.latLonFormat(
         position.latitude.toStringAsFixed(5),
         position.longitude.toStringAsFixed(5),
+      );
+    } else {
+      displayText = formatCoordinates(
+        position.latitude,
+        position.longitude,
+        _format,
       );
     }
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          _showDMS = !_showDMS;
+          _format = CoordinateDisplayFormat.values[
+              (_format.index + 1) % CoordinateDisplayFormat.values.length];
         });
       },
       behavior: HitTestBehavior.opaque,
