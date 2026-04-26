@@ -328,9 +328,16 @@ class _RecipientSelectorSheetState extends State<RecipientSelectorSheet> {
     MessagesProvider? messagesProvider,
   ) {
     final previewData = _channelPreviewData(context, channel, messagesProvider);
-    final sharingMode = context.watch<AppProvider>().channelLocationSharingModeForChannel(
-      channel.publicKey.length > 1 ? channel.publicKey[1] : 0,
-    );
+    ChannelLocationSharingMode? sharingMode;
+    try {
+      sharingMode = context
+          .watch<AppProvider>()
+          .channelLocationSharingModeForChannel(
+            channel.publicKey.length > 1 ? channel.publicKey[1] : 0,
+          );
+    } on ProviderNotFoundException {
+      sharingMode = null;
+    }
 
     return _buildRecipientCard(
       context: context,

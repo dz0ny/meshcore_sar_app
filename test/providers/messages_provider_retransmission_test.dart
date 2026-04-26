@@ -926,7 +926,9 @@ void main() {
         );
         provider.markMessageSent('m2', 88, 10);
 
-        async.elapse(const Duration(milliseconds: 11));
+        final timeoutMs = provider.messages.single.suggestedTimeoutMs!;
+
+        async.elapse(Duration(milliseconds: timeoutMs + 1));
         async.flushMicrotasks();
 
         expect(provider.messages.single.retryAttempt, 1);

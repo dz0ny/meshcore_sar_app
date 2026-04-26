@@ -1263,10 +1263,16 @@ class ContactsProvider with ChangeNotifier {
     Map<String, dynamic>? existingExtraSensorData,
     Map<String, dynamic>? incomingExtraSensorData,
   ) {
-    final merged = <String, dynamic>{...?existingExtraSensorData};
     if (incomingExtraSensorData == null || incomingExtraSensorData.isEmpty) {
-      return merged;
+      return <String, dynamic>{...?existingExtraSensorData};
     }
+
+    final isFullTelemetryRefresh = incomingExtraSensorData.containsKey(
+      _rawTelemetryHexKey,
+    );
+    final merged = <String, dynamic>{
+      if (!isFullTelemetryRefresh) ...?existingExtraSensorData,
+    };
 
     final incomingMetricFamilies = incomingExtraSensorData.keys
         .map(_telemetryMetricFamilyForKey)
