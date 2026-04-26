@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:meshcore_sar_app/l10n/app_localizations.dart';
 import 'package:meshcore_sar_app/services/traffic_stats_reporting_service.dart';
 import 'package:meshcore_sar_app/widgets/settings/traffic_stats_reporting_section.dart';
 
@@ -57,6 +58,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: ListenableBuilder(
             listenable: service,
@@ -68,26 +71,21 @@ void main() {
       ),
     );
 
-    expect(find.text('Anonymous RX stats reporting'), findsOneWidget);
-    expect(
-      find.text(
-        'Upload RX live-traffic packet type and path mode totals to the fixed Cloudflare worker every 5 minutes.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Anonymous RX stats'), findsOneWidget);
+    expect(find.text('Upload packet totals every 5 min'), findsOneWidget);
     expect(find.text('Reporting interval'), findsNothing);
     expect(service.isEnabled, isTrue);
+
+    await tester.tap(find.widgetWithText(TextButton, 'View'));
+    await tester.pump();
+
+    expect(launchedUrls, ['https://mcstats.dz0ny.dev']);
 
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
 
     expect(service.isEnabled, isFalse);
     expect(service.intervalMinutes, 5);
-
-    await tester.tap(find.widgetWithText(TextButton, 'View public stats'));
-    await tester.pump();
-
-    expect(launchedUrls, ['https://mcstats.dz0ny.dev']);
 
     service.dispose();
   });

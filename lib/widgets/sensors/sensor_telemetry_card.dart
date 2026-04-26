@@ -238,15 +238,27 @@ List<SensorMetricOption> sensorMetricOptionsFor(
   final coreFieldKeys = <String>{
     if (batteryMilliVolts != null || batteryPercentage != null)
       ...extraSensorData?.keys.where(
-            (k) => k.startsWith('voltage_') || k.startsWith('analog_input_'),
+            (k) =>
+                _isSourceChannelMetric(extraSensorData, 'voltage', k) ||
+                _isSourceChannelMetric(extraSensorData, 'battery', k) ||
+                k.startsWith('analog_input_'),
           ) ??
           [],
     if (temperature != null)
-      ...extraSensorData?.keys.where((k) => k.startsWith('temperature_')) ?? [],
+      ...extraSensorData?.keys.where(
+            (k) => _isSourceChannelMetric(extraSensorData, 'temperature', k),
+          ) ??
+          [],
     if (humidity != null)
-      ...extraSensorData?.keys.where((k) => k.startsWith('humidity_')) ?? [],
+      ...extraSensorData?.keys.where(
+            (k) => _isSourceChannelMetric(extraSensorData, 'humidity', k),
+          ) ??
+          [],
     if (pressure != null)
-      ...extraSensorData?.keys.where((k) => k.startsWith('pressure_')) ?? [],
+      ...extraSensorData?.keys.where(
+            (k) => _isSourceChannelMetric(extraSensorData, 'pressure', k),
+          ) ??
+          [],
   };
 
   if (extraSensorData != null) {
@@ -3115,6 +3127,18 @@ int? _sourceChannelForField(
     return value.toInt();
   }
   return null;
+}
+
+bool _isSourceChannelMetric(
+  Map<String, dynamic>? extraSensorData,
+  String fieldKey,
+  String metricKey,
+) {
+  final sourceChannel = _sourceChannelForField(extraSensorData, fieldKey);
+  if (sourceChannel == null) {
+    return false;
+  }
+  return metricKey == '${fieldKey}_$sourceChannel';
 }
 
 String _resolvedMetricLabel(

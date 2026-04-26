@@ -201,7 +201,10 @@ void main() {
     addTearDown(tester.view.reset);
 
     final connectionProvider = _TcpConnectableFakeConnectionProvider();
-    final networkScanner = _FakeNetworkScannerService(initiallyScanning: true);
+    final networkScanner = _FakeNetworkScannerService(
+      initiallyScanning: true,
+      keepScanning: true,
+    );
 
     await tester.pumpWidget(
       ChangeNotifierProvider<ConnectionProvider>.value(
