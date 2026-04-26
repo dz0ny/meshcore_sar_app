@@ -39,14 +39,33 @@ class TrailControls extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
+                // Trail recording toggle
+                SwitchListTile(
+                  secondary: Icon(Icons.fiber_manual_record),
+                  title: Text('Record location trail'),
+                  subtitle: Text(
+                    mapProvider.isTrailRecordingEnabled
+                        ? 'Trail recording is on'
+                        : 'Trail recording is stopped',
+                  ),
+                  value: mapProvider.isTrailRecordingEnabled,
+                  onChanged: (value) {
+                    mapProvider.setTrailRecordingEnabled(value);
+                    setModalState(() {});
+                  },
+                ),
+                const Divider(),
+
                 // Trail visibility toggle
                 SwitchListTile(
                   secondary: Icon(Icons.visibility),
                   title: Text(l10n.showTrailOnMap),
                   subtitle: Text(
-                    mapProvider.isTrailVisible
-                        ? l10n.trailVisible
-                        : l10n.trailHiddenRecording,
+                    !mapProvider.isTrailRecordingEnabled
+                        ? 'Trail recording is stopped'
+                        : (mapProvider.isTrailVisible
+                              ? l10n.trailVisible
+                              : l10n.trailHiddenRecording),
                   ),
                   value: mapProvider.isTrailVisible,
                   onChanged: (value) {

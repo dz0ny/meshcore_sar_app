@@ -39,6 +39,7 @@ class MapProvider with ChangeNotifier {
 
   LocationTrail? _currentTrail;
   bool _isTrailVisible = true;
+  bool _isTrailRecordingEnabled = true;
   final List<LocationTrail> _trailHistory = [];
 
   bool _showCadastralOverlay = false;
@@ -71,6 +72,7 @@ class MapProvider with ChangeNotifier {
   String? get targetMapId => _targetMapId;
   LocationTrail? get currentTrail => _currentTrail;
   bool get isTrailVisible => _isTrailVisible;
+  bool get isTrailRecordingEnabled => _isTrailRecordingEnabled;
   List<LocationTrail> get trailHistory => List.unmodifiable(_trailHistory);
   bool get isTrailActive => _currentTrail?.isActive ?? false;
 
@@ -373,6 +375,10 @@ class MapProvider with ChangeNotifier {
   }
 
   void addTrailPoint(LatLng position, {double? accuracy, double? speed}) {
+    if (!_isTrailRecordingEnabled) {
+      return;
+    }
+
     if (_currentTrail == null || !_currentTrail!.isActive) {
       startTrail();
     }
@@ -402,6 +408,24 @@ class MapProvider with ChangeNotifier {
 
   void toggleTrailVisibility() {
     _isTrailVisible = !_isTrailVisible;
+    notifyListeners();
+  }
+
+  void setTrailRecordingEnabled(bool enabled) {
+    if (_isTrailRecordingEnabled == enabled) {
+      return;
+    }
+
+    _isTrailRecordingEnabled = enabled;
+    if (!enabled) {
+      if (_currentTrail != null) {
+        endTrail();
+      } else {
+        notifyListeners();
+      }
+      return;
+    }
+
     notifyListeners();
   }
 
@@ -698,6 +722,7 @@ class MapProvider with ChangeNotifier {
       'trailHistory': _trailHistory.map((trail) => trail.toJson()).toList(),
       'importedTrail': _importedTrail?.toJson(),
       'isTrailVisible': _isTrailVisible,
+      'isTrailRecordingEnabled': _isTrailRecordingEnabled,
       'showCadastralOverlay': _showCadastralOverlay,
       'showForestRoadsOverlay': _showForestRoadsOverlay,
       'showHikingTrailsOverlay': _showHikingTrailsOverlay,
@@ -728,6 +753,8 @@ class MapProvider with ChangeNotifier {
         ? LocationTrail.fromJson(json['importedTrail'] as Map<String, dynamic>)
         : null;
     _isTrailVisible = json['isTrailVisible'] as bool? ?? true;
+    _isTrailRecordingEnabled =
+        json['isTrailRecordingEnabled'] as bool? ?? true;
     _showCadastralOverlay = json['showCadastralOverlay'] as bool? ?? false;
     _showForestRoadsOverlay = json['showForestRoadsOverlay'] as bool? ?? false;
     _showHikingTrailsOverlay =
