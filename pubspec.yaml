@@ -96,6 +96,7 @@ dependencies:
 
   # Persistent storage
   shared_preferences: ^2.3.3
+  sqflite: ^2.4.2
 
   # Package info
   package_info_plus: ^9.0.0
@@ -139,6 +140,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: "^0.14.4"
   fake_async: ^1.3.3
+  sqflite_common_ffi: ^2.3.6
 
 dependency_overrides:
   # Keep local package overrides in pubspec_overrides.yaml so CI uses the

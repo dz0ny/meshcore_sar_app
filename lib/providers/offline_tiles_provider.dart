@@ -59,6 +59,7 @@ class OfflineTilesProvider extends ChangeNotifier {
 
   // Drawing state
   DrawingMode _drawingMode = DrawingMode.none;
+  DrawingMode _downloadSelectionMode = DrawingMode.none;
   final List<List<LatLng>> _polygons = [];
   List<LatLng> _currentVertices = [];
   LatLng? _rectangleFirstCorner;
@@ -94,6 +95,7 @@ class OfflineTilesProvider extends ChangeNotifier {
 
   // Getters
   DrawingMode get drawingMode => _drawingMode;
+  DrawingMode get downloadSelectionMode => _downloadSelectionMode;
   List<List<LatLng>> get polygons => List.unmodifiable(_polygons);
   List<LatLng> get currentVertices => List.unmodifiable(_currentVertices);
   LatLng? get rectangleFirstCorner => _rectangleFirstCorner;
@@ -128,6 +130,15 @@ class OfflineTilesProvider extends ChangeNotifier {
     _drawingMode = mode;
     _currentVertices = [];
     _rectangleFirstCorner = null;
+    notifyListeners();
+  }
+
+  void startDownloadSelectionMode(DrawingMode mode) {
+    _polygons.clear();
+    _currentVertices = [];
+    _rectangleFirstCorner = null;
+    _downloadSelectionMode = mode;
+    _drawingMode = mode;
     notifyListeners();
   }
 
@@ -181,6 +192,27 @@ class OfflineTilesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setCurrentViewBounds({
+    required double north,
+    required double south,
+    required double east,
+    required double west,
+  }) {
+    _polygons
+      ..clear()
+      ..add([
+        LatLng(north, west),
+        LatLng(north, east),
+        LatLng(south, east),
+        LatLng(south, west),
+      ]);
+    _currentVertices = [];
+    _rectangleFirstCorner = null;
+    _downloadSelectionMode = DrawingMode.none;
+    _drawingMode = DrawingMode.none;
+    notifyListeners();
+  }
+
   void undoLastVertex() {
     if (_currentVertices.isNotEmpty) {
       _currentVertices = _currentVertices.sublist(0, _currentVertices.length - 1);
@@ -203,6 +235,15 @@ class OfflineTilesProvider extends ChangeNotifier {
   }
 
   void setSelectedLayer(MapLayer layer) {
+    _selectedLayer = layer;
+    notifyListeners();
+  }
+
+  void setSelectedLayerIfDifferent(MapLayer layer) {
+    if (_selectedLayer.type == layer.type &&
+        _selectedLayer.urlTemplate == layer.urlTemplate) {
+      return;
+    }
     _selectedLayer = layer;
     notifyListeners();
   }
@@ -273,10 +314,12 @@ class OfflineTilesProvider extends ChangeNotifier {
 
         case TileDownloadComplete():
           _isDownloading = false;
+          _tileOverlays.clear();
           notifyListeners();
 
         case TileDownloadCancelled():
           _isDownloading = false;
+          _tileOverlays.clear();
           notifyListeners();
       }
     }
@@ -341,19 +384,12 @@ class OfflineTilesProvider extends ChangeNotifier {
     _coverageOverlays = [];
     notifyListeners();
 
-    final manifest = await _cache.loadManifest(style.hash);
+    final tiles = await _cache.listTilesForStyle(style.hash);
 
-    // Convert manifest keys to tile bound overlays
+    // Convert cached tile coordinates to bound overlays
     final overlays = <TileOverlay>[];
-    for (final key in manifest) {
-      final parts = key.split('/');
-      if (parts.length != 3) continue;
-      final z = int.tryParse(parts[0]);
-      final x = int.tryParse(parts[1]);
-      final y = int.tryParse(parts[2]);
-      if (z == null || x == null || y == null) continue;
-
-      final bounds = TileMathService.tileBounds(x, y, z);
+    for (final tile in tiles) {
+      final bounds = TileMathService.tileBounds(tile.x, tile.y, tile.z);
       overlays.add(TileOverlay(
         north: bounds.north,
         south: bounds.south,

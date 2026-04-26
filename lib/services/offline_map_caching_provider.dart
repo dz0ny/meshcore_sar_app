@@ -3,7 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 
 import 'offline_tile_cache_service.dart';
 
-/// A [MapCachingProvider] that checks the offline AVIF tile cache before
+/// A [MapCachingProvider] that checks the offline tile cache before
 /// falling through to the built-in cache/network path.
 ///
 /// This allows preloaded tiles to be served during normal map browsing.
@@ -23,12 +23,16 @@ class OfflineMapCachingProvider implements MapCachingProvider {
     if (coords != null) {
       final styleHash = _cache.styleHashFromUrl(_extractUrlTemplate(url));
 
-      // Check local AVIF cache first
-      final pngBytes = await _cache.getTileAsPng(
-          styleHash, coords.z, coords.x, coords.y);
-      if (pngBytes != null) {
+      // Check local offline cache first
+      final cachedTile = await _cache.getTileData(
+        styleHash,
+        coords.z,
+        coords.x,
+        coords.y,
+      );
+      if (cachedTile != null) {
         return (
-          bytes: pngBytes,
+          bytes: cachedTile.bytes,
           metadata: CachedMapTileMetadata(
             staleAt: DateTime.now().add(const Duration(days: 365)),
             lastModified: null,

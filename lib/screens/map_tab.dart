@@ -19,6 +19,7 @@ import '../providers/map_provider.dart';
 import '../providers/drawing_provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/connection_provider.dart';
+import '../providers/offline_tiles_provider.dart' as offline;
 import '../models/contact.dart';
 import '../models/custom_map_config.dart';
 import '../models/map_coordinate_space.dart';
@@ -36,6 +37,7 @@ import '../widgets/map/detailed_compass_dialog.dart';
 import '../widgets/map/drawing_layer.dart';
 import '../widgets/map/drawing_toolbar.dart';
 import '../widgets/map/location_trail_layer.dart';
+import '../widgets/map/polygon_draw_handler.dart' hide DrawingToolbar;
 import '../widgets/map/trail_controls.dart';
 import '../widgets/map/map_message_overlay.dart';
 import '../widgets/messages/custom_map_sar_update_sheet.dart';
@@ -44,7 +46,6 @@ import '../utils/key_comparison.dart';
 import '../utils/sar_message_parser.dart';
 import '../l10n/app_localizations.dart';
 import '../services/offline_map_caching_provider.dart';
-import 'offline_map_screen.dart';
 
 class MapTab extends StatefulWidget {
   final Function(bool)? onFullscreenChanged;
@@ -86,6 +87,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
       BackgroundLocationService();
   bool _isDisposing = false; // Flag to prevent updates during disposal
   MapProvider? _mapProvider;
+  offline.OfflineTilesProvider? _offlineTilesProvider;
 
   // Store original location callback to restore in dispose
   void Function(Position)? _originalLocationCallback;
@@ -150,6 +152,12 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
 
       // Restore background tracking state
       _restoreBackgroundTracking();
+
+      final offlineProvider = context.read<offline.OfflineTilesProvider>();
+      _offlineTilesProvider = offlineProvider;
+      offlineProvider.refreshCacheSize();
+      offlineProvider.refreshLocalStyles();
+      offlineProvider.startPeerDiscovery();
     });
   }
 
@@ -468,6 +476,7 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     _saveMapPosition();
 
     _mapProvider?.removeListener(_handleMapNavigation);
+    _offlineTilesProvider?.stopPeerDiscovery();
 
     // DO NOT stop location tracking - it's managed by AppProvider
     // Restore the original callback instead of setting to null
@@ -501,6 +510,15 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     }
   }
 
+  double _getMapZoom() {
+    if (!_isMapReady) return _savedMapZoom ?? _defaultZoom;
+    try {
+      return _mapController.camera.zoom;
+    } catch (e) {
+      return _savedMapZoom ?? _defaultZoom;
+    }
+  }
+
   LatLng _calculateCenter(List<Contact> contacts, List<SarMarker> sarMarkers) {
     return _markerService.calculateCenter(
       contacts: contacts,
@@ -528,15 +546,26 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
     await _saveSettings();
   }
 
-  void _showLayerSelector(BuildContext context) {
+  void _showLayerSelector(BuildContext context, {int initialTab = 0}) {
     final rootContext = this.context;
+    if (_currentLayer.urlTemplate.isNotEmpty) {
+      rootContext
+          .read<offline.OfflineTilesProvider>()
+          .setSelectedLayerIfDifferent(_currentLayer);
+    }
+    rootContext.read<offline.OfflineTilesProvider>().refreshCacheSize();
+    rootContext.read<offline.OfflineTilesProvider>().refreshLocalStyles();
     showModalBottomSheet(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      isScrollControlled: true,
+      builder: (context) => DefaultTabController(
+        length: 3,
+        initialIndex: initialTab,
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.82,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
@@ -555,11 +584,20 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
               ),
             ),
             const Divider(),
+            const TabBar(
+              tabs: [
+                Tab(icon: Icon(Icons.layers), text: 'Layers'),
+                Tab(icon: Icon(Icons.download), text: 'Download'),
+                Tab(icon: Icon(Icons.offline_pin), text: 'Cached'),
+              ],
+            ),
+            const Divider(height: 1),
             Expanded(
-              child: ListView(
-                shrinkWrap: true,
+              child: TabBarView(
                 children: [
-                  Consumer<MapProvider>(
+                  ListView(
+                    children: [
+                      Consumer<MapProvider>(
                     builder: (context, mapProvider, _) {
                       final customMapConfig = mapProvider.customMapConfig;
                       if (customMapConfig == null) {
@@ -1001,14 +1039,633 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                         ],
                       );
                     },
+                      ),
+                    ],
                   ),
+                  _buildMapDownloadTab(rootContext),
+                  _buildMapCachedTab(rootContext),
                 ],
               ),
             ),
           ],
         ),
       ),
+      ),
     );
+  }
+
+  Widget _buildMapDownloadTab(BuildContext rootContext) {
+    return Consumer<offline.OfflineTilesProvider>(
+      builder: (context, provider, _) {
+        final loc = AppLocalizations.of(context)!;
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (!provider.isDownloading) ...[
+              DropdownButtonFormField<MapLayer>(
+                initialValue: provider.selectedLayer,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.layers, size: 20),
+                  labelText: loc.mapStyle,
+                  border: const OutlineInputBorder(),
+                ),
+                isExpanded: true,
+                items: MapLayer.allLayers
+                    .map((layer) => DropdownMenuItem(
+                          value: layer,
+                          child: Text(layer.getLocalizedName(context)),
+                        ))
+                    .toList(),
+                onChanged: (layer) {
+                  if (layer != null) provider.setSelectedLayer(layer);
+                },
+              ),
+              const SizedBox(height: 12),
+              if (provider.localStyles.any((s) => s.region != null)) ...[
+                DropdownButtonFormField<offline.StyleInfo>(
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.bookmark, size: 20),
+                    labelText: loc.loadASavedRegion,
+                    border: const OutlineInputBorder(),
+                  ),
+                  isExpanded: true,
+                  items: provider.localStyles
+                      .where((style) => style.region != null)
+                      .map((style) => DropdownMenuItem(
+                            value: style,
+                            child: Text(
+                              '${style.displayName} '
+                              '(z${style.region!.minZoom}-${style.region!.maxZoom}, '
+                              '${_formatNumber(style.tileCount)} tiles)',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ))
+                      .toList(),
+                  onChanged: (style) {
+                    if (style == null) return;
+                    provider.loadPreset(style);
+                    _fitOfflineMapToPolygons(provider);
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
+              SegmentedButton<offline.DrawingMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: offline.DrawingMode.rectangle,
+                    icon: Icon(Icons.crop_square),
+                    label: Text('Rectangle'),
+                  ),
+                  ButtonSegment(
+                    value: offline.DrawingMode.polygon,
+                    icon: Icon(Icons.polyline),
+                    label: Text('Polygon'),
+                  ),
+                  ButtonSegment(
+                    value: offline.DrawingMode.none,
+                    icon: Icon(Icons.pan_tool_alt),
+                    label: Text('Current view'),
+                  ),
+                ],
+                selected: {provider.downloadSelectionMode},
+                onSelectionChanged: (selection) {
+                  final mode = selection.first;
+                  if (mode == offline.DrawingMode.none) {
+                    _setOfflineSelectionToCurrentView(provider);
+                    return;
+                  }
+                  provider.startDownloadSelectionMode(mode);
+                },
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => _setOfflineSelectionToCurrentView(provider),
+                icon: const Icon(Icons.crop_free),
+                label: const Text('Use current view'),
+              ),
+              const SizedBox(height: 12),
+              if (provider.drawingMode == offline.DrawingMode.polygon)
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: provider.currentVertices.length >= 3
+                            ? provider.finishPolygon
+                            : null,
+                        icon: const Icon(Icons.check),
+                        label: const Text('Finish polygon'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: provider.currentVertices.isNotEmpty
+                          ? provider.undoLastVertex
+                          : null,
+                      icon: const Icon(Icons.undo),
+                      tooltip: loc.undo,
+                    ),
+                  ],
+                ),
+              if (provider.hasPolygons) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: provider.clearPolygons,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Clear selected area'),
+                ),
+              ],
+              const SizedBox(height: 12),
+              _MapZoomSelector(
+                label: loc.minZoom,
+                value: provider.minZoom,
+                onChanged: provider.setMinZoom,
+              ),
+              _MapZoomSelector(
+                label: loc.maxZoom,
+                value: provider.maxZoom,
+                onChanged: provider.setMaxZoom,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                provider.hasPolygons
+                    ? '~${_formatNumber(provider.estimatedTileCount)} tiles'
+                    : 'Select an area on the map to download',
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'Cache: ${_formatBytes(provider.cacheSizeBytes)}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            if (provider.isDownloading) ...[
+              LinearProgressIndicator(value: provider.progress.percent),
+              const SizedBox(height: 8),
+              Text(
+                '${(provider.progress.percent * 100).toStringAsFixed(1)}% - '
+                'Downloaded: ${provider.progress.downloaded}, '
+                'Cached: ${provider.progress.skipped}, '
+                'Failed: ${provider.progress.failed} / '
+                '${provider.progress.total}',
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
+            if (!provider.isDownloading && provider.progress.isComplete) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Done. ${provider.progress.downloaded} downloaded, '
+                '${provider.progress.skipped} cached, '
+                '${provider.progress.failed} failed',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.green,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            const SizedBox(height: 16),
+            if (provider.isDownloading)
+              OutlinedButton.icon(
+                onPressed: provider.cancelDownload,
+                icon: const Icon(Icons.cancel),
+                label: Text(loc.cancel),
+                style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+              )
+            else
+              FilledButton.icon(
+                onPressed: provider.hasPolygons
+                    ? () {
+                        provider.startDownload();
+                      }
+                    : null,
+                icon: const Icon(Icons.download),
+                label: Text(loc.download),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMapCachedTab(BuildContext rootContext) {
+    return Consumer<offline.OfflineTilesProvider>(
+      builder: (context, provider, _) {
+        final loc = AppLocalizations.of(context)!;
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            SwitchListTile(
+              title: Text(loc.shareMyTiles),
+              subtitle: Text(
+                provider.isServerRunning
+                    ? 'Other devices can fetch tiles from this device'
+                    : 'Start serving cached tiles to nearby devices',
+              ),
+              secondary: Icon(
+                provider.isServerRunning
+                    ? Icons.wifi_tethering
+                    : Icons.wifi_tethering_off,
+              ),
+              value: provider.isServerRunning,
+              onChanged: (_) => provider.toggleServer(),
+            ),
+            if (provider.localStyles.isNotEmpty) ...[
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'Cached maps',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              ...provider.localStyles.map((style) {
+                final isShowing = provider.coverageStyle?.hash == style.hash;
+                return ListTile(
+                  leading: const Icon(Icons.map, size: 20),
+                  title: Text(style.displayName),
+                  subtitle: Text(
+                    '${_formatNumber(style.tileCount)} tiles, '
+                    '${_formatBytes(style.sizeBytes)}',
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          isShowing ? Icons.visibility : Icons.visibility_off,
+                          color: isShowing ? Colors.blue : null,
+                        ),
+                        tooltip: isShowing ? 'Hide on map' : 'Show on map',
+                        onPressed: () => provider.showCoverage(style),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        tooltip: loc.delete,
+                        onPressed: () => _confirmDeleteOfflineStyle(
+                          context,
+                          provider,
+                          style,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              if (provider.cacheSizeBytes > 0)
+                OutlinedButton.icon(
+                  onPressed: () => _confirmClearOfflineCache(context, provider),
+                  icon: const Icon(Icons.delete_forever),
+                  label: Text(loc.clearCache),
+                ),
+            ],
+            const Divider(),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Nearby devices',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                if (provider.isFetchingCatalogs)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(Icons.refresh, size: 20),
+                    tooltip: loc.refresh,
+                    onPressed: provider.refreshPeerCatalogs,
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.add, size: 20),
+                  tooltip: loc.addPeerManually,
+                  onPressed: () => _showAddOfflinePeerDialog(context, provider),
+                ),
+              ],
+            ),
+            if (provider.discoveredPeers.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'No peers found on the local network.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
+                      ),
+                ),
+              ),
+            ...provider.peerCatalogs.map((catalog) => _buildOfflinePeerCard(
+                  context,
+                  provider,
+                  catalog,
+                )),
+            ...provider.discoveredPeers
+                .where((peer) =>
+                    !provider.peerCatalogs.any((catalog) => catalog.peer == peer))
+                .map((peer) => ListTile(
+                      leading: const Icon(Icons.devices),
+                      title: Text(peer.ipAddress),
+                      subtitle: Text(loc.fetchingCatalog),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.remove_circle_outline),
+                        onPressed: () => provider.removePeer(peer),
+                      ),
+                    )),
+            if (provider.isSyncing || provider.syncStatus.isNotEmpty) ...[
+              const Divider(),
+              if (provider.isSyncing)
+                LinearProgressIndicator(
+                  value: provider.syncProgress > 0 ? provider.syncProgress : null,
+                ),
+              ListTile(
+                title: Text(
+                  provider.syncStatus,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                trailing: provider.isSyncing
+                    ? TextButton(
+                        onPressed: provider.cancelSync,
+                        child: Text(loc.cancel),
+                      )
+                    : null,
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildOfflinePeerCard(
+    BuildContext context,
+    offline.OfflineTilesProvider provider,
+    offline.PeerCatalog catalog,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.devices, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    catalog.peer.ipAddress,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline, size: 18),
+                  onPressed: () => provider.removePeer(catalog.peer),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            if (catalog.styles.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  'No cached tiles on this device',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
+                      ),
+                ),
+              ),
+            ...catalog.styles.map((style) {
+              final localMatch = provider.localStyles.where(
+                (localStyle) => localStyle.hash == style.hash,
+              );
+              final localCount =
+                  localMatch.isNotEmpty ? localMatch.first.tileCount : 0;
+              final missingTiles = style.tileCount - localCount;
+
+              return ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.map_outlined, size: 20),
+                title: Text(style.displayName),
+                subtitle: Text(
+                  '${_formatNumber(style.tileCount)} tiles, '
+                  '${_formatBytes(style.sizeBytes)}'
+                  '${localCount > 0 ? ' (you have ${_formatNumber(localCount)})' : ''}',
+                ),
+                trailing: missingTiles > 0
+                    ? TextButton.icon(
+                        onPressed: provider.isSyncing
+                            ? null
+                            : () => provider.syncStyleFromPeers(style),
+                        icon: const Icon(Icons.download, size: 16),
+                        label: Text(
+                          missingTiles == style.tileCount
+                              ? 'Get all'
+                              : '+${_formatNumber(missingTiles)}',
+                        ),
+                      )
+                    : const Icon(Icons.check_circle, color: Colors.green),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _fitOfflineMapToPolygons(offline.OfflineTilesProvider provider) {
+    if (provider.polygons.isEmpty || !_isMapReady) return;
+
+    var minLat = 90.0, maxLat = -90.0;
+    var minLng = 180.0, maxLng = -180.0;
+    for (final poly in provider.polygons) {
+      for (final point in poly) {
+        if (point.latitude < minLat) minLat = point.latitude;
+        if (point.latitude > maxLat) maxLat = point.latitude;
+        if (point.longitude < minLng) minLng = point.longitude;
+        if (point.longitude > maxLng) maxLng = point.longitude;
+      }
+    }
+
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: LatLngBounds(
+          LatLng(minLat, minLng),
+          LatLng(maxLat, maxLng),
+        ),
+        padding: const EdgeInsets.all(50),
+      ),
+    );
+  }
+
+  void _setOfflineSelectionToCurrentView(
+    offline.OfflineTilesProvider provider,
+  ) {
+    if (!_isMapReady) return;
+
+    final bounds = _mapController.camera.visibleBounds;
+    provider.setCurrentViewBounds(
+      north: bounds.north,
+      south: bounds.south,
+      east: bounds.east,
+      west: bounds.west,
+    );
+  }
+
+  void _confirmOfflineSelection(
+    BuildContext context,
+    offline.OfflineTilesProvider provider,
+  ) {
+    if (provider.drawingMode == offline.DrawingMode.polygon &&
+        provider.currentVertices.length >= 3) {
+      provider.finishPolygon();
+    } else {
+      provider.setDrawingMode(offline.DrawingMode.none);
+    }
+
+    if (provider.hasPolygons) {
+      _showLayerSelector(context, initialTab: 1);
+    }
+  }
+
+  void _showAddOfflinePeerDialog(
+    BuildContext context,
+    offline.OfflineTilesProvider provider,
+  ) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.addPeer),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'IP Address',
+            hintText: '192.168.1.100',
+          ),
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              provider.addManualPeer(value.trim());
+              Navigator.pop(context);
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              final ip = controller.text.trim();
+              if (ip.isNotEmpty) {
+                provider.addManualPeer(ip);
+                Navigator.pop(context);
+              }
+            },
+            child: Text(AppLocalizations.of(context)!.add),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteOfflineStyle(
+    BuildContext context,
+    offline.OfflineTilesProvider provider,
+    offline.StyleInfo style,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          AppLocalizations.of(context)!.deleteStyleConfirm(style.displayName),
+        ),
+        content: Text(
+          '${_formatNumber(style.tileCount)} tiles, '
+          '${_formatBytes(style.sizeBytes)} will be deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(AppLocalizations.of(dialogContext)!.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              provider.deleteStyle(style);
+              Navigator.pop(dialogContext);
+            },
+            child: Text(
+              AppLocalizations.of(dialogContext)!.delete,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmClearOfflineCache(
+    BuildContext context,
+    offline.OfflineTilesProvider provider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.clearOfflineCache),
+        content: Text(
+          'This will delete ${_formatBytes(provider.cacheSizeBytes)} of cached tiles.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(AppLocalizations.of(dialogContext)!.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              provider.clearCache();
+              Navigator.pop(dialogContext);
+            },
+            child: Text(
+              AppLocalizations.of(dialogContext)!.delete,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+  }
+
+  String _formatNumber(int n) {
+    if (n < 1000) return '$n';
+    if (n < 1000000) return '${(n / 1000).toStringAsFixed(1)}K';
+    return '${(n / 1000000).toStringAsFixed(1)}M';
   }
 
   void _showDetailedCompass(
@@ -2127,6 +2784,15 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                       return;
                     }
 
+                    final offlineProvider =
+                        context.read<offline.OfflineTilesProvider>();
+                    if (!isCustomMapMode &&
+                        offlineProvider.drawingMode !=
+                            offline.DrawingMode.none) {
+                      offlineProvider.addVertex(point);
+                      return;
+                    }
+
                     // Handle drawing mode taps
                     if (drawingProvider.drawingMode == DrawingMode.line) {
                       if (drawingProvider.currentLinePoints.isEmpty) {
@@ -2216,6 +2882,9 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                       maxZoom: _currentLayer.maxZoom,
                     ),
                   if (!isCustomMapMode) ...[
+                    CoverageLayer(currentZoom: _getMapZoom()),
+                    const PolygonDrawLayer(),
+                    const DownloadProgressLayer(),
                     // WMS Overlays (rendered after base layer, before polylines)
                     // Note: These overlays only work with EPSG:3794 CRS (Slovenian coordinate system)
                     // Cadastral parcels overlay
@@ -3096,6 +3765,11 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                   ),
                 ),
               ),
+            if (!isCustomMapMode && !_isFullscreen)
+              _OfflineSelectionControls(
+                onConfirm: _confirmOfflineSelection,
+                onCurrentView: _setOfflineSelectionToCurrentView,
+              ),
             // Map controls - right side (hidden in fullscreen mode)
             if (!_isFullscreen)
               Positioned(
@@ -3234,17 +3908,6 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
                       ),
                       const SizedBox(height: 8),
                       FloatingActionButton.small(
-                        heroTag: 'offline_maps',
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const OfflineMapScreen(),
-                          ),
-                        ),
-                        child: const Icon(Icons.download_for_offline),
-                      ),
-                      const SizedBox(height: 8),
-                      FloatingActionButton.small(
                         heroTag: 'fullscreen_toggle',
                         onPressed: () {
                           setState(() {
@@ -3273,6 +3936,152 @@ class _MapTabState extends State<MapTab> with AutomaticKeepAliveClientMixin {
           ],
         );
       },
+    );
+  }
+}
+
+class _OfflineSelectionControls extends StatelessWidget {
+  final void Function(
+    BuildContext context,
+    offline.OfflineTilesProvider provider,
+  ) onConfirm;
+  final void Function(offline.OfflineTilesProvider provider) onCurrentView;
+
+  const _OfflineSelectionControls({
+    required this.onConfirm,
+    required this.onCurrentView,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<offline.OfflineTilesProvider>(
+      builder: (context, provider, _) {
+        final hasDraft = provider.currentVertices.isNotEmpty ||
+            provider.rectangleFirstCorner != null;
+        if (provider.drawingMode == offline.DrawingMode.none &&
+            !provider.hasPolygons &&
+            !hasDraft) {
+          return const SizedBox.shrink();
+        }
+
+        final theme = Theme.of(context);
+        final title = switch (provider.drawingMode) {
+          offline.DrawingMode.rectangle => provider.rectangleFirstCorner == null
+              ? 'Tap first corner'
+              : 'Tap opposite corner',
+          offline.DrawingMode.polygon =>
+            '${provider.currentVertices.length} polygon points',
+          offline.DrawingMode.none => '${provider.polygons.length} area selected',
+        };
+
+        return Positioned(
+          left: 16,
+          right: 88,
+          bottom: 16,
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(12),
+            color: theme.colorScheme.surface.withValues(alpha: 0.96),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        provider.drawingMode == offline.DrawingMode.none
+                            ? Icons.check_circle
+                            : Icons.edit_location_alt,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: theme.textTheme.labelLarge,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (provider.drawingMode == offline.DrawingMode.polygon)
+                        FilledButton.icon(
+                          onPressed: provider.currentVertices.length >= 3
+                              ? () => onConfirm(context, provider)
+                              : null,
+                          icon: const Icon(Icons.check, size: 18),
+                          label: const Text('Confirm'),
+                        )
+                      else if (provider.hasPolygons)
+                        FilledButton.icon(
+                          onPressed: () {
+                            onConfirm(context, provider);
+                          },
+                          icon: const Icon(Icons.check, size: 18),
+                          label: const Text('Confirm'),
+                        ),
+                      if (provider.hasPolygons || hasDraft)
+                        OutlinedButton.icon(
+                          onPressed: provider.clearPolygons,
+                          icon: const Icon(Icons.delete_outline, size: 18),
+                          label: const Text('Clear'),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MapZoomSelector extends StatelessWidget {
+  final String label;
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  const _MapZoomSelector({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Slider(
+            value: value.toDouble(),
+            min: 0,
+            max: 19,
+            divisions: 19,
+            label: '$value',
+            onChanged: (v) => onChanged(v.round()),
+          ),
+        ),
+        SizedBox(
+          width: 24,
+          child: Text(
+            '$value',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 }

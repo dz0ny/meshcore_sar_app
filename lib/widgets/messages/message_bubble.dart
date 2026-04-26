@@ -30,7 +30,6 @@ import '../../utils/sar_message_parser.dart';
 import '../../utils/key_comparison.dart';
 import '../../utils/voice_message_parser.dart';
 import '../../utils/image_message_parser.dart';
-import '../../utils/message_airtime_estimator.dart';
 import '../../utils/tictactoe_message_parser.dart';
 import '../../utils/location_formats.dart';
 import '../../l10n/app_localizations.dart';
@@ -92,7 +91,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     caseSensitive: false,
   );
   bool _isExpanded = false;
-  bool _showReceivedStats = false;
   final List<TapGestureRecognizer> _linkRecognizers = [];
 
   @override
@@ -106,7 +104,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.message.id != widget.message.id) {
       _isExpanded = false;
-      _showReceivedStats = false;
       return;
     }
 
@@ -321,19 +318,6 @@ class _MessageBubbleState extends State<MessageBubble> {
       context.read<MessagesProvider>().markAsRead(widget.message.id);
     }
     widget.onTap?.call();
-  }
-
-  void _handleBubbleDoubleTap({
-    required bool isSarMarker,
-    required bool isDrawing,
-  }) {
-    if (widget.isCompact || isSarMarker || isDrawing) {
-      return;
-    }
-
-    setState(() {
-      _showReceivedStats = !_showReceivedStats;
-    });
   }
 
   Future<void> _retryFailedMessage(
@@ -876,37 +860,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _techBadge(
-                            sheetContext,
-                            icon: Icons.message,
-                            label: widget.message.messageType.name
-                                .toUpperCase(),
-                          ),
-                          _techBadge(
-                            sheetContext,
-                            icon: Icons.route,
-                            label: hopDisplayLabel(widget.message),
-                          ),
-                          _techBadge(
-                            sheetContext,
-                            icon: Icons.account_tree_outlined,
-                            label:
-                                '${widget.message.echoCount} node${widget.message.echoCount == 1 ? '' : 's'}',
-                          ),
-                          if (widget.message.channelIdx != null)
-                            _techBadge(
-                              sheetContext,
-                              icon: Icons.group_work,
-                              label: 'CH ${widget.message.channelIdx}',
-                            ),
-                        ],
-                      ),
                       if (messageLocationSnapshot != null) ...[
-                        const SizedBox(height: 12),
                         _techSection(
                           sheetContext,
                           icon: Icons.location_on,
@@ -1518,31 +1472,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
-  Widget _techBadge(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _detailRow(
     BuildContext context, {
     required String label,
@@ -2130,25 +2059,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     final selfPublicKey = connectionProvider.deviceInfo.publicKey;
     final isOwnMessage =
         message.isSentMessage || message.isFromSelf(selfPublicKey);
-    final receptionDetails = !isOwnMessage
-        ? messagesProvider.getMessageReceptionDetails(message.id)
-        : null;
-    final matchedRxLog = !isOwnMessage
-        ? _findBestMatchingRxLog(
-            connectionProvider.bleService.packetLogs,
-            message,
-          )
-        : null;
-    final snrDb =
-        receptionDetails?.snrDb ??
-        matchedRxLog?.logRxDataInfo?.snrDb ??
-        (message.lastEchoSnrRaw != null
-            ? (message.lastEchoSnrRaw!.toSigned(8) / 4.0)
-            : null);
-    final rssiDbm =
-        receptionDetails?.rssiDbm ??
-        matchedRxLog?.logRxDataInfo?.rssiDbm ??
-        message.lastEchoRssiDbm;
     final routeMetadata = messagesProvider.getMessageRouteMetadata(message.id);
 
     // Look up contact information for rich display name
@@ -2265,10 +2175,9 @@ class _MessageBubbleState extends State<MessageBubble> {
           isSarMarker: isSarMarker,
           isDrawing: message.isDrawing,
         ),
-        onDoubleTap: () => _handleBubbleDoubleTap(
-          isSarMarker: isSarMarker,
-          isDrawing: message.isDrawing,
-        ),
+        onDoubleTap: widget.isCompact
+            ? null
+            : () => _showTechnicalDetails(context),
         onLongPress: widget.isCompact
             ? null
             : () => _showMessageOptions(context),
@@ -2835,21 +2744,6 @@ class _MessageBubbleState extends State<MessageBubble> {
               else if (!message.isDrawing || widget.isCompact)
                 _buildMessageTextContent(message.text, baseBodyStyle),
 
-              if (!widget.isCompact &&
-                  !isSarMarker &&
-                  !message.isDrawing &&
-                  !message.isSentMessage &&
-                  _showReceivedStats) ...[
-                const SizedBox(height: 6),
-                buildReceivedSignalStatus(
-                  context,
-                  message,
-                  receptionDetails: receptionDetails,
-                  rssiDbm: rssiDbm,
-                  snrDb: snrDb,
-                ),
-              ],
-
               // Delivery status for sent messages (skip in compact mode)
               if (message.isSentMessage && !widget.isCompact) ...[
                 const SizedBox(height: 6),
@@ -3040,129 +2934,81 @@ class _MessageBubbleState extends State<MessageBubble> {
                 // Show single message delivery status
                 else if (!message.isChannelMessage ||
                     message.deliveryStatus == MessageDeliveryStatus.failed)
-                  Builder(
-                    builder: (context) {
-                      final txEstimate = estimateMessageTransmitDuration(
-                        message,
-                        radioBw: connectionProvider.deviceInfo.radioBw,
-                        radioSf: connectionProvider.deviceInfo.radioSf,
-                        radioCr: connectionProvider.deviceInfo.radioCr,
-                      );
-                      final showSentDirectStats =
-                          message.isContactMessage &&
-                          message.deliveryStatus ==
-                              MessageDeliveryStatus.delivered &&
-                          _showReceivedStats &&
-                          message.roundTripTimeMs != null;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              if (message.isContactMessage)
-                                _buildDirectMessageStatusIndicator(
-                                  context,
-                                  message,
-                                )
-                              else ...[
-                                Icon(
-                                  getDeliveryStatusIcon(message.deliveryStatus),
-                                  size: 12,
-                                  color: getDeliveryStatusColor(
-                                    message.deliveryStatus,
-                                  ),
-                                ),
-                                const SizedBox(width: 3),
-                                Expanded(
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      message.getLocalizedDeliveryStatus(
-                                        context,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            color: getDeliveryStatusColor(
-                                              message.deliveryStatus,
-                                            ),
-                                            fontStyle: FontStyle.italic,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              // Show retry button for failed messages
-                              if (message.deliveryStatus ==
-                                  MessageDeliveryStatus.failed) ...[
-                                const SizedBox(width: 6),
-                                GestureDetector(
-                                  onTap: () =>
-                                      _retryFailedMessage(context, message),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange.withValues(
-                                        alpha: 0.2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(
-                                        color: Colors.orange,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.refresh,
-                                          size: 12,
-                                          color: Colors.orange,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          'Retry',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(
-                                                color: Colors.orange,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      if (message.isContactMessage)
+                        _buildDirectMessageStatusIndicator(context, message)
+                      else ...[
+                        Icon(
+                          getDeliveryStatusIcon(message.deliveryStatus),
+                          size: 12,
+                          color: getDeliveryStatusColor(
+                            message.deliveryStatus,
                           ),
-                          if (showSentDirectStats) ...[
-                            const SizedBox(height: 6),
-                            buildSentDirectSignalStatus(
-                              context,
-                              message,
-                              roundTripTimeMs: message.roundTripTimeMs!,
-                              txEstimate: txEstimate,
+                        ),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              message.getLocalizedDeliveryStatus(context),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: getDeliveryStatusColor(
+                                      message.deliveryStatus,
+                                    ),
+                                    fontStyle: FontStyle.italic,
+                                  ),
                             ),
-                          ],
-                        ],
-                      );
-                    },
+                          ),
+                        ),
+                      ],
+                      // Show retry button for failed messages
+                      if (message.deliveryStatus ==
+                          MessageDeliveryStatus.failed) ...[
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () => _retryFailedMessage(context, message),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Colors.orange,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.refresh,
+                                  size: 12,
+                                  color: Colors.orange,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Retry',
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: Colors.orange,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                if (_showReceivedStats &&
-                    shouldShowSentChannelStats(message)) ...[
-                  const SizedBox(height: 6),
-                  buildChannelEchoStatus(context, message),
-                ],
               ],
             ],
           ),

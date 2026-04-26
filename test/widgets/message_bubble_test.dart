@@ -61,7 +61,7 @@ void main() {
         );
   });
 
-  testWidgets('received bubbles show signal chips on double tap', (
+  testWidgets('received bubbles open details on double tap', (
     tester,
   ) async {
     final harness = await _TestHarness.create();
@@ -95,17 +95,19 @@ void main() {
       expect(find.text('-84'), findsNothing);
 
       await _doubleTap(tester, find.text('Inbound message'));
+      await tester.pumpAndSettle();
 
-      expect(find.text('1 hop'), findsOneWidget);
-      expect(find.text('Fair'), findsOneWidget);
-      expect(find.text('-84'), findsOneWidget);
-      expect(find.text('6.0'), findsOneWidget);
+      expect(find.text('Message details'), findsOneWidget);
+      expect(find.text('1 hop'), findsNothing);
+      expect(find.text('Fair'), findsNothing);
+      expect(find.text('-84'), findsNothing);
+      expect(find.text('6.0'), findsNothing);
     } finally {
       await _disposeHarness(tester, harness);
     }
   });
 
-  testWidgets('delivered direct bubbles show timing chips on double tap', (
+  testWidgets('delivered direct bubbles open details on double tap', (
     tester,
   ) async {
     final harness = await _TestHarness.create();
@@ -137,15 +139,17 @@ void main() {
       expect(find.text('320ms'), findsNothing);
 
       await _doubleTap(tester, find.text('Outbound message'));
+      await tester.pumpAndSettle();
 
-      expect(find.text('Direct'), findsOneWidget);
-      expect(find.text('320ms'), findsOneWidget);
+      expect(find.text('Message details'), findsOneWidget);
+      expect(find.text('Direct'), findsNothing);
+      expect(find.text('320ms'), findsNothing);
     } finally {
       await _disposeHarness(tester, harness);
     }
   });
 
-  testWidgets('sent channel bubbles show echo chips on double tap', (
+  testWidgets('sent channel bubbles open details on double tap', (
     tester,
   ) async {
     final harness = await _TestHarness.create();
@@ -180,10 +184,12 @@ void main() {
       expect(find.text('-76'), findsNothing);
 
       await _doubleTap(tester, find.text('Broadcast message'));
+      await tester.pumpAndSettle();
 
-      expect(find.text('x2'), findsOneWidget);
-      expect(find.text('-76'), findsOneWidget);
-      expect(find.text('5.0'), findsOneWidget);
+      expect(find.text('Message details'), findsOneWidget);
+      expect(find.text('x2'), findsNothing);
+      expect(find.text('-76'), findsNothing);
+      expect(find.text('5.0'), findsNothing);
     } finally {
       await _disposeHarness(tester, harness);
     }

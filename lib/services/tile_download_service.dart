@@ -252,9 +252,15 @@ class TileDownloadService {
           return TileFailed(tile, 'HTTP ${response.statusCode}');
         }
 
-        // Store tile (PNG → AVIF conversion happens inside cache service)
         await _cache.putTile(
-            styleHash, tile.z, tile.x, tile.y, response.bodyBytes);
+          styleHash,
+          tile.z,
+          tile.x,
+          tile.y,
+          response.bodyBytes,
+          contentType: response.headers['content-type'],
+          sourceUrl: url,
+        );
 
         return TileDownloaded(
           north: bounds.north,
