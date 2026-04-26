@@ -4,6 +4,7 @@ import '../models/contact.dart';
 import '../models/sar_marker.dart';
 import '../models/sar_template.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/location_formats.dart';
 
 class MapMarkers {
   static List<Marker> createTeamMemberMarkers(
@@ -253,7 +254,11 @@ class MapMarkers {
             if (contact.displayLocation != null) ...[
               _InfoRow(
                 'Location',
-                '${contact.displayLocation!.latitude.toStringAsFixed(6)}, ${contact.displayLocation!.longitude.toStringAsFixed(6)}',
+                formatCoordinates(
+                  contact.displayLocation!.latitude,
+                  contact.displayLocation!.longitude,
+                  CoordinateDisplayFormat.utm,
+                ),
               ),
             ],
             if (contact.telemetry?.batteryMilliVolts != null)
@@ -313,7 +318,11 @@ class MapMarkers {
           children: [
             _InfoRow(
               'Location',
-              '${marker.location.latitude.toStringAsFixed(6)}, ${marker.location.longitude.toStringAsFixed(6)}',
+              formatCoordinates(
+                marker.location.latitude,
+                marker.location.longitude,
+                CoordinateDisplayFormat.utm,
+              ),
             ),
             _InfoRow('Reported', marker.timeAgo),
             if (marker.senderName != null)
