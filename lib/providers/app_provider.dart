@@ -1773,7 +1773,13 @@ class AppProvider with ChangeNotifier {
       debugPrint(
         '🔊 [AppProvider] Echo detected - Message: $messageId, Count: $echoCount',
       );
-      messagesProvider.handleMessageEcho(messageId, echoCount, snrRaw, rssiDbm);
+      messagesProvider.handleMessageEcho(
+        messageId,
+        echoCount,
+        snrRaw,
+        rssiDbm,
+        pathBytes: _latestChannelEchoPathBytes(),
+      );
     };
 
     connectionProvider.prepareDirectMessageSendCallback =
@@ -4054,6 +4060,23 @@ class AppProvider with ChangeNotifier {
     final decoded = LogRxRouteDecoder.decode(log.rawData);
     if (decoded == null || decoded.pathBytes.isEmpty) return null;
     return decoded.pathBytes;
+  }
+
+  Uint8List? _latestChannelEchoPathBytes() {
+    for (final log in connectionProvider.bleService.packetLogs.reversed) {
+      if (log.responseCode != 0x88) continue;
+
+      final decoded = LogRxRouteDecoder.decode(log.rawData);
+      if (decoded == null ||
+          decoded.payloadType != 0x05 ||
+          decoded.pathBytes.isEmpty) {
+        continue;
+      }
+
+      return Uint8List.fromList(decoded.pathBytes);
+    }
+
+    return null;
   }
 
   // Removed _syncMessages() - messages are automatically synced via PUSH_CODE_MSG_WAITING events

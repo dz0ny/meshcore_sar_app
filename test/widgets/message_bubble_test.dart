@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:meshcore_sar_app/l10n/app_localizations.dart';
 import 'package:meshcore_sar_app/models/message.dart';
 import 'package:meshcore_sar_app/models/message_contact_location.dart';
+import 'package:meshcore_sar_app/models/path_selection.dart';
 import 'package:meshcore_sar_app/providers/app_provider.dart';
 import 'package:meshcore_sar_app/providers/channels_provider.dart';
 import 'package:meshcore_sar_app/providers/connection_provider.dart';
@@ -18,6 +19,7 @@ import 'package:meshcore_sar_app/providers/voice_provider.dart';
 import 'package:meshcore_sar_app/services/location_tracking_service.dart';
 import 'package:meshcore_sar_app/services/voice_codec_service.dart';
 import 'package:meshcore_sar_app/services/voice_player_service.dart';
+import 'package:meshcore_sar_app/utils/message_extensions.dart';
 import 'package:meshcore_sar_app/widgets/messages/message_bubble.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -182,6 +184,103 @@ void main() {
       expect(find.text('x2'), findsOneWidget);
       expect(find.text('-76'), findsOneWidget);
       expect(find.text('5.0'), findsOneWidget);
+    } finally {
+      await _disposeHarness(tester, harness);
+    }
+  });
+
+  testWidgets('sent channel status shows heard count and flood route', (
+    tester,
+  ) async {
+    final harness = await _TestHarness.create();
+    try {
+      final message = Message(
+        id: 'sent-channel-status',
+        messageType: MessageType.channel,
+        senderPublicKeyPrefix: _prefix(22),
+        channelIdx: 0,
+        pathLen: 0,
+        textType: MessageTextType.plain,
+        senderTimestamp: 1700000001,
+        text: 'Flood status',
+        receivedAt: DateTime.fromMillisecondsSinceEpoch(1700000001500),
+        deliveryStatus: MessageDeliveryStatus.sent,
+        echoCount: 2,
+      );
+      harness.messagesProvider.updateMessageRouteSelection(
+        'sent-channel-status',
+        PathSelection.flood(),
+        routerFallbackAttempted: false,
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: harness.messagesProvider),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (context) =>
+                  Text(message.getLocalizedDeliveryStatus(context)),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 nodes • Flood route'), findsOneWidget);
+    } finally {
+      await _disposeHarness(tester, harness);
+    }
+  });
+
+  testWidgets('details show sent channel echo relay path', (tester) async {
+    final harness = await _TestHarness.create();
+    try {
+      final message = Message(
+        id: 'sent-channel-echo-details',
+        messageType: MessageType.channel,
+        senderPublicKeyPrefix: _prefix(23),
+        channelIdx: 0,
+        pathLen: 0,
+        textType: MessageTextType.plain,
+        senderTimestamp: 1700000002,
+        text: 'Echo detail path',
+        receivedAt: DateTime.fromMillisecondsSinceEpoch(1700000002500),
+        deliveryStatus: MessageDeliveryStatus.sent,
+        echoCount: 1,
+        lastEchoRssiDbm: -88,
+        lastEchoSnrRaw: 6,
+      );
+      harness.messagesProvider.addSentMessage(message);
+      harness.messagesProvider.handleMessageEcho(
+        'sent-channel-echo-details',
+        1,
+        6,
+        -88,
+        pathBytes: Uint8List.fromList([0x10, 0x20, 0xAA]),
+      );
+
+      await tester.pumpWidget(_buildApp(harness, message));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Echo detail path'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Details'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Last echo relay'), findsOneWidget);
+      expect(find.text('AA'), findsOneWidget);
+      expect(find.text('Last echo path'), findsOneWidget);
+      expect(find.text('10:20:aa'), findsWidgets);
+      expect(find.text('Last echo bytes report'), findsOneWidget);
+      expect(
+        find.text('3 bytes [10 20 AA] • hops #1=10, #2=20, #3=AA'),
+        findsOneWidget,
+      );
     } finally {
       await _disposeHarness(tester, harness);
     }
@@ -403,7 +502,7 @@ void main() {
       await tester.longPress(find.text('Location details'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Technical details'));
+      await tester.tap(find.text('Details'));
       await tester.pumpAndSettle();
 
       expect(find.byType(flutter_map.FlutterMap), findsOneWidget);
@@ -451,7 +550,7 @@ void main() {
         await tester.longPress(find.text('Channel fallback'));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Technical details'));
+        await tester.tap(find.text('Details'));
         await tester.pumpAndSettle();
 
         expect(find.byType(flutter_map.FlutterMap), findsOneWidget);

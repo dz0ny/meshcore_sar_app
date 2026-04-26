@@ -534,7 +534,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                   _hideDrawingFromMap(parentContext);
                 },
               ),
-            // Technical details option
+            // Details option
             ListTile(
               leading: Icon(Icons.data_object),
               title: Text(l10n.technicalDetails),
@@ -676,6 +676,15 @@ class _MessageBubbleState extends State<MessageBubble> {
     final packetPathHex = (receptionDetails?.pathBytes ?? packetPathBytes)
         ?.map((b) => b.toRadixString(16).padLeft(2, '0'))
         .join(':');
+    final lastEchoRelayHash = receptionDetails?.pathBytes?.isNotEmpty == true
+        ? receptionDetails!.pathBytes!.last
+              .toRadixString(16)
+              .padLeft(2, '0')
+              .toUpperCase()
+        : null;
+    final lastEchoBytesReport = _formatPathBytesReport(
+      receptionDetails?.pathBytes,
+    );
     final snrDb =
         receptionDetails?.snrDb ??
         matchedRxLog?.logRxDataInfo?.snrDb ??
@@ -712,6 +721,9 @@ class _MessageBubbleState extends State<MessageBubble> {
       'Received at (RFC3339): ${_formatRfc3339(widget.message.receivedAt)}',
       'Channel index: ${widget.message.channelIdx ?? '-'}',
       'Echo count: ${widget.message.echoCount}',
+      'Last echo relay hash: ${lastEchoRelayHash ?? '-'}',
+      'Last echo path bytes: ${receptionDetails?.pathBytesHex ?? '-'}',
+      'Last echo bytes report: ${lastEchoBytesReport ?? '-'}',
       'Last echo RSSI: ${widget.message.lastEchoRssiDbm ?? '-'}',
       'Last echo SNR: ${snrDb?.toStringAsFixed(2) ?? '-'}',
       'Matched RX RSSI: ${rssiDbm ?? '-'}',
@@ -1043,6 +1055,33 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 sheetContext,
                                 label: l10n.receivedCopies,
                                 value: '${widget.receivedCopies}',
+                              ),
+                            if (lastEchoRelayHash != null)
+                              _detailRow(
+                                sheetContext,
+                                label: 'Last echo relay',
+                                value: lastEchoRelayHash,
+                                onCopy: () =>
+                                    copyField(sheetContext, lastEchoRelayHash),
+                              ),
+                            if (receptionDetails?.pathBytesHex
+                                case final echoPath?)
+                              _detailRow(
+                                sheetContext,
+                                label: 'Last echo path',
+                                value: echoPath,
+                                onCopy: () =>
+                                    copyField(sheetContext, echoPath),
+                              ),
+                            if (lastEchoBytesReport != null)
+                              _detailRow(
+                                sheetContext,
+                                label: 'Last echo bytes report',
+                                value: lastEchoBytesReport,
+                                onCopy: () => copyField(
+                                  sheetContext,
+                                  lastEchoBytesReport,
+                                ),
                               ),
                             if (widget.message.suggestedTimeoutMs != null)
                               _detailRow(
@@ -1622,6 +1661,23 @@ class _MessageBubbleState extends State<MessageBubble> {
       return '${(durationMs / 1000).toStringAsFixed(durationMs >= 10000 ? 0 : 1)} s';
     }
     return '$durationMs ms';
+  }
+
+  String? _formatPathBytesReport(List<int>? pathBytes) {
+    if (pathBytes == null || pathBytes.isEmpty) {
+      return null;
+    }
+
+    final byteHex = pathBytes
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0').toUpperCase())
+        .toList();
+    final indexedHops = byteHex
+        .asMap()
+        .entries
+        .map((entry) => '#${entry.key + 1}=${entry.value}')
+        .join(', ');
+    final byteLabel = pathBytes.length == 1 ? 'byte' : 'bytes';
+    return '${pathBytes.length} $byteLabel [${byteHex.join(' ')}] • hops $indexedHops';
   }
 
   BlePacketLog? _findBestMatchingRxLog(

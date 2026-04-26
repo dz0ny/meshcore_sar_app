@@ -79,7 +79,7 @@ class LogRxRouteDecoder {
     }
     final pathBytes = rawPacketData.sublist(index, index + pathByteLen);
     final hashSize = pathMode == 0
-        ? inferHashSize(pathBytes, preferredHashSize: preferredHashSize)
+        ? 1
         : (descriptorHashSize(pathDescriptor) ??
               inferHashSize(pathBytes, preferredHashSize: preferredHashSize));
 

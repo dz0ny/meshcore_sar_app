@@ -198,6 +198,9 @@ class MessagesProvider with ChangeNotifier {
       _messages[index] = _messages[index].copyWith(
         usedFloodFallback: selection.usesFlood,
         pathLen: nextPathLen,
+        pathBytes: selection.hasDirectPath
+            ? Uint8List.fromList(selection.pathBytes)
+            : Uint8List(0),
       );
     }
 
@@ -803,15 +806,30 @@ class MessagesProvider with ChangeNotifier {
       if (contactLocationSnapshot != null) {
         _messageContactLocations[existingId] = contactLocationSnapshot;
       }
-      _messageReceptionDetails[existingId] =
-          MessageReceptionDetails.mergeDuplicate(
-            existing: _messageReceptionDetails[existingId],
-            incoming: receptionDetailsSnapshot,
-          );
+      final mergedReceptionDetails = MessageReceptionDetails.mergeDuplicate(
+        existing: _messageReceptionDetails[existingId],
+        incoming: receptionDetailsSnapshot,
+      );
+      _messageReceptionDetails[existingId] = mergedReceptionDetails;
       final existingMessage = _messages[matchingSentReplayIndex];
+      final routeMetadata = _messageRouteMetadata[existingId];
       _messages[matchingSentReplayIndex] = existingMessage.copyWith(
-        pathLen: finalMessage.pathLen > 0 ? finalMessage.pathLen : existingMessage.pathLen,
-        pathBytes: finalMessage.pathBytes ?? existingMessage.pathBytes,
+        echoCount: _mergeSentReplayEchoCount(
+          existingMessage,
+          mergedReceptionDetails,
+        ),
+        pathLen: _mergeSentReplayPathLen(
+          existingMessage,
+          finalMessage,
+          routeMetadata,
+        ),
+        pathBytes: _mergeSentReplayPathBytes(
+          existingMessage,
+          finalMessage,
+          routeMetadata,
+        ),
+        firstEchoAt: existingMessage.firstEchoAt ?? DateTime.now(),
+        lastEchoAt: DateTime.now(),
       );
       _persistMessages();
       return;
@@ -1030,6 +1048,51 @@ class MessagesProvider with ChangeNotifier {
     }
 
     return _matchesDuplicateSenderIdentity(existing, message);
+  }
+
+  int _mergeSentReplayEchoCount(
+    Message existing,
+    MessageReceptionDetails mergedReceptionDetails,
+  ) {
+    final replayCount = mergedReceptionDetails.receivedCopies > 0
+        ? mergedReceptionDetails.receivedCopies - 1
+        : 0;
+    return replayCount > existing.echoCount ? replayCount : existing.echoCount;
+  }
+
+  int _mergeSentReplayPathLen(
+    Message existing,
+    Message incoming,
+    MessageRouteMetadata? routeMetadata,
+  ) {
+    if (routeMetadata?.mode == PathSelectionMode.flood ||
+        existing.usedFloodFallback) {
+      return existing.pathLen;
+    }
+
+    final routeHopCount = routeMetadata?.hopCount;
+    if (routeHopCount != null && routeHopCount > 0) {
+      return routeHopCount;
+    }
+
+    if (existing.pathLen > 0) {
+      return existing.pathLen;
+    }
+
+    return incoming.pathLen > 0 ? incoming.pathLen : existing.pathLen;
+  }
+
+  Uint8List? _mergeSentReplayPathBytes(
+    Message existing,
+    Message incoming,
+    MessageRouteMetadata? routeMetadata,
+  ) {
+    if (routeMetadata?.mode == PathSelectionMode.flood ||
+        existing.usedFloodFallback) {
+      return existing.pathBytes;
+    }
+
+    return existing.pathBytes ?? incoming.pathBytes;
   }
 
   /// Add multiple messages
@@ -2166,7 +2229,9 @@ class MessagesProvider with ChangeNotifier {
     int echoCount,
     int snrRaw,
     int rssiDbm,
-  ) {
+    {
+    Uint8List? pathBytes,
+  }) {
     debugPrint('🔊 [MessagesProvider] handleMessageEcho called');
     debugPrint('  Message ID: $messageId');
     debugPrint('  Echo count: $echoCount');
@@ -2181,18 +2246,35 @@ class MessagesProvider with ChangeNotifier {
         '  ✅ Found message: ${message.text.substring(0, message.text.length > 30 ? 30 : message.text.length)}...',
       );
 
+      final nextEchoCount = echoCount > message.echoCount
+          ? echoCount
+          : message.echoCount + 1;
+
       // Update echo count
       final updatedMessage = message.copyWith(
-        echoCount: echoCount,
+        echoCount: nextEchoCount,
         firstEchoAt: message.firstEchoAt ?? DateTime.now(),
         lastEchoSnrRaw: snrRaw.toSigned(8),
         lastEchoRssiDbm: rssiDbm.toSigned(8),
         lastEchoAt: DateTime.now(),
       );
       _messages[index] = updatedMessage;
+      _messageReceptionDetails[messageId] = _messageReceptionDetails[messageId]
+              ?.copyWith(
+                capturedAt: DateTime.now(),
+                rssiDbm: rssiDbm.toSigned(8),
+                snrDb: snrRaw.toSigned(8) / 4.0,
+                pathBytes: pathBytes?.toList(),
+              ) ??
+          MessageReceptionDetails(
+            capturedAt: DateTime.now(),
+            rssiDbm: rssiDbm.toSigned(8),
+            snrDb: snrRaw.toSigned(8) / 4.0,
+            pathBytes: pathBytes?.toList(),
+          );
       _clearChannelSendWarning(messageId);
 
-      debugPrint('  Updated echo count to: $echoCount');
+      debugPrint('  Updated echo count to: $nextEchoCount');
       _persistMessages();
       notifyListeners();
       debugPrint('  ✅ Echo update complete, UI notified');

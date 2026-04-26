@@ -1471,10 +1471,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reply => 'Reply';
 
   @override
-  String get technicalDetails => 'Technical details';
+  String get technicalDetails => 'Details';
 
   @override
-  String get messageTechnicalDetails => 'Message technical details';
+  String get messageTechnicalDetails => 'Message details';
 
   @override
   String get linkQuality => 'Link quality';

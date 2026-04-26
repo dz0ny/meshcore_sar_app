@@ -254,6 +254,47 @@ void main() {
       });
     });
 
+    test('repeated echo callbacks accumulate when radio reports one each time', () {
+      final provider = MessagesProvider();
+      provider.addSentMessage(
+        _buildSentChannelMessage(
+          id: 'c-echo-callbacks',
+          senderTimestamp: 1700000002,
+        ),
+      );
+      provider.markMessageSent('c-echo-callbacks', 0, 0);
+
+      provider.handleMessageEcho(
+        'c-echo-callbacks',
+        1,
+        4,
+        -90,
+        pathBytes: Uint8List.fromList([0xAA]),
+      );
+      provider.handleMessageEcho(
+        'c-echo-callbacks',
+        1,
+        5,
+        -89,
+        pathBytes: Uint8List.fromList([0xAA, 0xBB]),
+      );
+      provider.handleMessageEcho(
+        'c-echo-callbacks',
+        1,
+        6,
+        -88,
+        pathBytes: Uint8List.fromList([0xAA, 0xBB, 0xCC]),
+      );
+
+      expect(provider.messages.single.echoCount, equals(3));
+      expect(provider.messages.single.lastEchoSnrRaw, equals(6));
+      expect(provider.messages.single.lastEchoRssiDbm, equals(-88));
+      expect(
+        provider.getMessageReceptionDetails('c-echo-callbacks')?.pathBytes,
+        [0xAA, 0xBB, 0xCC],
+      );
+    });
+
     test('channel warning clears when replay arrives after send', () {
       fakeAsync((async) {
         final provider = MessagesProvider();
@@ -302,7 +343,108 @@ void main() {
 
       expect(provider.messages, hasLength(1));
       expect(provider.messages.single.id, equals('c-echo'));
+      expect(provider.messages.single.echoCount, equals(1));
       expect(provider.messages.single.pathLen, equals(1));
+    });
+
+    test('channel replay count reflects how many times a sent message was heard', () {
+      final provider = MessagesProvider();
+      provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
+      provider.addSentMessage(
+        _buildSentChannelMessage(
+          id: 'c-repeat-count',
+          senderTimestamp: 1700000110,
+        ),
+      );
+      provider.markMessageSent('c-repeat-count', 0, 0);
+
+      provider.addMessage(
+        _buildReceivedChannelReplay(
+          id: 'c-repeat-count-1',
+          senderTimestamp: 1700000111,
+          senderName: 'dz0ny (SI)',
+        ),
+      );
+      provider.addMessage(
+        _buildReceivedChannelReplay(
+          id: 'c-repeat-count-2',
+          senderTimestamp: 1700000112,
+          senderName: 'dz0ny (SI)',
+        ),
+      );
+
+      expect(provider.messages, hasLength(1));
+      expect(provider.messages.single.echoCount, equals(2));
+      expect(provider.getMessageReceptionDetails('c-repeat-count')?.receivedCopies, equals(3));
+    });
+
+    test('channel replay keeps flood mode hop count untouched', () {
+      final provider = MessagesProvider();
+      provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
+      provider.addSentMessage(
+        _buildSentChannelMessage(
+          id: 'c-flood-path',
+          senderTimestamp: 1700000120,
+        ),
+      );
+      provider.updateMessageRouteSelection(
+        'c-flood-path',
+        PathSelection.flood(),
+        routerFallbackAttempted: false,
+      );
+      provider.markMessageSent('c-flood-path', 0, 0);
+
+      provider.addMessage(
+        _buildReceivedChannelReplay(
+          id: 'c-flood-path-incoming',
+          senderTimestamp: 1700000121,
+          senderName: 'dz0ny (SI)',
+        ).copyWith(pathBytes: Uint8List.fromList([0xAA, 0xBB])),
+      );
+
+      expect(provider.messages, hasLength(1));
+      expect(provider.messages.single.echoCount, equals(1));
+      expect(provider.messages.single.pathLen, equals(0));
+      expect(provider.messages.single.pathBytes, isEmpty);
+      expect(
+        provider.getMessageRouteMetadata('c-flood-path')?.mode,
+        PathSelectionMode.flood,
+      );
+    });
+
+    test('channel replay preserves sent direct path bytes', () {
+      final provider = MessagesProvider();
+      provider.resolveContactNameCallback = (_) => 'dz0ny (SI)';
+      provider.addSentMessage(
+        _buildSentChannelMessage(
+          id: 'c-direct-path',
+          senderTimestamp: 1700000130,
+        ),
+      );
+      provider.updateMessageRouteSelection(
+        'c-direct-path',
+        PathSelection(
+          mode: PathSelectionMode.directCurrent,
+          pathBytes: Uint8List.fromList([0x01, 0x02]),
+          hopCount: 2,
+          hashSize: 1,
+        ),
+        routerFallbackAttempted: false,
+      );
+      provider.markMessageSent('c-direct-path', 0, 0);
+
+      provider.addMessage(
+        _buildReceivedChannelReplay(
+          id: 'c-direct-path-incoming',
+          senderTimestamp: 1700000131,
+          senderName: 'dz0ny (SI)',
+        ).copyWith(pathBytes: Uint8List.fromList([0xAA, 0xBB])),
+      );
+
+      expect(provider.messages, hasLength(1));
+      expect(provider.messages.single.echoCount, equals(1));
+      expect(provider.messages.single.pathLen, equals(2));
+      expect(provider.messages.single.pathBytes, [0x01, 0x02]);
     });
 
     test(

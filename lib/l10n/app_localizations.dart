@@ -2769,13 +2769,13 @@ abstract class AppLocalizations {
   /// No description provided for @technicalDetails.
   ///
   /// In en, this message translates to:
-  /// **'Technical details'**
+  /// **'Details'**
   String get technicalDetails;
 
   /// No description provided for @messageTechnicalDetails.
   ///
   /// In en, this message translates to:
-  /// **'Message technical details'**
+  /// **'Message details'**
   String get messageTechnicalDetails;
 
   /// No description provided for @linkQuality.

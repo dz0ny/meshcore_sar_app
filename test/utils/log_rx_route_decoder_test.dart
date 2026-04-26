@@ -26,9 +26,30 @@ void main() {
       expect(decoded!.payloadType, 0x01);
       expect(decoded.pathDescriptor, 0x04);
       expect(decoded.pathBytes, [0xc2, 0xba, 0x5f, 0xde]);
-      expect(decoded.hashSize, 2);
-      expect(decoded.hopHashes, ['c2ba', '5fde']);
-      expect(decoded.originalSenderHashHex, 'c2ba');
+      expect(decoded.hashSize, 1);
+      expect(decoded.hopHashes, ['c2', 'ba', '5f', 'de']);
+      expect(decoded.originalSenderHashHex, 'c2');
+    });
+
+    test('parses legacy two byte paths as two one-byte hops', () {
+      final packet = Uint8List.fromList([
+        0x88,
+        0x37,
+        0xae,
+        0x05,
+        0x02,
+        0xc2,
+        0xba,
+      ]);
+
+      final decoded = LogRxRouteDecoder.decode(packet);
+
+      expect(decoded, isNotNull);
+      expect(decoded!.pathDescriptor, 0x02);
+      expect(decoded.pathBytes, [0xc2, 0xba]);
+      expect(decoded.hashSize, 1);
+      expect(decoded.hopCount, 2);
+      expect(decoded.hopHashes, ['c2', 'ba']);
     });
 
     test('parses encoded descriptor with 2-byte hashes', () {
@@ -55,7 +76,7 @@ void main() {
       expect(decoded.hopHashes, ['c2ba', '5fde']);
     });
 
-    test('uses preferred hash size when packet length is ambiguous', () {
+    test('uses one byte hashes for legacy packet lengths', () {
       final packet = Uint8List.fromList([
         0x88,
         0x37,
@@ -70,7 +91,7 @@ void main() {
         0xff,
       ]);
 
-      final decoded = LogRxRouteDecoder.decode(packet, preferredHashSize: 1);
+      final decoded = LogRxRouteDecoder.decode(packet, preferredHashSize: 2);
 
       expect(decoded, isNotNull);
       expect(decoded!.hashSize, 1);

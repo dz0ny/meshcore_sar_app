@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import '../models/message.dart';
+import '../models/message_route_metadata.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/messages_provider.dart';
 
@@ -14,7 +15,7 @@ extension MessageLocalization on Message {
 
     // For channel messages, show echo count instead of delivery status
     if (isChannelMessage && deliveryStatus == MessageDeliveryStatus.sent) {
-      final latestMeta = _formatEchoMeta(context);
+      final latestMeta = _formatChannelStatusMeta(context, routeMetadata);
       if (echoCount == 0) {
         if (messagesProvider.hasChannelSendWarning(id)) {
           return 'Broadcast may have failed';
@@ -125,6 +126,41 @@ extension MessageLocalization on Message {
 
     if (parts.isEmpty) return null;
     return parts.join(' • ');
+  }
+
+  String? _formatChannelStatusMeta(
+    BuildContext context,
+    MessageRouteMetadata? routeMetadata,
+  ) {
+    final parts = <String>[];
+    final hopLabel = _formatChannelHopMeta(routeMetadata);
+    if (hopLabel != null) {
+      parts.add(hopLabel);
+    }
+
+    final echoMeta = _formatEchoMeta(context);
+    if (echoMeta != null) {
+      parts.add(echoMeta);
+    }
+
+    if (parts.isEmpty) {
+      return null;
+    }
+
+    return parts.join(' • ');
+  }
+
+  String? _formatChannelHopMeta(MessageRouteMetadata? routeMetadata) {
+    if (routeMetadata?.mode.name == 'flood') {
+      return routeMetadata!.modeLabel;
+    }
+
+    final effectivePathLen = routeMetadata?.hopCount ?? pathLen;
+    if (effectivePathLen <= 0 || effectivePathLen >= 255) {
+      return null;
+    }
+
+    return '$effectivePathLen hop${effectivePathLen == 1 ? '' : 's'}';
   }
 
   String _barsForRssi(int rssiDbm) {
