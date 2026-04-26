@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,8 +17,13 @@ class BackgroundLocationService {
   static const String _prefKeyDistance = 'background_tracking_distance';
   static const String _prefKeyLastLat = 'background_last_lat';
   static const String _prefKeyLastLon = 'background_last_lon';
+  static const String _notificationChannelId =
+      'meshcore_sar_background_tracking';
+  static const int _notificationId = 9101;
 
   MeshCoreBleService? _bleService;
+  final FlutterBackgroundService _service = FlutterBackgroundService();
+  bool _serviceConfigured = false;
 
   String _scopedKey(String baseKey) {
     return ProfileStorageScope.scopedKey(baseKey);
@@ -33,8 +41,6 @@ class BackgroundLocationService {
   /// Start location tracking and automatic advertisement
   /// Returns true if successful, false otherwise
   ///
-  /// Note: This is foreground tracking. For true background operation,
-  /// additional platform-specific configuration is required.
   Future<bool> startTracking({double distanceThreshold = 10.0}) async {
     if (!_isInitialized || _bleService == null) {
       debugPrint(
@@ -79,6 +85,8 @@ class BackgroundLocationService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_scopedKey(_prefKeyEnabled), true);
     await prefs.setDouble(_scopedKey(_prefKeyDistance), distanceThreshold);
+
+    await _startForegroundService(distanceThreshold);
 
     // Start listening to position updates
     Position? lastPosition;
@@ -171,10 +179,85 @@ class BackgroundLocationService {
     debugPrint('🛑 [BackgroundLocation] Stopping tracking');
     await _positionSubscription?.cancel();
     _positionSubscription = null;
+    await _stopForegroundService();
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_scopedKey(_prefKeyEnabled), false);
     debugPrint('✅ [BackgroundLocation] Tracking stopped');
+  }
+
+  Future<void> _startForegroundService(double distanceThreshold) async {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return;
+    }
+
+    try {
+      if (!_serviceConfigured) {
+        await _configureForegroundService();
+      }
+
+      final running = await _service.isRunning();
+      if (!running) {
+        await _service.startService();
+      }
+
+      _service.invoke('trackingUpdate', {
+        'distanceThreshold': distanceThreshold,
+      });
+    } catch (e) {
+      debugPrint('⚠️ [BackgroundLocation] Foreground service start failed: $e');
+    }
+  }
+
+  Future<void> _stopForegroundService() async {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return;
+    }
+
+    try {
+      if (await _service.isRunning()) {
+        _service.invoke('stopService');
+      }
+    } catch (e) {
+      debugPrint('⚠️ [BackgroundLocation] Foreground service stop failed: $e');
+    }
+  }
+
+  Future<void> _configureForegroundService() async {
+    const channel = AndroidNotificationChannel(
+      _notificationChannelId,
+      'Background tracking',
+      description:
+          'Keeps MeshCore SAR location sharing active while the app is in the background.',
+      importance: Importance.low,
+    );
+
+    final notifications = FlutterLocalNotificationsPlugin();
+    await notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(channel);
+
+    await _service.configure(
+      androidConfiguration: AndroidConfiguration(
+        onStart: meshCoreSarBackgroundServiceStart,
+        autoStart: false,
+        autoStartOnBoot: false,
+        isForegroundMode: true,
+        notificationChannelId: _notificationChannelId,
+        initialNotificationTitle: 'MeshCore SAR',
+        initialNotificationContent: 'Maintaining background tracking',
+        foregroundServiceNotificationId: _notificationId,
+        foregroundServiceTypes: [AndroidForegroundType.location],
+      ),
+      iosConfiguration: IosConfiguration(
+        autoStart: false,
+        onForeground: meshCoreSarBackgroundServiceStart,
+        onBackground: meshCoreSarBackgroundServiceIos,
+      ),
+    );
+    _serviceConfigured = true;
   }
 
   /// Update the distance threshold for location updates
@@ -211,4 +294,41 @@ class BackgroundLocationService {
       distanceFilter: distanceFilter,
     );
   }
+}
+
+@pragma('vm:entry-point')
+Future<bool> meshCoreSarBackgroundServiceIos(ServiceInstance service) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
+  return true;
+}
+
+@pragma('vm:entry-point')
+void meshCoreSarBackgroundServiceStart(ServiceInstance service) {
+  DartPluginRegistrant.ensureInitialized();
+
+  if (service is AndroidServiceInstance) {
+    service.setAsForegroundService();
+    service.setForegroundNotificationInfo(
+      title: 'MeshCore SAR',
+      content: 'Maintaining background tracking',
+    );
+  }
+
+  service.on('trackingUpdate').listen((event) {
+    if (service is AndroidServiceInstance) {
+      final threshold = event?['distanceThreshold'];
+      final suffix = threshold is num
+          ? ' (${threshold.toStringAsFixed(0)} m updates)'
+          : '';
+      service.setForegroundNotificationInfo(
+        title: 'MeshCore SAR',
+        content: 'Maintaining background tracking$suffix',
+      );
+    }
+  });
+
+  service.on('stopService').listen((event) {
+    service.stopSelf();
+  });
 }
