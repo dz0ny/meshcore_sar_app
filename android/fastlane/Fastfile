@@ -16,44 +16,72 @@
 default_platform(:android)
 
 platform :android do
+  def project_root
+    File.expand_path("../..", __dir__)
+  end
+
+  def play_service_account_json
+    ENV.fetch("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON")
+  end
+
+  def play_build_command
+    "cd #{project_root} && flutter build appbundle --release"
+  end
+
+  def play_aab_path
+    File.join(project_root, "build/app/outputs/bundle/release/app-release.aab")
+  end
+
+  def play_package_name
+    "com.meshcore.sar.meshcore_sar_app"
+  end
+
+  def direct_apk_build_command
+    "cd #{project_root} && flutter build apk --release"
+  end
+
+  def direct_apk_path
+    File.join(project_root, "build/app/outputs/flutter-apk/app-release.apk")
+  end
+
+  def skip_android_build?
+    ENV["SKIP_ANDROID_BUILD"] == "1"
+  end
+
   desc "Runs all the tests"
   lane :test do
     gradle(task: "test")
   end
 
   desc "Build release APK"
-  lane :beta do
-    # Get the project root directory (two levels up from android/fastlane/)
-    project_root = File.expand_path("../..", __dir__)
+  lane :direct_apk do
+    sh(direct_apk_build_command)
 
-    # Build APK with Flutter
-    sh("cd #{project_root} && flutter build apk --release")
-
-    apk_path = File.join(project_root, "build/app/outputs/flutter-apk/app-release.apk")
-
-    # Uncomment to distribute via Firebase App Distribution:
-    # firebase_app_distribution(
-    #   app: "YOUR_FIREBASE_APP_ID",
-    #   apk_path: apk_path,
-    #   groups: "testers"
-    # )
-
-    UI.success("APK built at: #{apk_path}")
+    UI.success("APK built successfully at: #{direct_apk_path}")
   end
 
-  desc "Deploy a new version to the Google Play"
-  lane :deploy do
-    # Get the project root directory (two levels up from android/fastlane/)
-    project_root = File.expand_path("../..", __dir__)
-
-    # Build AAB with Flutter (required for Play Store since 2021)
-    sh("cd #{project_root} && flutter build appbundle --release")
-
-    aab_path = File.join(project_root, "build/app/outputs/bundle/release/app-release.aab")
+  desc "Build Play release AAB and upload to internal testing"
+  lane :internal do
+    sh(play_build_command) unless skip_android_build?
 
     upload_to_play_store(
-      aab: aab_path,
-      track: "internal"
+      aab: play_aab_path,
+      package_name: play_package_name,
+      track: "internal",
+      release_status: "draft",
+      json_key_data: play_service_account_json
+    )
+  end
+
+  desc "Build Play release AAB and upload to production"
+  lane :production do
+    sh(play_build_command) unless skip_android_build?
+
+    upload_to_play_store(
+      aab: play_aab_path,
+      package_name: play_package_name,
+      track: "production",
+      json_key_data: play_service_account_json
     )
   end
 end

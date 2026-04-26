@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -44,6 +44,14 @@ jobs:
           cache-key: flutter-${{ runner.os }}-stable-${{ env.FLUTTER_VERSION }}-${{ runner.arch }}
           pub-cache-key: flutter-pub-${{ runner.os }}-stable-${{ env.FLUTTER_VERSION }}-${{ runner.arch }}-${{ hashFiles('pubspec.lock') }}
 
+      - name: Setup Ruby
+        if: github.event_name == 'release'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: android
+
       - name: Cache Android NDK
         uses: actions/cache@v4
         with:
@@ -55,21 +63,75 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Validate Android release secrets
+        if: github.event_name == 'release'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+          test -n "$ANDROID_KEY_PASSWORD"
+          test -n "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"
+
+      - name: Create Android signing files
+        if: github.event_name == 'release'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/release-keystore.jks
+          cat <<EOF > android/key.properties
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=../release-keystore.jks
+          EOF
+
       - name: Build APK
         run: flutter build apk --release
 
-      - name: Prepare APK artifact
+      - name: Build Play release AAB
+        if: github.event_name == 'release'
+        run: flutter build appbundle --release
+
+      - name: Prepare Android artifacts
         run: |
           RAW_TAG="${{ github.event.release.tag_name || github.ref_name }}"
           TAG="${RAW_TAG//\//-}"
           cp build/app/outputs/flutter-apk/app-release.apk "${APP_NAME}-${TAG}-android.apk"
+          if [ -f build/app/outputs/bundle/release/app-release.aab ]; then
+            cp build/app/outputs/bundle/release/app-release.aab "${APP_NAME}-${TAG}-play.aab"
+          fi
 
-      - name: Upload APK artifact
+      - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-android
-          path: "${{ env.APP_NAME }}-*-android.apk"
+          path: |
+            ${{ env.APP_NAME }}-*-android.apk
+            ${{ env.APP_NAME }}-*-play.aab
           if-no-files-found: error
+
+      - name: Upload Play release to internal testing
+        if: github.event_name == 'release'
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          SKIP_ANDROID_BUILD: "1"
+        run: cd android && bundle exec fastlane android internal
+
+      - name: Upload Play release to production
+        if: github.event_name == 'release' && !github.event.release.prerelease
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          SKIP_ANDROID_BUILD: "1"
+        run: cd android && bundle exec fastlane android production
 
   build-linux:
     name: Build Linux App
@@ -348,6 +410,7 @@ jobs:
           body: |
             Release assets are published for all supported build targets:
             - Android (`.apk`)
+            - Google Play (`.aab`)
             - Linux (`.tar.gz`)
             - macOS (`.dmg`)
             - Windows (`.zip`)
@@ -362,6 +425,7 @@ jobs:
             4. Install the signed `.ipa` on your iPhone using Apple Configurator 2 or Xcode (Devices and Simulators).
           files: |
             dist/*.apk
+            dist/*.aab
             dist/*.tar.gz
             dist/*.zip
             dist/*.dmg
